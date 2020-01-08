@@ -1,0 +1,8 @@
+﻿.vs
+.idea
+bin
+obj
+build
+cmake-build-debug
+*.vcxproj*
+*.sln
