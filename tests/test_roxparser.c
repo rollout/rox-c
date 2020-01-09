@@ -7,8 +7,8 @@ START_TEST (test_simple_tokenization) {
 END_TEST
 
 Suite *parser_suite(void) {
-    Suite *suite = suite_create("test_simple_tokenization");
-    TCase *tcase = tcase_create("case");
+    Suite *suite = suite_create("parser_suite");
+    TCase *tcase = tcase_create("test_simple_tokenization");
     tcase_add_test(tcase, test_simple_tokenization);
     suite_add_tcase(suite, tcase);
     return suite;
