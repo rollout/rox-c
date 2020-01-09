@@ -4,7 +4,7 @@ find_package(Check REQUIRED)
 set(CHECK_INCLUDE_DIRS ${Check_DIR}/../../../include)
 set(CHECK_LIBRARIES ${Check_DIR}/../../check.lib)
 
-include_directories(${Check_DIR}/../../../include)
+include_directories(${CHECK_INCLUDE_DIRS})
 set(LIBS ${LIBS} ${CHECK_LIBRARIES} libroxc)
 set(LIBSCXX ${LIBS} ${CHECK_LIBRARIES} libroxcpp)
 
