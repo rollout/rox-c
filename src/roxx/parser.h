@@ -1,14 +1,12 @@
 #pragma once
 
 #include "visibility.h"
-#include "stack.h"
+#include "roxx/stack.h"
 #include "context.h"
 
-struct Parser;
-
-typedef void ROX_INTERNAL (*parser_operation(struct Parser *parser, Stack *stack));
-
 typedef struct Parser Parser;
+
+typedef void ROX_INTERNAL (*parser_operation(struct Parser *parser, CoreStack *stack));
 
 void ROX_INTERNAL parser_evaluate_expression(const char *expression, Context *context);
 

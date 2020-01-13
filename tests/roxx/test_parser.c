@@ -1,5 +1,7 @@
 ﻿#include <check.h>
 
+#include "roxx/parser.h"
+
 START_TEST (test_simple_tokenization) {
     // TODO: implement!
 }
