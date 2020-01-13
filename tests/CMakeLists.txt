@@ -5,15 +5,15 @@ set(CHECK_INCLUDE_DIRS ${Check_DIR}/../../../include)
 set(CHECK_LIBRARIES ${Check_DIR}/../../check.lib)
 
 include_directories(${CHECK_INCLUDE_DIRS})
-set(LIBS ${LIBS} ${CHECK_LIBRARIES} libroxc)
+set(LIBS ${LIBS} ${CHECK_LIBRARIES})
 
 include_directories(. ../src)
 
-add_executable(test_stack roxx/test_stack.c)
+add_executable(test_stack ../src/roxx/stack.c roxx/test_stack.c)
 add_test(test_stack ${CMAKE_CURRENT_BINARY_DIR}/test_stack)
 target_link_libraries(test_stack ${LIBS})
 
-add_executable(test_parser roxx/test_parser.c)
+add_executable(test_parser ../src/roxx/parser.c roxx/test_parser.c)
 add_test(test_parser ${CMAKE_CURRENT_BINARY_DIR}/test_parser)
 target_link_libraries(test_parser ${LIBS})
 
