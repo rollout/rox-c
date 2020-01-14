@@ -90,7 +90,7 @@ void ROX_INTERNAL stack_push_boolean(CoreStack *root, bool value) {
     _stack_push(root, item);
 }
 
-void ROX_INTERNAL stack_push_string(CoreStack *root, const char *const value) {
+void ROX_INTERNAL stack_push_string(CoreStack *root, const char *value) {
     StackItem *item = _create_stack_item();
     item->str_value = mem_copy_str(value);
     _stack_push(root, item);
