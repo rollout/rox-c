@@ -1,12 +1,18 @@
 // TODO: put parser functions here
 
 #include <stdlib.h>
+#include <string.h>
 #include <assert.h>
 
+#include "roxapi.h"
 #include "util.h"
 #include "core/entities.h"
 #include "roxx/parser.h"
 #include "roxx/stack.h"
+
+//
+// EvaluationResult
+//
 
 struct ROX_INTERNAL EvaluationResult {
     int *int_value;
@@ -87,4 +93,53 @@ void ROX_INTERNAL result_free(EvaluationResult *result) {
         free(result->str_value);
     }
     free(result);
+}
+
+//
+// Node
+//
+
+typedef enum ROX_INTERNAL {
+    Rand,
+    Rator,
+    Unknown
+} NodeType;
+
+typedef struct {
+    NodeType type;
+    // TODO: value
+} Node;
+
+//
+// Symbols
+//
+
+static const char *ROXX_UNDEFINED = "undefined";
+static const char *ROXX_TRUE = "true";
+static const char *ROXX_FALSE = "false";
+static const char *ROXX_EMPTY_STRING = "\"\"";
+static const char *ROXX_STRING_TYPE = "StringType";
+static const char *ROXX_BOOL_TYPE = "BooleanType";
+static const char *ROXX_NUMBER_TYPE = "NumberType";
+static const char *ROXX_UNDEFINED_TYPE = "UndefinedType";
+static const char *ROXX_NOT_A_TYPE = "NOT_A_TYPE";
+
+//
+// TokenTypes
+//
+
+const char *get_type_from_token(const char *token) {
+    if (!token) {
+        return ROXX_NOT_A_TYPE;
+    }
+//    const char* tested_token = token.ToLowerInvariant();
+//
+//    if (STRING.Pattern().IsMatch(tested_token)) return STRING;
+//
+//    if (NUMBER.Pattern().IsMatch(tested_token)) return NUMBER;
+//
+//    if (BOOLEAN.Pattern().IsMatch(tested_token)) return BOOLEAN;
+//
+//    if (UNDEFINED.Pattern().IsMatch(tested_token)) return UNDEFINED;
+    return NULL;
 }

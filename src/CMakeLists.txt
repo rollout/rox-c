@@ -5,7 +5,7 @@ set(ROX_SRC
         core/entities.c
         roxx/stack.c
         roxx/parser.c
-        api.c)
+        roxapi.c)
 
 add_library(libroxc ${ROX_SRC})
 add_library(libroxcpp ${ROX_SRC} api.cxx)

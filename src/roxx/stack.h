@@ -1,7 +1,7 @@
 #pragma once
 
 #include <stdbool.h>
-#include "visibility.h"
+#include "roxapi.h"
 
 typedef struct CoreStack CoreStack;
 typedef struct StackItem StackItem;

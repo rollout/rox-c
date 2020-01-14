@@ -1,6 +1,6 @@
 #pragma once
 
-#include "visibility.h"
+#include "roxapi.h"
 #include "roxx/stack.h"
 #include "context.h"
 

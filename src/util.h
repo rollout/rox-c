@@ -1,7 +1,7 @@
 #pragma once
 
 #include <stdbool.h>
-#include "visibility.h"
+#include "roxapi.h"
 
 int *ROX_INTERNAL mem_copy_int(int value);
 
