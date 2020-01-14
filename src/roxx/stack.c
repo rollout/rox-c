@@ -10,7 +10,7 @@
 #include "roxx/stack.h"
 
 struct ROX_INTERNAL CoreStack {
-    StackItem *root;
+    StackItem *first;
     StackItem *current;
 };
 
@@ -27,34 +27,28 @@ CoreStack *ROX_INTERNAL stack_create() {
     return (CoreStack *) calloc(1, sizeof(CoreStack));
 }
 
-void ROX_INTERNAL _free_stack_item(StackItem *item) {
-    assert(item);
-    struct StackItem *next = item->next;
-    if (item->int_value) {
-        free(item->int_value);
-    }
-    if (item->float_value) {
-        free(item->float_value);
-    }
-    if (item->double_value) {
-        free(item->double_value);
-    }
-    if (item->bool_value) {
-        free(item->bool_value);
-    }
-    if (item->str_value) {
-        free(item->str_value);
-    }
-    free(item);
-    if (next) {
-        _free_stack_item(next);
-    }
-}
-
 void ROX_INTERNAL stack_free(CoreStack *stack) {
     assert(stack);
-    if (stack->root) {
-        _free_stack_item(stack->root); // this will free ALL the items including the current one
+    StackItem *item = stack->first;
+    while (item) {
+        StackItem *next = item->next;
+        if (item->int_value) {
+            free(item->int_value);
+        }
+        if (item->float_value) {
+            free(item->float_value);
+        }
+        if (item->double_value) {
+            free(item->double_value);
+        }
+        if (item->bool_value) {
+            free(item->bool_value);
+        }
+        if (item->str_value) {
+            free(item->str_value);
+        }
+        free(item);
+        item = next;
     }
     stack->current = NULL;
     free(stack);
@@ -73,8 +67,8 @@ StackItem *ROX_INTERNAL _create_stack_item() {
 void ROX_INTERNAL _stack_push(CoreStack *stack, StackItem *item) {
     assert(stack);
     assert(item);
-    if (!stack->root) {
-        stack->root = item;
+    if (!stack->first) {
+        stack->first = item;
     }
     item->next = stack->current;
     stack->current = item;
@@ -89,7 +83,7 @@ void ROX_INTERNAL stack_push_int(CoreStack *root, int value) {
 
 void ROX_INTERNAL stack_push_float(CoreStack *root, float value) {
     StackItem *item = _create_stack_item();
-    item->float_value = &value;
+    item->float_value = malloc(sizeof(value));
     *item->float_value = value;
     _stack_push(root, item);
 }
