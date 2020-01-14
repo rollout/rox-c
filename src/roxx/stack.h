@@ -27,16 +27,9 @@ StackItem *ROX_INTERNAL stack_pop(CoreStack *stack);
  */
 StackItem *ROX_INTERNAL stack_peek(CoreStack *stack);
 
-/**
- *
- * @param stack
- * @return
- */
 bool ROX_INTERNAL stack_is_empty(CoreStack *stack);
 
 void ROX_INTERNAL stack_push_int(CoreStack *stack, int value);
-
-void ROX_INTERNAL stack_push_float(CoreStack *stack, float value);
 
 void ROX_INTERNAL stack_push_double(CoreStack *stack, double value);
 
@@ -44,7 +37,10 @@ void ROX_INTERNAL stack_push_boolean(CoreStack *stack, bool value);
 
 void ROX_INTERNAL stack_push_string(CoreStack *stack, const char *value);
 
+void ROX_INTERNAL stack_push_null(CoreStack *stack);
+
 /**
+ * DON'T FORGET TO CALL THIS.
  * @param stack A NON-NULL pointer to the stack.
  */
 void ROX_INTERNAL stack_free(CoreStack *stack);
@@ -57,13 +53,13 @@ void ROX_INTERNAL stack_free(CoreStack *stack);
 
 bool ROX_INTERNAL stack_is_int(StackItem *item);
 
-bool ROX_INTERNAL stack_is_float(StackItem *item);
-
 bool ROX_INTERNAL stack_is_double(StackItem *item);
 
 bool ROX_INTERNAL stack_is_boolean(StackItem *item);
 
 bool ROX_INTERNAL stack_is_string(StackItem *item);
+
+bool ROX_INTERNAL stack_is_null(StackItem *item);
 
 //
 // Stack item contents retrieval.
@@ -75,8 +71,6 @@ bool ROX_INTERNAL stack_is_string(StackItem *item);
 //
 
 int ROX_INTERNAL stack_get_int(StackItem *item);
-
-float ROX_INTERNAL stack_get_float(StackItem *item);
 
 double ROX_INTERNAL stack_get_double(StackItem *item);
 

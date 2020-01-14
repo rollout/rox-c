@@ -38,24 +38,6 @@ START_TEST (test_will_push_into_stack_integer) {
 
 END_TEST
 
-START_TEST (test_will_push_into_stack_float) {
-
-    CoreStack *stack = stack_create();
-    fail_if(!stack, "Could not crate stack");
-    stack_push_float(stack, 5.5f);
-
-    StackItem *popped_item = stack_pop(stack);
-    fail_if(!popped_item);
-    ck_assert(stack_is_float(popped_item));
-    ck_assert_float_eq(stack_get_float(popped_item), 5.5f);
-
-    ck_assert(stack_is_empty(stack));
-
-    stack_free(stack);
-}
-
-END_TEST
-
 START_TEST (test_will_push_into_stack_double) {
 
     CoreStack *stack = stack_create();
@@ -90,6 +72,30 @@ START_TEST (test_will_push_into_stack_boolean) {
     fail_if(!popped_item);
     ck_assert(stack_is_boolean(popped_item));
     ck_assert(stack_get_boolean(popped_item));
+
+    ck_assert(stack_is_empty(stack));
+
+    stack_free(stack);
+}
+
+END_TEST
+
+START_TEST (test_will_push_into_stack_null) {
+
+    CoreStack *stack = stack_create();
+    fail_if(!stack, "Could not crate stack");
+    stack_push_null(stack);
+    stack_push_int(stack, 1);
+
+    StackItem *popped_item = stack_pop(stack);
+    fail_if(!popped_item);
+    ck_assert(stack_is_int(popped_item));
+    ck_assert(!stack_is_null(popped_item));
+
+    popped_item = stack_pop(stack);
+    fail_if(!popped_item);
+    ck_assert(stack_is_null(popped_item));
+    ck_assert(!stack_is_int(popped_item));
 
     ck_assert(stack_is_empty(stack));
 
@@ -161,16 +167,16 @@ Suite *stack_suite(void) {
     tcase_add_test(tcase, test_will_push_into_stack_integer);
     suite_add_tcase(suite, tcase);
 
-    tcase = tcase_create("test_will_push_into_stack_float");
-    tcase_add_test(tcase, test_will_push_into_stack_float);
-    suite_add_tcase(suite, tcase);
-
     tcase = tcase_create("test_will_push_into_stack_double");
     tcase_add_test(tcase, test_will_push_into_stack_double);
     suite_add_tcase(suite, tcase);
 
     tcase = tcase_create("test_will_push_into_stack_boolean");
     tcase_add_test(tcase, test_will_push_into_stack_boolean);
+    suite_add_tcase(suite, tcase);
+
+    tcase = tcase_create("test_will_push_into_stack_null");
+    tcase_add_test(tcase, test_will_push_into_stack_null);
     suite_add_tcase(suite, tcase);
 
     tcase = tcase_create("test_will_push_into_stack_integer_and_string");

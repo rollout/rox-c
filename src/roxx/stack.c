@@ -7,6 +7,7 @@
 #include <stdbool.h>
 #include <string.h>
 
+#include "util.h"
 #include "roxx/stack.h"
 
 struct ROX_INTERNAL CoreStack {
@@ -16,10 +17,10 @@ struct ROX_INTERNAL CoreStack {
 
 struct ROX_INTERNAL StackItem {
     int *int_value;
-    float *float_value;
     double *double_value;
     char *str_value;
     bool *bool_value;
+    bool is_null;
     StackItem *next;
 };
 
@@ -34,9 +35,6 @@ void ROX_INTERNAL stack_free(CoreStack *stack) {
         StackItem *next = item->next;
         if (item->int_value) {
             free(item->int_value);
-        }
-        if (item->float_value) {
-            free(item->float_value);
         }
         if (item->double_value) {
             free(item->double_value);
@@ -76,37 +74,31 @@ void ROX_INTERNAL _stack_push(CoreStack *stack, StackItem *item) {
 
 void ROX_INTERNAL stack_push_int(CoreStack *root, int value) {
     StackItem *item = _create_stack_item();
-    item->int_value = malloc(sizeof(value));
-    *item->int_value = value;
-    _stack_push(root, item);
-}
-
-void ROX_INTERNAL stack_push_float(CoreStack *root, float value) {
-    StackItem *item = _create_stack_item();
-    item->float_value = malloc(sizeof(value));
-    *item->float_value = value;
+    item->int_value = mem_copy_int(value);
     _stack_push(root, item);
 }
 
 void ROX_INTERNAL stack_push_double(CoreStack *root, double value) {
     StackItem *item = _create_stack_item();
-    item->double_value = malloc(sizeof(value));
-    *item->double_value = value;
+    item->double_value = mem_copy_double(value);
     _stack_push(root, item);
 }
 
 void ROX_INTERNAL stack_push_boolean(CoreStack *root, bool value) {
     StackItem *item = _create_stack_item();
-    item->bool_value = malloc(sizeof(value));
-    *item->bool_value = value;
+    item->bool_value = mem_copy_bool(value);
     _stack_push(root, item);
 }
 
 void ROX_INTERNAL stack_push_string(CoreStack *root, const char *const value) {
     StackItem *item = _create_stack_item();
-    unsigned int length = strlen(value);
-    item->str_value = malloc((length + 1) * sizeof(char));
-    strncpy_s(item->str_value, length + 1, value, length + 1);
+    item->str_value = mem_copy_str(value);
+    _stack_push(root, item);
+}
+
+void ROX_INTERNAL stack_push_null(CoreStack *root) {
+    StackItem *item = _create_stack_item();
+    item->is_null = true;
     _stack_push(root, item);
 }
 
@@ -129,11 +121,6 @@ bool ROX_INTERNAL stack_is_int(StackItem *item) {
     return item->int_value != NULL;
 }
 
-bool ROX_INTERNAL stack_is_float(StackItem *item) {
-    assert(item);
-    return item->float_value != NULL;
-}
-
 bool ROX_INTERNAL stack_is_double(StackItem *item) {
     assert(item);
     return item->double_value != NULL;
@@ -149,16 +136,15 @@ bool ROX_INTERNAL stack_is_string(StackItem *item) {
     return item->str_value != NULL;
 }
 
+bool ROX_INTERNAL stack_is_null(StackItem *item) {
+    assert(item);
+    return item->is_null;
+}
+
 int ROX_INTERNAL stack_get_int(StackItem *item) {
     assert(item);
     assert(item->int_value);
     return *item->int_value;
-}
-
-float ROX_INTERNAL stack_get_float(StackItem *item) {
-    assert(item);
-    assert(item->float_value);
-    return *item->float_value;
 }
 
 double ROX_INTERNAL stack_get_double(StackItem *item) {
