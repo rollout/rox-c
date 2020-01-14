@@ -10,8 +10,8 @@ START_TEST (test_will_push_into_stack_string) {
 
     StackItem *popped_item = stack_pop(stack);
     fail_if(!popped_item);
-    ck_assert(is_string_value(popped_item));
-    ck_assert_str_eq(get_string_value(popped_item), "stringTest");
+    ck_assert(stack_is_string(popped_item));
+    ck_assert_str_eq(stack_get_string(popped_item), "stringTest");
 
     ck_assert(stack_is_empty(stack));
 
@@ -28,8 +28,8 @@ START_TEST (test_will_push_into_stack_integer) {
 
     StackItem *popped_item = stack_pop(stack);
     fail_if(!popped_item);
-    ck_assert(is_int_value(popped_item));
-    ck_assert_int_eq(get_int_value(popped_item), 5);
+    ck_assert(stack_is_int(popped_item));
+    ck_assert_int_eq(stack_get_int(popped_item), 5);
 
     ck_assert(stack_is_empty(stack));
 
@@ -46,8 +46,8 @@ START_TEST (test_will_push_into_stack_float) {
 
     StackItem *popped_item = stack_pop(stack);
     fail_if(!popped_item);
-    ck_assert(is_float_value(popped_item));
-    ck_assert_float_eq(get_float_value(popped_item), 5.5f);
+    ck_assert(stack_is_float(popped_item));
+    ck_assert_float_eq(stack_get_float(popped_item), 5.5f);
 
     ck_assert(stack_is_empty(stack));
 
@@ -64,8 +64,8 @@ START_TEST (test_will_push_into_stack_double) {
 
     StackItem *popped_item = stack_pop(stack);
     fail_if(!popped_item);
-    ck_assert(is_double_value(popped_item));
-    ck_assert_double_eq(get_double_value(popped_item), 5.5);
+    ck_assert(stack_is_double(popped_item));
+    ck_assert_double_eq(stack_get_double(popped_item), 5.5);
 
     ck_assert(stack_is_empty(stack));
 
@@ -83,13 +83,13 @@ START_TEST (test_will_push_into_stack_boolean) {
 
     StackItem *popped_item = stack_pop(stack);
     fail_if(!popped_item);
-    ck_assert(is_boolean_value(popped_item));
-    ck_assert(!get_boolean_value(popped_item));
+    ck_assert(stack_is_boolean(popped_item));
+    ck_assert(!stack_get_boolean(popped_item));
 
     popped_item = stack_pop(stack);
     fail_if(!popped_item);
-    ck_assert(is_boolean_value(popped_item));
-    ck_assert(get_boolean_value(popped_item));
+    ck_assert(stack_is_boolean(popped_item));
+    ck_assert(stack_get_boolean(popped_item));
 
     ck_assert(stack_is_empty(stack));
 
@@ -111,11 +111,11 @@ START_TEST (test_will_push_into_stack_integer_and_string) {
     fail_if(!first);
     fail_if(!second);
 
-    ck_assert(is_string_value(first));
-    ck_assert_str_eq(get_string_value(first), "testString");
+    ck_assert(stack_is_string(first));
+    ck_assert_str_eq(stack_get_string(first), "testString");
 
-    ck_assert(is_int_value(second));
-    ck_assert_int_eq(get_int_value(second), 5);
+    ck_assert(stack_is_int(second));
+    ck_assert_int_eq(stack_get_int(second), 5);
 
     ck_assert(stack_is_empty(stack));
 
@@ -137,11 +137,11 @@ START_TEST (test_will_peek_from_stack) {
     fail_if(!first);
     fail_if(!second);
 
-    ck_assert(is_string_value(first));
-    ck_assert_str_eq(get_string_value(first), "testString");
+    ck_assert(stack_is_string(first));
+    ck_assert_str_eq(stack_get_string(first), "testString");
 
-    ck_assert(is_string_value(second));
-    ck_assert_str_eq(get_string_value(first), "testString");
+    ck_assert(stack_is_string(second));
+    ck_assert_str_eq(stack_get_string(first), "testString");
 
     ck_assert(!stack_is_empty(stack));
 

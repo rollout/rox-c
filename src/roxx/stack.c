@@ -124,56 +124,56 @@ StackItem *ROX_INTERNAL stack_peek(CoreStack *stack) {
     return stack->current;
 }
 
-bool ROX_INTERNAL is_int_value(StackItem *item) {
+bool ROX_INTERNAL stack_is_int(StackItem *item) {
     assert(item);
     return item->int_value != NULL;
 }
 
-bool ROX_INTERNAL is_float_value(StackItem *item) {
+bool ROX_INTERNAL stack_is_float(StackItem *item) {
     assert(item);
     return item->float_value != NULL;
 }
 
-bool ROX_INTERNAL is_double_value(StackItem *item) {
+bool ROX_INTERNAL stack_is_double(StackItem *item) {
     assert(item);
     return item->double_value != NULL;
 }
 
-bool ROX_INTERNAL is_boolean_value(StackItem *item) {
+bool ROX_INTERNAL stack_is_boolean(StackItem *item) {
     assert(item);
     return item->bool_value != NULL;
 }
 
-bool ROX_INTERNAL is_string_value(StackItem *item) {
+bool ROX_INTERNAL stack_is_string(StackItem *item) {
     assert(item);
     return item->str_value != NULL;
 }
 
-int ROX_INTERNAL get_int_value(StackItem *item) {
+int ROX_INTERNAL stack_get_int(StackItem *item) {
     assert(item);
     assert(item->int_value);
     return *item->int_value;
 }
 
-float ROX_INTERNAL get_float_value(StackItem *item) {
+float ROX_INTERNAL stack_get_float(StackItem *item) {
     assert(item);
     assert(item->float_value);
     return *item->float_value;
 }
 
-double ROX_INTERNAL get_double_value(StackItem *item) {
+double ROX_INTERNAL stack_get_double(StackItem *item) {
     assert(item);
     assert(item->double_value);
     return *item->double_value;
 }
 
-bool ROX_INTERNAL get_boolean_value(StackItem *item) {
+bool ROX_INTERNAL stack_get_boolean(StackItem *item) {
     assert(item);
     assert(item->bool_value);
     return *item->bool_value;
 }
 
-char *ROX_INTERNAL get_string_value(StackItem *item) {
+char *ROX_INTERNAL stack_get_string(StackItem *item) {
     assert(item);
     assert(item->str_value);
     return item->str_value;

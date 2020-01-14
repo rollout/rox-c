@@ -55,15 +55,15 @@ void ROX_INTERNAL stack_free(CoreStack *stack);
 // To check which type the stack item has one of the following functions should be called.
 //
 
-bool ROX_INTERNAL is_int_value(StackItem *item);
+bool ROX_INTERNAL stack_is_int(StackItem *item);
 
-bool ROX_INTERNAL is_float_value(StackItem *item);
+bool ROX_INTERNAL stack_is_float(StackItem *item);
 
-bool ROX_INTERNAL is_double_value(StackItem *item);
+bool ROX_INTERNAL stack_is_double(StackItem *item);
 
-bool ROX_INTERNAL is_boolean_value(StackItem *item);
+bool ROX_INTERNAL stack_is_boolean(StackItem *item);
 
-bool ROX_INTERNAL is_string_value(StackItem *item);
+bool ROX_INTERNAL stack_is_string(StackItem *item);
 
 //
 // Stack item contents retrieval.
@@ -74,12 +74,12 @@ bool ROX_INTERNAL is_string_value(StackItem *item);
 // on the entire stack object.
 //
 
-int ROX_INTERNAL get_int_value(StackItem *item);
+int ROX_INTERNAL stack_get_int(StackItem *item);
 
-float ROX_INTERNAL get_float_value(StackItem *item);
+float ROX_INTERNAL stack_get_float(StackItem *item);
 
-double ROX_INTERNAL get_double_value(StackItem *item);
+double ROX_INTERNAL stack_get_double(StackItem *item);
 
-bool ROX_INTERNAL get_boolean_value(StackItem *item);
+bool ROX_INTERNAL stack_get_boolean(StackItem *item);
 
-char *ROX_INTERNAL get_string_value(StackItem *item);
+char *ROX_INTERNAL stack_get_string(StackItem *item);
