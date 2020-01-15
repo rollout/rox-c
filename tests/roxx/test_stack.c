@@ -1,6 +1,7 @@
 #include <check.h>
 
 #include "roxx/stack.h"
+#include "roxtests.h"
 
 START_TEST (test_will_push_into_stack_string) {
 
@@ -156,46 +157,11 @@ START_TEST (test_will_peek_from_stack) {
 
 END_TEST
 
-Suite *stack_suite(void) {
-    Suite *suite = suite_create("stack_suite");
-
-    TCase *tcase = tcase_create("test_will_push_into_stack_string");
-    tcase_add_test(tcase, test_will_push_into_stack_string);
-    suite_add_tcase(suite, tcase);
-
-    tcase = tcase_create("test_will_push_into_stack_integer");
-    tcase_add_test(tcase, test_will_push_into_stack_integer);
-    suite_add_tcase(suite, tcase);
-
-    tcase = tcase_create("test_will_push_into_stack_double");
-    tcase_add_test(tcase, test_will_push_into_stack_double);
-    suite_add_tcase(suite, tcase);
-
-    tcase = tcase_create("test_will_push_into_stack_boolean");
-    tcase_add_test(tcase, test_will_push_into_stack_boolean);
-    suite_add_tcase(suite, tcase);
-
-    tcase = tcase_create("test_will_push_into_stack_null");
-    tcase_add_test(tcase, test_will_push_into_stack_null);
-    suite_add_tcase(suite, tcase);
-
-    tcase = tcase_create("test_will_push_into_stack_integer_and_string");
-    tcase_add_test(tcase, test_will_push_into_stack_integer_and_string);
-    suite_add_tcase(suite, tcase);
-
-    tcase = tcase_create("test_will_peek_from_stack");
-    tcase_add_test(tcase, test_will_peek_from_stack);
-    suite_add_tcase(suite, tcase);
-
-    return suite;
-}
-
-int main(int argc, char *argv[]) {
-    int number_failed;
-    Suite *suite = stack_suite();
-    SRunner *runner = srunner_create(suite);
-    srunner_run_all(runner, CK_NORMAL);
-    number_failed = srunner_ntests_failed(runner);
-    srunner_free(runner);
-    return number_failed;
-}
+ROX_TEST_SUITE(
+        ROX_TEST_CASE(test_will_push_into_stack_string),
+        ROX_TEST_CASE(test_will_push_into_stack_integer),
+        ROX_TEST_CASE(test_will_push_into_stack_double),
+        ROX_TEST_CASE(test_will_push_into_stack_boolean),
+        ROX_TEST_CASE(test_will_push_into_stack_null),
+        ROX_TEST_CASE(test_will_push_into_stack_integer_and_string),
+        ROX_TEST_CASE(test_will_peek_from_stack));

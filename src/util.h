@@ -15,4 +15,16 @@ int *ROX_INTERNAL str_to_int(char *str);
 
 double *ROX_INTERNAL str_to_double(char *str);
 
-bool ROX_INTERNAL str_matches(const char* str, const char* pattern, int options);
+bool ROX_INTERNAL str_matches(const char *str, const char *pattern, int options);
+
+int ROX_INTERNAL str_index_of(const char *str, char c);
+
+/**
+ * NOTE: THE RETURNED STR MUST BE FREED AFTER USE
+ *
+ * @param str The input string.
+ * @param start The start offset.
+ * @param len Length of the str_substring.
+ * @return Pointer to the NEWLY CREATED string which is a str_substring of the given string or NULL in case where start offset or length is out of bounds.
+ */
+char *ROX_INTERNAL str_substring(const char *str, int start, int len);

@@ -90,3 +90,25 @@ bool ROX_INTERNAL str_matches(const char *str, const char *pattern, int options)
 
     return rc >= 0;
 }
+
+int ROX_INTERNAL str_index_of(const char *str, char c) {
+    assert(str);
+    char *e = strchr(str, c);
+    if (!e) {
+        return -1;
+    }
+    return (int) (e - str);
+}
+
+char *ROX_INTERNAL str_substring(const char *str, int start, int len) {
+    assert(str);
+    assert(start >= 0);
+    assert(len >= 0);
+    unsigned long slen = strlen(str);
+    if (start + len >= slen) {
+        return NULL;
+    }
+    char *buffer = calloc(len + 1, sizeof(char));
+    memcpy(buffer, str + start, len);
+    return NULL;
+}
