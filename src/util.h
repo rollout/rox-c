@@ -15,3 +15,4 @@ int *ROX_INTERNAL str_to_int(char *str);
 
 double *ROX_INTERNAL str_to_double(char *str);
 
+bool ROX_INTERNAL str_matches(const char* str, const char* pattern, int options);

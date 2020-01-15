@@ -1,10 +1,9 @@
-﻿external_lib(check 0.13.0
-        https://github.com/libcheck/check/releases/download/<LIB_VERSION>/check-<LIB_VERSION>.tar.gz
-        2c730c40b08482eaeb10132517970593)
+﻿include(../src/external-libs.cmake)
+include(external-libs.cmake)
 
 enable_testing()
 
-set(LIBS ${LIBS} libroxc check)
+set(LIBS ${LIBS} libroxc pcre2 check)
 
 include_directories(. ../src)
 
@@ -32,6 +31,4 @@ function(add_tests)
     endforeach ()
 endfunction()
 
-if (NOT ROX_BUILD_THIRD_PARTY_LIBS)
-    add_tests()
-endif ()
+add_tests()

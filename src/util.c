@@ -1,6 +1,11 @@
+#define PCRE2_CODE_UNIT_WIDTH 8
+#define PCRE2_STATIC
+
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
+#include <pcre2.h>
+
 #include "util.h"
 
 int *mem_copy_int(int value) {
@@ -23,7 +28,7 @@ bool *mem_copy_bool(bool value) {
 
 char *ROX_INTERNAL mem_copy_str(const char *ptr) {
     assert(ptr);
-    unsigned int length = strlen(ptr);
+    size_t length = strlen(ptr);
     char *copy = malloc((length + 1) * sizeof(char));
     strncpy_s(copy, length + 1, ptr, length + 1);
     return copy;
@@ -45,4 +50,43 @@ double *ROX_INTERNAL str_to_double(char *str) {
         return NULL;
     }
     return mem_copy_double(num);
+}
+
+bool ROX_INTERNAL str_matches(const char *str, const char *pattern, int options) {
+
+    int error_number;
+    PCRE2_SIZE error_offset;
+    pcre2_code *re = pcre2_compile(
+            (PCRE2_SPTR) pattern,
+            PCRE2_ZERO_TERMINATED,
+            options,
+            &error_number,
+            &error_offset,
+            NULL);
+
+    if (re == NULL) {
+        PCRE2_UCHAR buffer[256];
+        pcre2_get_error_message(error_number, buffer, sizeof(buffer));
+        // TODO: log
+//        printf("PCRE2 compilation failed at offset %d: %s\n", (int)error_offset,
+//               buffer);
+        return false;
+    }
+
+    pcre2_match_data *match_data = pcre2_match_data_create_from_pattern(re, NULL);
+    int rc = pcre2_match(
+            re,
+            (PCRE2_SPTR) str,
+            strlen(str),
+            0,                    /* start at offset 0 in the subject */
+            0,                    /* default options */
+            match_data,           /* block for storing the result */
+            NULL);
+
+    // TODO: handle errors?
+
+    pcre2_match_data_free(match_data);
+    pcre2_code_free(re);
+
+    return rc >= 0;
 }

@@ -12,9 +12,7 @@ TBD
 
 https://cmake.org/download/
 
-#### 2. Check
-
-https://libcheck.github.io/check/web/install.html
+TBC...
 
 ### Build
 

@@ -1,8 +1,11 @@
-// TODO: put parser functions here
+#define PCRE2_CODE_UNIT_WIDTH 8
+#define PCRE2_STATIC
 
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 #include <assert.h>
+#include <pcre2.h>
 
 #include "roxapi.h"
 #include "util.h"
@@ -132,14 +135,22 @@ const char *get_type_from_token(const char *token) {
     if (!token) {
         return ROXX_NOT_A_TYPE;
     }
-//    const char* tested_token = token.ToLowerInvariant();
-//
-//    if (STRING.Pattern().IsMatch(tested_token)) return STRING;
-//
-//    if (NUMBER.Pattern().IsMatch(tested_token)) return NUMBER;
-//
-//    if (BOOLEAN.Pattern().IsMatch(tested_token)) return BOOLEAN;
-//
-//    if (UNDEFINED.Pattern().IsMatch(tested_token)) return UNDEFINED;
-    return NULL;
+
+    if (str_matches(token, "\"((\\\\.)|[^\\\\\\\\\"])*\"", PCRE2_CASELESS)) {
+        return ROXX_STRING_TYPE;
+    };
+
+    if (str_matches(token, "[\\-]{0,1}\\d+[\\.]\\d+|[\\-]{0,1}\\d+", PCRE2_CASELESS)) {
+        return ROXX_NUMBER_TYPE;
+    };
+
+    if (str_matches(token, "true|false", PCRE2_CASELESS)) {
+        return ROXX_BOOL_TYPE;
+    };
+
+    if (str_matches(token, ROXX_UNDEFINED, PCRE2_CASELESS)) {
+        return ROXX_UNDEFINED_TYPE;
+    };
+
+    return ROXX_NOT_A_TYPE;
 }
