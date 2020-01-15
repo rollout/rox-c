@@ -6,7 +6,11 @@ function(rox_external_lib LIB_NAME LIB_VERSION LIB_URL LIB_MD5)
     if (ARGN)
         set(LIB_FILE ${ARGN})
     else ()
-        set(LIB_FILE ${LIB_NAME}.lib)
+        set(LIB_FILE ${LIB_NAME})
+    endif ()
+
+    if (NOT LIB_FILE MATCHES "${CMAKE_STATIC_LIBRARY_SUFFIX}$")
+        set(LIB_FILE "${LIB_FILE}${CMAKE_STATIC_LIBRARY_SUFFIX}")
     endif ()
 
     set(LIB_ROOT ${ROX_THIRD_PARTY_LIBS_LOCATION}/${LIB_NAME}/${LIB_VERSION})
