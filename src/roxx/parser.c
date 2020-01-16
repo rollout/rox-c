@@ -164,8 +164,8 @@ typedef struct ROX_INTERNAL StringTokenizer {
     int current_position;
     int new_position;
     int max_position;
-    const char *str;
-    const char *delimiters;
+    char *str;
+    char *delimiters;
     bool ret_delims;
     bool delims_changed;
     int max_delim_code_point;
@@ -207,9 +207,9 @@ StringTokenizer *ROX_INTERNAL tokenizer_create(const char *str, const char *deli
     tokenizer->current_position = 0;
     tokenizer->new_position = -1;
     tokenizer->delims_changed = false;
-    tokenizer->str = str;
+    tokenizer->str = mem_copy_str(str);
     tokenizer->max_position = (int) strlen(str);
-    tokenizer->delimiters = delim;
+    tokenizer->delimiters = mem_copy_str(delim);
     tokenizer->ret_delims = return_delims;
 
     _tokenizer_set_max_delim_code_point(tokenizer);
@@ -224,6 +224,8 @@ StringTokenizer *ROX_INTERNAL tokenizer_create_default(const char *str) {
 
 void ROX_INTERNAL tokenizer_free(StringTokenizer *tokenizer) {
     assert(tokenizer);
+    free(tokenizer->delimiters);
+    free(tokenizer->str);
     // TODO: implement
     free(tokenizer);
 }
@@ -278,7 +280,7 @@ bool ROX_INTERNAL tokenizer_has_more_tokens(StringTokenizer *tokenizer) {
 /**
  * NOTE: THE RETURNED POINTER MUST BE FREED AFTER USAGE.
  */
-char *ROX_INTERNAL tokenizer_next_token(StringTokenizer *tokenizer) {
+void ROX_INTERNAL tokenizer_next_token(StringTokenizer *tokenizer, char *buffer) {
     assert(tokenizer);
     tokenizer->current_position = (tokenizer->new_position >= 0 && !tokenizer->delims_changed) ?
                                   tokenizer->new_position : _tokenizer_skip_delimiters(tokenizer,
@@ -299,5 +301,34 @@ char *ROX_INTERNAL tokenizer_next_token(StringTokenizer *tokenizer) {
 
     int start = tokenizer->current_position;
     tokenizer->current_position = _tokenizer_scan_token(tokenizer, tokenizer->current_position);
-    return str_substring(tokenizer->str, start, (tokenizer->current_position - start));
+    str_substring_b(tokenizer->str, start, (tokenizer->current_position - start), buffer);
+}
+
+void ROX_INTERNAL tokenizer_next_token_with_delim(StringTokenizer *tokenizer, const char *delim, char *buffer) {
+    assert(tokenizer);
+    assert(delim);
+    assert(buffer);
+
+    free(tokenizer->delimiters);
+    tokenizer->delimiters = mem_copy_str(delim);
+
+    /* delimiter string specified, so set the appropriate flag. */
+    tokenizer->delims_changed = true;
+
+    _tokenizer_set_max_delim_code_point(tokenizer);
+    tokenizer_next_token(tokenizer, buffer);
+}
+
+int ROX_INTERNAL _tokenizer_count_tokens(StringTokenizer *tokenizer) {
+    assert(tokenizer);
+    int count = 0;
+    int currpos = tokenizer->current_position;
+    while (currpos < tokenizer->max_position) {
+        currpos = _tokenizer_skip_delimiters(tokenizer, currpos);
+        if (currpos >= tokenizer->max_position)
+            break;
+        currpos = _tokenizer_scan_token(tokenizer, currpos);
+        count++;
+    }
+    return count;
 }

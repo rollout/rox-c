@@ -100,15 +100,24 @@ int ROX_INTERNAL str_index_of(const char *str, const char c) {
     return (int) (e - str);
 }
 
+void ROX_INTERNAL str_substring_b(const char *str, int start, int len, char *buffer) {
+    assert(str);
+    assert(start >= 0);
+    assert(len >= 0);
+    assert(buffer);
+    assert(start + len <= strlen(str));
+    memcpy(buffer, str + start, len);
+    buffer[len] = '\0';
+}
+
 char *ROX_INTERNAL str_substring(const char *str, int start, int len) {
     assert(str);
     assert(start >= 0);
     assert(len >= 0);
-    unsigned long slen = strlen(str);
-    if (start + len > slen) {
+    if (start + len > strlen(str)) {
         return NULL;
     }
     char *buffer = calloc(len + 1, sizeof(char));
-    memcpy(buffer, str + start, len);
+    str_substring_b(str, start, len, buffer);
     return buffer;
 }
