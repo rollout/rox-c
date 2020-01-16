@@ -1,8 +1,71 @@
+#define PCRE2_CODE_UNIT_WIDTH 8
+#define PCRE2_STATIC
+
 #include <check.h>
 #include <stdlib.h>
+#include <pcre2.h>
 
 #include "roxtests.h"
 #include "util.h"
+
+START_TEST (test_matches_empty_strings) {
+    ck_assert(str_matches("", "", 0));
+}
+
+END_TEST
+
+START_TEST (test_matches_equal_strings) {
+    ck_assert(str_matches("undefined", "undefined", 0));
+}
+
+END_TEST
+
+START_TEST (test_matches_ignore_case) {
+    ck_assert(!str_matches("undefined", "UNDEFINED", 0));
+    ck_assert(str_matches("undefined", "UNDEFINED", PCRE2_CASELESS));
+}
+
+END_TEST
+
+START_TEST (test_matches_strings_pattern) {
+    const char *pattern = "^\"((\\\\.)|[^\\\\\\\\\"])*\"$";
+    ck_assert(str_matches("\"\"", pattern, 0));
+    ck_assert(str_matches("\"test\"", pattern, 0));
+    ck_assert(str_matches("\"TEST\"", pattern, 0));
+    ck_assert(!str_matches("\"", pattern, 0));
+    ck_assert(!str_matches("\"test", pattern, 0));
+    ck_assert(!str_matches("t\"est\"", pattern, 0));
+}
+
+END_TEST
+
+START_TEST (test_matches_numeric_pattern) {
+    const char *pattern = "^[\\-]{0,1}\\d+[\\.]\\d+|[\\-]{0,1}\\d+$";
+    ck_assert(!str_matches("\"\"", pattern, 0));
+    ck_assert(!str_matches("\"0.1\"", pattern, 0));
+    ck_assert(!str_matches("\"1\"", pattern, 0));
+    ck_assert(str_matches("1", pattern, 0));
+    ck_assert(str_matches("1.2", pattern, 0));
+    ck_assert(str_matches("-1", pattern, 0));
+    ck_assert(str_matches("-1.2", pattern, 0));
+}
+
+END_TEST
+
+START_TEST (test_matches_bool_pattern) {
+    const char *pattern = "^true|false$";
+    ck_assert(!str_matches("\"true\"", pattern, 0));
+    ck_assert(!str_matches("\"false\"", pattern, 0));
+    ck_assert(!str_matches("\"TRUE\"", pattern, 0));
+    ck_assert(!str_matches("\"FALSE\"", pattern, 0));
+    ck_assert(!str_matches("\"true\"", pattern, 0));
+    ck_assert(str_matches("true", pattern, PCRE2_CASELESS));
+    ck_assert(str_matches("false", pattern, PCRE2_CASELESS));
+    ck_assert(str_matches("TRUE", pattern, PCRE2_CASELESS));
+    ck_assert(str_matches("FALSE", pattern, PCRE2_CASELESS));
+}
+
+END_TEST
 
 START_TEST (test_substring_start_offset_out_of_bounds) {
     char *str = str_substring("test", 5, 1);
@@ -59,6 +122,15 @@ START_TEST (test_substring_middle) {
 END_TEST
 
 ROX_TEST_SUITE(
+// str_matches
+        ROX_TEST_CASE(test_matches_empty_strings),
+        ROX_TEST_CASE(test_matches_equal_strings),
+        ROX_TEST_CASE(test_matches_ignore_case),
+        ROX_TEST_CASE(test_matches_strings_pattern),
+        ROX_TEST_CASE(test_matches_numeric_pattern),
+        ROX_TEST_CASE(test_matches_bool_pattern),
+
+// str_substring
         ROX_TEST_CASE(test_substring_start_offset_out_of_bounds),
         ROX_TEST_CASE(test_substring_start_offset_plus_length_out_of_bounds),
         ROX_TEST_CASE(test_substring_whole_string),

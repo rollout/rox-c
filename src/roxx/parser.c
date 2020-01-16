@@ -136,15 +136,15 @@ const char *ROX_INTERNAL _get_type_from_token(const char *token) {
         return ROXX_NOT_A_TYPE;
     }
 
-    if (str_matches(token, "\"((\\\\.)|[^\\\\\\\\\"])*\"", PCRE2_CASELESS)) {
+    if (str_matches(token, "^\"((\\\\.)|[^\\\\\\\\\"])*\"$", PCRE2_CASELESS)) {
         return ROXX_STRING_TYPE;
     };
 
-    if (str_matches(token, "[\\-]{0,1}\\d+[\\.]\\d+|[\\-]{0,1}\\d+", PCRE2_CASELESS)) {
+    if (str_matches(token, "^[\\-]{0,1}\\d+[\\.]\\d+|[\\-]{0,1}\\d+$", PCRE2_CASELESS)) {
         return ROXX_NUMBER_TYPE;
     };
 
-    if (str_matches(token, "true|false", PCRE2_CASELESS)) {
+    if (str_matches(token, "^true|false$", PCRE2_CASELESS)) {
         return ROXX_BOOL_TYPE;
     };
 
