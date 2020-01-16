@@ -17,7 +17,7 @@ double *ROX_INTERNAL str_to_double(char *str);
 
 bool ROX_INTERNAL str_matches(const char *str, const char *pattern, int options);
 
-int ROX_INTERNAL str_index_of(const char *str, char c);
+int ROX_INTERNAL str_index_of(const char *str, const char c);
 
 /**
  * NOTE: THE RETURNED STR MUST BE FREED AFTER USE

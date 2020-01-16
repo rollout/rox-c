@@ -91,7 +91,7 @@ bool ROX_INTERNAL str_matches(const char *str, const char *pattern, int options)
     return rc >= 0;
 }
 
-int ROX_INTERNAL str_index_of(const char *str, char c) {
+int ROX_INTERNAL str_index_of(const char *str, const char c) {
     assert(str);
     char *e = strchr(str, c);
     if (!e) {

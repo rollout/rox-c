@@ -67,6 +67,32 @@ START_TEST (test_matches_bool_pattern) {
 
 END_TEST
 
+START_TEST (test_index_of_empty_string) {
+    ck_assert(str_index_of("", 'a') < 0);
+}
+
+END_TEST
+
+START_TEST (test_index_of_not_found) {
+    ck_assert(str_index_of("a", 'b') < 0);
+}
+
+END_TEST
+
+START_TEST (test_index_of_single_character_string) {
+    ck_assert(str_index_of("a", 'a') == 0);
+}
+
+END_TEST
+
+START_TEST (test_index_of_first_occurrence) {
+    ck_assert(str_index_of("abcabc", 'a') == 0);
+    ck_assert(str_index_of("abc", 'b') == 1);
+    ck_assert(str_index_of("abc", 'c') == 2);
+}
+
+END_TEST
+
 START_TEST (test_substring_start_offset_out_of_bounds) {
     char *str = str_substring("test", 5, 1);
     ck_assert_ptr_null(str);
@@ -129,6 +155,13 @@ ROX_TEST_SUITE(
         ROX_TEST_CASE(test_matches_strings_pattern),
         ROX_TEST_CASE(test_matches_numeric_pattern),
         ROX_TEST_CASE(test_matches_bool_pattern),
+
+// str_index_of
+
+        ROX_TEST_CASE(test_index_of_empty_string),
+        ROX_TEST_CASE(test_index_of_not_found),
+        ROX_TEST_CASE(test_index_of_single_character_string),
+        ROX_TEST_CASE(test_index_of_first_occurrence),
 
 // str_substring
         ROX_TEST_CASE(test_substring_start_offset_out_of_bounds),
