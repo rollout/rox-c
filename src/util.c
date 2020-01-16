@@ -105,10 +105,10 @@ char *ROX_INTERNAL str_substring(const char *str, int start, int len) {
     assert(start >= 0);
     assert(len >= 0);
     unsigned long slen = strlen(str);
-    if (start + len >= slen) {
+    if (start + len > slen) {
         return NULL;
     }
     char *buffer = calloc(len + 1, sizeof(char));
     memcpy(buffer, str + start, len);
-    return NULL;
+    return buffer;
 }
