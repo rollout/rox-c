@@ -127,16 +127,16 @@ TokenType ROX_INTERNAL get_token_type_from_token(const char *token) {
     }
     if (str_matches(token, "^\"((\\\\.)|[^\\\\\\\\\"])*\"$", PCRE2_CASELESS)) {
         return TokenTypeString;
-    };
+    }
     if (str_matches(token, "^[\\-]{0,1}\\d+[\\.]\\d+|[\\-]{0,1}\\d+$", PCRE2_CASELESS)) {
         return TokenTypeNumber;
-    };
+    }
     if (str_matches(token, "^true|false$", PCRE2_CASELESS)) {
         return TokenTypeBool;
-    };
+    }
     if (str_matches(token, ROXX_UNDEFINED, PCRE2_CASELESS)) {
         return TokenTypeUndefined;
-    };
+    }
     return TokenTypeNotAType;
 }
 

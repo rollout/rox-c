@@ -107,7 +107,7 @@ function(rox_external_lib LIB_NAME LIB_VERSION)
                 ExternalProject_Add(${LIB_NAME}_target
                         PREFIX ${LIB_VERSION}
                         URL ${LIB_URL}
-                        URL_MD5 ${LIB_MD5}
+                        URL_MD5 ${LIB_HASH}
                         DOWNLOAD_DIR ${LIB_DOWNLOAD_DIR}
                         SOURCE_DIR ${LIB_SOURCE_DIR}
                         SOURCE_SUBDIR ${LIB_SUBDIR}
