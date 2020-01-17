@@ -260,8 +260,6 @@ typedef struct ROX_INTERNAL StringTokenizer {
     bool ret_delims;
     bool delims_changed;
     int max_delim_code_point;
-    int *delimiter_code_points;
-    int delimiter_code_points_length;
 } StringTokenizer;
 
 const int MIN_SUPPLEMENTARY_CODE_POINT = 0x010000;
@@ -308,27 +306,11 @@ StringTokenizer *ROX_INTERNAL tokenizer_create(const char *str, const char *deli
     return tokenizer;
 }
 
-StringTokenizer *ROX_INTERNAL tokenizer_create_default(const char *str) {
-    assert(str);
-    return tokenizer_create(str, " \t\n\r\f", false);
-}
-
 void ROX_INTERNAL tokenizer_free(StringTokenizer *tokenizer) {
     assert(tokenizer);
     free(tokenizer->delimiters);
     free(tokenizer->str);
-    // TODO: implement
     free(tokenizer);
-}
-
-bool ROX_INTERNAL _tokenizer_is_delimiter(StringTokenizer *tokenizer, int codePoint) {
-    assert(tokenizer);
-    for (int i = 0; i < tokenizer->delimiter_code_points_length; i++) {
-        if (tokenizer->delimiter_code_points[i] == codePoint) {
-            return true;
-        }
-    }
-    return false;
 }
 
 int ROX_INTERNAL _tokenizer_skip_delimiters(StringTokenizer *tokenizer, int star_pos) {
@@ -523,6 +505,7 @@ List *ROX_INTERNAL tokenized_expression_get_tokens(const char *expression, HashT
     const char *delimiters_to_use = TOKEN_DELIMITERS;
     char *normalized_expression = mem_str_replace(expression, ESCAPED_QUOTE, ESCAPED_QUOTE_PLACEHOLDER);
     StringTokenizer *tokenizer = tokenizer_create(normalized_expression, delimiters_to_use, true);
+    free(normalized_expression);
 
     char *prev_token = NULL;
     char token[1024];
@@ -586,7 +569,7 @@ List *ROX_INTERNAL tokenized_expression_get_tokens(const char *expression, HashT
         }
     }
 
-    free(normalized_expression);
+    tokenizer_free(tokenizer);
     tokenized_expression_free(expr);
 
     return result_list;
