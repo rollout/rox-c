@@ -117,15 +117,15 @@ typedef struct {
 // Symbols
 //
 
-static const char *ROXX_UNDEFINED = "undefined";
-static const char *ROXX_TRUE = "true";
-static const char *ROXX_FALSE = "false";
-static const char *ROXX_EMPTY_STRING = "\"\"";
-static const char *ROXX_STRING_TYPE = "StringType";
-static const char *ROXX_BOOL_TYPE = "BooleanType";
-static const char *ROXX_NUMBER_TYPE = "NumberType";
-static const char *ROXX_UNDEFINED_TYPE = "UndefinedType";
-static const char *ROXX_NOT_A_TYPE = "NOT_A_TYPE";
+const char *ROXX_UNDEFINED = "undefined";
+const char *ROXX_TRUE = "true";
+const char *ROXX_FALSE = "false";
+const char *ROXX_EMPTY_STRING = "\"\"";
+const char *ROXX_STRING_TYPE = "StringType";
+const char *ROXX_BOOL_TYPE = "BooleanType";
+const char *ROXX_NUMBER_TYPE = "NumberType";
+const char *ROXX_UNDEFINED_TYPE = "UndefinedType";
+const char *ROXX_NOT_A_TYPE = "NOT_A_TYPE";
 
 //
 // TokenTypes
@@ -173,7 +173,7 @@ typedef struct ROX_INTERNAL StringTokenizer {
     int delimiter_code_points_length;
 } StringTokenizer;
 
-static const int MIN_SUPPLEMENTARY_CODE_POINT = 0x010000;
+const int MIN_SUPPLEMENTARY_CODE_POINT = 0x010000;
 
 int ROX_INTERNAL _tokenizer_char_count(int codePoint) {
     return codePoint >= MIN_SUPPLEMENTARY_CODE_POINT ? 2 : 1;
@@ -332,3 +332,28 @@ int ROX_INTERNAL _tokenizer_count_tokens(StringTokenizer *tokenizer) {
     }
     return count;
 }
+
+//
+// TokenizedExpression
+//
+
+const char *DICT_START_DELIMITER = "{";
+const char *DICT_END_DELIMITER = "}";
+const char *ARRAY_START_DELIMITER = "[";
+const char *ARRAY_END_DELIMITER = "]";
+const char *TOKEN_DELIMITERS = "{}[]():, \t\r\n\"";
+const char *PRE_POST_STRING_CHAR = "";
+const char *STRING_DELIMITER = "\"";
+
+const char *ESCAPED_QUOTE = "\\\"";
+const char *ESCAPED_QUOTE_PLACEHOLDER = "\\RO_Q";
+
+//typedef struct TokenizedExpression {
+//    private readonly HashSet<String> operators;
+//    private readonly String expression;
+//
+//    private List<Node> resultList;
+//    private List<Object> arrayAccumulator;
+//    private ConcurrentDictionary<String, Object> dictAccumulator;
+//    private String dictKey;
+//} TokenizedExpression;
