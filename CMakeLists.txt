@@ -7,7 +7,6 @@ enable_testing()
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/cmake/modules)
 set(ROX_THIRD_PARTY_LIBS_LOCATION ${CMAKE_SOURCE_DIR}/vendor/build)
 
-include(rox_add_tests)
 include(rox_external_lib)
 
 include_directories(include)
