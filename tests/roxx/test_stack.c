@@ -164,4 +164,4 @@ ROX_TEST_SUITE(
         ROX_TEST_CASE(test_will_push_into_stack_boolean),
         ROX_TEST_CASE(test_will_push_into_stack_null),
         ROX_TEST_CASE(test_will_push_into_stack_integer_and_string),
-        ROX_TEST_CASE(test_will_peek_from_stack));
+        ROX_TEST_CASE(test_will_peek_from_stack))
