@@ -229,10 +229,10 @@ void ROX_INTERNAL node_free(ParserNode *node) {
         free(node->str_value);
     }
     if (node->list_value) {
-        free(node->list_value);
+        list_destroy(node->list_value);
     }
     if (node->map_value) {
-        free(node->map_value);
+        hashtable_destroy(node->map_value);
     }
     if (node->bool_value) {
         free(node->bool_value);
@@ -533,6 +533,7 @@ List *ROX_INTERNAL tokenized_expression_get_tokens(const char *expression, HashT
 
         if (!in_string && str_equals(token, DICT_START_DELIMITER)) {
             if (expr->dict_accumulator) {
+                // TODO: log illegal case warning? (new dict has started before the existing is closed)
                 hashtable_destroy(expr->dict_accumulator); // FIXME: what about dict-in-dict case?
             }
             hashtable_new(&expr->dict_accumulator);
@@ -545,6 +546,7 @@ List *ROX_INTERNAL tokenized_expression_get_tokens(const char *expression, HashT
                     result_list);
         } else if (!in_string && str_equals(token, ARRAY_START_DELIMITER)) {
             if (expr->array_accumulator) {
+                // TODO: log illegal case warning? (new array has started before the existing is closed)
                 list_destroy(expr->array_accumulator);  // FIXME: what about array-in-array case?
             }
             list_new(&expr->array_accumulator);
