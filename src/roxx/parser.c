@@ -6,7 +6,6 @@
 #include <stdio.h>
 #include <assert.h>
 #include <pcre2.h>
-#include <collectc/hashset.h>
 #include <collectc/list.h>
 #include <collectc/hashtable.h>
 
@@ -392,20 +391,6 @@ void ROX_INTERNAL tokenizer_next_token_with_delim(StringTokenizer *tokenizer, co
     tokenizer_next_token(tokenizer, buffer);
 }
 
-int ROX_INTERNAL _tokenizer_count_tokens(StringTokenizer *tokenizer) {
-    assert(tokenizer);
-    int count = 0;
-    int currpos = tokenizer->current_position;
-    while (currpos < tokenizer->max_position) {
-        currpos = _tokenizer_skip_delimiters(tokenizer, currpos);
-        if (currpos >= tokenizer->max_position)
-            break;
-        currpos = _tokenizer_scan_token(tokenizer, currpos);
-        count++;
-    }
-    return count;
-}
-
 //
 // TokenizedExpression
 //
@@ -456,23 +441,23 @@ void ROX_INTERNAL _tokenized_expression_push_node(TokenizedExpression *expr, Par
     }
 }
 
-ParserNode *ROX_INTERNAL _tokenized_expression_node_from_token(const char *token) {
+ParserNode *ROX_INTERNAL _tokenized_expression_node_from_token(NodeType nodeType, const char *token) {
     assert(token);
     TokenType token_type = get_token_type_from_token(token);
     if (str_equals(token, ROXX_TRUE)) {
-        return node_create_bool(NodeTypeRand, true);
+        return node_create_bool(nodeType, true);
     }
     if (str_equals(token, ROXX_FALSE)) {
-        return node_create_bool(NodeTypeRand, false);
+        return node_create_bool(nodeType, false);
     }
     if (str_equals(token, ROXX_UNDEFINED)) {
-        return node_create_undefined(NodeTypeRand);
+        return node_create_undefined(nodeType);
     }
     if (token_type == TokenTypeString) {
         int token_length = (int) strlen(token);
         char buffer[512];
         str_substring_b(token, 1, token_length - 2, buffer);
-        return node_create_str(NodeTypeRand, buffer); // buffer contents will be copied
+        return node_create_str(nodeType, buffer); // buffer contents will be copied
     }
     if (token_type == TokenTypeNumber) {
         {
@@ -480,7 +465,7 @@ ParserNode *ROX_INTERNAL _tokenized_expression_node_from_token(const char *token
             assert(value); // TODO: log if null
             double node_value = *value;
             free(value);
-            return node_create_double(NodeTypeRand, node_value);
+            return node_create_double(nodeType, node_value);
         }
     }
     return node_create_null(NodeTypeUnknown);
@@ -555,13 +540,13 @@ List *ROX_INTERNAL tokenized_expression_get_tokens(const char *expression, HashT
                 char *escaped_token = mem_str_replace(token, ESCAPED_QUOTE_PLACEHOLDER, ESCAPED_QUOTE);
                 _tokenized_expression_push_node(
                         expr,
-                        node_create_str(NodeTypeRand, escaped_token),
+                        _tokenized_expression_node_from_token(NodeTypeRand, escaped_token),
                         result_list);
                 free(escaped_token);
             } else if (!strstr(TOKEN_DELIMITERS, token) && str_equals(token, PRE_POST_STRING_CHAR)) {
                 _tokenized_expression_push_node(
                         expr,
-                        node_create_str(
+                        _tokenized_expression_node_from_token(
                                 hashtable_contains_key(operators, token)
                                 ? NodeTypeRator : NodeTypeRand, token),
                         result_list);
