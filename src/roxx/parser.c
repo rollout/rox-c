@@ -460,19 +460,17 @@ ParserNode *ROX_INTERNAL _tokenized_expression_node_from_token(NodeType nodeType
         return node_create_str(nodeType, buffer); // buffer contents will be copied
     }
     if (token_type == TokenTypeNumber) {
-        {
-            double *value = mem_str_to_double(token);
-            assert(value); // TODO: log if null
-            double node_value = *value;
-            free(value);
-            return node_create_double(nodeType, node_value);
-        }
+        double *value = mem_str_to_double(token);
+        assert(value); // TODO: log if null
+        double node_value = *value;
+        free(value);
+        return node_create_double(nodeType, node_value);
     }
     return node_create_null(NodeTypeUnknown);
 }
 
 /**
- * NOTE: THE RETURNED LIST BUST BE FREED BY CALLING list_destroy(list) AFTER USAGE.
+ * NOTE: THE RETURNED LIST MUST BE FREED BY CALLING list_destroy(list) AFTER USE.
  *
  * @param expression Expression to parse.
  * @param operators Set of supported operator names (set of char* )
@@ -543,13 +541,11 @@ List *ROX_INTERNAL tokenized_expression_get_tokens(const char *expression, HashT
                         _tokenized_expression_node_from_token(NodeTypeRand, escaped_token),
                         result_list);
                 free(escaped_token);
-            } else if (!strstr(TOKEN_DELIMITERS, token) && str_equals(token, PRE_POST_STRING_CHAR)) {
-                _tokenized_expression_push_node(
-                        expr,
-                        _tokenized_expression_node_from_token(
-                                hashtable_contains_key(operators, token)
-                                ? NodeTypeRator : NodeTypeRand, token),
-                        result_list);
+            } else if (!strstr(TOKEN_DELIMITERS, token) && !str_equals(token, PRE_POST_STRING_CHAR)) {
+                ParserNode *node = hashtable_contains_key(operators, token)
+                                   ? node_create_str(NodeTypeRator, token)
+                                   : _tokenized_expression_node_from_token(NodeTypeRand, token);
+                _tokenized_expression_push_node(expr, node, result_list);
             }
         }
     }
