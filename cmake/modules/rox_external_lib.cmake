@@ -46,8 +46,10 @@ function(rox_external_lib LIB_NAME LIB_VERSION)
     endif ()
 
     if (NOT LIB_CONFIGURE)
-        set(LIB_CONFIGURE ${LIB_CMAKE} -D CMAKE_INSTALL_PREFIX=${LIB_INSTALL_DIR})
+        set(LIB_CONFIGURE <CMAKE> -D CMAKE_INSTALL_PREFIX=${LIB_INSTALL_DIR})
     endif ()
+
+    string(REPLACE "<CMAKE>" "${LIB_CMAKE}" LIB_CONFIGURE "${LIB_CONFIGURE}")
 
     if (LIB_VERBOSE)
         message("LIB_DRY_RUN = ${LIB_DRY_RUN}")
