@@ -4,9 +4,9 @@
 #include "roxx/stack.h"
 #include "context.h"
 
-typedef struct Parser Parser;
+typedef struct ROX_INTERNAL Parser Parser;
 
-typedef struct EvaluationResult EvaluationResult;
+typedef struct ROX_INTERNAL EvaluationResult EvaluationResult;
 
 typedef void ROX_INTERNAL (*parser_operation(struct Parser *parser, CoreStack *stack));
 
