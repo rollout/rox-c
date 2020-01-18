@@ -6,8 +6,11 @@
 #include <stdio.h>
 #include <assert.h>
 #include <pcre2.h>
+#include <float.h>
+#include <math.h>
 #include <collectc/list.h>
 #include <collectc/hashtable.h>
+#include <float.h>
 
 #include "roxapi.h"
 #include "util.h"
@@ -632,11 +635,39 @@ void ROX_INTERNAL _parser_operator_if_then(Parser *parser, CoreStack *stack, Con
     rox_stack_push_item_copy(stack, b ? trueExpression : falseExpression);
 }
 
-int _parser_compare_stack_item_with_node(const StackItem *item, const ParserNode *node) {
+int _parser_compare_stack_item_with_node(StackItem *item, const ParserNode *node) {
     assert(item);
     assert(node);
-    // TODO: implement!
-    return -1;
+
+    // we return -1 in case when node value type and stack item value type doesn't match.,
+    // 1 in case when values are of the same type but not equal,
+    // and 0 in case when they are equal.
+
+    int ret_value = -1;
+    if (rox_stack_is_null(item)) {
+        ret_value = node->is_null ? 0 : 1;
+    } else if (rox_stack_is_undefined(item)) {
+        ret_value = node->is_undefined ? 0 : 1;
+    } else if (rox_stack_is_int(item)) {
+        ret_value = node->int_value != NULL
+                    ? rox_stack_get_int(item) == *node->int_value ? 0 : 1
+                    : -1;
+    } else if (rox_stack_is_double(item)) {
+        ret_value = node->double_value != NULL
+                    ? fabs(rox_stack_get_double(item) - *node->double_value) < FLT_EPSILON
+                      ? 0 : 1
+                    : -1;
+    } else if (rox_stack_is_boolean(item)) {
+        ret_value = node->bool_value != NULL
+                    ? rox_stack_get_boolean(item) == *node->bool_value
+                      ? 0 : 1
+                    : -1;
+    } else if (rox_stack_is_string(item)) {
+        ret_value = node->str_value != NULL
+                    ? strcmp(rox_stack_get_string(item), node->str_value)
+                    : -1;
+    }
+    return ret_value;
 }
 
 void ROX_INTERNAL _parser_operator_in_array(Parser *parser, CoreStack *stack, Context *context) {
