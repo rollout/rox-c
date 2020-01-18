@@ -66,7 +66,7 @@ START_TEST (test_token_type) {
 
 END_TEST
 
-void eval_assert_string_result(Parser *parser, const char *expr, const char *expected_result) {
+void eval_assert_string_result(const char *expected_result, Parser *parser, const char *expr) {
     assert(parser);
     assert(expr);
     EvaluationResult *result = parser_evaluate_expression(parser, expr, NULL);
@@ -80,24 +80,77 @@ void eval_assert_string_result(Parser *parser, const char *expr, const char *exp
     result_free(result);
 }
 
-void eval_assert_boolean_result(Parser *parser, const char *expr, bool expected_result) {
+void eval_assert_boolean_result(bool expected_result, Parser *parser, const char *expr) {
     assert(parser);
     assert(expr);
     EvaluationResult *result = parser_evaluate_expression(parser, expr, NULL);
     ck_assert(result);
-    bool value = result_get_boolean(result);
-    ck_assert(value == expected_result);
+    bool *value = result_get_boolean(result);
+    ck_assert(value);
+    ck_assert(*value == expected_result);
+    result_free(result);
+}
+
+void eval_assert_boolean_result_null(Parser *parser, const char *expr) {
+    assert(parser);
+    assert(expr);
+    EvaluationResult *result = parser_evaluate_expression(parser, expr, NULL);
+    ck_assert(result);
+    bool *value = result_get_boolean(result);
+    ck_assert_ptr_null(value);
+    result_free(result);
+}
+
+void eval_assert_int_result(int expected_result, Parser *parser, const char *expr) {
+    assert(parser);
+    assert(expr);
+    EvaluationResult *result = parser_evaluate_expression(parser, expr, NULL);
+    ck_assert(result);
+    int *value = result_get_int(result);
+    assert(value);
+    ck_assert_int_eq(*value, expected_result);
+    result_free(result);
+}
+
+void eval_assert_int_result_null(Parser *parser, const char *expr) {
+    assert(parser);
+    assert(expr);
+    EvaluationResult *result = parser_evaluate_expression(parser, expr, NULL);
+    ck_assert(result);
+    int *value = result_get_int(result);
+    ck_assert_ptr_null(value);
+    result_free(result);
+}
+
+void eval_assert_double_result(double expected_result, Parser *parser, const char *expr) {
+    assert(parser);
+    assert(expr);
+    EvaluationResult *result = parser_evaluate_expression(parser, expr, NULL);
+    ck_assert(result);
+    double *value = result_get_double(result);
+    assert(value);
+    ck_assert_double_eq(*value, expected_result);
+    result_free(result);
+}
+
+void eval_assert_double_result_null(Parser *parser, const char *expr) {
+    assert(parser);
+    assert(expr);
+    EvaluationResult *result = parser_evaluate_expression(parser, expr, NULL);
+    ck_assert(result);
+    double *value = result_get_double(result);
+    ck_assert_ptr_null(value);
     result_free(result);
 }
 
 START_TEST (test_simple_expression_evaluation) {
     Parser *parser = parser_create();
-    eval_assert_string_result(parser, "true", "true");
-    eval_assert_boolean_result(parser, "true", true);
-    eval_assert_string_result(parser, "\"red\"", "red");
-    eval_assert_boolean_result(parser, "and(true, or(true, true))", true);
-    eval_assert_boolean_result(parser, "and(true, or(false, true))", true);
-    eval_assert_boolean_result(parser, "not(and(false, or(false, true)))", true);
+    eval_assert_string_result("true", parser, "true");
+    eval_assert_boolean_result(true, parser, "true");
+    eval_assert_string_result("red", parser, "\"red\"");
+    eval_assert_boolean_result(true, parser, "and(true, or(true, true))");
+    eval_assert_boolean_result(true, parser, "and(true, or(false, true))");
+    eval_assert_boolean_result(true, parser, "not(and(false, or(false, true)))");
     parser_free(parser);
 }
 
@@ -105,16 +158,16 @@ END_TEST
 
 START_TEST (test_eq_expressions_evaluation) {
     Parser *parser = parser_create();
-    eval_assert_boolean_result(parser, "eq(\"la la\", \"la la\")", true);
-    eval_assert_boolean_result(parser, "eq(\"la la\", \"la,la\")", false);
-    eval_assert_boolean_result(parser, "eq(\"lala\", \"lala\")", true);
-    eval_assert_boolean_result(parser, "ne(100.123, 100.321)", true);
-    eval_assert_boolean_result(parser, "not(eq(undefined, undefined))", false);
-    eval_assert_boolean_result(parser, "not(eq(not(undefined), undefined))", true);
-    eval_assert_boolean_result(parser, "not(undefined)", true);
+    eval_assert_boolean_result(true, parser, "eq(\"la la\", \"la la\")");
+    eval_assert_boolean_result(false, parser, "eq(\"la la\", \"la,la\")");
+    eval_assert_boolean_result(true, parser, "eq(\"lala\", \"lala\")");
+    eval_assert_boolean_result(true, parser, "ne(100.123, 100.321)");
+    eval_assert_boolean_result(false, parser, "not(eq(undefined, undefined))");
+    eval_assert_boolean_result(true, parser, "not(eq(not(undefined), undefined))");
+    eval_assert_boolean_result(true, parser, "not(undefined)");
     const char *roxxString = "la \\\"la\\\" la";
     char *expr = mem_str_format("eq(\"%s\", \"la \\\"la\\\" la\")", roxxString);
-    eval_assert_boolean_result(parser, expr, true);
+    eval_assert_boolean_result(true, parser, expr);
     free(expr);
     parser_free(parser);
 }
@@ -123,8 +176,8 @@ END_TEST
 
 START_TEST (test_unknown_operator_evaluation) {
     Parser *parser = parser_create();
-    eval_assert_boolean_result(parser, "NOT_AN_OPERATOR(500, 500)", false);
-    eval_assert_boolean_result(parser, "JUSTAWORD(500, 500)", false);
+    eval_assert_boolean_result(false, parser, "NOT_AN_OPERATOR(500, 500)");
+    eval_assert_boolean_result(false, parser, "JUSTAWORD(500, 500)");
     parser_free(parser);
 }
 
@@ -132,9 +185,9 @@ END_TEST
 
 START_TEST (test_undefined_evaluation) {
     Parser *parser = parser_create();
-    eval_assert_boolean_result(parser, "isUndefined(undefined)", true);
-    eval_assert_boolean_result(parser, "isUndefined(123123)", false);
-    eval_assert_boolean_result(parser, "isUndefined(\"undefined\")", false);
+    eval_assert_boolean_result(true, parser, "isUndefined(undefined)");
+    eval_assert_boolean_result(false, parser, "isUndefined(123123)");
+    eval_assert_boolean_result(false, parser, "isUndefined(\"undefined\")");
     parser_free(parser);
 }
 
@@ -142,9 +195,9 @@ END_TEST
 
 START_TEST (test_now_evaluation) {
     Parser *parser = parser_create();
-    eval_assert_boolean_result(parser, "gte(now(), now())", true);
-    eval_assert_boolean_result(parser, "gte(now(), 2458.123)", true);
-    eval_assert_boolean_result(parser, "gte(now(), 1534759307565)", true);
+    eval_assert_boolean_result(true, parser, "gte(now(), now())");
+    eval_assert_boolean_result(true, parser, "gte(now(), 2458.123)");
+    eval_assert_boolean_result(true, parser, "gte(now(), 1534759307565)");
     parser_free(parser);
 }
 
@@ -152,24 +205,77 @@ END_TEST
 
 START_TEST (test_if_then_expression_evaluation_string) {
     Parser *parser = parser_create();
-    eval_assert_string_result(parser, "ifThen(and(true, or(true, true)), \"AB\", \"CD\")", "AB");
-    eval_assert_string_result(parser, "ifThen(and(false, or(true, true)), \"AB\", \"CD\")", "CD");
-    eval_assert_string_result(parser,
-                              "ifThen(and(true, or(true, true)), \"AB\", ifThen(and(true, or(true, true)), \"EF\", \"CD\"))",
-                              "AB");
-    eval_assert_string_result(parser,
-                              "ifThen(and(false, or(true, true)), \"AB\", ifThen(and(true, or(true, true)), \"EF\", \"CD\"))",
-                              "EF");
-    eval_assert_string_result(parser,
-                              "ifThen(and(false, or(true, true)), \"AB\", ifThen(and(true, or(false, false)), \"EF\", \"CD\"))",
-                              "CD");
-    eval_assert_string_result(parser,
-                              "ifThen(and(false, or(true, true)), \"AB\", ifThen(and(true, or(false, false)), \"EF\", undefined))",
-                              NULL);
+    eval_assert_string_result("AB", parser, "ifThen(and(true, or(true, true)), \"AB\", \"CD\")");
+    eval_assert_string_result("CD", parser, "ifThen(and(false, or(true, true)), \"AB\", \"CD\")");
+    eval_assert_string_result(
+            "AB", parser,
+            "ifThen(and(true, or(true, true)), \"AB\", ifThen(and(true, or(true, true)), \"EF\", \"CD\"))");
+    eval_assert_string_result(
+            "EF", parser,
+            "ifThen(and(false, or(true, true)), \"AB\", ifThen(and(true, or(true, true)), \"EF\", \"CD\"))");
+    eval_assert_string_result(
+            "CD", parser,
+            "ifThen(and(false, or(true, true)), \"AB\", ifThen(and(true, or(false, false)), \"EF\", \"CD\"))");
+    eval_assert_string_result(
+            NULL, parser,
+            "ifThen(and(false, or(true, true)), \"AB\", ifThen(and(true, or(false, false)), \"EF\", undefined))");
     parser_free(parser);
 }
 
 END_TEST
+
+START_TEST (test_if_then_expression_evaluation_int_number) {
+    Parser *parser = parser_create();
+    eval_assert_int_result(1, parser, "ifThen(and(true, or(true, true)), 1, 2)");
+    eval_assert_int_result(2, parser, "ifThen(and(false, or(true, true)), 1, 2)");
+    eval_assert_int_result(1, parser,
+                           "ifThen(and(true, or(true, true)), 1, ifThen(and(true, or(true, true)), 3, 2))");
+    eval_assert_int_result(3, parser,
+                           "ifThen(and(false, or(true, true)), 1, ifThen(and(true, or(true, true)), 3, 2))");
+    eval_assert_int_result(2, parser,
+                           "ifThen(and(false, or(true, true)), 1, ifThen(and(true, or(false, false)), 3, 2))");
+    eval_assert_int_result_null(parser,
+                                "ifThen(and(false, or(true, true)), 1, ifThen(and(true, or(false, false)), 3, undefined))");
+    parser_free(parser);
+}
+
+END_TEST
+
+START_TEST (test_if_then_expression_evaluation_double_number) {
+    Parser *parser = parser_create();
+    eval_assert_double_result(1.1, parser, ("ifThen(and(true, or(true, true)), 1.1, 2.2)"));
+    eval_assert_double_result(2.2, parser, ("ifThen(and(false, or(true, true)), 1.1, 2.2)"));
+    eval_assert_double_result(1.1, parser, (
+            "ifThen(and(true, or(true, true)), 1.1, ifThen(and(true, or(true, true)), 3.3, 2.2))"));
+    eval_assert_double_result(3.3, parser, (
+            "ifThen(and(false, or(true, true)), 1.1, ifThen(and(true, or(true, true)), 3.3, 2.2))"));
+    eval_assert_double_result(2.2, parser, (
+            "ifThen(and(false, or(true, true)), 1.1, ifThen(and(true, or(false, false)), 3.3, 2.2))"));
+    eval_assert_double_result_null(parser, (
+            "ifThen(and(false, or(true, true)), 1.1, ifThen(and(true, or(false, false)), 3.3, undefined))"));
+    parser_free(parser);
+}
+
+END_TEST
+
+START_TEST (test_if_then_expression_evaluation_boolean) {
+    Parser *parser = parser_create();
+    eval_assert_boolean_result(true, parser, "ifThen(and(true, or(true, true)), true, false)");
+    eval_assert_boolean_result(false, parser, "ifThen(and(false, or(true, true)), true, false)");
+    eval_assert_boolean_result(false, parser,
+                               "ifThen(and(true, or(true, true)), false, ifThen(and(true, or(true, true)), true, true))");
+    eval_assert_boolean_result(true, parser,
+                               "ifThen(and(false, or(true, true)), false, ifThen(and(true, or(true, true)), true, false))");
+    eval_assert_boolean_result(false, parser,
+                               "ifThen(and(false, or(true, true)), true, ifThen(and(true, or(false, false)), true, false))");
+    eval_assert_boolean_result(true, parser,
+                               "ifThen(and(false, or(true, true)), false, ifThen(and(true, or(false, false)), false, (and(true,true))))");
+    eval_assert_boolean_result(false, parser,
+                               "ifThen(and(false, or(true, true)), true, ifThen(and(true, or(false, false)), true, (and(true,false))))");
+    eval_assert_boolean_result_null(parser,
+                                    "ifThen(and(false, or(true, true)), true, ifThen(and(true, or(false, false)), true, undefined))");
+    parser_free(parser);
+}
 
 ROX_TEST_SUITE(
         ROX_TEST_CASE(test_simple_tokenization),
@@ -179,5 +285,8 @@ ROX_TEST_SUITE(
         ROX_TEST_CASE(test_unknown_operator_evaluation),
         ROX_TEST_CASE(test_undefined_evaluation),
 //ROX_TEST_CASE(test_now_evaluation), // FIXME: implement gte operator
-        ROX_TEST_CASE(test_if_then_expression_evaluation_string)
+        ROX_TEST_CASE(test_if_then_expression_evaluation_string),
+        ROX_TEST_CASE(test_if_then_expression_evaluation_int_number),
+        ROX_TEST_CASE(test_if_then_expression_evaluation_double_number),
+        ROX_TEST_CASE(test_if_then_expression_evaluation_boolean)
 )

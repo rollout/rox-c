@@ -59,12 +59,14 @@ struct ROX_INTERNAL EvaluationResult {
     char *str_value;
     bool is_true;
     bool is_false;
+    bool is_null;
 };
 
 EvaluationResult *ROX_INTERNAL _create_result_from_stack_item(StackItem *item) {
     EvaluationResult *result = calloc(1, sizeof(EvaluationResult));
 
     if (!item || rox_stack_is_null(item)) {
+        result->is_null = true;
         return result;
     }
 
@@ -116,9 +118,15 @@ double *ROX_INTERNAL result_get_double(EvaluationResult *result) {
     return result->double_value;
 }
 
-bool ROX_INTERNAL result_get_boolean(EvaluationResult *result) {
+bool *ROX_INTERNAL result_get_boolean(EvaluationResult *result) {
     assert(result);
-    return result->is_true;
+    if (result->is_null) {
+        return &result->is_true;
+    }
+    if (!result->is_true && !result->is_false) {
+        return NULL;
+    }
+    return &result->is_true;
 }
 
 char *ROX_INTERNAL result_get_string(EvaluationResult *result) {

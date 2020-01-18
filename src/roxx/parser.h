@@ -77,7 +77,7 @@ int *ROX_INTERNAL result_get_int(EvaluationResult *result);
 
 double *ROX_INTERNAL result_get_double(EvaluationResult *result);
 
-bool ROX_INTERNAL result_get_boolean(EvaluationResult *result);
+bool *ROX_INTERNAL result_get_boolean(EvaluationResult *result);
 
 char *ROX_INTERNAL result_get_string(EvaluationResult *result);
 
