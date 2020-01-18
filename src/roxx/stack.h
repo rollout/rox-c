@@ -1,6 +1,8 @@
 #pragma once
 
 #include <stdbool.h>
+#include <collectc/list.h>
+#include <collectc/hashtable.h>
 #include "roxapi.h"
 
 typedef struct ROX_INTERNAL CoreStack CoreStack;
@@ -13,7 +15,7 @@ typedef struct ROX_INTERNAL StackItem StackItem;
 // Here we define functions to create and use stack, and destroy it once it is not under use.
 //
 
-CoreStack *ROX_INTERNAL stack_create();
+CoreStack *ROX_INTERNAL rox_stack_create();
 
 /**
  * @param stack A NON-NULL pointer.
@@ -35,9 +37,19 @@ void ROX_INTERNAL rox_stack_push_double(CoreStack *stack, double value);
 
 void ROX_INTERNAL rox_stack_push_boolean(CoreStack *stack, bool value);
 
-void ROX_INTERNAL rox_stack_push_string(CoreStack *stack, const char *value);
+void ROX_INTERNAL rox_stack_push_string_copy(CoreStack *stack, const char *value);
+
+void ROX_INTERNAL rox_stack_push_string_ptr(CoreStack *stack, char *value);
+
+void ROX_INTERNAL rox_stack_push_list(CoreStack *stack, List *value);
+
+void ROX_INTERNAL rox_stack_push_map(CoreStack *stack, HashTable *value);
 
 void ROX_INTERNAL rox_stack_push_null(CoreStack *stack);
+
+void ROX_INTERNAL rox_stack_push_undefined(CoreStack *stack);
+
+void ROX_INTERNAL rox_stack_push_item_copy(CoreStack *stack, StackItem *item);
 
 /**
  * DON'T FORGET TO CALL THIS.
@@ -59,6 +71,12 @@ bool ROX_INTERNAL rox_stack_is_boolean(StackItem *item);
 
 bool ROX_INTERNAL rox_stack_is_string(StackItem *item);
 
+bool ROX_INTERNAL rox_stack_is_list(StackItem *item);
+
+bool ROX_INTERNAL rox_stack_is_map(StackItem *item);
+
+bool ROX_INTERNAL rox_stack_is_undefined(StackItem *item);
+
 bool ROX_INTERNAL rox_stack_is_null(StackItem *item);
 
 //
@@ -77,3 +95,7 @@ double ROX_INTERNAL rox_stack_get_double(StackItem *item);
 bool ROX_INTERNAL rox_stack_get_boolean(StackItem *item);
 
 char *ROX_INTERNAL rox_stack_get_string(StackItem *item);
+
+List *ROX_INTERNAL rox_stack_get_list(StackItem *item);
+
+HashTable *ROX_INTERNAL rox_stack_get_map(StackItem *item);

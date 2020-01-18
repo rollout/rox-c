@@ -8,11 +8,26 @@ typedef struct ROX_INTERNAL Parser Parser;
 
 typedef struct ROX_INTERNAL EvaluationResult EvaluationResult;
 
-typedef void ROX_INTERNAL (*parser_operation(struct Parser *parser, CoreStack *stack));
+typedef void ROX_INTERNAL (*parser_operation)(Parser *parser, CoreStack *stack, Context *context);
 
-void ROX_INTERNAL parser_evaluate_expression(const char *expression, Context *context);
+Parser *ROX_INTERNAL parser_create();
 
+void ROX_INTERNAL parser_free(Parser *parser);
+
+/**
+ * @param parser Parser reference. NOT NULL.
+ * @param name Operator name. NOT NULL.
+ * @param op Pointer to operation function. NOT NULL.
+ */
 void ROX_INTERNAL parser_add_operator(Parser *parser, const char *name, parser_operation op);
+
+/**
+ * @param parser Parser reference. NOT NULL.
+ * @param expression Expression. NOT NULL.
+ * @param context Can be NULL.
+ * @return Not NULL.
+ */
+EvaluationResult *ROX_INTERNAL parser_evaluate_expression(Parser *parser, const char *expression, Context *context);
 
 //
 // Get value from evaluation result. If actual value type is different

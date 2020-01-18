@@ -168,252 +168,53 @@ START_TEST (test_substring_middle) {
 
 END_TEST
 
-START_TEST (test_replace) {
+START_TEST (test_base64_encode) {
+    char *str = mem_base64_encode("test");
+    ck_assert_str_eq(str, "dGVzdA==");
+    free(str);
+}
 
-    // NOTE: mem_str_replace tests are taken from here
-    // https://gist.github.com/dhess/975639/bb91cd552c0a92306b8ef49b417c6796f67036ce
+END_TEST
 
-    const char *s1 = 0;
-    const char *s2 = 0;
-    const char *s3 = 0;
-    ck_assert(mem_str_replace(s1, s2, s3) == 0);
+START_TEST (test_base64_decode) {
+    char *str = mem_base64_decode("dGVzdA==");
+    ck_assert_str_eq(str, "test");
+    free(str);
+}
 
-    s1 = "";
-    s2 = 0;
-    s3 = 0;
-    ck_assert(mem_str_replace(s1, s2, s3) == 0);
+END_TEST
 
-    s1 = 0;
-    s2 = "";
-    s3 = 0;
-    ck_assert(mem_str_replace(s1, s2, s3) == 0);
+START_TEST (test_md5_rfc1321_test_suite) {
 
-    s1 = "";
-    s2 = "";
-    s3 = 0;
-    ck_assert(mem_str_replace(s1, s2, s3) == 0);
+    // https://tools.ietf.org/html/rfc1321
 
-    s1 = 0;
-    s2 = 0;
-    s3 = "";
-    ck_assert(mem_str_replace(s1, s2, s3) == 0);
+    char *md5 = mem_md5("");
+    ck_assert_str_eq(md5, "d41d8cd98f00b204e9800998ecf8427e");
+    free(md5);
 
-    s1 = "";
-    s2 = 0;
-    s3 = "";
-    ck_assert(mem_str_replace(s1, s2, s3) == 0);
+    md5 = mem_md5("a");
+    ck_assert_str_eq(md5, "0cc175b9c0f1b6a831c399e269772661");
+    free(md5);
 
-    s1 = 0;
-    s2 = "";
-    s3 = "";
-    ck_assert(mem_str_replace(s1, s2, s3) == 0);
+    md5 = mem_md5("abc");
+    ck_assert_str_eq(md5, "900150983cd24fb0d6963f7d28e17f72");
+    free(md5);
 
-    s1 = "";
-    s2 = "";
-    s3 = "";
-    ck_assert(mem_str_replace(s1, s2, s3) == s1);
+    md5 = mem_md5("message digest");
+    ck_assert_str_eq(md5, "f96b697d7cb7938d525a2f31aaf161d0");
+    free(md5);
 
-    s1 = "abc";
-    s2 = "";
-    s3 = "xyz";
-    ck_assert(mem_str_replace(s1, s2, s3) == s1);
+    md5 = mem_md5("abcdefghijklmnopqrstuvwxyz");
+    ck_assert_str_eq(md5, "c3fcd3d76192e4007dfb496cca67e13b");
+    free(md5);
 
-    s1 = "";
-    s2 = "abc";
-    s3 = "xyz";
-    ck_assert(mem_str_replace(s1, s2, s3) == s1);
+    md5 = mem_md5("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789");
+    ck_assert_str_eq(md5, "d174ab98d277d9f5a5611c2c9f419d9f");
+    free(md5);
 
-    s1 = "abc";
-    s2 = "def";
-    s3 = "xyz";
-    ck_assert(mem_str_replace(s1, s2, s3) == s1);
-
-    s1 = "ab";
-    s2 = "abc";
-    s3 = "xyz";
-    ck_assert(mem_str_replace(s1, s2, s3) == s1);
-
-    s1 = "abc";
-    s2 = "abc";
-    s3 = "xyz";
-
-    char *s4 = mem_str_replace(s1, s2, s3);
-    ck_assert(strcmp(s4, "xyz") == 0);
-    ck_assert(s4 != s1);
-    free(s4);
-
-    s1 = "abc";
-    s2 = "a";
-    s3 = "xyz";
-    s4 = mem_str_replace(s1, s2, s3);
-    ck_assert(strcmp(s4, "xyzbc") == 0);
-    free(s4);
-
-    s1 = "abc";
-    s2 = "b";
-    s3 = "xyz";
-    s4 = mem_str_replace(s1, s2, s3);
-    ck_assert(strcmp(s4, "axyzc") == 0);
-    free(s4);
-
-    s1 = "abc";
-    s2 = "c";
-    s3 = "xyz";
-    s4 = mem_str_replace(s1, s2, s3);
-    ck_assert(strcmp(s4, "abxyz") == 0);
-    free(s4);
-
-    s1 = "aba";
-    s2 = "ab";
-    s3 = "xyz";
-    s4 = mem_str_replace(s1, s2, s3);
-    ck_assert(strcmp(s4, "xyza") == 0);
-    free(s4);
-
-    s1 = "bbc";
-    s2 = "bc";
-    s3 = "xyz";
-    s4 = mem_str_replace(s1, s2, s3);
-    ck_assert(strcmp(s4, "bxyz") == 0);
-    free(s4);
-
-    s1 = "a";
-    s2 = "a";
-    s3 = "xyz";
-    s4 = mem_str_replace(s1, s2, s3);
-    ck_assert(strcmp(s4, "xyz") == 0);
-    free(s4);
-
-    s1 = "ab";
-    s2 = "a";
-    s3 = "xyz";
-    s4 = mem_str_replace(s1, s2, s3);
-    ck_assert(strcmp(s4, "xyzb") == 0);
-    free(s4);
-
-    s1 = "ab";
-    s2 = "b";
-    s3 = "xyz";
-    s4 = mem_str_replace(s1, s2, s3);
-    ck_assert(strcmp(s4, "axyz") == 0);
-    free(s4);
-
-    s1 = "abbc";
-    s2 = "ab";
-    s3 = "x";
-    s4 = mem_str_replace(s1, s2, s3);
-    ck_assert(strcmp(s4, "xbc") == 0);
-    free(s4);
-
-    s1 = "abcc";
-    s2 = "bc";
-    s3 = "x";
-    s4 = mem_str_replace(s1, s2, s3);
-    ck_assert(strcmp(s4, "axc") == 0);
-    free(s4);
-
-    s1 = "dccd";
-    s2 = "cd";
-    s3 = "x";
-    s4 = mem_str_replace(s1, s2, s3);
-    ck_assert(strcmp(s4, "dcx") == 0);
-    free(s4);
-
-    s1 = "abab";
-    s2 = "ab";
-    s3 = "xyz";
-    s4 = mem_str_replace(s1, s2, s3);
-    ck_assert(strcmp(s4, "xyzxyz") == 0);
-    free(s4);
-
-    s1 = "abcab";
-    s2 = "ab";
-    s3 = "xyz";
-    s4 = mem_str_replace(s1, s2, s3);
-    ck_assert(strcmp(s4, "xyzcxyz") == 0);
-    free(s4);
-
-    s1 = "abcabc";
-    s2 = "ab";
-    s3 = "xyz";
-    s4 = mem_str_replace(s1, s2, s3);
-    ck_assert(strcmp(s4, "xyzcxyzc") == 0);
-    free(s4);
-
-    s1 = "cabcab";
-    s2 = "ab";
-    s3 = "xyz";
-    s4 = mem_str_replace(s1, s2, s3);
-    ck_assert(strcmp(s4, "cxyzcxyz") == 0);
-    free(s4);
-
-    s1 = "cabcabc";
-    s2 = "ab";
-    s3 = "xyz";
-    s4 = mem_str_replace(s1, s2, s3);
-    ck_assert(strcmp(s4, "cxyzcxyzc") == 0);
-    free(s4);
-
-    s1 = "abc";
-    s2 = "ab";
-    s3 = "ab";
-    s4 = mem_str_replace(s1, s2, s3);
-    ck_assert(strcmp(s4, "abc") == 0);
-    free(s4);
-
-    s1 = "abc";
-    s2 = "bc";
-    s3 = "bc";
-    s4 = mem_str_replace(s1, s2, s3);
-    ck_assert(strcmp(s4, "abc") == 0);
-    free(s4);
-
-    s1 = "abcc";
-    s2 = "abc";
-    s3 = "ab";
-    s4 = mem_str_replace(s1, s2, s3);
-    ck_assert(strcmp(s4, "abc") == 0);
-    free(s4);
-
-    s1 = "abccc";
-    s2 = "bc";
-    s3 = "b";
-    s4 = mem_str_replace(s1, s2, s3);
-    ck_assert(strcmp(s4, "abcc") == 0);
-    free(s4);
-
-    s1 = "abccc";
-    s2 = "cc";
-    s3 = "c";
-    s4 = mem_str_replace(s1, s2, s3);
-    ck_assert(strcmp(s4, "abcc") == 0);
-    free(s4);
-
-    s1 = "abcd";
-    s2 = "a";
-    s3 = "";
-    s4 = mem_str_replace(s1, s2, s3);
-    ck_assert(strcmp(s4, "bcd") == 0);
-    free(s4);
-
-    s1 = "abcd";
-    s2 = "bc";
-    s3 = "";
-    s4 = mem_str_replace(s1, s2, s3);
-    ck_assert(strcmp(s4, "ad") == 0);
-    free(s4);
-
-    s1 = "abcd";
-    s2 = "d";
-    s3 = "";
-    s4 = mem_str_replace(s1, s2, s3);
-    ck_assert(strcmp(s4, "abc") == 0);
-    free(s4);
-
-    s1 = "";
-    s2 = "";
-    s3 = "abc";
-    ck_assert(mem_str_replace(s1, s2, s3) == s1);
+    md5 = mem_md5("12345678901234567890123456789012345678901234567890123456789012345678901234567890");
+    ck_assert_str_eq(md5, "57edf4a22be3c955ac49da2e2107b67a");
+    free(md5);
 }
 
 END_TEST
@@ -446,6 +247,10 @@ ROX_TEST_SUITE(
         ROX_TEST_CASE(test_substring_suffix),
         ROX_TEST_CASE(test_substring_middle),
 
-// mem_str_replace
-        ROX_TEST_CASE(test_replace)
+// mem_base64
+        ROX_TEST_CASE(test_base64_encode),
+        ROX_TEST_CASE(test_base64_decode),
+
+// mem_md5
+        ROX_TEST_CASE(test_md5_rfc1321_test_suite)
 )

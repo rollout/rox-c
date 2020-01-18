@@ -3,7 +3,7 @@ include(external-libs.cmake)
 
 enable_testing()
 
-set(LIBS ${LIBS} pcre2 collectc check)
+set(LIBS ${LIBS} pcre2 collectc check roxvendorlib)
 set(LIBS_C ${LIBS} libroxc)
 set(LIBS_CXX ${LIBS} libroxcpp)
 

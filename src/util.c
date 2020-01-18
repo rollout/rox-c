@@ -6,8 +6,12 @@
 #include <assert.h>
 #include <pcre2.h>
 #include <stdio.h>
+#include <time.h>
 
 #include "util.h"
+#include "base64.h"
+#include "strrep.h"
+#include "md5.h"
 
 int *mem_copy_int(int value) {
     int *copy = malloc(sizeof(value));
@@ -112,7 +116,7 @@ bool ROX_INTERNAL str_matches(const char *str, const char *pattern, int options)
     return rc >= 0;
 }
 
-int ROX_INTERNAL str_index_of(const char *str, const char c) {
+int ROX_INTERNAL str_index_of(const char *str, char c) {
     assert(str);
     char *e = strchr(str, c);
     if (!e) {
@@ -149,100 +153,69 @@ char *ROX_INTERNAL mem_str_substring(const char *str, int start, int len) {
     return buffer;
 }
 
-/*
- * This function returns string <code>str</code> if string <code>search</code> is an empty string, or
- * if <code>search</code> is not found in <code>str</code>. If <code>search</code> is found in <code>str</code>, the function
- * returns a new null-terminated string whose contents are identical
- * to <code>str</code>, except that all occurrences of <code>search</code> in the original string <code>str</code>
- * are, in the new string, replaced by the string <code>rep</code>. The caller owns
- * the new string.
- *
- * Strings <code>str</code>, <code>search</code>, and <code>rep</code> must all be null-terminated strings. If any
- * of <code>str</code>, <code>search</code>, or <code>rep</code> are NULL, the function returns NULL, indicating an
- * error condition. If any other error occurs, the function returns
- * NULL.
- *
- * This code is written pedantically, primarily so that asserts can be
- * used liberally. The code could certainly be optimized and/or made
- * less verbose, and I encourage you to do that if you use strstr in
- * your production code, once you're comfortable that it functions as
- * intended. Each assert makes plain an invariant condition that is
- * assumed to be true by the statement(s) that immediately follow the
- * assert.  Some of the asserts are trivially true, as written, but
- * they're included, nonetheless, in case you, in the process of
- * optimizing or adapting the code for your own purposes, make a
- * change that breaks an assumption made downstream by the original
- * code.
- *
- * NOTE: the function code and the above comment is taken from here:
- * https://gist.github.com/dhess/975639/bb91cd552c0a92306b8ef49b417c6796f67036ce
- */
 char *ROX_INTERNAL mem_str_replace(const char *str, const char *search, const char *rep) {
-    if (!str || !search || !rep)
-        return 0;
-    size_t s1_len = strlen(str);
-    if (!s1_len)
-        return (char *) str;
-    size_t s2_len = strlen(search);
-    if (!s2_len)
-        return (char *) str;
+    assert(str);
+    assert(search);
+    assert(rep);
+    return strrep(str, search, rep);
+}
 
-    /*
-     * Two-pass approach: figure out how much space to allocate for
-     * the new string, pre-allocate it, then perform replacement(s).
-     */
+char *ROX_INTERNAL mem_str_concat(const char *s1, const char *s2) {
+    assert(s1);
+    assert(s2);
+    size_t len = strlen(s1) + strlen(s2);
+    char *buffer = calloc(len + 1, sizeof(char));
+    sprintf_s(buffer, len, "%s%s", s1, s2);
+    return buffer;
+}
 
-    size_t count = 0;
-    const char *p = str;
-    assert(s2_len); /* otherwise, strstr(<code>str</code>,<code>search</code>) will return <code>str</code>. */
-    do {
-        p = strstr(p, search);
-        if (p) {
-            p += s2_len;
-            ++count;
-        }
-    } while (p);
+long ROX_INTERNAL current_time_millis() {
+    time_t t;
+    time(&t);
+    // TODO: get millis somehow
+    return (long) (t * 1000);
+}
 
-    if (!count)
-        return (char *) str;
+char *ROX_INTERNAL mem_base64_encode(const char *s) {
+    assert(s);
+    char buffer[1024];
+    size_t len = strlen(s);
+    int result = base64encode(s, len * sizeof(char), buffer, 1024);
+    assert(result == 0);
+    return result == 0 ? mem_copy_str(buffer) : NULL;
+}
 
-    /*
-     * The following size arithmetic is extremely cautious, to guard
-     * against size_t overflows.
-     */
-    assert(s1_len >= count * s2_len);
-    assert(count);
-    size_t s1_without_s2_len = s1_len - count * s2_len;
-    size_t s3_len = strlen(rep);
-    size_t s1_with_s3_len = s1_without_s2_len + count * s3_len;
-    if (s3_len &&
-        ((s1_with_s3_len <= s1_without_s2_len) || (s1_with_s3_len + 1 == 0)))
-        /* Overflow. */
-        return 0;
+char *ROX_INTERNAL mem_md5(const char *s) {
+    assert(s);
+    MD5_CTX context;
+    unsigned char digest[16];
+    size_t len = strlen(s);
 
-    char *s1_with_s3 = (char *) malloc(s1_with_s3_len + 1); /* w/ terminator */
-    if (!s1_with_s3)
-        /* ENOMEM, but no good way to signal it. */
-        return 0;
+    MD5_Init(&context);
+    MD5_Update(&context, s, len);
+    MD5_Final(digest, &context);
 
-    char *dst = s1_with_s3;
-    const char *start_substr = str;
-    size_t i;
-    for (i = 0; i != count; ++i) {
-        const char *end_substr = strstr(start_substr, search);
-        assert(end_substr);
-        size_t substr_len = end_substr - start_substr;
-        memcpy(dst, start_substr, substr_len);
-        dst += substr_len;
-        memcpy(dst, rep, s3_len);
-        dst += s3_len;
-        start_substr = end_substr + s2_len;
+    char *result = malloc(33);
+    static const char hexits[17] = "0123456789abcdef";
+    int i;
+    for (i = 0; i < 16; i++) {
+        result[i * 2] = hexits[digest[i] >> 4];
+        result[(i * 2) + 1] = hexits[digest[i] & 0x0F];
     }
+    result[32] = '\0';
+    return result;
+}
 
-    /* copy remainder of <code>str</code>, including trailing '\0' */
-    size_t remains = s1_len - (start_substr - str) + 1;
-    assert(dst + remains == s1_with_s3 + s1_with_s3_len + 1);
-    memcpy(dst, start_substr, remains);
-    assert(strlen(s1_with_s3) == s1_with_s3_len);
-    return s1_with_s3;
+char *ROX_INTERNAL mem_base64_decode(const char *s) {
+    assert(s);
+    unsigned char buffer[1024];
+    size_t len = strlen(s);
+    size_t resulting_str_len;
+    int result = base64decode(s, len, buffer, &resulting_str_len);
+    assert(result == 0);
+    if (result == 0) {
+        buffer[resulting_str_len] = 0;
+        return mem_copy_str((char *) buffer);
+    }
+    return NULL;
 }

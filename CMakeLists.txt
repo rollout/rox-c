@@ -10,6 +10,8 @@ set(ROX_THIRD_PARTY_LIBS_LOCATION ${CMAKE_SOURCE_DIR}/vendor/build)
 include(rox_external_lib)
 
 include_directories(include)
+include_directories(${CMAKE_SOURCE_DIR}/vendor/include)
+link_directories(${CMAKE_SOURCE_DIR}/vendor/build/src)
 
 add_subdirectory(include)
 add_subdirectory(src)

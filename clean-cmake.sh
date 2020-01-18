@@ -1,10 +1,8 @@
 ﻿#!/bin/bash
 
-rm -fr `find . -name CMakeFiles`
-rm -f `find . -name CMakeCache.txt`
-rm -f `find . -name Makefile`
-rm -f `find . -name cmake_install.cmake`
-rm -f `find . -name "*.a"`
+# NOTE: before running this file vendor libraries must be built.
+# To do that proceed to vendor directory and run ./build-third-party-libs.sh
+
 rm -fr build
 mkdir build
 

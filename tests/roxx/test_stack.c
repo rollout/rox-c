@@ -5,9 +5,9 @@
 
 START_TEST (test_will_push_into_stack_string) {
 
-    CoreStack *stack = stack_create();
+    CoreStack *stack = rox_stack_create();
     fail_if(!stack, "Could not crate stack");
-    rox_stack_push_string(stack, "stringTest");
+    rox_stack_push_string_copy(stack, "stringTest");
 
     StackItem *popped_item = rox_stack_pop(stack);
     fail_if(!popped_item);
@@ -23,7 +23,7 @@ END_TEST
 
 START_TEST (test_will_push_into_stack_integer) {
 
-    CoreStack *stack = stack_create();
+    CoreStack *stack = rox_stack_create();
     fail_if(!stack, "Could not crate stack");
     rox_stack_push_int(stack, 5);
 
@@ -41,7 +41,7 @@ END_TEST
 
 START_TEST (test_will_push_into_stack_double) {
 
-    CoreStack *stack = stack_create();
+    CoreStack *stack = rox_stack_create();
     fail_if(!stack, "Could not crate stack");
     rox_stack_push_double(stack, 5.5);
 
@@ -59,7 +59,7 @@ END_TEST
 
 START_TEST (test_will_push_into_stack_boolean) {
 
-    CoreStack *stack = stack_create();
+    CoreStack *stack = rox_stack_create();
     fail_if(!stack, "Could not crate stack");
     rox_stack_push_boolean(stack, true);
     rox_stack_push_boolean(stack, false);
@@ -83,7 +83,7 @@ END_TEST
 
 START_TEST (test_will_push_into_stack_null) {
 
-    CoreStack *stack = stack_create();
+    CoreStack *stack = rox_stack_create();
     fail_if(!stack, "Could not crate stack");
     rox_stack_push_null(stack);
     rox_stack_push_int(stack, 1);
@@ -107,10 +107,10 @@ END_TEST
 
 START_TEST (test_will_push_into_stack_integer_and_string) {
 
-    CoreStack *stack = stack_create();
+    CoreStack *stack = rox_stack_create();
     fail_if(!stack, "Could not crate stack");
     rox_stack_push_int(stack, 5);
-    rox_stack_push_string(stack, "testString");
+    rox_stack_push_string_copy(stack, "testString");
 
     StackItem *first = rox_stack_pop(stack);
     StackItem *second = rox_stack_pop(stack);
@@ -133,10 +133,10 @@ END_TEST
 
 START_TEST (test_will_peek_from_stack) {
 
-    CoreStack *stack = stack_create();
+    CoreStack *stack = rox_stack_create();
     fail_if(!stack, "Could not crate stack");
     rox_stack_push_int(stack, 5);
-    rox_stack_push_string(stack, "testString");
+    rox_stack_push_string_copy(stack, "testString");
 
     StackItem *first = rox_stack_peek(stack);
     StackItem *second = rox_stack_pop(stack);

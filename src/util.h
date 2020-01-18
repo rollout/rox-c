@@ -60,3 +60,38 @@ char *ROX_INTERNAL mem_str_substring(const char *str, int start, int len);
  * @return Pointer to the NEWLY CREATED string in which all occurrences of <code>search</code> are replaced with <code>rep</code>.
  */
 char *ROX_INTERNAL mem_str_replace(const char *str, const char *search, const char *rep);
+
+/**
+ * NOTE: THE RETURNED STR MUST BE FREED AFTER USE
+ *
+ * @param s1 The left part. MUST NOT BE NULL.
+ * @param s2 The right part. MUST NOT BE NULL.
+ * @return Pointer to the NEWLY CREATED string which is a concatenation of the given two strings.
+ */
+char *ROX_INTERNAL mem_str_concat(const char *s1, const char *s2);
+
+/**
+ * NOTE: THE RETURNED STR MUST BE FREED AFTER USE
+ * @param s The string to encode.
+ * @return Pointer to the NEWLY CREATED string which is a base64-encoded version of the given string.
+ */
+char *ROX_INTERNAL mem_base64_encode(const char *s);
+
+/**
+ * NOTE: THE RETURNED STR MUST BE FREED AFTER USE
+ * @param s The BASE64-ed string to decode.
+ * @return Pointer to the NEWLY CREATED string which is a base64-decoded version of the given string.
+ */
+char *ROX_INTERNAL mem_base64_decode(const char *s);
+
+/**
+ * NOTE: THE RETURNED STR MUST BE FREED AFTER USE
+ * @param s The input string.
+ * @return Pointer to the NEWLY CREATED string which is a string representation of a md5 hash of the given string.
+ */
+char *ROX_INTERNAL mem_md5(const char *s);
+
+/**
+ * @return Number of milliseconds since Unix Epoch.
+ */
+long ROX_INTERNAL current_time_millis();

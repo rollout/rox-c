@@ -16,6 +16,46 @@
 #include "roxx/stack.h"
 
 //
+// Symbols
+//
+
+const char *ROX_INTERNAL ROXX_UNDEFINED = "undefined";
+const char *ROX_INTERNAL ROXX_TRUE = "true";
+const char *ROX_INTERNAL ROXX_FALSE = "false";
+const char *ROX_INTERNAL ROXX_EMPTY_STRING = "\"\"";
+
+//
+// TokenTypes
+//
+
+typedef enum ROX_INTERNAL {
+    TokenTypeString,
+    TokenTypeBool,
+    TokenTypeNumber,
+    TokenTypeUndefined,
+    TokenTypeNotAType
+} TokenType;
+
+TokenType ROX_INTERNAL get_token_type_from_token(const char *token) {
+    if (!token) {
+        return TokenTypeNotAType;
+    }
+    if (str_matches(token, "^\"((\\\\.)|[^\\\\\\\\\"])*\"$", PCRE2_CASELESS)) {
+        return TokenTypeString;
+    }
+    if (str_matches(token, "^[\\-]{0,1}\\d+[\\.]\\d+|[\\-]{0,1}\\d+$", PCRE2_CASELESS)) {
+        return TokenTypeNumber;
+    }
+    if (str_matches(token, "^true|false$", PCRE2_CASELESS)) {
+        return TokenTypeBool;
+    }
+    if (str_matches(token, ROXX_UNDEFINED, PCRE2_CASELESS)) {
+        return TokenTypeUndefined;
+    }
+    return TokenTypeNotAType;
+}
+
+//
 // EvaluationResult
 //
 
@@ -27,12 +67,15 @@ struct ROX_INTERNAL EvaluationResult {
 };
 
 EvaluationResult *ROX_INTERNAL _create_result_from_stack_item(StackItem *item) {
-    assert(item);
-
     EvaluationResult *result = calloc(1, sizeof(EvaluationResult));
 
-    if (rox_stack_is_null(item)) {
-        result->bool_value = false;
+    if (!item || rox_stack_is_null(item)) {
+        return result;
+    }
+
+    if (rox_stack_is_undefined(item)) {
+        result->str_value = mem_copy_str(ROXX_UNDEFINED);
+        return result;
     }
 
     if (rox_stack_is_boolean(item)) {
@@ -41,24 +84,31 @@ EvaluationResult *ROX_INTERNAL _create_result_from_stack_item(StackItem *item) {
         result->str_value = mem_copy_str(*result->bool_value
                                          ? FLAG_TRUE_VALUE
                                          : FLAG_FALSE_VALUE);
+        return result;
     }
 
     if (rox_stack_is_int(item)) {
         int value = rox_stack_get_int(item);
         result->int_value = mem_copy_int(value);
         result->double_value = mem_copy_double(value);
+        result->str_value = mem_int_to_str(value);
+        return result;
     }
 
     if (rox_stack_is_double(item)) {
         double value = rox_stack_get_double(item);
         result->int_value = mem_copy_int((int) value);
         result->double_value = mem_copy_double(value);
+        result->str_value = mem_double_to_str(value);
+        return result;
     }
 
     if (rox_stack_is_string(item)) {
         char *value = rox_stack_get_string(item);
         result->int_value = mem_str_to_int(value);
         result->double_value = mem_str_to_double(value);
+        result->str_value = mem_copy_str(value);
+        return result;
     }
 
     return result;
@@ -98,46 +148,6 @@ void ROX_INTERNAL result_free(EvaluationResult *result) {
         free(result->str_value);
     }
     free(result);
-}
-
-//
-// Symbols
-//
-
-const char *ROX_INTERNAL ROXX_UNDEFINED = "undefined";
-const char *ROX_INTERNAL ROXX_TRUE = "true";
-const char *ROX_INTERNAL ROXX_FALSE = "false";
-const char *ROX_INTERNAL ROXX_EMPTY_STRING = "\"\"";
-
-//
-// TokenTypes
-//
-
-typedef enum ROX_INTERNAL {
-    TokenTypeString,
-    TokenTypeBool,
-    TokenTypeNumber,
-    TokenTypeUndefined,
-    TokenTypeNotAType
-} TokenType;
-
-TokenType ROX_INTERNAL get_token_type_from_token(const char *token) {
-    if (!token) {
-        return TokenTypeNotAType;
-    }
-    if (str_matches(token, "^\"((\\\\.)|[^\\\\\\\\\"])*\"$", PCRE2_CASELESS)) {
-        return TokenTypeString;
-    }
-    if (str_matches(token, "^[\\-]{0,1}\\d+[\\.]\\d+|[\\-]{0,1}\\d+$", PCRE2_CASELESS)) {
-        return TokenTypeNumber;
-    }
-    if (str_matches(token, "^true|false$", PCRE2_CASELESS)) {
-        return TokenTypeBool;
-    }
-    if (str_matches(token, ROXX_UNDEFINED, PCRE2_CASELESS)) {
-        return TokenTypeUndefined;
-    }
-    return TokenTypeNotAType;
 }
 
 //
@@ -199,14 +209,14 @@ ParserNode *ROX_INTERNAL node_create_bool(NodeType type, bool value) {
 ParserNode *ROX_INTERNAL node_create_list(NodeType type, List *value) {
     assert(value);
     ParserNode *node = _node_create_empty(type);
-    node->list_value = value; // NOTE: collections are passed by reference
+    node->list_value = value; // NOTE: collections aren't copied
     return node;
 }
 
 ParserNode *ROX_INTERNAL node_create_map(NodeType type, HashTable *value) {
     assert(value);
     ParserNode *node = _node_create_empty(type);
-    node->map_value = value; // NOTE: collections are passed by reference
+    node->map_value = value; // NOTE: collections aren't copied
     return node;
 }
 
@@ -227,20 +237,20 @@ void ROX_INTERNAL node_free(ParserNode *node) {
     if (node->str_value) {
         free(node->str_value);
     }
-    if (node->list_value) {
-        list_destroy(node->list_value);
-    }
-    if (node->map_value) {
-        hashtable_destroy(node->map_value);
-    }
-    if (node->bool_value) {
-        free(node->bool_value);
-    }
     if (node->int_value) {
         free(node->int_value);
     }
     if (node->double_value) {
         free(node->double_value);
+    }
+    if (node->bool_value) {
+        free(node->bool_value);
+    }
+    if (node->list_value) {
+        list_destroy(node->list_value);
+    }
+    if (node->map_value) {
+        hashtable_destroy(node->map_value);
     }
     free(node);
 }
@@ -261,27 +271,16 @@ typedef struct ROX_INTERNAL StringTokenizer {
     int max_delim_code_point;
 } StringTokenizer;
 
-const int MIN_SUPPLEMENTARY_CODE_POINT = 0x010000;
-
-int ROX_INTERNAL _tokenizer_char_count(int codePoint) {
-    return codePoint >= MIN_SUPPLEMENTARY_CODE_POINT ? 2 : 1;
-}
-
 void ROX_INTERNAL _tokenizer_set_max_delim_code_point(StringTokenizer *tokenizer) {
     assert(tokenizer);
-
-    if (tokenizer->delimiters == NULL) {
-        tokenizer->max_delim_code_point = 0;
-        return;
-    }
-
     int m = 0;
     int c;
     int count = 0;
-    for (int i = 0; i < strlen(tokenizer->delimiters); i += _tokenizer_char_count(c)) {
-        c = tokenizer->delimiters[i];
-        if (m < c)
+    for (int i = 0; i < strlen(tokenizer->delimiters); ++i) {
+        c = tokenizer->delimiters[i]; // TODO: UTF8 support in expressions?
+        if (m < c) {
             m = c;
+        }
         count++;
     }
     tokenizer->max_delim_code_point = m;
@@ -431,11 +430,11 @@ void ROX_INTERNAL _tokenized_expression_push_node(TokenizedExpression *expr, Par
         expr->dict_key = node->str_value;
     } else if (expr->dict_accumulator && expr->dict_key) {
         if (!hashtable_contains_key(expr->dict_accumulator, expr->dict_key)) {
-            hashtable_add(expr->dict_accumulator, expr->dict_key, node); // TODO: add node value instead
+            hashtable_add(expr->dict_accumulator, expr->dict_key, node);
         }
         expr->dict_key = NULL;
     } else if (expr->array_accumulator) {
-        list_add(expr->array_accumulator, node); // TODO: add node value instead
+        list_add(expr->array_accumulator, node);
     } else {
         list_add(node_list, node);
     }
@@ -508,7 +507,7 @@ List *ROX_INTERNAL tokenized_expression_get_tokens(const char *expression, HashT
             expr->dict_accumulator = NULL;
             _tokenized_expression_push_node(
                     expr,
-                    node_create_map(NodeTypeRand, dict_result),
+                    node_create_map(NodeTypeRand, dict_result),  // NOTE: dict_result must be freed in node_free
                     result_list);
         } else if (!in_string && str_equals(token, ARRAY_START_DELIMITER)) {
             if (expr->array_accumulator) {
@@ -521,7 +520,7 @@ List *ROX_INTERNAL tokenized_expression_get_tokens(const char *expression, HashT
             expr->array_accumulator = NULL;
             _tokenized_expression_push_node(
                     expr,
-                    node_create_list(NodeTypeRand, array_result),
+                    node_create_list(NodeTypeRand, array_result), // NOTE: array_result must be freed in node_free
                     result_list);
         } else if (str_equals(token, STRING_DELIMITER)) {
             if (prev_token && str_equals(prev_token, STRING_DELIMITER)) {
@@ -556,3 +555,239 @@ List *ROX_INTERNAL tokenized_expression_get_tokens(const char *expression, HashT
     return result_list;
 }
 
+//
+// Parser
+//
+
+struct ROX_INTERNAL Parser {
+    HashTable *operators_map;
+};
+
+void ROX_INTERNAL _parser_operator_is_undefined(Parser *parser, CoreStack *stack, Context *context) {
+    assert(parser);
+    assert(stack);
+    StackItem *item = rox_stack_pop(stack);
+    rox_stack_push_boolean(stack, item && rox_stack_is_undefined(item));
+}
+
+void ROX_INTERNAL _parser_operator_now(Parser *parser, CoreStack *stack, Context *context) {
+    assert(parser);
+    assert(stack);
+    rox_stack_push_double(stack, current_time_millis());
+}
+
+bool ROX_INTERNAL _rox_stack_pop_boolean(CoreStack *stack) {
+    StackItem *item = rox_stack_pop(stack);
+    assert(item);
+    if (rox_stack_is_boolean(item)) {
+        return rox_stack_get_boolean(item);
+    }
+    return false;
+}
+
+void ROX_INTERNAL _parser_operator_and(Parser *parser, CoreStack *stack, Context *context) {
+    assert(parser);
+    assert(stack);
+    bool b1 = _rox_stack_pop_boolean(stack);
+    bool b2 = _rox_stack_pop_boolean(stack);
+    rox_stack_push_boolean(stack, b1 && b2);
+}
+
+void ROX_INTERNAL _parser_operator_or(Parser *parser, CoreStack *stack, Context *context) {
+    assert(parser);
+    assert(stack);
+    bool b1 = _rox_stack_pop_boolean(stack);
+    bool b2 = _rox_stack_pop_boolean(stack);
+    rox_stack_push_boolean(stack, b1 || b2);
+}
+
+void ROX_INTERNAL _parser_operator_ne(Parser *parser, CoreStack *stack, Context *context) {
+    assert(parser);
+    assert(stack);
+    bool b1 = _rox_stack_pop_boolean(stack);
+    bool b2 = _rox_stack_pop_boolean(stack);
+    rox_stack_push_boolean(stack, b1 != b2);
+}
+
+void ROX_INTERNAL _parser_operator_eq(Parser *parser, CoreStack *stack, Context *context) {
+    assert(parser);
+    assert(stack);
+    bool b1 = _rox_stack_pop_boolean(stack);
+    bool b2 = _rox_stack_pop_boolean(stack);
+    rox_stack_push_boolean(stack, b1 == b2);
+}
+
+void ROX_INTERNAL _parser_operator_not(Parser *parser, CoreStack *stack, Context *context) {
+    assert(parser);
+    assert(stack);
+    rox_stack_push_boolean(stack, !_rox_stack_pop_boolean(stack));
+}
+
+void ROX_INTERNAL _parser_operator_if_then(Parser *parser, CoreStack *stack, Context *context) {
+    assert(parser);
+    assert(stack);
+    bool b = _rox_stack_pop_boolean(stack);
+    StackItem *trueExpression = rox_stack_pop(stack);
+    StackItem *falseExpression = rox_stack_pop(stack);
+    rox_stack_push_item_copy(stack, b ? trueExpression : falseExpression);
+}
+
+int _parser_compare_stack_item_with_node(const StackItem *item, const ParserNode *node) {
+    assert(item);
+    assert(node);
+    // TODO: implement!
+    return -1;
+}
+
+void ROX_INTERNAL _parser_operator_in_array(Parser *parser, CoreStack *stack, Context *context) {
+    assert(parser);
+    assert(stack);
+    StackItem *op1 = rox_stack_pop(stack);
+    StackItem *op2 = rox_stack_pop(stack);
+    if (!rox_stack_is_list(op1)) {
+        rox_stack_push_boolean(stack, false);
+        return;
+    }
+    List *list = rox_stack_get_list(op1);
+    rox_stack_push_boolean(stack, list_contains_value(
+            list, op2, (int (*)(const void *, const void *))
+                    &_parser_compare_stack_item_with_node));
+}
+
+void ROX_INTERNAL _parser_operator_md5(Parser *parser, CoreStack *stack, Context *context) {
+    assert(parser);
+    assert(stack);
+    StackItem *item = rox_stack_pop(stack);
+    if (!rox_stack_is_string(item)) {
+        rox_stack_push_undefined(stack);
+        return;
+    }
+    char *s = rox_stack_get_string(item);
+    rox_stack_push_string_ptr(stack, mem_md5(s));
+}
+
+void ROX_INTERNAL _parser_operator_concat(Parser *parser, CoreStack *stack, Context *context) {
+    assert(parser);
+    assert(stack);
+    StackItem *i1 = rox_stack_pop(stack);
+    StackItem *i2 = rox_stack_pop(stack);
+    if (!rox_stack_is_string(i1) || !rox_stack_is_string(i2)) {
+        rox_stack_push_undefined(stack);
+        return;
+    }
+    char *s1 = rox_stack_get_string(i1);
+    char *s2 = rox_stack_get_string(i2);
+    rox_stack_push_string_ptr(stack, mem_str_concat(s1, s2));
+}
+
+void ROX_INTERNAL _parser_operator_b64d(Parser *parser, CoreStack *stack, Context *context) {
+    assert(parser);
+    assert(stack);
+    StackItem *item = rox_stack_pop(stack);
+    if (!rox_stack_is_string(item)) {
+        rox_stack_push_undefined(stack);
+        return;
+    }
+    char *s = rox_stack_get_string(item);
+    rox_stack_push_string_ptr(stack, mem_base64_decode(s));
+}
+
+void ROX_INTERNAL _parser_set_basic_operators(Parser *parser) {
+    assert(parser);
+    parser_add_operator(parser, "isUndefined", &_parser_operator_is_undefined);
+    parser_add_operator(parser, "now", &_parser_operator_now);
+    parser_add_operator(parser, "and", &_parser_operator_and);
+    parser_add_operator(parser, "or", &_parser_operator_or);
+    parser_add_operator(parser, "ne", &_parser_operator_ne);
+    parser_add_operator(parser, "eq", &_parser_operator_eq);
+    parser_add_operator(parser, "not", &_parser_operator_not);
+    parser_add_operator(parser, "ifThen", &_parser_operator_if_then);
+    parser_add_operator(parser, "inArray", &_parser_operator_in_array);
+    parser_add_operator(parser, "md5", &_parser_operator_md5);
+    parser_add_operator(parser, "concat", &_parser_operator_concat);
+    parser_add_operator(parser, "b64d", &_parser_operator_b64d);
+    // TODO: value compare functions
+    // TODO: regular expression functions
+}
+
+Parser *ROX_INTERNAL parser_create() {
+    Parser *parser = calloc(1, sizeof(Parser));
+    hashtable_new(&parser->operators_map);
+    _parser_set_basic_operators(parser);
+    return parser;
+}
+
+void ROX_INTERNAL parser_free(Parser *parser) {
+    assert(parser);
+    hashtable_destroy(parser->operators_map);
+    free(parser);
+}
+
+void ROX_INTERNAL parser_add_operator(Parser *parser, const char *name, parser_operation op) {
+    assert(parser);
+    assert(name);
+    assert(op);
+    assert(!hashtable_contains_key(parser->operators_map, (void *) name));
+    hashtable_add(parser->operators_map, (void *) name, op);
+}
+
+void ROX_INTERNAL _stack_push_node_data(CoreStack *stack, ParserNode *node) {
+    assert(stack);
+    assert(node);
+    if (node->int_value) {
+        rox_stack_push_int(stack, *node->int_value);
+    } else if (node->double_value) {
+        rox_stack_push_double(stack, *node->double_value);
+    } else if (node->bool_value) {
+        rox_stack_push_boolean(stack, *node->bool_value);
+    } else if (node->list_value) {
+        rox_stack_push_list(stack, node->list_value);
+    } else if (node->map_value) {
+        rox_stack_push_map(stack, node->map_value);
+    } else if (node->is_undefined) {
+        rox_stack_push_undefined(stack);
+    } else if (node->is_null) {
+        rox_stack_push_null(stack);
+    }
+    // node->str_value may be set for other primitive types as well, and contain str
+    // representation of them, so checking str_value last.
+    if (node->str_value) {
+        rox_stack_push_string_copy(stack, node->str_value);
+    }
+}
+
+EvaluationResult *ROX_INTERNAL parser_evaluate_expression(Parser *parser, const char *expression, Context *context) {
+    assert(parser);
+    assert(expression);
+
+    EvaluationResult *result = NULL;
+    StackItem *item = NULL;
+    CoreStack *stack = rox_stack_create();
+    List *tokens = tokenized_expression_get_tokens(expression, parser->operators_map);
+    list_reverse(tokens);
+
+    LIST_FOREACH(token, tokens, {
+        ParserNode *node = token;
+        if (node->type == NodeTypeRand) {
+            _stack_push_node_data(stack, node);
+        } else if (node->type == NodeTypeRator) {
+            assert(node->str_value);
+            parser_operation op;
+            if (hashtable_get(parser->operators_map, node->str_value, (void **) &op) == CC_OK) {
+                op(parser, stack, context);
+            }
+        } else {
+            result = _create_result_from_stack_item(NULL);
+        }
+    })
+
+    if (!result) {
+        item = rox_stack_pop(stack);
+        result = _create_result_from_stack_item(item);
+    }
+
+    list_destroy_cb(tokens, (void (*)(void *)) &node_free); // here all the inner lists and maps should be destroyed
+    rox_stack_free(stack);
+
+    return result;
+}
