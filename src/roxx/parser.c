@@ -30,14 +30,6 @@ const char *ROX_INTERNAL ROXX_EMPTY_STRING = "\"\"";
 // TokenTypes
 //
 
-typedef enum ROX_INTERNAL {
-    TokenTypeString,
-    TokenTypeBool,
-    TokenTypeNumber,
-    TokenTypeUndefined,
-    TokenTypeNotAType
-} TokenType;
-
 TokenType ROX_INTERNAL get_token_type_from_token(const char *token) {
     if (!token) {
         return TokenTypeNotAType;
@@ -65,7 +57,8 @@ struct ROX_INTERNAL EvaluationResult {
     int *int_value;
     double *double_value;
     char *str_value;
-    bool *bool_value;
+    bool is_true;
+    bool is_false;
 };
 
 EvaluationResult *ROX_INTERNAL _create_result_from_stack_item(StackItem *item) {
@@ -81,11 +74,10 @@ EvaluationResult *ROX_INTERNAL _create_result_from_stack_item(StackItem *item) {
     }
 
     if (rox_stack_is_boolean(item)) {
-        result->bool_value = malloc(sizeof(bool));
-        *result->bool_value = rox_stack_get_boolean(item);
-        result->str_value = mem_copy_str(*result->bool_value
-                                         ? FLAG_TRUE_VALUE
-                                         : FLAG_FALSE_VALUE);
+        bool value = rox_stack_get_boolean(item);
+        result->is_true = value;
+        result->is_false = !value;
+        result->str_value = mem_copy_str(value ? FLAG_TRUE_VALUE : FLAG_FALSE_VALUE);
         return result;
     }
 
@@ -125,9 +117,10 @@ double *ROX_INTERNAL result_get_double(EvaluationResult *result) {
     return result->double_value;
 }
 
-bool *ROX_INTERNAL result_get_boolean(EvaluationResult *result) {
+bool ROX_INTERNAL result_get_boolean(EvaluationResult *result) {
     assert(result);
-    return result->bool_value;
+    assert(result->is_true || result->is_false);
+    return result->is_true;
 }
 
 char *ROX_INTERNAL result_get_string(EvaluationResult *result) {
@@ -142,9 +135,6 @@ void ROX_INTERNAL result_free(EvaluationResult *result) {
     }
     if (result->double_value) {
         free(result->double_value);
-    }
-    if (result->bool_value) {
-        free(result->bool_value);
     }
     if (result->str_value) {
         free(result->str_value);
@@ -546,6 +536,68 @@ struct ROX_INTERNAL Parser {
     HashTable *operators_map;
 };
 
+int _parser_compare_stack_items(StackItem *item, StackItem *item2) {
+    assert(item);
+    assert(item2);
+
+    // we return -1 in case when item types doesn't match,
+    // 1 in case when values are of the same type but not equal,
+    // and 0 in case when they are equal.
+
+    int ret_value = -1;
+    if (rox_stack_is_null(item)) {
+        ret_value = rox_stack_is_null(item2) ? 0 : 1;
+    } else if (rox_stack_is_undefined(item)) {
+        ret_value = rox_stack_is_undefined(item2) ? 0 : 1;
+    } else if (rox_stack_is_double(item)) {
+        ret_value = rox_stack_is_double(item2)
+                    ? fabs(rox_stack_get_double(item) - rox_stack_get_double(item2)) < FLT_EPSILON
+                      ? 0 : 1
+                    : -1;
+    } else if (rox_stack_is_boolean(item)) {
+        ret_value = rox_stack_is_boolean(item2)
+                    ? rox_stack_get_boolean(item) == rox_stack_get_boolean(item2)
+                      ? 0 : 1
+                    : -1;
+    } else if (rox_stack_is_string(item)) {
+        ret_value = rox_stack_is_string(item2)
+                    ? strcmp(rox_stack_get_string(item), rox_stack_get_string(item2))
+                    : -1;
+    }
+    return ret_value;
+}
+
+int _parser_compare_stack_item_with_node(StackItem *item, const ParserNode *node) {
+    assert(item);
+    assert(node);
+
+    // we return -1 in case when node value type and stack item value type doesn't match.,
+    // 1 in case when values are of the same type but not equal,
+    // and 0 in case when they are equal.
+
+    int ret_value = -1;
+    if (rox_stack_is_null(item)) {
+        ret_value = node->is_null ? 0 : 1;
+    } else if (rox_stack_is_undefined(item)) {
+        ret_value = node->is_undefined ? 0 : 1;
+    } else if (rox_stack_is_double(item)) {
+        ret_value = node->double_value != NULL
+                    ? fabs(rox_stack_get_double(item) - *node->double_value) < FLT_EPSILON
+                      ? 0 : 1
+                    : -1;
+    } else if (rox_stack_is_boolean(item)) {
+        ret_value = node->is_true || node->is_false
+                    ? rox_stack_get_boolean(item) == node->is_true
+                      ? 0 : 1
+                    : -1;
+    } else if (rox_stack_is_string(item)) {
+        ret_value = node->str_value != NULL
+                    ? strcmp(rox_stack_get_string(item), node->str_value)
+                    : -1;
+    }
+    return ret_value;
+}
+
 void ROX_INTERNAL _parser_operator_is_undefined(Parser *parser, CoreStack *stack, Context *context) {
     assert(parser);
     assert(stack);
@@ -587,17 +639,19 @@ void ROX_INTERNAL _parser_operator_or(Parser *parser, CoreStack *stack, Context 
 void ROX_INTERNAL _parser_operator_ne(Parser *parser, CoreStack *stack, Context *context) {
     assert(parser);
     assert(stack);
-    bool b1 = _rox_stack_pop_boolean(stack);
-    bool b2 = _rox_stack_pop_boolean(stack);
-    rox_stack_push_boolean(stack, b1 != b2);
+    StackItem *item1 = rox_stack_pop(stack);
+    StackItem *item2 = rox_stack_pop(stack);
+    bool equal = _parser_compare_stack_items(item1, item2) == 0;
+    rox_stack_push_boolean(stack, !equal);
 }
 
 void ROX_INTERNAL _parser_operator_eq(Parser *parser, CoreStack *stack, Context *context) {
     assert(parser);
     assert(stack);
-    bool b1 = _rox_stack_pop_boolean(stack);
-    bool b2 = _rox_stack_pop_boolean(stack);
-    rox_stack_push_boolean(stack, b1 == b2);
+    StackItem *item1 = rox_stack_pop(stack);
+    StackItem *item2 = rox_stack_pop(stack);
+    bool equal = _parser_compare_stack_items(item1, item2) == 0;
+    rox_stack_push_boolean(stack, equal);
 }
 
 void ROX_INTERNAL _parser_operator_not(Parser *parser, CoreStack *stack, Context *context) {
@@ -613,37 +667,6 @@ void ROX_INTERNAL _parser_operator_if_then(Parser *parser, CoreStack *stack, Con
     StackItem *trueExpression = rox_stack_pop(stack);
     StackItem *falseExpression = rox_stack_pop(stack);
     rox_stack_push_item_copy(stack, b ? trueExpression : falseExpression);
-}
-
-int _parser_compare_stack_item_with_node(StackItem *item, const ParserNode *node) {
-    assert(item);
-    assert(node);
-
-    // we return -1 in case when node value type and stack item value type doesn't match.,
-    // 1 in case when values are of the same type but not equal,
-    // and 0 in case when they are equal.
-
-    int ret_value = -1;
-    if (rox_stack_is_null(item)) {
-        ret_value = node->is_null ? 0 : 1;
-    } else if (rox_stack_is_undefined(item)) {
-        ret_value = node->is_undefined ? 0 : 1;
-    } else if (rox_stack_is_double(item)) {
-        ret_value = node->double_value != NULL
-                    ? fabs(rox_stack_get_double(item) - *node->double_value) < FLT_EPSILON
-                      ? 0 : 1
-                    : -1;
-    } else if (rox_stack_is_boolean(item)) {
-        ret_value = node->is_true || node->is_false
-                    ? rox_stack_get_boolean(item) == node->is_true
-                      ? 0 : 1
-                    : -1;
-    } else if (rox_stack_is_string(item)) {
-        ret_value = node->str_value != NULL
-                    ? strcmp(rox_stack_get_string(item), node->str_value)
-                    : -1;
-    }
-    return ret_value;
 }
 
 void ROX_INTERNAL _parser_operator_in_array(Parser *parser, CoreStack *stack, Context *context) {
@@ -753,11 +776,12 @@ void ROX_INTERNAL _stack_push_node_data(CoreStack *stack, ParserNode *node) {
         rox_stack_push_undefined(stack);
     } else if (node->is_null) {
         rox_stack_push_null(stack);
-    }
-    // node->str_value may be set for other primitive types as well, and contain str
-    // representation of them, so checking str_value last.
-    if (node->str_value) {
-        rox_stack_push_string_copy(stack, node->str_value);
+    } else {
+        // node->str_value may be set for other primitive types as well, and contain str
+        // representation of them, so checking str_value last.
+        if (node->str_value) {
+            rox_stack_push_string_copy(stack, node->str_value);
+        }
     }
 }
 

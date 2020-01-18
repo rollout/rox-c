@@ -70,6 +70,14 @@ char *ROX_INTERNAL mem_str_concat(const char *s1, const char *s2);
 
 /**
  * NOTE: THE RETURNED STR MUST BE FREED AFTER USE
+ *
+ * @param fmt Format string. MUST NOT BE NULL.
+ * @return Pointer to the NEWLY CREATED string which is a formatted string.
+ */
+char *ROX_INTERNAL mem_str_format(const char *fmt, ...);
+
+/**
+ * NOTE: THE RETURNED STR MUST BE FREED AFTER USE
  * @param s The string to encode.
  * @return Pointer to the NEWLY CREATED string which is a base64-encoded version of the given string.
  */

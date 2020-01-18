@@ -10,6 +10,16 @@ typedef struct ROX_INTERNAL EvaluationResult EvaluationResult;
 
 typedef void ROX_INTERNAL (*parser_operation)(Parser *parser, CoreStack *stack, Context *context);
 
+typedef enum ROX_INTERNAL {
+    TokenTypeString,
+    TokenTypeBool,
+    TokenTypeNumber,
+    TokenTypeUndefined,
+    TokenTypeNotAType
+} TokenType;
+
+TokenType ROX_INTERNAL get_token_type_from_token(const char *token);
+
 typedef enum ROX_INTERNAL NodeType {
     NodeTypeRand,
     NodeTypeRator,
@@ -67,7 +77,7 @@ int *ROX_INTERNAL result_get_int(EvaluationResult *result);
 
 double *ROX_INTERNAL result_get_double(EvaluationResult *result);
 
-bool *ROX_INTERNAL result_get_boolean(EvaluationResult *result);
+bool ROX_INTERNAL result_get_boolean(EvaluationResult *result);
 
 char *ROX_INTERNAL result_get_string(EvaluationResult *result);
 

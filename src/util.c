@@ -7,6 +7,7 @@
 #include <pcre2.h>
 #include <stdio.h>
 #include <time.h>
+#include <stdarg.h>
 
 #include "util.h"
 #include "base64.h"
@@ -170,6 +171,17 @@ char *ROX_INTERNAL mem_str_concat(const char *s1, const char *s2) {
     char *buffer = calloc(len + 1, sizeof(char));
     sprintf_s(buffer, len, "%s%s", s1, s2);
     return buffer;
+}
+
+#define ROX_MEM_STR_FORMAT_BUFFER_SIZE 1024
+
+char *ROX_INTERNAL mem_str_format(const char *fmt, ...) {
+    assert(fmt);
+    char buffer[ROX_MEM_STR_FORMAT_BUFFER_SIZE];
+    va_list args;
+            va_start(args, fmt);
+    vsprintf_s(buffer, ROX_MEM_STR_FORMAT_BUFFER_SIZE, fmt, args);
+    return mem_copy_str(buffer);
 }
 
 long ROX_INTERNAL current_time_millis() {
