@@ -25,12 +25,6 @@ double *mem_copy_double(double value) {
     return copy;
 }
 
-bool *mem_copy_bool(bool value) {
-    bool *copy = malloc(sizeof(value));
-    *copy = value;
-    return copy;
-}
-
 char *ROX_INTERNAL mem_copy_str(const char *ptr) {
     assert(ptr);
     size_t length = strlen(ptr);
@@ -57,15 +51,19 @@ double *ROX_INTERNAL mem_str_to_double(const char *str) {
     return mem_copy_double(num);
 }
 
+#define ROX_MEM_INT_TO_STR_BUFFER_SIZE 10
+
 char *ROX_INTERNAL mem_int_to_str(int value) {
-    char buffer[10];
-    _itoa_s(value, buffer, 10, 10);
+    char buffer[ROX_MEM_INT_TO_STR_BUFFER_SIZE];
+    _itoa_s(value, buffer, ROX_MEM_INT_TO_STR_BUFFER_SIZE, 10);
     return mem_copy_str(buffer);
 }
 
+#define MEM_DOUBLE_TO_STR_BUFFER_SIZE 20
+
 char *ROX_INTERNAL mem_double_to_str(double value) {
-    char buffer[20];
-    sprintf_s(buffer, 20, "%f", value);
+    char buffer[MEM_DOUBLE_TO_STR_BUFFER_SIZE];
+    sprintf_s(buffer, MEM_DOUBLE_TO_STR_BUFFER_SIZE, "%f", value);
     return mem_copy_str(buffer);
 }
 
@@ -76,6 +74,8 @@ char *ROX_INTERNAL mem_bool_to_str(bool value,
            ? mem_copy_str(true_value)
            : mem_copy_str(false_value);
 }
+
+#define ROX_STR_MATCHES_BUFFER_SIZE 256
 
 bool ROX_INTERNAL str_matches(const char *str, const char *pattern, int options) {
 
@@ -90,7 +90,7 @@ bool ROX_INTERNAL str_matches(const char *str, const char *pattern, int options)
             NULL);
 
     if (re == NULL) {
-        PCRE2_UCHAR buffer[256];
+        PCRE2_UCHAR buffer[ROX_STR_MATCHES_BUFFER_SIZE];
         pcre2_get_error_message(error_number, buffer, sizeof(buffer));
         // TODO: log
 //        printf("PCRE2 compilation failed at offset %d: %s\n", (int)error_offset,
@@ -157,7 +157,10 @@ char *ROX_INTERNAL mem_str_replace(const char *str, const char *search, const ch
     assert(str);
     assert(search);
     assert(rep);
-    return strrep(str, search, rep);
+    char *replaced = strrep(str, search, rep);
+    return replaced == str // Pointer to the same string, not modified
+           ? mem_copy_str(str)
+           : replaced;
 }
 
 char *ROX_INTERNAL mem_str_concat(const char *s1, const char *s2) {
@@ -176,11 +179,13 @@ long ROX_INTERNAL current_time_millis() {
     return (long) (t * 1000);
 }
 
+#define ROX_MEM_BASE64_ENCODE_BUFFER_SIZE 1024
+
 char *ROX_INTERNAL mem_base64_encode(const char *s) {
     assert(s);
-    char buffer[1024];
+    char buffer[ROX_MEM_BASE64_ENCODE_BUFFER_SIZE];
     size_t len = strlen(s);
-    int result = base64encode(s, len * sizeof(char), buffer, 1024);
+    int result = base64encode(s, len * sizeof(char), buffer, ROX_MEM_BASE64_ENCODE_BUFFER_SIZE);
     assert(result == 0);
     return result == 0 ? mem_copy_str(buffer) : NULL;
 }
@@ -206,9 +211,11 @@ char *ROX_INTERNAL mem_md5(const char *s) {
     return result;
 }
 
+#define ROX_MEM_BASE64_DECODE_BUFFER_SIZE 1024
+
 char *ROX_INTERNAL mem_base64_decode(const char *s) {
     assert(s);
-    unsigned char buffer[1024];
+    unsigned char buffer[ROX_MEM_BASE64_DECODE_BUFFER_SIZE];
     size_t len = strlen(s);
     size_t resulting_str_len;
     int result = base64decode(s, len, buffer, &resulting_str_len);

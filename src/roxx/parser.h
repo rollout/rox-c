@@ -10,6 +10,35 @@ typedef struct ROX_INTERNAL EvaluationResult EvaluationResult;
 
 typedef void ROX_INTERNAL (*parser_operation)(Parser *parser, CoreStack *stack, Context *context);
 
+typedef enum ROX_INTERNAL NodeType {
+    NodeTypeRand,
+    NodeTypeRator,
+    NodeTypeUnknown
+} NodeType;
+
+typedef struct ROX_INTERNAL ParserNode {
+    NodeType type;
+    char *str_value;
+    double *double_value;
+    List *list_value;
+    HashTable *map_value;
+    bool is_undefined;
+    bool is_null;
+    bool is_true;
+    bool is_false;
+} ParserNode;
+
+void ROX_INTERNAL node_free(ParserNode *node);
+
+/**
+ * NOTE: THE RETURNED LIST MUST BE FREED BY CALLING list_destroy_cb(tokens, node_free) AFTER USE.
+ *
+ * @param expression Expression to parse.
+ * @param operators Set of supported operator names (set of char* )
+ * @return List of ParserNode*
+ */
+List *ROX_INTERNAL tokenized_expression_get_tokens(const char *expression, HashTable *operators);
+
 Parser *ROX_INTERNAL parser_create();
 
 void ROX_INTERNAL parser_free(Parser *parser);

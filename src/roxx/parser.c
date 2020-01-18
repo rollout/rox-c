@@ -10,7 +10,6 @@
 #include <math.h>
 #include <collectc/list.h>
 #include <collectc/hashtable.h>
-#include <float.h>
 
 #include "roxapi.h"
 #include "util.h"
@@ -157,54 +156,39 @@ void ROX_INTERNAL result_free(EvaluationResult *result) {
 // Node
 //
 
-typedef enum ROX_INTERNAL {
-    NodeTypeRand,
-    NodeTypeRator,
-    NodeTypeUnknown
-} NodeType;
-
-typedef struct ROX_INTERNAL ParserNode {
-    NodeType type;
-    char *str_value;
-    int *int_value;
-    double *double_value;
-    bool *bool_value;
-    List *list_value;
-    HashTable *map_value;
-    bool is_undefined;
-    bool is_null;
-} ParserNode;
-
 ParserNode *ROX_INTERNAL _node_create_empty(NodeType type) {
     ParserNode *node = (ParserNode *) calloc(1, sizeof(ParserNode));
     node->type = type;
     return node;
 }
 
-ParserNode *ROX_INTERNAL node_create_str(NodeType type, const char *str) {
+ParserNode *ROX_INTERNAL node_create_str_ptr(NodeType type, char *str) {
     assert(str);
     ParserNode *node = _node_create_empty(type);
-    node->str_value = mem_copy_str(str);
+    node->str_value = str;
     return node;
 }
 
-ParserNode *ROX_INTERNAL node_create_int(NodeType type, int value) {
+ParserNode *ROX_INTERNAL node_create_str_copy(NodeType type, const char *str) {
+    assert(str);
+    return node_create_str_ptr(type, mem_copy_str(str));
+}
+
+ParserNode *ROX_INTERNAL node_create_double_ptr(NodeType type, double *value) {
     ParserNode *node = _node_create_empty(type);
-    node->int_value = mem_copy_int(value);
-    node->str_value = mem_int_to_str(value);
+    node->double_value = value;
+    node->str_value = mem_double_to_str(*value);
     return node;
 }
 
 ParserNode *ROX_INTERNAL node_create_double(NodeType type, double value) {
-    ParserNode *node = _node_create_empty(type);
-    node->double_value = mem_copy_double(value);
-    node->str_value = mem_double_to_str(value);
-    return node;
+    return node_create_double_ptr(type, mem_copy_double(value));
 }
 
 ParserNode *ROX_INTERNAL node_create_bool(NodeType type, bool value) {
     ParserNode *node = _node_create_empty(type);
-    node->bool_value = mem_copy_bool(value);
+    node->is_true = value;
+    node->is_false = !value;
     node->str_value = mem_bool_to_str(value, ROXX_TRUE, ROXX_FALSE);
     return node;
 }
@@ -240,19 +224,17 @@ void ROX_INTERNAL node_free(ParserNode *node) {
     if (node->str_value) {
         free(node->str_value);
     }
-    if (node->int_value) {
-        free(node->int_value);
-    }
     if (node->double_value) {
         free(node->double_value);
     }
-    if (node->bool_value) {
-        free(node->bool_value);
-    }
     if (node->list_value) {
-        list_destroy(node->list_value);
+        list_destroy_cb(node->list_value, (void (*)(void *)) node_free);
     }
     if (node->map_value) {
+        TableEntry *entry;
+        HASHTABLE_FOREACH(entry, node->map_value, {
+            node_free(entry->value); // must be a pointer to ParserNode
+        })
         hashtable_destroy(node->map_value);
     }
     free(node);
@@ -354,7 +336,7 @@ bool ROX_INTERNAL tokenizer_has_more_tokens(StringTokenizer *tokenizer) {
 /**
  * NOTE: THE RETURNED POINTER MUST BE FREED AFTER USAGE.
  */
-void ROX_INTERNAL tokenizer_next_token(StringTokenizer *tokenizer, char *buffer) {
+void ROX_INTERNAL tokenizer_next_token(StringTokenizer *tokenizer, char *buffer, int *ret_len) {
     assert(tokenizer);
     tokenizer->current_position = (tokenizer->new_position >= 0 && !tokenizer->delims_changed) ?
                                   tokenizer->new_position : _tokenizer_skip_delimiters(tokenizer,
@@ -375,10 +357,13 @@ void ROX_INTERNAL tokenizer_next_token(StringTokenizer *tokenizer, char *buffer)
 
     int start = tokenizer->current_position;
     tokenizer->current_position = _tokenizer_scan_token(tokenizer, tokenizer->current_position);
-    str_substring_b(tokenizer->str, start, (tokenizer->current_position - start), buffer);
+    int len = tokenizer->current_position - start;
+    str_substring_b(tokenizer->str, start, len, buffer);
+    *ret_len = len;
 }
 
-void ROX_INTERNAL tokenizer_next_token_with_delim(StringTokenizer *tokenizer, const char *delim, char *buffer) {
+void ROX_INTERNAL
+tokenizer_next_token_with_delim(StringTokenizer *tokenizer, const char *delim, char *buffer, int *ret_len) {
     assert(tokenizer);
     assert(delim);
     assert(buffer);
@@ -390,7 +375,7 @@ void ROX_INTERNAL tokenizer_next_token_with_delim(StringTokenizer *tokenizer, co
     tokenizer->delims_changed = true;
 
     _tokenizer_set_max_delim_code_point(tokenizer);
-    tokenizer_next_token(tokenizer, buffer);
+    tokenizer_next_token(tokenizer, buffer, ret_len);
 }
 
 //
@@ -457,27 +442,18 @@ ParserNode *ROX_INTERNAL _tokenized_expression_node_from_token(NodeType nodeType
     }
     if (token_type == TokenTypeString) {
         int token_length = (int) strlen(token);
-        char buffer[512];
-        str_substring_b(token, 1, token_length - 2, buffer);
-        return node_create_str(nodeType, buffer); // buffer contents will be copied
+        char *value = mem_str_substring(token, 1, token_length - 2);
+        return node_create_str_ptr(nodeType, value);
     }
     if (token_type == TokenTypeNumber) {
         double *value = mem_str_to_double(token);
-        assert(value); // TODO: log if null
-        double node_value = *value;
-        free(value);
-        return node_create_double(nodeType, node_value);
+        return node_create_double_ptr(nodeType, value);
     }
     return node_create_null(NodeTypeUnknown);
 }
 
-/**
- * NOTE: THE RETURNED LIST MUST BE FREED BY CALLING list_destroy(list) AFTER USE.
- *
- * @param expression Expression to parse.
- * @param operators Set of supported operator names (set of char* )
- * @return List of ParserNode*
- */
+#define ROX_TOKEN_BUFFER_SIZE 1024
+
 List *ROX_INTERNAL tokenized_expression_get_tokens(const char *expression, HashTable *operators) {
     assert(expression);
     assert(operators);
@@ -492,11 +468,16 @@ List *ROX_INTERNAL tokenized_expression_get_tokens(const char *expression, HashT
     StringTokenizer *tokenizer = tokenizer_create(normalized_expression, delimiters_to_use, true);
     free(normalized_expression);
 
-    char *prev_token = NULL;
-    char token[1024];
+    char prev_token[ROX_TOKEN_BUFFER_SIZE];
+    char token[ROX_TOKEN_BUFFER_SIZE];
+    int token_len = 0, prev_token_len = 0;
+    prev_token[token_len] = token[token_len] = '\0';
+
     while (tokenizer_has_more_tokens(tokenizer)) {
-        prev_token = token;
-        tokenizer_next_token_with_delim(tokenizer, delimiters_to_use, token);
+        strncpy_s(prev_token, ROX_TOKEN_BUFFER_SIZE, token, token_len);
+        prev_token_len = token_len;
+
+        tokenizer_next_token_with_delim(tokenizer, delimiters_to_use, token, &token_len);
         bool in_string = str_equals(delimiters_to_use, STRING_DELIMITER);
 
         if (!in_string && str_equals(token, DICT_START_DELIMITER)) {
@@ -526,10 +507,10 @@ List *ROX_INTERNAL tokenized_expression_get_tokens(const char *expression, HashT
                     node_create_list(NodeTypeRand, array_result), // NOTE: array_result must be freed in node_free
                     result_list);
         } else if (str_equals(token, STRING_DELIMITER)) {
-            if (prev_token && str_equals(prev_token, STRING_DELIMITER)) {
+            if (prev_token_len > 0 && str_equals(prev_token, STRING_DELIMITER)) {
                 _tokenized_expression_push_node(
                         expr,
-                        node_create_str(NodeTypeRand, ROXX_EMPTY_STRING),
+                        node_create_str_copy(NodeTypeRand, ROXX_EMPTY_STRING),
                         result_list);
             }
             delimiters_to_use = in_string
@@ -540,12 +521,11 @@ List *ROX_INTERNAL tokenized_expression_get_tokens(const char *expression, HashT
                 char *escaped_token = mem_str_replace(token, ESCAPED_QUOTE_PLACEHOLDER, ESCAPED_QUOTE);
                 _tokenized_expression_push_node(
                         expr,
-                        _tokenized_expression_node_from_token(NodeTypeRand, escaped_token),
+                        node_create_str_ptr(NodeTypeRand, escaped_token),
                         result_list);
-                free(escaped_token);
             } else if (!strstr(TOKEN_DELIMITERS, token) && !str_equals(token, PRE_POST_STRING_CHAR)) {
                 ParserNode *node = hashtable_contains_key(operators, token)
-                                   ? node_create_str(NodeTypeRator, token)
+                                   ? node_create_str_copy(NodeTypeRator, token)
                                    : _tokenized_expression_node_from_token(NodeTypeRand, token);
                 _tokenized_expression_push_node(expr, node, result_list);
             }
@@ -648,18 +628,14 @@ int _parser_compare_stack_item_with_node(StackItem *item, const ParserNode *node
         ret_value = node->is_null ? 0 : 1;
     } else if (rox_stack_is_undefined(item)) {
         ret_value = node->is_undefined ? 0 : 1;
-    } else if (rox_stack_is_int(item)) {
-        ret_value = node->int_value != NULL
-                    ? rox_stack_get_int(item) == *node->int_value ? 0 : 1
-                    : -1;
     } else if (rox_stack_is_double(item)) {
         ret_value = node->double_value != NULL
                     ? fabs(rox_stack_get_double(item) - *node->double_value) < FLT_EPSILON
                       ? 0 : 1
                     : -1;
     } else if (rox_stack_is_boolean(item)) {
-        ret_value = node->bool_value != NULL
-                    ? rox_stack_get_boolean(item) == *node->bool_value
+        ret_value = node->is_true || node->is_false
+                    ? rox_stack_get_boolean(item) == node->is_true
                       ? 0 : 1
                     : -1;
     } else if (rox_stack_is_string(item)) {
@@ -765,12 +741,10 @@ void ROX_INTERNAL parser_add_operator(Parser *parser, const char *name, parser_o
 void ROX_INTERNAL _stack_push_node_data(CoreStack *stack, ParserNode *node) {
     assert(stack);
     assert(node);
-    if (node->int_value) {
-        rox_stack_push_int(stack, *node->int_value);
-    } else if (node->double_value) {
+    if (node->double_value) {
         rox_stack_push_double(stack, *node->double_value);
-    } else if (node->bool_value) {
-        rox_stack_push_boolean(stack, *node->bool_value);
+    } else if (node->is_true || node->is_false) {
+        rox_stack_push_boolean(stack, node->is_true);
     } else if (node->list_value) {
         rox_stack_push_list(stack, node->list_value);
     } else if (node->map_value) {

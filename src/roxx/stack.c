@@ -20,9 +20,10 @@ struct ROX_INTERNAL StackItem {
     int *int_value;
     double *double_value;
     char *str_value;
-    bool *bool_value;
     List *list_value;
     HashTable *map_value;
+    bool is_true;
+    bool is_false;
     bool is_null;
     bool is_undefined;
     StackItem *next;
@@ -42,9 +43,6 @@ void ROX_INTERNAL rox_stack_free(CoreStack *stack) {
         }
         if (item->double_value) {
             free(item->double_value);
-        }
-        if (item->bool_value) {
-            free(item->bool_value);
         }
         if (item->str_value) {
             free(item->str_value);
@@ -95,7 +93,8 @@ void ROX_INTERNAL rox_stack_push_double(CoreStack *stack, double value) {
 void ROX_INTERNAL rox_stack_push_boolean(CoreStack *stack, bool value) {
     assert(stack);
     StackItem *item = _create_stack_item();
-    item->bool_value = mem_copy_bool(value);
+    item->is_true = value;
+    item->is_false = !value;
     _stack_push(stack, item);
 }
 
@@ -153,9 +152,6 @@ void ROX_INTERNAL rox_stack_push_item_copy(CoreStack *stack, StackItem *item) {
     if (item->double_value) {
         copy->double_value = mem_copy_double(*item->double_value);
     }
-    if (item->bool_value) {
-        copy->bool_value = mem_copy_bool(*item->bool_value);
-    }
     if (item->str_value) {
         copy->str_value = mem_copy_str(item->str_value);
     }
@@ -163,6 +159,8 @@ void ROX_INTERNAL rox_stack_push_item_copy(CoreStack *stack, StackItem *item) {
     copy->map_value = item->map_value;
     copy->is_undefined = item->is_undefined;
     copy->is_null = item->is_null;
+    copy->is_true = item->is_true;
+    copy->is_false = item->is_false;
     _stack_push(stack, copy);
 }
 
@@ -192,7 +190,7 @@ bool ROX_INTERNAL rox_stack_is_double(StackItem *item) {
 
 bool ROX_INTERNAL rox_stack_is_boolean(StackItem *item) {
     assert(item);
-    return item->bool_value != NULL;
+    return item->is_true || item->is_false;
 }
 
 bool ROX_INTERNAL rox_stack_is_string(StackItem *item) {
@@ -234,8 +232,8 @@ double ROX_INTERNAL rox_stack_get_double(StackItem *item) {
 
 bool ROX_INTERNAL rox_stack_get_boolean(StackItem *item) {
     assert(item);
-    assert(item->bool_value);
-    return *item->bool_value;
+    assert(item->is_true || item->is_false);
+    return item->is_true;
 }
 
 char *ROX_INTERNAL rox_stack_get_string(StackItem *item) {
