@@ -72,8 +72,11 @@ void eval_assert_string_result(Parser *parser, const char *expr, const char *exp
     EvaluationResult *result = parser_evaluate_expression(parser, expr, NULL);
     ck_assert(result);
     char *str = result_get_string(result);
-    ck_assert(str);
-    ck_assert_str_eq(str, expected_result);
+    if (expected_result) {
+        ck_assert_str_eq(str, expected_result);
+    } else {
+        ck_assert_ptr_null(str);
+    }
     result_free(result);
 }
 
@@ -113,6 +116,57 @@ START_TEST (test_eq_expressions_evaluation) {
     char *expr = mem_str_format("eq(\"%s\", \"la \\\"la\\\" la\")", roxxString);
     eval_assert_boolean_result(parser, expr, true);
     free(expr);
+    parser_free(parser);
+}
+
+END_TEST
+
+START_TEST (test_unknown_operator_evaluation) {
+    Parser *parser = parser_create();
+    eval_assert_boolean_result(parser, "NOT_AN_OPERATOR(500, 500)", false);
+    eval_assert_boolean_result(parser, "JUSTAWORD(500, 500)", false);
+    parser_free(parser);
+}
+
+END_TEST
+
+START_TEST (test_undefined_evaluation) {
+    Parser *parser = parser_create();
+    eval_assert_boolean_result(parser, "isUndefined(undefined)", true);
+    eval_assert_boolean_result(parser, "isUndefined(123123)", false);
+    eval_assert_boolean_result(parser, "isUndefined(\"undefined\")", false);
+    parser_free(parser);
+}
+
+END_TEST
+
+START_TEST (test_now_evaluation) {
+    Parser *parser = parser_create();
+    eval_assert_boolean_result(parser, "gte(now(), now())", true);
+    eval_assert_boolean_result(parser, "gte(now(), 2458.123)", true);
+    eval_assert_boolean_result(parser, "gte(now(), 1534759307565)", true);
+    parser_free(parser);
+}
+
+END_TEST
+
+START_TEST (test_if_then_expression_evaluation_string) {
+    Parser *parser = parser_create();
+    eval_assert_string_result(parser, "ifThen(and(true, or(true, true)), \"AB\", \"CD\")", "AB");
+    eval_assert_string_result(parser, "ifThen(and(false, or(true, true)), \"AB\", \"CD\")", "CD");
+    eval_assert_string_result(parser,
+                              "ifThen(and(true, or(true, true)), \"AB\", ifThen(and(true, or(true, true)), \"EF\", \"CD\"))",
+                              "AB");
+    eval_assert_string_result(parser,
+                              "ifThen(and(false, or(true, true)), \"AB\", ifThen(and(true, or(true, true)), \"EF\", \"CD\"))",
+                              "EF");
+    eval_assert_string_result(parser,
+                              "ifThen(and(false, or(true, true)), \"AB\", ifThen(and(true, or(false, false)), \"EF\", \"CD\"))",
+                              "CD");
+    eval_assert_string_result(parser,
+                              "ifThen(and(false, or(true, true)), \"AB\", ifThen(and(true, or(false, false)), \"EF\", undefined))",
+                              NULL);
+    parser_free(parser);
 }
 
 END_TEST
@@ -121,4 +175,9 @@ ROX_TEST_SUITE(
         ROX_TEST_CASE(test_simple_tokenization),
         ROX_TEST_CASE(test_token_type),
         ROX_TEST_CASE(test_simple_expression_evaluation),
-        ROX_TEST_CASE(test_eq_expressions_evaluation))
+        ROX_TEST_CASE(test_eq_expressions_evaluation),
+        ROX_TEST_CASE(test_unknown_operator_evaluation),
+        ROX_TEST_CASE(test_undefined_evaluation),
+//ROX_TEST_CASE(test_now_evaluation), // FIXME: implement gte operator
+        ROX_TEST_CASE(test_if_then_expression_evaluation_string)
+)

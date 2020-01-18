@@ -69,7 +69,6 @@ EvaluationResult *ROX_INTERNAL _create_result_from_stack_item(StackItem *item) {
     }
 
     if (rox_stack_is_undefined(item)) {
-        result->str_value = mem_copy_str(ROXX_UNDEFINED);
         return result;
     }
 
@@ -119,7 +118,6 @@ double *ROX_INTERNAL result_get_double(EvaluationResult *result) {
 
 bool ROX_INTERNAL result_get_boolean(EvaluationResult *result) {
     assert(result);
-    assert(result->is_true || result->is_false);
     return result->is_true;
 }
 
