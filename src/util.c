@@ -70,9 +70,6 @@ char *ROX_INTERNAL mem_double_to_str(double value) {
         if (buffer[i] == '0' || buffer[i] == '.') {
             buffer[i] = '\0';
         } else {
-            if (buffer[i - 1] == '.') {
-                buffer[i - 1] = '\0';
-            }
             break;
         }
     }
