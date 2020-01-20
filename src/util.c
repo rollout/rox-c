@@ -60,11 +60,22 @@ char *ROX_INTERNAL mem_int_to_str(int value) {
     return mem_copy_str(buffer);
 }
 
-#define MEM_DOUBLE_TO_STR_BUFFER_SIZE 20
+#define MEM_DOUBLE_TO_STR_BUFFER_SIZE 100
 
 char *ROX_INTERNAL mem_double_to_str(double value) {
     char buffer[MEM_DOUBLE_TO_STR_BUFFER_SIZE];
-    sprintf_s(buffer, MEM_DOUBLE_TO_STR_BUFFER_SIZE, "%f", value);
+    int len = sprintf_s(buffer, MEM_DOUBLE_TO_STR_BUFFER_SIZE, "%f", value);
+    // trim trailing zeroes
+    for (int i = len - 1; i > 0; --i) {
+        if (buffer[i] == '0' || buffer[i] == '.') {
+            buffer[i] = '\0';
+        } else {
+            if (buffer[i - 1] == '.') {
+                buffer[i - 1] = '\0';
+            }
+            break;
+        }
+    }
     return mem_copy_str(buffer);
 }
 
@@ -184,11 +195,11 @@ char *ROX_INTERNAL mem_str_format(const char *fmt, ...) {
     return mem_copy_str(buffer);
 }
 
-long ROX_INTERNAL current_time_millis() {
+double ROX_INTERNAL current_time_millis() {
     time_t t;
     time(&t);
     // TODO: get millis somehow
-    return (long) (t * 1000);
+    return (double) (t * 1000);
 }
 
 #define ROX_MEM_BASE64_ENCODE_BUFFER_SIZE 1024

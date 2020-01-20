@@ -100,4 +100,4 @@ char *ROX_INTERNAL mem_md5(const char *s);
 /**
  * @return Number of milliseconds since Unix Epoch.
  */
-long ROX_INTERNAL current_time_millis();
+double ROX_INTERNAL current_time_millis();
