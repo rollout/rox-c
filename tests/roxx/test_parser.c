@@ -250,6 +250,27 @@ START_TEST (test_now_evaluation) {
 
 END_TEST
 
+START_TEST (test_regular_expression_evaluation) {
+    Parser *parser = parser_create();
+    eval_assert_boolean_result(parser, "match(\"111\", \"222\", \"\")", false);
+    eval_assert_boolean_result(parser, "match(\".*\", \"222\", \"\")", false);
+    eval_assert_boolean_result(parser, "match(\"22222\", \".*\", \"\")", true);
+    eval_assert_boolean_result(parser, "match(\"22222\", \"^2*$\", \"\")", true);
+    eval_assert_boolean_result(parser, "match(\"test@shimi.com\", \".*(com|ca)\", \"\")", true);
+    eval_assert_boolean_result(parser, "match(\"test@jet.com\", \".*jet\\.com$\", \"\")", true);
+    eval_assert_boolean_result(parser, "match(\"US\", \".*IL|US\", \"\")", true);
+    eval_assert_boolean_result(parser, "match(\"US\", \"IL|US\"), \"\"", true);
+    eval_assert_boolean_result(parser, "match(\"US\", \"(IL|US)\", \"\")", true);
+    eval_assert_boolean_result(parser, "match(\"Us\", \"(IL|US)\", \"\")", false);
+    eval_assert_boolean_result(parser, "match(\"uS\", \"(IL|US)\", \"i\")", true);
+    eval_assert_boolean_result(parser, "match(\"uS\", \"IL|US#Comment\", \"xi\")", true);
+    eval_assert_boolean_result(parser, "match(\"\n\", \".\", \"s\")", true);
+    eval_assert_boolean_result(parser, "match(\"HELLO\nTeST\n#This is a comment\", \"^TEST$\", \"ixm\")", true);
+    parser_free(parser);
+}
+
+END_TEST
+
 START_TEST (test_if_then_expression_evaluation_string) {
     Parser *parser = parser_create();
     eval_assert_string_result("AB", parser, "ifThen(and(true, or(true, true)), \"AB\", \"CD\")");
@@ -340,6 +361,7 @@ ROX_TEST_SUITE(
         ROX_TEST_CASE(test_unknown_operator_evaluation),
         ROX_TEST_CASE(test_undefined_evaluation),
         ROX_TEST_CASE(test_now_evaluation),
+        ROX_TEST_CASE(test_regular_expression_evaluation),
         ROX_TEST_CASE(test_if_then_expression_evaluation_string),
         ROX_TEST_CASE(test_if_then_expression_evaluation_int_number),
         ROX_TEST_CASE(test_if_then_expression_evaluation_double_number),

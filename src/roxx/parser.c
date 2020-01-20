@@ -849,13 +849,46 @@ void ROX_INTERNAL _parser_operator_semver_gte(Parser *parser, CoreStack *stack, 
     _parser_operator_semver_cmp(parser, stack, context, &semver_gte);
 }
 
-void ROX_INTERNAL _parser_operator_(Parser *parser, CoreStack *stack, Context *context) {
+void ROX_INTERNAL _parser_operator_match(Parser *parser, CoreStack *stack, Context *context) {
     assert(parser);
     assert(stack);
-    // TODO: implement!
-    /**
+    StackItem *op1 = rox_stack_pop(stack);
+    StackItem *op2 = rox_stack_pop(stack);
+    StackItem *op3 = rox_stack_pop(stack);
 
-     */
+    if (!rox_stack_is_string(op1)
+        || !rox_stack_is_string(op2)
+        || !rox_stack_is_string(op3)) {
+        rox_stack_push_boolean(stack, false);
+        return;
+    }
+
+    const char *str = rox_stack_get_string(op1);
+    const char *pattern = rox_stack_get_string(op2);
+    const char *flags = rox_stack_get_string(op3);
+
+    unsigned int options = 0;
+    for (int i = 0, n = (int) strlen(flags); i < n; ++i) {
+        char flag = flags[i];
+        if (flag == 'i') {
+            options |= PCRE2_CASELESS;
+        }
+        if (flag == 'x') {
+            options |= PCRE2_EXTENDED;
+        }
+        if (flag == 's') {
+            options |= PCRE2_DOTALL;
+        }
+        if (flag == 'm') {
+            options |= PCRE2_MULTILINE;
+        }
+        if (flag == 'n') {
+            options |= PCRE2_NO_AUTO_CAPTURE;
+        }
+    }
+
+    bool match = str_matches(str, pattern, options);
+    rox_stack_push_boolean(stack, match);
 }
 
 void ROX_INTERNAL _parser_set_basic_operators(Parser *parser) {
@@ -887,7 +920,8 @@ void ROX_INTERNAL _parser_set_basic_operators(Parser *parser) {
     parser_add_operator(parser, "semverGt", &_parser_operator_semver_gt);
     parser_add_operator(parser, "semverGte", &_parser_operator_semver_gte);
 
-    // TODO: regular expression functions
+    // regular expression functions
+    parser_add_operator(parser, "match", &_parser_operator_match);
 }
 
 Parser *ROX_INTERNAL parser_create() {

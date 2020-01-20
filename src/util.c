@@ -86,7 +86,7 @@ char *ROX_INTERNAL mem_bool_to_str(bool value,
 
 #define ROX_STR_MATCHES_BUFFER_SIZE 256
 
-bool ROX_INTERNAL str_matches(const char *str, const char *pattern, int options) {
+bool ROX_INTERNAL str_matches(const char *str, const char *pattern, unsigned int options) {
 
     int error_number;
     PCRE2_SIZE error_offset;

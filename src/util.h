@@ -31,7 +31,7 @@ char *ROX_INTERNAL mem_bool_to_str(bool value,
                                    const char *true_value,
                                    const char *false_value);
 
-bool ROX_INTERNAL str_matches(const char *str, const char *pattern, int options);
+bool ROX_INTERNAL str_matches(const char *str, const char *pattern, unsigned int options);
 
 int ROX_INTERNAL str_index_of(const char *str, char c);
 
