@@ -41,7 +41,6 @@ void ROX_INTERNAL str_substring_b(const char *str, int start, int len, char *buf
 
 /**
  * NOTE: THE RETURNED STR MUST BE FREED AFTER USE
- *
  * @param str The input string.
  * @param start The start offset.
  * @param len Length of the returned substring.
@@ -51,7 +50,6 @@ char *ROX_INTERNAL mem_str_substring(const char *str, int start, int len);
 
 /**
  * NOTE: THE RETURNED STR MUST BE FREED AFTER USE
- *
  * @param str The input string.
  * @param search The string to replace.
  * @param rep The replacement.
@@ -61,7 +59,6 @@ char *ROX_INTERNAL mem_str_replace(const char *str, const char *search, const ch
 
 /**
  * NOTE: THE RETURNED STR MUST BE FREED AFTER USE
- *
  * @param s1 The left part. MUST NOT BE NULL.
  * @param s2 The right part. MUST NOT BE NULL.
  * @return Pointer to the NEWLY CREATED string which is a concatenation of the given two strings.
@@ -70,7 +67,6 @@ char *ROX_INTERNAL mem_str_concat(const char *s1, const char *s2);
 
 /**
  * NOTE: THE RETURNED STR MUST BE FREED AFTER USE
- *
  * @param fmt Format string. MUST NOT BE NULL.
  * @return Pointer to the NEWLY CREATED string which is a formatted string.
  */

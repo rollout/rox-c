@@ -868,7 +868,7 @@ void ROX_INTERNAL _parser_operator_match(Parser *parser, CoreStack *stack, Conte
     const char *flags = rox_stack_get_string(op3);
 
     unsigned int options = 0;
-    for (int i = 0, n = (int) strlen(flags); i < n; ++i) {
+    for (int i = 0; flags[i] != '\0'; ++i) {
         char flag = flags[i];
         if (flag == 'i') {
             options |= PCRE2_CASELESS;
