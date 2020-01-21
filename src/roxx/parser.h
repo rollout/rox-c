@@ -2,7 +2,7 @@
 
 #include "roxapi.h"
 #include "roxx/stack.h"
-#include "context.h"
+#include "core/context.h"
 
 typedef struct ROX_INTERNAL Parser Parser;
 
@@ -61,6 +61,7 @@ void ROX_INTERNAL parser_free(Parser *parser);
 void ROX_INTERNAL parser_add_operator(Parser *parser, const char *name, parser_operation op);
 
 /**
+ * THE RETURNED POINTER MUST BE FREED AFTER USE BY CALLING result_free(result).
  * @param parser Parser reference. NOT NULL.
  * @param expression Expression. NOT NULL.
  * @param context Can be NULL.

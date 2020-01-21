@@ -2,11 +2,15 @@
 
 include(external-libs.cmake)
 
-set(LIBS ${LIBS} pcre2 collectc)
+set(LIBS ${LIBS} pcre2 collectc json-c)
 
 set(ROX_SRC
         util.c
+        core/consts.c
+        core/context.c
         core/entities.c
+        core/repositories.c
+        core/properties.c
         roxx/stack.c
         roxx/parser.c
         roxapi.c)

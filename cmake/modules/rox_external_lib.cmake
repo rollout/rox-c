@@ -8,13 +8,17 @@ macro(rox_build_cmake_command VAR LIB_SOURCE_DIR LIB_BINARY_DIR)
     endif ()
 endmacro()
 
-function(rox_external_lib LIB_NAME LIB_VERSION)
+function(rox_external_lib LIB_NAME)
 
     set(options VERBOSE DRY_RUN)
-    set(oneValueArgs URL HASH FILE CONFIGURE SUBDIR CMAKE)
+    set(oneValueArgs VERSION URL HASH FILE CONFIGURE SUBDIR CMAKE)
     set(multiValueArgs)
 
     cmake_parse_arguments(LIB "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
+
+    if (NOT LIB_VERSION)
+        set(LIB_VERSION ${LIB_NAME})
+    endif ()
 
     string(REPLACE "<LIB_NAME>" ${LIB_NAME} LIB_URL ${LIB_URL})
     string(REPLACE "<LIB_VERSION>" ${LIB_VERSION} LIB_URL ${LIB_URL})
