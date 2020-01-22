@@ -28,12 +28,12 @@ typedef struct ROX_INTERNAL CustomProperty CustomProperty;
 
 CustomProperty *ROX_INTERNAL custom_property_create(
         const char *name,
-        CustomPropertyType *type,
+        const CustomPropertyType *type,
         custom_property_value_generator generator);
 
 CustomProperty *ROX_INTERNAL custom_property_create_using_value(
         const char *name,
-        CustomPropertyType *type,
+        const CustomPropertyType *type,
         void *value);
 
 /**
@@ -86,20 +86,22 @@ CustomProperty *ROX_INTERNAL device_property_create_using_value(
 
 typedef struct ROX_INTERNAL DynamicProperties DynamicProperties;
 
-typedef void *ROX_INTERNAL (*dynamic_properties_rule)(Context */*NULLABLE*/context);
+typedef void *ROX_INTERNAL (*dynamic_properties_rule)(const char *prop_name, Context */*NULLABLE*/context);
 
-typedef struct ROX_INTERNAL DynamicProperties DynamicProperties;
+DynamicProperties *dynamic_properties_create();
 
 /**
  * @param properties NOT NULL.
- * @param rule NULLABLE.
+ * @param rule NOT NULL.
  */
-void ROX_INTERNAL set_dynamic_properties_rule(
+void ROX_INTERNAL dynamic_properties_set_rule(
         DynamicProperties *properties,
         dynamic_properties_rule rule);
 
 /**
  * @param properties NOT NULL.
- * @return NULLABLE.
+ * @return NOT NULL.
  */
-dynamic_properties_rule ROX_INTERNAL get_dynamic_properties_rule(DynamicProperties *properties);
+dynamic_properties_rule ROX_INTERNAL dynamic_properties_get_rule(DynamicProperties *properties);
+
+void dynamic_properties_free(DynamicProperties *properties);

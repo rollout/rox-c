@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <stdio.h>
 #include "core/properties.h"
 #include "util.h"
 
@@ -23,7 +24,9 @@ struct ROX_INTERNAL CustomProperty {
     custom_property_value_generator value_generator;
 };
 
-CustomProperty *ROX_INTERNAL custom_property_create_no_value(const char *name, CustomPropertyType *type) {
+CustomProperty *ROX_INTERNAL custom_property_create_no_value(
+        const char *name,
+        const CustomPropertyType *type) {
     assert(name);
     assert(type);
     CustomProperty *p = calloc(1, sizeof(CustomProperty));
@@ -32,8 +35,10 @@ CustomProperty *ROX_INTERNAL custom_property_create_no_value(const char *name, C
     return p;
 }
 
-CustomProperty *ROX_INTERNAL custom_property_create(const char *name, CustomPropertyType *type,
-                                                    custom_property_value_generator generator) {
+CustomProperty *ROX_INTERNAL custom_property_create(
+        const char *name,
+        const CustomPropertyType *type,
+        custom_property_value_generator generator) {
     assert(name);
     assert(type);
     assert(generator);
@@ -42,8 +47,10 @@ CustomProperty *ROX_INTERNAL custom_property_create(const char *name, CustomProp
     return p;
 }
 
-CustomProperty *
-ROX_INTERNAL custom_property_create_using_value(const char *name, CustomPropertyType *type, void *value) {
+CustomProperty *ROX_INTERNAL custom_property_create_using_value(
+        const char *name,
+        const CustomPropertyType *type,
+        void *value) {
     assert(name);
     assert(type);
     assert(value);
@@ -87,5 +94,67 @@ void ROX_INTERNAL custom_property_free(CustomProperty *property) {
     free(property);
 }
 
-// TODO: implement
+//
+// DeviceProperty
+//
 
+#define ROX_DEVICE_PROPERTY_NAME_BUFFER_SIZE 256
+
+CustomProperty *ROX_INTERNAL device_property_create(
+        const char *suffix,
+        const CustomPropertyType *type,
+        custom_property_value_generator generator) {
+
+    assert(suffix);
+    assert(type);
+    assert(generator);
+    char buffer[ROX_DEVICE_PROPERTY_NAME_BUFFER_SIZE];
+    sprintf_s(buffer, ROX_DEVICE_PROPERTY_NAME_BUFFER_SIZE, "rox.%s", suffix);
+    return custom_property_create(buffer, type, generator);
+}
+
+CustomProperty *ROX_INTERNAL device_property_create_using_value(
+        const char *suffix,
+        const CustomPropertyType *type,
+        void *value) {
+    char buffer[ROX_DEVICE_PROPERTY_NAME_BUFFER_SIZE];
+    sprintf_s(buffer, ROX_DEVICE_PROPERTY_NAME_BUFFER_SIZE, "rox.%s", suffix);
+    return custom_property_create_using_value(buffer, type, value);
+}
+
+//
+// DynamicProperties
+//
+
+void *ROX_INTERNAL default_dynamic_properties_rule(const char *prop_name, Context *context) {
+    assert(prop_name);
+    return context != NULL ? context_get(context, prop_name) : NULL;
+}
+
+struct ROX_INTERNAL DynamicProperties {
+    dynamic_properties_rule rule;
+};
+
+DynamicProperties *dynamic_properties_create() {
+    DynamicProperties *properties = calloc(1, sizeof(DynamicProperties));
+    properties->rule = &default_dynamic_properties_rule;
+    return properties;
+}
+
+void ROX_INTERNAL dynamic_properties_set_rule(
+        DynamicProperties *properties,
+        dynamic_properties_rule rule) {
+    assert(properties);
+    assert(rule);
+    properties->rule = rule;
+}
+
+dynamic_properties_rule ROX_INTERNAL dynamic_properties_get_rule(DynamicProperties *properties) {
+    assert(properties);
+    return properties->rule;
+}
+
+void dynamic_properties_free(DynamicProperties *properties) {
+    assert(properties);
+    free(properties);
+}
