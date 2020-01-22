@@ -256,7 +256,7 @@ char *ROX_INTERNAL mem_base64_decode(const char *s) {
     return NULL;
 }
 
-void rox_json_serialize(const char *buffer, size_t buffer_size, unsigned int options, ...) {
+void rox_json_serialize(char *buffer, size_t buffer_size, unsigned int options, ...) {
     va_list args;
             va_start(args, options);
 
@@ -269,9 +269,10 @@ void rox_json_serialize(const char *buffer, size_t buffer_size, unsigned int opt
     };
             va_end(args);
 
-    const char *str = (options & ROX_JSON_PRETTY_PRINT) != 0
-                      ? cJSON_Print(json)
-                      : cJSON_PrintUnformatted(json);
+    char *str = (options & ROX_JSON_PRETTY_PRINT) != 0
+                ? cJSON_Print(json)
+                : cJSON_PrintUnformatted(json);
     str_copy_value_to_buffer(buffer, buffer_size, str);
     cJSON_Delete(json);
+    free(str);
 }

@@ -1,5 +1,5 @@
 #include <assert.h>
-#include "core/context.h"
+#include "context.h"
 
 struct ROX_INTERNAL Context {
     HashTable *map;

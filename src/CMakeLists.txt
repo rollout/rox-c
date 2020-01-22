@@ -6,11 +6,14 @@ set(LIBS ${LIBS} pcre2 collectc cjson)
 
 set(ROX_SRC
         util.c
+        core/configuration/models.c
+        core/configuration.c
         core/consts.c
         core/context.c
         core/entities.c
-        core/repositories.c
+        core/impression.c
         core/properties.c
+        core/repositories.c
         roxx/stack.c
         roxx/parser.c
         roxapi.c)

@@ -101,7 +101,7 @@ char *ROX_INTERNAL mem_md5(const char *s);
  */
 double ROX_INTERNAL current_time_millis();
 
-void rox_json_serialize(const char *buffer, size_t buffer_size, unsigned int options, ...);
+void rox_json_serialize(char *buffer, size_t buffer_size, unsigned int options, ...);
 
 #define ROX_JSON_PRETTY_PRINT 1u
 

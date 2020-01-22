@@ -1,7 +1,7 @@
 #pragma once
 
 #include "roxapi.h"
-#include "roxx/stack.h"
+#include "stack.h"
 #include "core/context.h"
 
 typedef struct ROX_INTERNAL Parser Parser;

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "roxapi.h"
-#include "core/context.h"
+#include "context.h"
 
 //
 // CustomPropertyType

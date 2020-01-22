@@ -12,10 +12,10 @@
 #include <collectc/hashtable.h>
 
 #include "roxapi.h"
-#include "util.h"
 #include "core/entities.h"
-#include "roxx/parser.h"
-#include "roxx/stack.h"
+#include "util.h"
+#include "parser.h"
+#include "stack.h"
 #include "semver.h"
 
 //

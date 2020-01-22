@@ -1,6 +1,6 @@
 #include <assert.h>
 #include <stdio.h>
-#include "core/properties.h"
+#include "properties.h"
 #include "util.h"
 
 //
@@ -19,7 +19,7 @@ static const CustomPropertyType ROX_INTERNAL ROX_CUSTOM_PROPERTY_TYPE_SEMVER = {
 
 struct ROX_INTERNAL CustomProperty {
     char *name;
-    CustomPropertyType *type;
+    const CustomPropertyType *type;
     void *value;
     custom_property_value_generator value_generator;
 };

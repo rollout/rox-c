@@ -7,9 +7,8 @@
 #include <stdbool.h>
 #include <collectc/list.h>
 #include <collectc/hashtable.h>
-
 #include "util.h"
-#include "roxx/stack.h"
+#include "stack.h"
 
 struct ROX_INTERNAL CoreStack {
     StackItem *first;

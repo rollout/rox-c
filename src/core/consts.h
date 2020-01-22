@@ -13,19 +13,19 @@ extern const char *ROX_INTERNAL ROX_API_VERSION;
 // Environment
 //
 
-void ROX_INTERNAL rox_env_get_internal_path(const char* buffer, int buffer_size);
+void ROX_INTERNAL rox_env_get_internal_path(char* buffer, int buffer_size);
 
-void ROX_INTERNAL rox_env_get_cdn_path(const char* buffer, int buffer_size);
+void ROX_INTERNAL rox_env_get_cdn_path(char* buffer, int buffer_size);
 
-void ROX_INTERNAL rox_env_get_api_path(const char* buffer, int buffer_size);
+void ROX_INTERNAL rox_env_get_api_path(char* buffer, int buffer_size);
 
-void ROX_INTERNAL rox_env_get_state_cdn_path(const char* buffer, int buffer_size);
+void ROX_INTERNAL rox_env_get_state_cdn_path(char* buffer, int buffer_size);
 
-void ROX_INTERNAL rox_env_get_state_api_path(const char* buffer, int buffer_size);
+void ROX_INTERNAL rox_env_get_state_api_path(char* buffer, int buffer_size);
 
-void ROX_INTERNAL rox_env_get_analytics_path(const char* buffer, int buffer_size);
+void ROX_INTERNAL rox_env_get_analytics_path(char* buffer, int buffer_size);
 
-void ROX_INTERNAL rox_env_get_notifications_path(const char* buffer, int buffer_size);
+void ROX_INTERNAL rox_env_get_notifications_path(char* buffer, int buffer_size);
 
 //
 // PropertyType
