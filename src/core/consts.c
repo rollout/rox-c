@@ -2,6 +2,7 @@
 #include <string.h>
 #include <assert.h>
 #include "core/consts.h"
+#include "util.h"
 
 //
 // Build
@@ -14,22 +15,15 @@ static const char *ROX_INTERNAL ROX_API_VERSION = "1.8.0";
 // Environment
 //
 
-void ROX_INTERNAL rox_env_return_value(char *buffer, int buffer_size, const char *value) {
-    assert(buffer);
-    assert(buffer_size > 0);
-    assert(value);
-    strncpy_s(buffer, strlen(value), value, buffer_size);
-}
-
 void ROX_INTERNAL rox_env_get_internal_path(char *buffer, int buffer_size) {
     assert(buffer);
-    rox_env_return_value(buffer, buffer_size, "device/request_configuration");
+    str_copy_value_to_buffer(buffer, buffer_size, "device/request_configuration");
 }
 
 #define ROX_ENV_VAL_BUFFER_SIZE 1024
 
 void ROX_INTERNAL rox_env_return_value_using_mode_env(
-        char *buffer,
+        const char *buffer,
         int buffer_size,
         const char *local_mode_value,
         const char *qa_mode_value,
@@ -41,15 +35,15 @@ void ROX_INTERNAL rox_env_return_value_using_mode_env(
     size_t len;
     if (getenv_s(&len, value, ROX_ENV_VAL_BUFFER_SIZE, "ROLLOUT_MODE") != 0 && len > 0) {
         if (strcmp(value, "QA") == 0) {
-            rox_env_return_value(buffer, buffer_size, qa_mode_value);
+            str_copy_value_to_buffer(buffer, buffer_size, qa_mode_value);
         } else if (strcmp(value, "LOCAL") == 0) {
-            rox_env_return_value(buffer, buffer_size, local_mode_value);
+            str_copy_value_to_buffer(buffer, buffer_size, local_mode_value);
         }
     }
-    rox_env_return_value(buffer, buffer_size, prod_mode_value);
+    str_copy_value_to_buffer(buffer, buffer_size, prod_mode_value);
 }
 
-void ROX_INTERNAL rox_env_get_cdn_path(char *buffer, int buffer_size) {
+void ROX_INTERNAL rox_env_get_cdn_path(const char *buffer, int buffer_size) {
     assert(buffer);
     assert(buffer_size > 0);
     rox_env_return_value_using_mode_env(
@@ -59,7 +53,7 @@ void ROX_INTERNAL rox_env_get_cdn_path(char *buffer, int buffer_size) {
             "https://conf.rollout.io");
 }
 
-void ROX_INTERNAL rox_env_get_api_path(char *buffer, int buffer_size) {
+void ROX_INTERNAL rox_env_get_api_path(const char *buffer, int buffer_size) {
     assert(buffer);
     assert(buffer_size > 0);
     rox_env_return_value_using_mode_env(
@@ -69,7 +63,7 @@ void ROX_INTERNAL rox_env_get_api_path(char *buffer, int buffer_size) {
             "https://x-api.rollout.io/device/get_configuration");
 }
 
-void ROX_INTERNAL rox_env_get_state_cdn_path(char *buffer, int buffer_size) {
+void ROX_INTERNAL rox_env_get_state_cdn_path(const char *buffer, int buffer_size) {
     assert(buffer);
     assert(buffer_size > 0);
     rox_env_return_value_using_mode_env(
@@ -79,7 +73,7 @@ void ROX_INTERNAL rox_env_get_state_cdn_path(char *buffer, int buffer_size) {
             "https://statestore.rollout.io");
 }
 
-void ROX_INTERNAL rox_env_get_state_api_path(char *buffer, int buffer_size) {
+void ROX_INTERNAL rox_env_get_state_api_path(const char *buffer, int buffer_size) {
     assert(buffer);
     assert(buffer_size > 0);
     rox_env_return_value_using_mode_env(
@@ -89,7 +83,7 @@ void ROX_INTERNAL rox_env_get_state_api_path(char *buffer, int buffer_size) {
             "https://x-api.rollout.io/device/update_state_store");
 }
 
-void ROX_INTERNAL rox_env_get_analytics_path(char *buffer, int buffer_size) {
+void ROX_INTERNAL rox_env_get_analytics_path(const char *buffer, int buffer_size) {
     assert(buffer);
     assert(buffer_size > 0);
     rox_env_return_value_using_mode_env(
@@ -99,7 +93,7 @@ void ROX_INTERNAL rox_env_get_analytics_path(char *buffer, int buffer_size) {
             "https://analytic.rollout.io");
 }
 
-void ROX_INTERNAL rox_env_get_notifications_path(char *buffer, int buffer_size) {
+void ROX_INTERNAL rox_env_get_notifications_path(const char *buffer, int buffer_size) {
     assert(buffer);
     assert(buffer_size > 0);
     rox_env_return_value_using_mode_env(

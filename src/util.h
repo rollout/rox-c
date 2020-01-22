@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cjson/cJSON.h>
 #include <stdbool.h>
 #include "roxapi.h"
 
@@ -38,6 +39,8 @@ int ROX_INTERNAL str_index_of(const char *str, char c);
 bool ROX_INTERNAL str_equals(const char *str, const char *another);
 
 void ROX_INTERNAL str_substring_b(const char *str, int start, int len, char *buffer);
+
+void ROX_INTERNAL str_copy_value_to_buffer(char *buffer, int buffer_size, const char *value);
 
 /**
  * NOTE: THE RETURNED STR MUST BE FREED AFTER USE
@@ -97,3 +100,25 @@ char *ROX_INTERNAL mem_md5(const char *s);
  * @return Number of milliseconds since Unix Epoch.
  */
 double ROX_INTERNAL current_time_millis();
+
+void rox_json_serialize(const char *buffer, size_t buffer_size, unsigned int options, ...);
+
+#define ROX_JSON_PRETTY_PRINT 1u
+
+#define ROX_JSON_SERIALIZE(buffer, buffer_size, ...) rox_json_serialize(buffer, buffer_size, 0, __VA_ARGS__, NULL)
+
+#define ROX_JSON_SERIALIZE_PRETTY(buffer, buffer_size, ...) rox_json_serialize(buffer, buffer_size, ROX_JSON_PRETTY_PRINT, __VA_ARGS__, NULL)
+
+#define ROX_JSON_STRING(value) cJSON_CreateString(value)
+
+#define ROX_JSON_INT(value) cJSON_CreateNumber(value)
+
+#define ROX_JSON_DOUBLE(value) cJSON_CreateNumber(value)
+
+#define ROX_JSON_TRUE cJSON_CreateTrue()
+
+#define ROX_JSON_FALSE cJSON_CreateFalse()
+
+#define ROX_JSON_BOOL cJSON_CreateBool()
+
+#define ROX_JSON_NULL cJSON_CreateNull(value)

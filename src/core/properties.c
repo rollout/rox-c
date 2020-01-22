@@ -70,8 +70,15 @@ void *ROX_INTERNAL custom_property_get_value(CustomProperty *property, Context *
     return property->value;
 }
 
-void ROX_INTERNAL custom_property_serialize_to_json(CustomProperty *property, char *buffer, size_t buffer_size) {
-    // TODO: implement
+void ROX_INTERNAL custom_property_serialize_to_json(CustomProperty *property, const char *buffer, size_t buffer_size) {
+    assert(property);
+    assert(buffer);
+    assert(buffer_size > 0);
+    ROX_JSON_SERIALIZE(
+            buffer, buffer_size,
+            "name", ROX_JSON_STRING(property->name),
+            "type", ROX_JSON_STRING(property->type->type),
+            "externalType", ROX_JSON_STRING(property->type->external_type));
 }
 
 void ROX_INTERNAL custom_property_free(CustomProperty *property) {

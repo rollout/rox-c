@@ -150,6 +150,15 @@ void ROX_INTERNAL str_substring_b(const char *str, int start, int len, char *buf
     buffer[len] = '\0';
 }
 
+void ROX_INTERNAL str_copy_value_to_buffer(char *buffer, int buffer_size, const char *value) {
+    assert(buffer);
+    assert(buffer_size > 0);
+    assert(value);
+    size_t len = strlen(value);
+    assert(len < buffer_size);
+    strncpy_s(buffer, buffer_size, value, len);
+}
+
 char *ROX_INTERNAL mem_str_substring(const char *str, int start, int len) {
     assert(str);
     assert(start >= 0);
@@ -245,4 +254,24 @@ char *ROX_INTERNAL mem_base64_decode(const char *s) {
         return mem_copy_str((char *) buffer);
     }
     return NULL;
+}
+
+void rox_json_serialize(const char *buffer, size_t buffer_size, unsigned int options, ...) {
+    va_list args;
+            va_start(args, options);
+
+    cJSON *json = cJSON_CreateObject();
+    char *property_name = va_arg(args, char*);
+    while (property_name != NULL) {
+        cJSON *property_value = va_arg(args, cJSON *);
+        cJSON_AddItemToObject(json, property_name, property_value);
+        property_name = va_arg(args, char*);
+    };
+            va_end(args);
+
+    const char *str = (options & ROX_JSON_PRETTY_PRINT) != 0
+                      ? cJSON_Print(json)
+                      : cJSON_PrintUnformatted(json);
+    str_copy_value_to_buffer(buffer, buffer_size, str);
+    cJSON_Delete(json);
 }

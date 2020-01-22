@@ -10,11 +10,19 @@ endmacro()
 
 function(rox_external_lib LIB_NAME)
 
-    set(options VERBOSE DRY_RUN)
+    set(options VERBOSE DRY_RUN SHARED)
     set(oneValueArgs VERSION URL HASH FILE CONFIGURE SUBDIR CMAKE)
-    set(multiValueArgs)
+    set(multiValueArgs CMAKE_ARGS)
 
     cmake_parse_arguments(LIB "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
+
+    if (LIB_CMAKE_ARGS)
+        set(LIB_CMAKE_ARGS_PROCESSED "")
+        foreach (arg IN LISTS LIB_CMAKE_ARGS)
+            list(APPEND LIB_CMAKE_ARGS_PROCESSED "-D${arg}")
+        endforeach ()
+        set(LIB_CMAKE_ARGS "${LIB_CMAKE_ARGS_PROCESSED}")
+    endif ()
 
     if (NOT LIB_VERSION)
         set(LIB_VERSION ${LIB_NAME})
@@ -27,8 +35,14 @@ function(rox_external_lib LIB_NAME)
         set(LIB_FILE ${LIB_NAME})
     endif ()
 
-    if (NOT LIB_FILE MATCHES "${CMAKE_STATIC_LIBRARY_SUFFIX}$")
-        set(LIB_FILE "${LIB_FILE}${CMAKE_STATIC_LIBRARY_SUFFIX}")
+    if (LIB_SHARED)
+        set(LIB_SUFFIX ${CMAKE_SHARED_LIBRARY_SUFFIX})
+    else ()
+        set(LIB_SUFFIX ${CMAKE_STATIC_LIBRARY_SUFFIX})
+    endif ()
+
+    if (NOT LIB_FILE MATCHES "${LIB_SUFFIX}$")
+        set(LIB_FILE "${LIB_FILE}${LIB_SUFFIX}")
     endif ()
 
     set(LIB_ROOT ${ROX_THIRD_PARTY_LIBS_LOCATION}/${LIB_NAME}/${LIB_VERSION})
@@ -43,20 +57,29 @@ function(rox_external_lib LIB_NAME)
         set(LIB_STATIC_DIR "${LIB_INSTALL_DIR}/lib")
     endif ()
 
-    set(LIB_FILE_LOCATION ${LIB_STATIC_DIR}/${LIB_FILE})
+    if (NOT LIB_SHARED_DIR)
+        set(LIB_SHARED_DIR "${LIB_INSTALL_DIR}/bin")
+    endif ()
+
+    if (LIB_SHARED)
+        set(LIB_FILE_LOCATION ${LIB_SHARED_DIR}/${LIB_FILE})
+    else ()
+        set(LIB_FILE_LOCATION ${LIB_STATIC_DIR}/${LIB_FILE})
+    endif ()
 
     if (NOT LIB_CMAKE)
         rox_build_cmake_command(LIB_CMAKE ${LIB_SOURCE_DIR}/${LIB_SUBDIR} ${LIB_BINARY_DIR})
     endif ()
 
     if (NOT LIB_CONFIGURE)
-        set(LIB_CONFIGURE <CMAKE> -D CMAKE_INSTALL_PREFIX=${LIB_INSTALL_DIR})
+        set(LIB_CONFIGURE <CMAKE> -D CMAKE_INSTALL_PREFIX=${LIB_INSTALL_DIR} ${LIB_CMAKE_ARGS})
     endif ()
 
     string(REPLACE "<CMAKE>" "${LIB_CMAKE}" LIB_CONFIGURE "${LIB_CONFIGURE}")
 
     if (LIB_VERBOSE)
         message("LIB_DRY_RUN = ${LIB_DRY_RUN}")
+        message("LIB_SHARED = ${LIB_SHARED}")
         message("LIB_URL = ${LIB_URL}")
         message("LIB_HASH = ${LIB_HASH}")
         message("LIB_FILE = ${LIB_FILE}")
@@ -71,12 +94,18 @@ function(rox_external_lib LIB_NAME)
         message("LIB_TMP_DIR = ${LIB_TMP_DIR}")
         message("LIB_FILE_LOCATION = ${LIB_FILE_LOCATION}")
         message("LIB_CMAKE = ${LIB_CMAKE}")
+        message("LIB_CMAKE_ARGS = ${LIB_CMAKE_ARGS}")
         message("LIB_CONFIGURE = ${LIB_CONFIGURE}")
     endif ()
 
     if (EXISTS "${LIB_FILE_LOCATION}")
 
-        add_library(${LIB_NAME} STATIC IMPORTED)
+        if (LIB_SHARED)
+            add_library(${LIB_NAME} SHARED IMPORTED)
+        else ()
+            add_library(${LIB_NAME} STATIC IMPORTED)
+        endif ()
+
         set_target_properties(${LIB_NAME} PROPERTIES
                 IMPORTED_LOCATION "${LIB_FILE_LOCATION}"
                 INTERFACE_INCLUDE_DIRECTORIES "${LIB_INSTALL_DIR}/include")

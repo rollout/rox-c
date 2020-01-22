@@ -9,5 +9,7 @@ rox_external_lib(collectc
         HASH 584e113e123ac30fe78b3e92d70f6c40a066960d
         SUBDIR src)
 
-rox_external_lib(json-c
-        URL https://github.com/json-c/json-c.git)
+rox_external_lib(cjson
+        URL https://github.com/DaveGamble/cJSON.git
+        CMAKE_ARGS BUILD_SHARED_AND_STATIC_LIBS=On
+        FILE libcjson)

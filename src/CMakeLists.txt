@@ -2,7 +2,7 @@
 
 include(external-libs.cmake)
 
-set(LIBS ${LIBS} pcre2 collectc json-c)
+set(LIBS ${LIBS} pcre2 collectc cjson)
 
 set(ROX_SRC
         util.c

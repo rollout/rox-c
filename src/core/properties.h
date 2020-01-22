@@ -54,13 +54,12 @@ const CustomPropertyType *ROX_INTERNAL custom_property_get_type(CustomProperty *
 void *ROX_INTERNAL custom_property_get_value(CustomProperty *property, Context *context);
 
 /**
- * THE RETURNED STRING MUST BE FREED AFTER USE.
  * @param property NOT NULL.
  * @param buffer Output buffer. NOT NULL.
- * @param buffer_size MAX output size. NOT NULL.
+ * @param buffer_size MAX output size.
  * @return Newly created JSON string. NOT NULL.
  */
-void custom_property_serialize_to_json(CustomProperty *property, char *buffer, size_t buffer_size);
+void custom_property_serialize_to_json(CustomProperty *property, const char *buffer, size_t buffer_size);
 
 /**
  * @param property NOT NULL.

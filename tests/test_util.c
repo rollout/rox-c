@@ -219,6 +219,20 @@ START_TEST (test_md5_rfc1321_test_suite) {
 
 END_TEST
 
+#define TEST_JSON_SERIALIZATION_BUFFER_SIZE 1024
+
+START_TEST (test_json_serialization) {
+    char buffer[TEST_JSON_SERIALIZATION_BUFFER_SIZE];
+    ROX_JSON_SERIALIZE(
+            buffer, TEST_JSON_SERIALIZATION_BUFFER_SIZE,
+            "string", ROX_JSON_STRING("test"),
+            "int", ROX_JSON_INT(1099),
+            "double", ROX_JSON_DOUBLE(1099.99));
+    ck_assert_str_eq("{\"string\":\"test\",\"int\":1099,\"double\":1099.99}", buffer);
+}
+
+END_TEST
+
 ROX_TEST_SUITE(
 // mem_str_to_double
         ROX_TEST_CASE(test_str_to_double_nan),
@@ -252,5 +266,8 @@ ROX_TEST_SUITE(
         ROX_TEST_CASE(test_base64_decode),
 
 // mem_md5
-        ROX_TEST_CASE(test_md5_rfc1321_test_suite)
+        ROX_TEST_CASE(test_md5_rfc1321_test_suite),
+
+// ROX_JSON_XXX
+        ROX_TEST_CASE(test_json_serialization)
 )
