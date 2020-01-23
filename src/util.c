@@ -140,6 +140,10 @@ bool ROX_INTERNAL str_equals(const char *str, const char *another) {
     return str == another || strcmp(str, another) == 0;
 }
 
+bool ROX_INTERNAL str_is_empty(const char *str) {
+    return !str || str_equals(str, "");
+}
+
 void ROX_INTERNAL str_substring_b(const char *str, int start, int len, char *buffer) {
     assert(str);
     assert(start >= 0);

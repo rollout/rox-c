@@ -16,6 +16,7 @@ set(ROX_SRC
         core/repositories.c
         roxx/stack.c
         roxx/parser.c
+        roxx/extensions.c
         roxapi.c)
 
 add_library(libroxc ${ROX_SRC})

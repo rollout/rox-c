@@ -8,7 +8,7 @@ typedef struct ROX_INTERNAL Parser Parser;
 
 typedef struct ROX_INTERNAL EvaluationResult EvaluationResult;
 
-typedef void ROX_INTERNAL (*parser_operation)(Parser *parser, CoreStack *stack, Context *context);
+typedef ROX_INTERNAL void (*parser_operation)(Parser *parser, CoreStack *stack, Context *context);
 
 typedef enum ROX_INTERNAL {
     TokenTypeString,

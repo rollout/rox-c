@@ -38,6 +38,8 @@ int ROX_INTERNAL str_index_of(const char *str, char c);
 
 bool ROX_INTERNAL str_equals(const char *str, const char *another);
 
+bool ROX_INTERNAL str_is_empty(const char *str);
+
 void ROX_INTERNAL str_substring_b(const char *str, int start, int len, char *buffer);
 
 void ROX_INTERNAL str_copy_value_to_buffer(char *buffer, int buffer_size, const char *value);

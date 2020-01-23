@@ -22,7 +22,7 @@ extern const ROX_INTERNAL CustomPropertyType ROX_CUSTOM_PROPERTY_TYPE_SEMVER;
 // CustomProperty
 //
 
-typedef void *ROX_INTERNAL (*custom_property_value_generator)(Context */*NULLABLE*/context);
+typedef ROX_INTERNAL void *(*custom_property_value_generator)(Context */*NULLABLE*/context);
 
 typedef struct ROX_INTERNAL CustomProperty CustomProperty;
 
@@ -37,32 +37,32 @@ CustomProperty *ROX_INTERNAL custom_property_create_using_value(
         void *value);
 
 /**
- * @param property NOT NULL.
- * @return NOT NULL.
+ * @param property Not <code>NULL</code>.
+ * @return Not <code>NULL</code>.
  */
 char *ROX_INTERNAL custom_property_get_name(CustomProperty *property);
 
 /**
- * @param property NOT NULL.
- * @return NOT NULL.
+ * @param property Not <code>NULL</code>.
+ * @return Not <code>NULL</code>.
  */
 const CustomPropertyType *ROX_INTERNAL custom_property_get_type(CustomProperty *property);
 
 /**
- * @param property NOT NULL.
+ * @param property Not <code>NULL</code>.
  */
 void *ROX_INTERNAL custom_property_get_value(CustomProperty *property, Context *context);
 
 /**
- * @param property NOT NULL.
- * @param buffer Output buffer. NOT NULL.
+ * @param property Not <code>NULL</code>.
+ * @param buffer Output buffer. Not <code>NULL</code>.
  * @param buffer_size MAX output size.
- * @return Newly created JSON string. NOT NULL.
+ * @return Newly created JSON string. Not <code>NULL</code>.
  */
 void custom_property_serialize_to_json(CustomProperty *property, const char *buffer, size_t buffer_size);
 
 /**
- * @param property NOT NULL.
+ * @param property Not <code>NULL</code>.
  */
 void ROX_INTERNAL custom_property_free(CustomProperty *property);
 
@@ -86,21 +86,21 @@ CustomProperty *ROX_INTERNAL device_property_create_using_value(
 
 typedef struct ROX_INTERNAL DynamicProperties DynamicProperties;
 
-typedef void *ROX_INTERNAL (*dynamic_properties_rule)(const char *prop_name, Context */*NULLABLE*/context);
+typedef ROX_INTERNAL void *(*dynamic_properties_rule)(const char *prop_name, Context */*NULLABLE*/context);
 
 DynamicProperties *dynamic_properties_create();
 
 /**
- * @param properties NOT NULL.
- * @param rule NOT NULL.
+ * @param properties Not <code>NULL</code>.
+ * @param rule Not <code>NULL</code>.
  */
 void ROX_INTERNAL dynamic_properties_set_rule(
         DynamicProperties *properties,
         dynamic_properties_rule rule);
 
 /**
- * @param properties NOT NULL.
- * @return NOT NULL.
+ * @param properties Not <code>NULL</code>.
+ * @return Not <code>NULL</code>.
  */
 dynamic_properties_rule ROX_INTERNAL dynamic_properties_get_rule(DynamicProperties *properties);
 

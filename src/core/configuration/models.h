@@ -23,9 +23,9 @@ typedef struct ROX_INTERNAL ExperimentModel {
  * The caller is an owner of the returned object
  * and must destroy it using experiment_model_free();
  *
- * @param id Not NULL. Will be copied internally. The caller holds an ownership.
- * @param name Not NULL. Will be copied internally. The caller holds an ownership.
- * @param condition Not NULL. Will be copied internally. The caller holds an ownership.
+ * @param id Not <code>NULL</code>. Will be copied internally. The caller holds an ownership.
+ * @param name Not <code>NULL</code>. Will be copied internally. The caller holds an ownership.
+ * @param condition Not <code>NULL</code>. Will be copied internally. The caller holds an ownership.
  * @param archived
  * @param flags List of strings. Can be NULL. If passed, ownership of this object is delegated to the model and it will be destroyed when calling experiment_model_free().
  * @param labels Set of strings. Can be NULL. If passed, ownership of this object is delegated to the model and it will be destroyed when calling experiment_model_free().
@@ -41,7 +41,7 @@ ExperimentModel *ROX_INTERNAL experiment_model_create(
         bool stickiness_property);
 
 /**
- * @param model Not NULL.
+ * @param model Not <code>NULL</code>.
  */
 void ROX_INTERNAL experiment_model_free(ExperimentModel *model);
 
@@ -58,14 +58,14 @@ typedef struct ROX_INTERNAL TargetGroupModel {
  * The caller is an owner of the returned object
  * and must destroy it using target_group_model_free();
  *
- * @param id Not NULL. Will be copied internally. The caller holds an ownership.
- * @param condition Not NULL. Will be copied internally. The caller holds an ownership.
+ * @param id Not <code>NULL</code>. Will be copied internally. The caller holds an ownership.
+ * @param condition Not <code>NULL</code>. Will be copied internally. The caller holds an ownership.
  */
 TargetGroupModel *ROX_INTERNAL target_group_model_create(
         const char *id,
         const char *condition);
 
 /**
- * @param model Not NULL.
+ * @param model Not <code>NULL</code>.
  */
 void ROX_INTERNAL target_group_model_free(TargetGroupModel *model);
