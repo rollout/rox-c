@@ -1,10 +1,8 @@
 #pragma once
 
 #include "roxapi.h"
+#include "core/impression.h"
 #include "roxx/parser.h"
-#include "configuration/models.h"
-#include "impression.h"
-#include "repositories.h"
 
 //
 // Variant
@@ -14,25 +12,30 @@ typedef struct ROX_INTERNAL Variant Variant;
 
 /**
  * The returned object must be freed after use by calling <code>variant_free()</code>.
- * @param default_value Not <code>NULL</code>.
+ *
+ * @param default_value Not <code>NULL</code>. Value is copied internally so the caller holds ownership.
  * @param options List of strings. May be <code>NULL</code>. If passed, ownership is delegated to variant.
  * @return Not <code>NULL</code>.
  */
 Variant *ROX_INTERNAL variant_create(const char *default_value, List *options);
 
 /**
+ * Ownership on <code>parser</code>, <code>experiment</code>,
+ * and <code>impression_invoker</code>, if passed, is hold by the caller.
+ *
  * @param variant Not <code>NULL</code>.
  * @param parser May be <code>NULL</code>.
  * @param experiment May be <code>NULL</code>.
- * @param impressionInvoker May be <code>NULL</code>.
+ * @param impression_invoker May be <code>NULL</code>.
  */
 void ROX_INTERNAL variant_set_for_evaluation(
         Variant *variant,
         Parser *parser,
         ExperimentModel *experiment,
-        ImpressionInvoker *impressionInvoker);
+        ImpressionInvoker *impression_invoker);
 
 /**
+ * Ownership on <code>context</code> is hold by the caller.
  * @param variant Not <code>NULL</code>.
  * @param context Not <code>NULL</code>.
  */
@@ -105,8 +108,18 @@ bool *ROX_INTERNAL flag_is_enabled_or_null(Variant *variant, Context *context);
 
 typedef ROX_INTERNAL void (*flag_action)();
 
+/**
+ * @param variant Not <code>NULL</code>.
+ * @param context May be <code>NULL</code>
+ * @param action Not <code>NULL</code>.
+ */
 void ROX_INTERNAL flag_enabled_do(Variant *variant, Context *context, flag_action action);
 
+/**
+ * @param variant Not <code>NULL</code>.
+ * @param context May be <code>NULL</code>
+ * @param action Not <code>NULL</code>.
+ */
 void ROX_INTERNAL flag_disabled_do(Variant *variant, Context *context, flag_action action);
 
 //
@@ -114,6 +127,10 @@ void ROX_INTERNAL flag_disabled_do(Variant *variant, Context *context, flag_acti
 //
 
 typedef struct ROX_INTERNAL FlagSetter FlagSetter;
+
+typedef struct ROX_INTERNAL FlagRepository FlagRepository;
+
+typedef struct ROX_INTERNAL ExperimentRepository ExperimentRepository;
 
 /**
  * The returned object myst be destroyed after use by calling <code>flag_setter_free</code>.

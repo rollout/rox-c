@@ -22,7 +22,7 @@ extern const ROX_INTERNAL CustomPropertyType ROX_CUSTOM_PROPERTY_TYPE_SEMVER;
 // CustomProperty
 //
 
-typedef ROX_INTERNAL void *(*custom_property_value_generator)(Context */*NULLABLE*/context);
+typedef ROX_INTERNAL void *(*custom_property_value_generator)(Context *context);
 
 typedef struct ROX_INTERNAL CustomProperty CustomProperty;
 
@@ -86,7 +86,7 @@ CustomProperty *ROX_INTERNAL device_property_create_using_value(
 
 typedef struct ROX_INTERNAL DynamicProperties DynamicProperties;
 
-typedef ROX_INTERNAL void *(*dynamic_properties_rule)(const char *prop_name, Context */*NULLABLE*/context);
+typedef ROX_INTERNAL void *(*dynamic_properties_rule)(const char *prop_name, Context *context);
 
 DynamicProperties *dynamic_properties_create();
 

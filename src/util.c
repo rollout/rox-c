@@ -144,6 +144,14 @@ bool ROX_INTERNAL str_is_empty(const char *str) {
     return !str || str_equals(str, "");
 }
 
+bool ROX_INTERNAL str_in_list(const char *str, List *list_of_strings) {
+    assert(str);
+    assert(list_of_strings);
+    return list_contains_value(list_of_strings,
+                               (void *) str,
+                               (int (*)(const void *, const void *)) &strcmp);
+}
+
 void ROX_INTERNAL str_substring_b(const char *str, int start, int len, char *buffer) {
     assert(str);
     assert(start >= 0);
@@ -260,7 +268,7 @@ char *ROX_INTERNAL mem_base64_decode(const char *s) {
     return NULL;
 }
 
-void rox_json_serialize(char *buffer, size_t buffer_size, unsigned int options, ...) {
+void ROX_INTERNAL rox_json_serialize(char *buffer, size_t buffer_size, unsigned int options, ...) {
     va_list args;
             va_start(args, options);
 
@@ -279,4 +287,34 @@ void rox_json_serialize(char *buffer, size_t buffer_size, unsigned int options, 
     str_copy_value_to_buffer(buffer, buffer_size, str);
     cJSON_Delete(json);
     free(str);
+}
+
+List *ROX_INTERNAL rox_list_create(void *skip, ...) {
+    va_list args;
+            va_start(args, skip);
+
+    List *list;
+    list_new(&list);
+    void *item = va_arg(args, void*);
+    while (item != NULL) {
+        list_add(list, item);
+        item = va_arg(args, void*);
+    };
+            va_end(args);
+    return list;
+}
+
+HashSet *ROX_INTERNAL rox_hash_set_create(void *skip, ...) {
+    va_list args;
+            va_start(args, skip);
+
+    HashSet *hash_set;
+    hashset_new(&hash_set);
+    void *item = va_arg(args, void*);
+    while (item != NULL) {
+        hashset_add(hash_set, item);
+        item = va_arg(args, void*);
+    };
+            va_end(args);
+    return hash_set;
 }

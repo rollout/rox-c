@@ -8,8 +8,8 @@
 // Build
 //
 
-static const char *ROX_INTERNAL ROX_PLATFORM = "C";
-static const char *ROX_INTERNAL ROX_API_VERSION = "1.8.0";
+const char *ROX_INTERNAL ROX_PLATFORM = "C";
+const char *ROX_INTERNAL ROX_API_VERSION = "1.8.0";
 
 //
 // Environment
@@ -107,21 +107,21 @@ void ROX_INTERNAL rox_env_get_notifications_path(char *buffer, int buffer_size) 
 // PropertyType
 //
 
-static const PropertyType ROX_INTERNAL ROX_PROPERTY_TYPE_CACHE_MISS_RELATIVE_URL = {1, "cache_miss_relative_url"};
-static const PropertyType ROX_INTERNAL ROX_PROPERTY_TYPE_LIB_VERSION = {4, "lib_version"};
-static const PropertyType ROX_INTERNAL ROX_PROPERTY_TYPE_ROLLOUT_BUILD = {5, "rollout_build"};
-static const PropertyType ROX_INTERNAL ROX_PROPERTY_TYPE_API_VERSION = {6, "api_version"};
-static const PropertyType ROX_INTERNAL ROX_PROPERTY_TYPE_BUID = {7, "buid"};
-static const PropertyType ROX_INTERNAL ROX_PROPERTY_TYPE_BUID_GENERATORS_LIST = {8, "buid_generators_list"};
-static const PropertyType ROX_INTERNAL ROX_PROPERTY_TYPE_APP_RELEASE = {10, "app_release"};
-static const PropertyType ROX_INTERNAL ROX_PROPERTY_TYPE_DISTINCT_ID = {11, "distinct_id"};
-static const PropertyType ROX_INTERNAL ROX_PROPERTY_TYPE_APP_KEY = {12, "app_key"};
-static const PropertyType ROX_INTERNAL ROX_PROPERTY_TYPE_FEATURE_FLAGS = {13, "feature_flags"};
-static const PropertyType ROX_INTERNAL ROX_PROPERTY_TYPE_REMOTE_VARIABLES = {14, "remote_variables"};
-static const PropertyType ROX_INTERNAL ROX_PROPERTY_TYPE_CUSTOM_PROPERTIES = {15, "custom_properties"};
-static const PropertyType ROX_INTERNAL ROX_PROPERTY_TYPE_PLATFORM = {16, "platform"};
-static const PropertyType ROX_INTERNAL ROX_PROPERTY_TYPE_DEV_MODE_SECRET = {17, "devModeSecret"};
-static const PropertyType ROX_INTERNAL ROX_PROPERTY_TYPE_STATE_MD5 = {18, "state_md5"};
-static const PropertyType ROX_INTERNAL ROX_PROPERTY_TYPE_FEATURE_FLAGS_STRING = {19, "feature_flags_string"};
-static const PropertyType ROX_INTERNAL ROX_PROPERTY_TYPE_REMOTE_VARIABLES_STRING = {20, "remote_variables_string"};
-static const PropertyType ROX_INTERNAL ROX_PROPERTY_TYPE_CUSTOM_PROPERTIES_STRING = {21, "custom_properties_string"};
+const PropertyType ROX_INTERNAL ROX_PROPERTY_TYPE_CACHE_MISS_RELATIVE_URL = {1, "cache_miss_relative_url"};
+const PropertyType ROX_INTERNAL ROX_PROPERTY_TYPE_LIB_VERSION = {4, "lib_version"};
+const PropertyType ROX_INTERNAL ROX_PROPERTY_TYPE_ROLLOUT_BUILD = {5, "rollout_build"};
+const PropertyType ROX_INTERNAL ROX_PROPERTY_TYPE_API_VERSION = {6, "api_version"};
+const PropertyType ROX_INTERNAL ROX_PROPERTY_TYPE_BUID = {7, "buid"};
+const PropertyType ROX_INTERNAL ROX_PROPERTY_TYPE_BUID_GENERATORS_LIST = {8, "buid_generators_list"};
+const PropertyType ROX_INTERNAL ROX_PROPERTY_TYPE_APP_RELEASE = {10, "app_release"};
+const PropertyType ROX_INTERNAL ROX_PROPERTY_TYPE_DISTINCT_ID = {11, "distinct_id"};
+const PropertyType ROX_INTERNAL ROX_PROPERTY_TYPE_APP_KEY = {12, "app_key"};
+const PropertyType ROX_INTERNAL ROX_PROPERTY_TYPE_FEATURE_FLAGS = {13, "feature_flags"};
+const PropertyType ROX_INTERNAL ROX_PROPERTY_TYPE_REMOTE_VARIABLES = {14, "remote_variables"};
+const PropertyType ROX_INTERNAL ROX_PROPERTY_TYPE_CUSTOM_PROPERTIES = {15, "custom_properties"};
+const PropertyType ROX_INTERNAL ROX_PROPERTY_TYPE_PLATFORM = {16, "platform"};
+const PropertyType ROX_INTERNAL ROX_PROPERTY_TYPE_DEV_MODE_SECRET = {17, "devModeSecret"};
+const PropertyType ROX_INTERNAL ROX_PROPERTY_TYPE_STATE_MD5 = {18, "state_md5"};
+const PropertyType ROX_INTERNAL ROX_PROPERTY_TYPE_FEATURE_FLAGS_STRING = {19, "feature_flags_string"};
+const PropertyType ROX_INTERNAL ROX_PROPERTY_TYPE_REMOTE_VARIABLES_STRING = {20, "remote_variables_string"};
+const PropertyType ROX_INTERNAL ROX_PROPERTY_TYPE_CUSTOM_PROPERTIES_STRING = {21, "custom_properties_string"};

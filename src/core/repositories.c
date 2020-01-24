@@ -25,13 +25,17 @@ void ROX_INTERNAL custom_property_repository_add_custom_property(
     assert(repository);
     assert(property);
     char *name = custom_property_get_name(property);
+    void *previous;
+    if (hashtable_remove(repository->custom_properties, name, &previous) == CC_OK) {
+        custom_property_free(previous);
+    }
     hashtable_add(repository->custom_properties, name, property);
     if (repository->handler) {
         repository->handler(property);
     }
 }
 
-void ROX_INTERNAL custom_property_repository_add_custom_property_if_not_exists(
+bool ROX_INTERNAL custom_property_repository_add_custom_property_if_not_exists(
         CustomPropertyRepository *repository,
         CustomProperty *property) {
     assert(repository);
@@ -42,7 +46,9 @@ void ROX_INTERNAL custom_property_repository_add_custom_property_if_not_exists(
         if (repository->handler) {
             repository->handler(property);
         }
+        return true;
     }
+    return false;
 }
 
 CustomProperty *ROX_INTERNAL custom_property_repository_get_custom_property(
@@ -71,7 +77,6 @@ void custom_property_repository_free(CustomPropertyRepository *repository) {
     assert(repository);
     TableEntry *entry;
     HASHTABLE_FOREACH(entry, repository->custom_properties, {
-        free(entry->value);
         custom_property_free(entry->value);
     })
     hashtable_destroy(repository->custom_properties);
@@ -107,8 +112,7 @@ ExperimentModel *ROX_INTERNAL experiment_repository_get_experiment_by_flag(
     assert(repository);
     assert(flag_name);
     LIST_FOREACH(model, repository->experiments, {
-        if (list_contains_value(((ExperimentModel *) model)->flags, (void *) flag_name,
-                                (int (*)(const void *, const void *)) &strcmp)) {
+        if (str_in_list(flag_name, ((ExperimentModel *) model)->flags)) {
             return model;
         }
     })
@@ -190,7 +194,6 @@ void ROX_INTERNAL flag_repository_free(FlagRepository *repository) {
     assert(repository);
     TableEntry *entry;
     HASHTABLE_FOREACH(entry, repository->variants, {
-        free(entry->key);
         variant_free(entry->value);
     })
     hashtable_destroy(repository->variants);

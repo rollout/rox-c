@@ -233,6 +233,22 @@ START_TEST (test_json_serialization) {
 
 END_TEST
 
+START_TEST (test_string_in_list) {
+    List *list;
+    list_new(&list);
+    ck_assert(!str_in_list("", list));
+    list_add(list, "one");
+    list_add(list, "two");
+    list_add(list, "three");
+    ck_assert(!str_in_list("ONE", list));
+    ck_assert(str_in_list("one", list));
+    ck_assert(str_in_list(strstr("sub-three", "three"), list));
+    ck_assert(!str_in_list("", list));
+    list_destroy(list);
+}
+
+END_TEST
+
 ROX_TEST_SUITE(
 // mem_str_to_double
         ROX_TEST_CASE(test_str_to_double_nan),
@@ -269,5 +285,8 @@ ROX_TEST_SUITE(
         ROX_TEST_CASE(test_md5_rfc1321_test_suite),
 
 // ROX_JSON_XXX
-        ROX_TEST_CASE(test_json_serialization)
+        ROX_TEST_CASE(test_json_serialization),
+
+// str_in_list
+        ROX_TEST_CASE(test_string_in_list)
 )

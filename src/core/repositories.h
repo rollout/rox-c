@@ -19,11 +19,27 @@ typedef void (*custom_property_handler)(CustomProperty *property);
  */
 CustomPropertyRepository *custom_property_repository_create();
 
+/**
+ * Property ownership is delegated to the repository. It would be freed when
+ * calling <code>custom_property_repository_free()</code>.
+ *
+ * @param repository Not <code>NULL</code>.
+ * @param property Not <code>NULL</code>.
+ */
 void ROX_INTERNAL custom_property_repository_add_custom_property(
         CustomPropertyRepository *repository,
         CustomProperty *property);
 
-void ROX_INTERNAL custom_property_repository_add_custom_property_if_not_exists(
+/**
+ * Property ownership is delegated to the repository. If added, it would be freed when
+ * calling <code>custom_property_repository_free()</code>. Otherwise the caller is responsible
+ * for calling <code>custom_property_free()</code> on it.
+ *
+ * @param repository
+ * @param property
+ * @return Whether the property has been added to the repo.
+ */
+bool ROX_INTERNAL custom_property_repository_add_custom_property_if_not_exists(
         CustomPropertyRepository *repository,
         CustomProperty *property);
 

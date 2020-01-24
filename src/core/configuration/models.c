@@ -13,7 +13,7 @@ ExperimentModel *ROX_INTERNAL experiment_model_create(
         bool archived,
         List *flags,
         HashSet *labels,
-        bool stickiness_property) {
+        const char *stickiness_property) {
 
     assert(id);
     assert(name);
@@ -26,7 +26,9 @@ ExperimentModel *ROX_INTERNAL experiment_model_create(
     model->archived = archived;
     model->flags = flags;
     model->labels = labels;
-    model->stickiness_property = stickiness_property;
+    if (stickiness_property) {
+        model->stickiness_property = mem_copy_str(stickiness_property);
+    }
     return model;
 }
 
@@ -35,6 +37,9 @@ void ROX_INTERNAL experiment_model_free(ExperimentModel *model) {
     free(model->id);
     free(model->name);
     free(model->condition);
+    if (model->stickiness_property) {
+        free(model->stickiness_property);
+    }
     if (model->flags) {
         list_destroy_cb(model->flags, &free);
     }

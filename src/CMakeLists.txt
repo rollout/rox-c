@@ -11,6 +11,7 @@ set(ROX_SRC
         core/consts.c
         core/context.c
         core/entities.c
+        core/impression/models.c
         core/impression.c
         core/properties.c
         core/repositories.c

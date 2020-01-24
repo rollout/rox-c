@@ -12,7 +12,6 @@
 #include <collectc/hashtable.h>
 
 #include "roxapi.h"
-#include "core/entities.h"
 #include "util.h"
 #include "parser.h"
 #include "stack.h"
@@ -79,7 +78,7 @@ EvaluationResult *ROX_INTERNAL _create_result_from_stack_item(StackItem *item) {
         bool value = rox_stack_get_boolean(item);
         result->is_true = value;
         result->is_false = !value;
-        result->str_value = mem_copy_str(value ? FLAG_TRUE_VALUE : FLAG_FALSE_VALUE);
+        result->str_value = mem_copy_str(value ? ROXX_TRUE : ROXX_FALSE);
         return result;
     }
 

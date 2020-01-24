@@ -1,6 +1,8 @@
 #pragma once
 
 #include <cjson/cJSON.h>
+#include <collectc/list.h>
+#include <collectc/hashset.h>
 #include <stdbool.h>
 #include "roxapi.h"
 
@@ -39,6 +41,8 @@ int ROX_INTERNAL str_index_of(const char *str, char c);
 bool ROX_INTERNAL str_equals(const char *str, const char *another);
 
 bool ROX_INTERNAL str_is_empty(const char *str);
+
+bool ROX_INTERNAL str_in_list(const char *str, List *list_of_strings);
 
 void ROX_INTERNAL str_substring_b(const char *str, int start, int len, char *buffer);
 
@@ -103,7 +107,11 @@ char *ROX_INTERNAL mem_md5(const char *s);
  */
 double ROX_INTERNAL current_time_millis();
 
-void rox_json_serialize(char *buffer, size_t buffer_size, unsigned int options, ...);
+void ROX_INTERNAL rox_json_serialize(char *buffer, size_t buffer_size, unsigned int options, ...);
+
+List *ROX_INTERNAL rox_list_create(void *skip, ...);
+
+HashSet *ROX_INTERNAL rox_hash_set_create(void *skip, ...);
 
 #define ROX_JSON_PRETTY_PRINT 1u
 
@@ -124,3 +132,11 @@ void rox_json_serialize(char *buffer, size_t buffer_size, unsigned int options, 
 #define ROX_JSON_BOOL cJSON_CreateBool()
 
 #define ROX_JSON_NULL cJSON_CreateNull(value)
+
+#define ROX_LIST(...) rox_list_create("", __VA_ARGS__, NULL)
+
+#define ROX_HASH_SET(...) rox_hash_set_create("", __VA_ARGS__, NULL)
+
+#define ROX_EMPTY_HASH_SET ROX_HASH_SET(NULL)
+
+#define ROX_COPY(str) mem_copy_str(str)
