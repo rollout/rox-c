@@ -112,7 +112,7 @@ START_TEST (test_flag_repository_will_add_flag_and_set_name) {
     flag_repository_add_flag(repo, flag, "harti");
     Variant *variant = flag_repository_get_flag(repo, "harti");
     ck_assert_ptr_nonnull(variant);
-    ck_assert_str_eq(variant_get_name(variant), "harti");
+    ck_assert_str_eq(variant->name, "harti");
     flag_repository_free(repo);
 }
 
@@ -120,17 +120,17 @@ END_TEST
 
 static Variant *TEST_VARIANT_HANDLER_PROP;
 
-void test_variant_handler(Variant *variant) {
+void test_variant_handler(void* target, Variant *variant) {
     TEST_VARIANT_HANDLER_PROP = variant;
 }
 
 START_TEST (test_flag_repository_will_raise_flag_added_event) {
     FlagRepository *repo = flag_repository_create();
     Variant *flag = variant_create_flag();
-    flag_repository_add_flag_added_callback(repo, &test_variant_handler);
+    flag_repository_add_flag_added_callback(repo, NULL, &test_variant_handler);
     flag_repository_add_flag(repo, flag, "harti");
     ck_assert_ptr_nonnull(TEST_VARIANT_HANDLER_PROP);
-    ck_assert_str_eq(variant_get_name(TEST_VARIANT_HANDLER_PROP), "harti");
+    ck_assert_str_eq(flag->name, "harti");
     flag_repository_free(repo);
 }
 

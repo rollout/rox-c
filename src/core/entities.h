@@ -8,7 +8,16 @@
 // Variant
 //
 
-typedef struct ROX_INTERNAL Variant Variant;
+typedef struct ROX_INTERNAL Variant {
+    char *default_value;
+    List *options;
+    char *condition;
+    Parser *parser;
+    Context *global_context;
+    ImpressionInvoker *impression_invoker;
+    ExperimentModel *experiment;
+    char *name;
+} Variant;
 
 /**
  * The returned object must be freed after use by calling <code>variant_free()</code>.
@@ -24,9 +33,9 @@ Variant *ROX_INTERNAL variant_create(const char *default_value, List *options);
  * and <code>impression_invoker</code>, if passed, is hold by the caller.
  *
  * @param variant Not <code>NULL</code>.
- * @param parser May be <code>NULL</code>.
- * @param experiment May be <code>NULL</code>.
- * @param impression_invoker May be <code>NULL</code>.
+ * @param parser May be <code>NULL</code>. The ownership is NOT delegated.
+ * @param experiment May be <code>NULL</code>. The ownership is NOT delegated.
+ * @param impression_invoker May be <code>NULL</code>. The ownership is NOT delegated.
  */
 void ROX_INTERNAL variant_set_for_evaluation(
         Variant *variant,
@@ -40,12 +49,6 @@ void ROX_INTERNAL variant_set_for_evaluation(
  * @param context Not <code>NULL</code>.
  */
 void ROX_INTERNAL variant_set_context(Variant *variant, Context *context);
-
-/**
- * @param variant Not <code>NULL</code>.
- * @return May be <code>NULL</code>.
- */
-char *ROX_INTERNAL variant_get_name(Variant *variant);
 
 /**
  * @param variant Not <code>NULL</code>.
@@ -104,7 +107,7 @@ bool ROX_INTERNAL flag_is_enabled(Variant *variant, Context *context);
  * @param context May be <code>NULL</code>.
  * @return <code>true</code> or <code>false</code> or <code>NULL</code>.
  */
-bool *ROX_INTERNAL flag_is_enabled_or_null(Variant *variant, Context *context);
+const bool *ROX_INTERNAL flag_is_enabled_or_null(Variant *variant, Context *context);
 
 typedef ROX_INTERNAL void (*flag_action)();
 
@@ -133,14 +136,17 @@ typedef struct ROX_INTERNAL FlagRepository FlagRepository;
 typedef struct ROX_INTERNAL ExperimentRepository ExperimentRepository;
 
 /**
- * The returned object myst be destroyed after use by calling <code>flag_setter_free</code>.
- * @param flag_repository Not <code>NULL</code>.
- * @param experiment_repository Not <code>NULL</code>.
- * @param impression_invoker May be <code>NULL</code>.
+ * The returned object must be destroyed after use by calling <code>flag_setter_free</code>.
+ *
+ * @param flag_repository Not <code>NULL</code>. The ownership is delegated to the returned <code>FlagSetter</code>.
+ * @param parser Not <code>NULL</code>. The ownership is delegated to the returned <code>FlagSetter</code>.
+ * @param experiment_repository Not <code>NULL</code>. The ownership is delegated to the returned <code>FlagSetter</code>.
+ * @param impression_invoker May be <code>NULL</code>. If passed, the ownership is delegated to the returned <code>FlagSetter</code>.
  * @return Not <code>NULL</code>.
  */
 FlagSetter *ROX_INTERNAL flag_setter_create(
         FlagRepository *flag_repository,
+        Parser *parser,
         ExperimentRepository *experiment_repository,
         ImpressionInvoker *impression_invoker);
 

@@ -39,8 +39,6 @@ Context *ROX_INTERNAL context_create_from_hashtable(HashTable *map) {
 }
 
 Context *ROX_INTERNAL context_create_merged(Context *global_context, Context *local_context) {
-    assert(global_context);
-    assert(local_context);
     Context *context = context_create_empty();
     if (global_context) {
         context_copy_data(context, global_context->map);

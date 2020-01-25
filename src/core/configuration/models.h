@@ -27,8 +27,8 @@ typedef struct ROX_INTERNAL ExperimentModel {
  * @param name Not <code>NULL</code>. Will be copied internally. The caller holds an ownership.
  * @param condition Not <code>NULL</code>. Will be copied internally. The caller holds an ownership.
  * @param archived
- * @param flags List of strings. Can be NULL. If passed, ownership of this object is delegated to the experiment.
- * @param labels Set of strings. Can be NULL. If passed, ownership of this object is delegated to the experiment.
+ * @param flags List of strings. Can be NULL. If passed, ownership of this object is delegated to the experiment model.
+ * @param labels Set of strings. Can be NULL. If passed, ownership of this object is delegated to the experiment model.
  * @param stickiness_property Can be <code>NULL</code>. If provided, the value will be copied internally. The caller holds an ownership on the passed pointer.
  */
 ExperimentModel *ROX_INTERNAL experiment_model_create(

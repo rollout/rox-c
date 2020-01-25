@@ -134,14 +134,20 @@ void ROX_INTERNAL experiment_repository_free(ExperimentRepository *repository) {
 // FlagRepository
 //
 
+typedef struct ROX_INTERNAL FlagAddedCallback {
+    void *target;
+    flag_added_callback callback;
+} FlagAddedCallback;
+
 struct ROX_INTERNAL FlagRepository {
     HashTable *variants;
-    flag_added_callback callback;
+    List *callbacks;
 };
 
 FlagRepository *ROX_INTERNAL flag_repository_create() {
     FlagRepository *repository = calloc(1, sizeof(FlagRepository));
     hashtable_new(&repository->variants);
+    list_new(&repository->callbacks);
     return repository;
 };
 
@@ -153,15 +159,16 @@ void ROX_INTERNAL flag_repository_add_flag(
     assert(variant);
     assert(name);
     assert(!str_is_empty(name));
-    char *variant_name = variant_get_name(variant);
+    char *variant_name = variant->name;
     if (str_is_empty(variant_name)) {
         variant_set_name(variant, name);
     }
     void *key = (void *) name;
     hashtable_add(repository->variants, key, variant);
-    if (repository->callback) {
-        repository->callback(variant);
-    }
+    LIST_FOREACH(item, repository->callbacks, {
+        FlagAddedCallback *callback = (FlagAddedCallback *) item;
+        callback->callback(callback->target, variant);
+    })
 }
 
 Variant *ROX_INTERNAL flag_repository_get_flag(
@@ -184,14 +191,19 @@ HashTable *ROX_INTERNAL flag_repository_get_all_flags(FlagRepository *repository
 
 void ROX_INTERNAL flag_repository_add_flag_added_callback(
         FlagRepository *repository,
+        void *target,
         flag_added_callback callback) {
     assert(repository);
     assert(callback);
-    repository->callback = callback;
+    FlagAddedCallback *item = calloc(1, sizeof(FlagAddedCallback));
+    item->target = target;
+    item->callback = callback;
+    list_add(repository->callbacks, item);
 }
 
 void ROX_INTERNAL flag_repository_free(FlagRepository *repository) {
     assert(repository);
+    list_destroy_cb(repository->callbacks, &free);
     TableEntry *entry;
     HASHTABLE_FOREACH(entry, repository->variants, {
         variant_free(entry->value);

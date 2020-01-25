@@ -111,6 +111,8 @@ void ROX_INTERNAL rox_json_serialize(char *buffer, size_t buffer_size, unsigned 
 
 List *ROX_INTERNAL rox_list_create(void *skip, ...);
 
+List *ROX_INTERNAL rox_list_create_str(void *skip, ...);
+
 HashSet *ROX_INTERNAL rox_hash_set_create(void *skip, ...);
 
 #define ROX_JSON_PRETTY_PRINT 1u
@@ -134,6 +136,10 @@ HashSet *ROX_INTERNAL rox_hash_set_create(void *skip, ...);
 #define ROX_JSON_NULL cJSON_CreateNull(value)
 
 #define ROX_LIST(...) rox_list_create("", __VA_ARGS__, NULL)
+
+#define ROX_EMPTY_LIST ROX_LIST(NULL)
+
+#define ROX_LIST_COPY_STR(...) rox_list_create_str("", __VA_ARGS__, NULL)
 
 #define ROX_HASH_SET(...) rox_hash_set_create("", __VA_ARGS__, NULL)
 

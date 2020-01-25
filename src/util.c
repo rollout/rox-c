@@ -304,6 +304,21 @@ List *ROX_INTERNAL rox_list_create(void *skip, ...) {
     return list;
 }
 
+List *ROX_INTERNAL rox_list_create_str(void *skip, ...) {
+    va_list args;
+            va_start(args, skip);
+
+    List *list;
+    list_new(&list);
+    char *item = va_arg(args, char*);
+    while (item != NULL) {
+        list_add(list, mem_copy_str(item));
+        item = va_arg(args, char*);
+    };
+            va_end(args);
+    return list;
+}
+
 HashSet *ROX_INTERNAL rox_hash_set_create(void *skip, ...) {
     va_list args;
             va_start(args, skip);

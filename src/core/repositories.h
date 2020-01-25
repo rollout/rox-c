@@ -142,14 +142,16 @@ Variant *ROX_INTERNAL flag_repository_get_flag(
  */
 HashTable *ROX_INTERNAL flag_repository_get_all_flags(FlagRepository *repository);
 
-typedef ROX_INTERNAL void (*flag_added_callback)(Variant *variant);
+typedef ROX_INTERNAL void (*flag_added_callback)(void *target, Variant *variant);
 
 /**
  * @param repository Not <code>NULL</code>.
+ * @param target May be <code>NULL</code>.
  * @param callback Not <code>NULL</code>.
  */
 void ROX_INTERNAL flag_repository_add_flag_added_callback(
         FlagRepository *repository,
+        void *target,
         flag_added_callback callback);
 
 /**
