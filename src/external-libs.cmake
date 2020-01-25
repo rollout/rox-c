@@ -11,5 +11,6 @@ rox_external_lib(collectc
 
 rox_external_lib(cjson
         URL https://github.com/DaveGamble/cJSON.git
+        HASH f790e17b6cecef030c4eda811149d238c2085fcf
         CMAKE_ARGS BUILD_SHARED_AND_STATIC_LIBS=On
         FILE libcjson)
