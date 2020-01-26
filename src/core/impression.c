@@ -25,7 +25,9 @@ void ROX_INTERNAL impression_invoker_invoke(
     assert(impression_invoker);
     assert(value);
     if (impression_invoker->handler) {
-        impression_invoker->handler(value, experiment_create(experiment), context);
+        Experiment *exp = experiment_create(experiment);
+        impression_invoker->handler(value, exp, context);
+        experiment_free(exp);
     }
 }
 

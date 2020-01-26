@@ -28,6 +28,7 @@ void ROX_INTERNAL _variant_reset_evaluation_context(Variant *variant) {
     assert(variant);
     if (variant->condition) {
         free(variant->condition);
+        variant->condition = NULL;
     }
     if (variant->parser) {
         variant->parser = NULL;
@@ -187,7 +188,7 @@ struct ROX_INTERNAL FlagSetter {
     ImpressionInvoker *impression_invoker;
 };
 
-void flag_setter_repository_callback(void *target, Variant *variant) {
+void ROX_INTERNAL _flag_setter_repository_callback(void *target, Variant *variant) {
     assert(target);
     assert(variant);
     FlagSetter *flag_setter = (FlagSetter *) target;
@@ -208,7 +209,7 @@ FlagSetter *ROX_INTERNAL flag_setter_create(
     flag_setter->parser = parser;
     flag_setter->experiment_repository = experiment_repository;
     flag_setter->impression_invoker = impression_invoker;
-    flag_repository_add_flag_added_callback(flag_repository, flag_setter, &flag_setter_repository_callback);
+    flag_repository_add_flag_added_callback(flag_repository, flag_setter, &_flag_setter_repository_callback);
     return flag_setter;
 }
 
