@@ -133,7 +133,7 @@ const char *ROX_INTERNAL FLAG_TRUE_VALUE = "true";
 const char *ROX_INTERNAL FLAG_FALSE_VALUE = "false";
 
 const bool FLAG_TRUE_VALUE_BOOL = true;
-const bool FLAG_FALSE_VALUE_BOOL = true;
+const bool FLAG_FALSE_VALUE_BOOL = false;
 
 Variant *ROX_INTERNAL variant_create_flag() {
     return variant_create_flag_with_default(false);
