@@ -3,6 +3,7 @@
 #include <cjson/cJSON.h>
 #include <collectc/list.h>
 #include <collectc/hashset.h>
+#include <collectc/hashtable.h>
 #include <stdbool.h>
 #include "roxapi.h"
 
@@ -115,6 +116,8 @@ List *ROX_INTERNAL rox_list_create_str(void *skip, ...);
 
 HashSet *ROX_INTERNAL rox_hash_set_create(void *skip, ...);
 
+HashTable *rox_hash_table_create(void *skip, ...);
+
 #define ROX_JSON_PRETTY_PRINT 1u
 
 #define ROX_JSON_SERIALIZE(buffer, buffer_size, ...) rox_json_serialize(buffer, buffer_size, 0, __VA_ARGS__, NULL)
@@ -135,14 +138,16 @@ HashSet *ROX_INTERNAL rox_hash_set_create(void *skip, ...);
 
 #define ROX_JSON_NULL cJSON_CreateNull(value)
 
-#define ROX_LIST(...) rox_list_create("", __VA_ARGS__, NULL)
+#define ROX_LIST(...) rox_list_create(NULL, __VA_ARGS__, NULL)
 
 #define ROX_EMPTY_LIST ROX_LIST(NULL)
 
-#define ROX_LIST_COPY_STR(...) rox_list_create_str("", __VA_ARGS__, NULL)
+#define ROX_LIST_COPY_STR(...) rox_list_create_str(NULL, __VA_ARGS__, NULL)
 
-#define ROX_HASH_SET(...) rox_hash_set_create("", __VA_ARGS__, NULL)
+#define ROX_HASH_SET(...) rox_hash_set_create(NULL, __VA_ARGS__, NULL)
 
 #define ROX_EMPTY_HASH_SET ROX_HASH_SET(NULL)
 
 #define ROX_COPY(str) mem_copy_str(str)
+
+#define ROX_HASH_TABLE(...) rox_hash_table_create(NULL, __VA_ARGS__, NULL)

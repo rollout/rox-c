@@ -6,9 +6,9 @@
 typedef struct ROX_INTERNAL Context Context;
 
 /**
- * Creates context from the given hashtable. The ownership of keys and values of the given hash table
- * is delegated to the created context, and will be freed in <code>context_free()</code>.
- * Thus the caller must not free them.
+ * Creates context from the given hashtable. The ownership on the given hash table,
+ * including its keys and values, is delegated to the created context,
+ * and all of the memory will be freed in <code>context_free()</code>.
  *
  * @param map Not <code>NULL</code>. Keys are strings, value can be arbitrary objects.
  * @return Not <code>NULL</code>.

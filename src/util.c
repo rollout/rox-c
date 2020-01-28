@@ -333,3 +333,19 @@ HashSet *ROX_INTERNAL rox_hash_set_create(void *skip, ...) {
             va_end(args);
     return hash_set;
 }
+
+HashTable *rox_hash_table_create(void *skip, ...) {
+    va_list args;
+            va_start(args, skip);
+
+    HashTable *map;
+    hashtable_new(&map);
+    char *property_name = va_arg(args, char*);
+    while (property_name != NULL) {
+        void *property_value = va_arg(args, void *);
+        hashtable_add(map, property_name, property_value);
+        property_name = va_arg(args, char*);
+    };
+            va_end(args);
+    return map;
+}
