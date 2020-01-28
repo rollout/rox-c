@@ -122,6 +122,3 @@ const PropertyType ROX_INTERNAL ROX_PROPERTY_TYPE_CUSTOM_PROPERTIES = {15, "cust
 const PropertyType ROX_INTERNAL ROX_PROPERTY_TYPE_PLATFORM = {16, "platform"};
 const PropertyType ROX_INTERNAL ROX_PROPERTY_TYPE_DEV_MODE_SECRET = {17, "devModeSecret"};
 const PropertyType ROX_INTERNAL ROX_PROPERTY_TYPE_STATE_MD5 = {18, "state_md5"};
-const PropertyType ROX_INTERNAL ROX_PROPERTY_TYPE_FEATURE_FLAGS_STRING = {19, "feature_flags_string"};
-const PropertyType ROX_INTERNAL ROX_PROPERTY_TYPE_REMOTE_VARIABLES_STRING = {20, "remote_variables_string"};
-const PropertyType ROX_INTERNAL ROX_PROPERTY_TYPE_CUSTOM_PROPERTIES_STRING = {21, "custom_properties_string"};

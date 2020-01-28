@@ -11,7 +11,7 @@
 
 typedef struct ROX_INTERNAL CustomPropertyRepository CustomPropertyRepository;
 
-typedef void (*custom_property_handler)(CustomProperty *property);
+typedef void ROX_INTERNAL (*custom_property_handler)(CustomProperty *property);
 
 /**
  * The returned object myst be freed after use by calling <code>custom_property_repository_free()</code>.
