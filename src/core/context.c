@@ -25,6 +25,12 @@ void ROX_INTERNAL context_copy_data(Context *context, HashTable *map) {
     })
 }
 
+Context *ROX_INTERNAL context_create_empty() {
+    Context *context = calloc(1, sizeof(Context));
+    hashtable_new(&context->map);
+    return context;
+}
+
 Context *ROX_INTERNAL context_create_from_hashtable(HashTable *map) {
     assert(map);
     Context *context = calloc(1, sizeof(Context));
@@ -33,8 +39,7 @@ Context *ROX_INTERNAL context_create_from_hashtable(HashTable *map) {
 }
 
 Context *ROX_INTERNAL context_create_merged(Context *global_context, Context *local_context) {
-    Context *context = calloc(1, sizeof(Context));
-    hashtable_new(&context->map);
+    Context *context = context_create_empty();
     if (global_context) {
         context_copy_data(context, global_context->map);
         global_context->key_value_ownership_delegated = true;
@@ -53,7 +58,7 @@ void ROX_INTERNAL context_free(Context *context) {
         HASHTABLE_FOREACH(entry, context->map, {
             free(entry->key);
             free(entry->value);
-        })
+        });
     }
     hashtable_destroy(context->map);
     free(context);

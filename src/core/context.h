@@ -6,6 +6,11 @@
 typedef struct ROX_INTERNAL Context Context;
 
 /**
+ * @return Not <code>NULL</code>.
+ */
+Context *ROX_INTERNAL context_create_empty();
+
+/**
  * Creates context from the given hashtable. The ownership on the given hash table,
  * including its keys and values, is delegated to the created context,
  * and all of the memory will be freed in <code>context_free()</code>.

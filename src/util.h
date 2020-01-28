@@ -151,3 +151,5 @@ HashTable *rox_hash_table_create(void *skip, ...);
 #define ROX_COPY(str) mem_copy_str(str)
 
 #define ROX_HASH_TABLE(...) rox_hash_table_create(NULL, __VA_ARGS__, NULL)
+
+#define ROX_EMPTY_HASH_TABLE ROX_HASH_TABLE(NULL)
