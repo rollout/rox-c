@@ -322,12 +322,10 @@ static List *_configuration_parser_parse_target_groups(ConfigurationParser *pars
 
 Configuration *ROX_INTERNAL configuration_parser_parse(
         ConfigurationParser *parser,
-        ConfigurationFetchResult *fetch_result,
-        SdkSettings *sdk_settings) {
+        ConfigurationFetchResult *fetch_result) {
 
     assert(parser);
     assert(fetch_result);
-    assert(sdk_settings);
 
     cJSON *json = fetch_result->parsed_data;
     if (!json) {

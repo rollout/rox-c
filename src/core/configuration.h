@@ -137,13 +137,11 @@ ConfigurationParser *ROX_INTERNAL configuration_parser_create(
 /**
  * @param parser Not <code>NULL</code>.
  * @param fetch_result Not <code>NULL</code>.
- * @param sdk_settings Not <code>NULL</code>.
  * @return May be <code>NULL</code>.
  */
 Configuration *ROX_INTERNAL  configuration_parser_parse(
         ConfigurationParser *parser,
-        ConfigurationFetchResult *fetch_result,
-        SdkSettings *sdk_settings);
+        ConfigurationFetchResult *fetch_result);
 
 /**
  * @param parser Not <code>NULL</code>.

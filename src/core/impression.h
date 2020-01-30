@@ -7,12 +7,22 @@
 
 typedef struct ROX_INTERNAL ImpressionInvoker ImpressionInvoker;
 
-typedef void ROX_INTERNAL (*impression_handler)(ReportingValue *value, Experiment *experiment, Context *context);
+typedef void ROX_INTERNAL (*impression_handler)(
+        void* target,
+        ReportingValue *value,
+        Experiment *experiment,
+        Context *context);
 
 ImpressionInvoker* impression_invoker_create();
 
+/**
+ * @param impression_invoker Not <code>NULL</code>.
+ * @param target May be <code>NULL</code>.
+ * @param handler Not <code>NULL</code>.
+ */
 void ROX_INTERNAL impression_invoker_register(
         ImpressionInvoker *impression_invoker,
+        void* target,
         impression_handler handler);
 
 /**

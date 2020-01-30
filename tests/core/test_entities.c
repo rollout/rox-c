@@ -84,7 +84,7 @@ END_TEST
 
 static bool test_impression_raised = false;
 
-void test_impression_handler(ReportingValue *value, Experiment *experiment, Context *context) {
+void test_impression_handler(void *target, ReportingValue *value, Experiment *experiment, Context *context) {
     test_impression_raised = true;
 }
 
@@ -92,7 +92,7 @@ START_TEST (test_will_raise_impression) {
     Parser *parser = parser_create();
     Variant *variant = variant_create("1", ROX_LIST_COPY_STR("2", "3"));
     ImpressionInvoker *imp_invoker = impression_invoker_create();
-    impression_invoker_register(imp_invoker, &test_impression_handler);
+    impression_invoker_register(imp_invoker, NULL, &test_impression_handler);
     ExperimentModel *experiment = experiment_model_create("id", "name", "2", false, ROX_LIST_COPY_STR("1"),
                                                           ROX_EMPTY_HASH_SET, "stam");
     variant_set_for_evaluation(variant, parser, experiment, imp_invoker);
