@@ -40,7 +40,9 @@ void ROX_INTERNAL impression_invoker_invoke(
         ImpressionHandler *handler = (ImpressionHandler *) h;
         handler->handler(handler->target, value, exp, context);
     })
-    experiment_free(exp);
+    if (exp) {
+        experiment_free(exp);
+    }
 }
 
 void ROX_INTERNAL impression_invoker_free(ImpressionInvoker *impression_invoker) {

@@ -34,6 +34,12 @@ char *ROX_INTERNAL mem_copy_str(const char *ptr) {
     return copy;
 }
 
+bool *ROX_INTERNAL mem_copy_bool(bool value) {
+    bool *copy = malloc(sizeof(bool));
+    *copy = value;
+    return copy;
+}
+
 int *ROX_INTERNAL mem_str_to_int(const char *str) {
     assert(str);
     long num = strtol(str, NULL, 0);
@@ -231,16 +237,18 @@ char *ROX_INTERNAL mem_base64_encode(const char *s) {
     return result == 0 ? mem_copy_str(buffer) : NULL;
 }
 
-char *ROX_INTERNAL mem_md5(const char *s) {
-    assert(s);
+void ROX_INTERNAL md5_str_b(const char *s, unsigned char *buffer) {
     MD5_CTX context;
-    unsigned char digest[16];
     size_t len = strlen(s);
-
     MD5_Init(&context);
     MD5_Update(&context, s, len);
-    MD5_Final(digest, &context);
+    MD5_Final(buffer, &context);
+}
 
+char *ROX_INTERNAL mem_md5_str(const char *s) {
+    assert(s);
+    unsigned char digest[16];
+    md5_str_b(s, digest);
     char *result = malloc(33);
     static const char hexits[17] = "0123456789abcdef";
     int i;

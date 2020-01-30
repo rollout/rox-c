@@ -17,61 +17,62 @@ static const char *test_semver_value = "1.2.3";
 START_TEST (test_will_create_property_with_const_value) {
 
     CustomProperty *prop_string = custom_property_create_using_value("prop1", &ROX_CUSTOM_PROPERTY_TYPE_STRING,
-                                                                     (void *) test_str_value);
+                                                                     dynamic_value_create_string_copy(test_str_value));
     ck_assert_str_eq(custom_property_get_name(prop_string), "prop1");
     ck_assert_ptr_eq(custom_property_get_type(prop_string), &ROX_CUSTOM_PROPERTY_TYPE_STRING);
-    ck_assert_str_eq(custom_property_get_value(prop_string, NULL), test_str_value);
+    rox_check_prop_str(prop_string, test_str_value, NULL);
     custom_property_free(prop_string);
 
     CustomProperty *prop_double = custom_property_create_using_value("prop1", &ROX_CUSTOM_PROPERTY_TYPE_DOUBLE,
-                                                                     (void *) &test_double_value);
+                                                                     dynamic_value_create_double(test_double_value));
     ck_assert_str_eq(custom_property_get_name(prop_double), "prop1");
     ck_assert_ptr_eq(custom_property_get_type(prop_double), &ROX_CUSTOM_PROPERTY_TYPE_DOUBLE);
-    ck_assert_double_eq(*(double *) custom_property_get_value(prop_double, NULL), test_double_value);
+    rox_check_prop_double(prop_double, test_double_value, NULL);
     custom_property_free(prop_double);
 
     CustomProperty *prop_int = custom_property_create_using_value("prop1", &ROX_CUSTOM_PROPERTY_TYPE_INT,
-                                                                  (void *) &test_int_value);
+                                                                  dynamic_value_create_int(test_int_value));
     ck_assert_str_eq(custom_property_get_name(prop_int), "prop1");
     ck_assert_ptr_eq(custom_property_get_type(prop_int), &ROX_CUSTOM_PROPERTY_TYPE_INT);
-    ck_assert_int_eq(*(int *) custom_property_get_value(prop_int, NULL), test_int_value);
+    rox_check_prop_int(prop_int, test_int_value, NULL);
     custom_property_free(prop_int);
 
     CustomProperty *prop_bool = custom_property_create_using_value("prop1", &ROX_CUSTOM_PROPERTY_TYPE_ROX_BOOL,
-                                                                   (void *) &test_bool_value);
+                                                                   dynamic_value_create_boolean(test_bool_value));
     ck_assert_str_eq(custom_property_get_name(prop_bool), "prop1");
     ck_assert_ptr_eq(custom_property_get_type(prop_bool), &ROX_CUSTOM_PROPERTY_TYPE_ROX_BOOL);
-    ck_assert_int_eq(*(bool *) custom_property_get_value(prop_bool, NULL), test_bool_value);
+    rox_check_prop_bool(prop_bool, test_bool_value, NULL);
     custom_property_free(prop_bool);
 
     CustomProperty *prop_semver = custom_property_create_using_value("prop1", &ROX_CUSTOM_PROPERTY_TYPE_SEMVER,
-                                                                     (void *) test_semver_value);
+                                                                     dynamic_value_create_string_copy(
+                                                                             test_semver_value));
     ck_assert_str_eq(custom_property_get_name(prop_semver), "prop1");
     ck_assert_ptr_eq(custom_property_get_type(prop_semver), &ROX_CUSTOM_PROPERTY_TYPE_SEMVER);
-    ck_assert_str_eq(custom_property_get_value(prop_semver, NULL), test_semver_value);
+    rox_check_prop_str(prop_semver, test_semver_value, NULL);
     custom_property_free(prop_semver);
 }
 
 END_TEST
 
-void *_test_custom_property_string_value_generator(Context *context) {
-    return (void *) test_str_value;
+DynamicValue *_test_custom_property_string_value_generator(Context *context) {
+    return dynamic_value_create_string_copy(test_str_value);
 }
 
-void *_test_custom_property_double_value_generator(Context *context) {
-    return (void *) &test_double_value;
+DynamicValue *_test_custom_property_double_value_generator(Context *context) {
+    return dynamic_value_create_double(test_double_value);
 }
 
-void *_test_custom_property_int_value_generator(Context *context) {
-    return (void *) &test_int_value;
+DynamicValue *_test_custom_property_int_value_generator(Context *context) {
+    return dynamic_value_create_int(test_int_value);
 }
 
-void *_test_custom_property_bool_value_generator(Context *context) {
-    return (void *) &test_bool_value;
+DynamicValue *_test_custom_property_bool_value_generator(Context *context) {
+    return dynamic_value_create_boolean(test_bool_value);
 }
 
-void *_test_custom_property_semver_value_generator(Context *context) {
-    return (void *) test_semver_value;
+DynamicValue *_test_custom_property_semver_value_generator(Context *context) {
+    return dynamic_value_create_string_copy(test_semver_value);
 }
 
 START_TEST (test_will_create_property_with_func_value) {
@@ -80,35 +81,35 @@ START_TEST (test_will_create_property_with_func_value) {
                                                          &_test_custom_property_string_value_generator);
     ck_assert_str_eq(custom_property_get_name(prop_string), "prop1");
     ck_assert_ptr_eq(custom_property_get_type(prop_string), &ROX_CUSTOM_PROPERTY_TYPE_STRING);
-    ck_assert_str_eq((char *) custom_property_get_value(prop_string, NULL), "123");
+    rox_check_prop_str(prop_string, "123", NULL);
     custom_property_free(prop_string);
 
     CustomProperty *prop_double = custom_property_create("prop1", &ROX_CUSTOM_PROPERTY_TYPE_DOUBLE,
                                                          &_test_custom_property_double_value_generator);
     ck_assert_str_eq(custom_property_get_name(prop_double), "prop1");
     ck_assert_ptr_eq(custom_property_get_type(prop_double), &ROX_CUSTOM_PROPERTY_TYPE_DOUBLE);
-    ck_assert_double_eq(*(double *) custom_property_get_value(prop_double, NULL), 123.12);
+    rox_check_prop_double(prop_double, 123.12, NULL);
     custom_property_free(prop_double);
 
     CustomProperty *prop_int = custom_property_create("prop1", &ROX_CUSTOM_PROPERTY_TYPE_INT,
                                                       &_test_custom_property_int_value_generator);
     ck_assert_str_eq(custom_property_get_name(prop_int), "prop1");
     ck_assert_ptr_eq(custom_property_get_type(prop_int), &ROX_CUSTOM_PROPERTY_TYPE_INT);
-    ck_assert_int_eq(*(int *) custom_property_get_value(prop_int, NULL), 123);
+    rox_check_prop_int(prop_int, 123, NULL);
     custom_property_free(prop_int);
 
     CustomProperty *prop_bool = custom_property_create("prop1", &ROX_CUSTOM_PROPERTY_TYPE_ROX_BOOL,
                                                        &_test_custom_property_bool_value_generator);
     ck_assert_str_eq(custom_property_get_name(prop_bool), "prop1");
     ck_assert_ptr_eq(custom_property_get_type(prop_bool), &ROX_CUSTOM_PROPERTY_TYPE_ROX_BOOL);
-    ck_assert_int_eq(*(bool *) custom_property_get_value(prop_bool, NULL), true);
+    rox_check_prop_bool(prop_bool, true, NULL);
     custom_property_free(prop_bool);
 
     CustomProperty *prop_semver = custom_property_create("prop1", &ROX_CUSTOM_PROPERTY_TYPE_SEMVER,
                                                          &_test_custom_property_semver_value_generator);
     ck_assert_str_eq(custom_property_get_name(prop_semver), "prop1");
     ck_assert_ptr_eq(custom_property_get_type(prop_semver), &ROX_CUSTOM_PROPERTY_TYPE_SEMVER);
-    ck_assert_str_eq((char *) custom_property_get_value(prop_semver, NULL), "1.2.3");
+    rox_check_prop_str(prop_semver, "1.2.3", NULL);
     custom_property_free(prop_semver);
 
 }
@@ -117,9 +118,9 @@ END_TEST
 
 Context *test_context_from_func = NULL;
 
-void *_test_capture_context(Context *context) {
+DynamicValue *_test_capture_context(Context *context) {
     test_context_from_func = context;
-    return (void *) test_str_value;
+    return dynamic_value_create_string_copy(test_str_value);
 }
 
 START_TEST (test_will_pass_context) {
@@ -127,7 +128,7 @@ START_TEST (test_will_pass_context) {
             ROX_HASH_TABLE(mem_copy_str("a"), mem_copy_int(test_int_value)));
     CustomProperty *prop_string = custom_property_create("prop1", &ROX_CUSTOM_PROPERTY_TYPE_STRING,
                                                          &_test_capture_context);
-    ck_assert_str_eq(custom_property_get_value(prop_string, context), "123");
+    rox_check_prop_str(prop_string, "123", context);
     ck_assert_ptr_nonnull(test_context_from_func);
     ck_assert_int_eq(*(int *) context_get(test_context_from_func, "a"), test_int_value);
     custom_property_free(prop_string);
@@ -138,7 +139,8 @@ END_TEST
 
 START_TEST (test_device_prop_wil_add_rox_to_the_name) {
     CustomProperty *prop = device_property_create_using_value(
-            "prop1", &ROX_CUSTOM_PROPERTY_TYPE_ROX_BOOL, (void *) test_str_value);
+            "prop1", &ROX_CUSTOM_PROPERTY_TYPE_ROX_BOOL,
+            dynamic_value_create_string_copy(test_str_value));
     ck_assert_str_eq(custom_property_get_name(prop), "rox.prop1");
     custom_property_free(prop);
 }

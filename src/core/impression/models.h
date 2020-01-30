@@ -36,8 +36,8 @@ void ROX_INTERNAL experiment_free(Experiment *experiment);
 //
 
 typedef struct ROX_INTERNAL ReportingValue {
-    char *name;
-    char *value;
+    const char *name;
+    const char *value;
 } ReportingValue;
 
 /**

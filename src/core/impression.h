@@ -7,13 +7,18 @@
 
 typedef struct ROX_INTERNAL ImpressionInvoker ImpressionInvoker;
 
+/**
+ * Note the reporting <code>value</code> may be freed right after call,
+ * but its <code>name</code> and <code>value</code> can live longer.
+ * It's recommended to make a copy if you need to use it sometimes later.
+ */
 typedef void ROX_INTERNAL (*impression_handler)(
-        void* target,
+        void *target,
         ReportingValue *value,
         Experiment *experiment,
         Context *context);
 
-ImpressionInvoker* impression_invoker_create();
+ImpressionInvoker *impression_invoker_create();
 
 /**
  * @param impression_invoker Not <code>NULL</code>.
@@ -22,7 +27,7 @@ ImpressionInvoker* impression_invoker_create();
  */
 void ROX_INTERNAL impression_invoker_register(
         ImpressionInvoker *impression_invoker,
-        void* target,
+        void *target,
         impression_handler handler);
 
 /**

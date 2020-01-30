@@ -188,31 +188,31 @@ START_TEST (test_md5_rfc1321_test_suite) {
 
     // https://tools.ietf.org/html/rfc1321
 
-    char *md5 = mem_md5("");
+    char *md5 = mem_md5_str("");
     ck_assert_str_eq(md5, "d41d8cd98f00b204e9800998ecf8427e");
     free(md5);
 
-    md5 = mem_md5("a");
+    md5 = mem_md5_str("a");
     ck_assert_str_eq(md5, "0cc175b9c0f1b6a831c399e269772661");
     free(md5);
 
-    md5 = mem_md5("abc");
+    md5 = mem_md5_str("abc");
     ck_assert_str_eq(md5, "900150983cd24fb0d6963f7d28e17f72");
     free(md5);
 
-    md5 = mem_md5("message digest");
+    md5 = mem_md5_str("message digest");
     ck_assert_str_eq(md5, "f96b697d7cb7938d525a2f31aaf161d0");
     free(md5);
 
-    md5 = mem_md5("abcdefghijklmnopqrstuvwxyz");
+    md5 = mem_md5_str("abcdefghijklmnopqrstuvwxyz");
     ck_assert_str_eq(md5, "c3fcd3d76192e4007dfb496cca67e13b");
     free(md5);
 
-    md5 = mem_md5("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789");
+    md5 = mem_md5_str("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789");
     ck_assert_str_eq(md5, "d174ab98d277d9f5a5611c2c9f419d9f");
     free(md5);
 
-    md5 = mem_md5("12345678901234567890123456789012345678901234567890123456789012345678901234567890");
+    md5 = mem_md5_str("12345678901234567890123456789012345678901234567890123456789012345678901234567890");
     ck_assert_str_eq(md5, "57edf4a22be3c955ac49da2e2107b67a");
     free(md5);
 }
@@ -281,7 +281,7 @@ ROX_TEST_SUITE(
         ROX_TEST_CASE(test_base64_encode),
         ROX_TEST_CASE(test_base64_decode),
 
-// mem_md5
+// mem_md5_str
         ROX_TEST_CASE(test_md5_rfc1321_test_suite),
 
 // ROX_JSON_XXX

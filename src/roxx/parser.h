@@ -8,7 +8,9 @@ typedef struct ROX_INTERNAL Parser Parser;
 
 typedef struct ROX_INTERNAL EvaluationResult EvaluationResult;
 
-typedef ROX_INTERNAL void (*parser_operation)(Parser *parser, CoreStack *stack, Context *context);
+typedef ROX_INTERNAL void (*parser_operation)(void *target, Parser *parser, CoreStack *stack, Context *context);
+
+typedef ROX_INTERNAL void (*parser_disposal_handler)(void *target, Parser *parser);
 
 typedef enum ROX_INTERNAL TokenType {
     TokenTypeString,
@@ -51,14 +53,24 @@ List *ROX_INTERNAL tokenized_expression_get_tokens(const char *expression, HashT
 
 Parser *ROX_INTERNAL parser_create();
 
+/**
+ * The passed handler will be invoked upon calling <code>parser_free()</code>.
+ *
+ * @param parser NOT <code>NULL</code>.
+ * @param target May be <code>NULL</code>.
+ * @param handler NOT <code>NULL</code>.
+ */
+void ROX_INTERNAL parser_add_disposal_handler(Parser *parser, void *target, parser_disposal_handler handler);
+
 void ROX_INTERNAL parser_free(Parser *parser);
 
 /**
- * @param parser Parser reference. NOT NULL.
- * @param name Operator name. NOT NULL.
- * @param op Pointer to operation function. NOT NULL.
+ * @param parser Parser reference. NOT <code>NULL</code>.
+ * @param name Operator name. NOT <code>NULL</code>. Value is copied internally. The caller is responsible for freeing the memory.
+ * @param target Optional function target. May be <code>NULL</code>.
+ * @param op Pointer to operation function. NOT <code>NULL</code>.
  */
-void ROX_INTERNAL parser_add_operator(Parser *parser, const char *name, parser_operation op);
+void ROX_INTERNAL parser_add_operator(Parser *parser, const char *name, void *target, parser_operation op);
 
 /**
  * THE RETURNED POINTER MUST BE FREED AFTER USE BY CALLING result_free(result).

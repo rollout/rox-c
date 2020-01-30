@@ -13,7 +13,8 @@ END_TEST
 
 START_TEST (test_custom_property_repo_will_add_prop) {
     CustomPropertyRepository *repo = custom_property_repository_create();
-    CustomProperty *cp = custom_property_create_using_value("prop1", &ROX_CUSTOM_PROPERTY_TYPE_STRING, "123");
+    CustomProperty *cp = custom_property_create_using_value("prop1", &ROX_CUSTOM_PROPERTY_TYPE_STRING,
+                                                            dynamic_value_create_string_copy("123"));
     custom_property_repository_add_custom_property(repo, cp);
     CustomProperty *prop = custom_property_repository_get_custom_property(repo, "prop1");
     ck_assert_ptr_nonnull(prop);
@@ -26,15 +27,17 @@ END_TEST
 START_TEST (test_custom_property_repo_will_not_override_prop) {
 
     CustomPropertyRepository *repo = custom_property_repository_create();
-    CustomProperty *cp = custom_property_create_using_value("prop1", &ROX_CUSTOM_PROPERTY_TYPE_STRING, "123");
-    CustomProperty *cp2 = custom_property_create_using_value("prop1", &ROX_CUSTOM_PROPERTY_TYPE_STRING, "234");
+    CustomProperty *cp = custom_property_create_using_value("prop1", &ROX_CUSTOM_PROPERTY_TYPE_STRING,
+                                                            dynamic_value_create_string_copy("123"));
+    CustomProperty *cp2 = custom_property_create_using_value("prop1", &ROX_CUSTOM_PROPERTY_TYPE_STRING,
+                                                             dynamic_value_create_string_copy("234"));
 
     ck_assert(custom_property_repository_add_custom_property_if_not_exists(repo, cp));
     ck_assert(!custom_property_repository_add_custom_property_if_not_exists(repo, cp2));
 
     CustomProperty *prop = custom_property_repository_get_custom_property(repo, "prop1");
     ck_assert_ptr_nonnull(prop);
-    ck_assert_str_eq(custom_property_get_value(prop, NULL), "123");
+    rox_check_prop_str(prop, "123", NULL);
 
     custom_property_free(cp2);
     custom_property_repository_free(repo);
@@ -44,13 +47,15 @@ END_TEST
 
 START_TEST (test_custom_property_repo_will_override_prop) {
     CustomPropertyRepository *repo = custom_property_repository_create();
-    CustomProperty *cp = custom_property_create_using_value("prop1", &ROX_CUSTOM_PROPERTY_TYPE_STRING, "123");
-    CustomProperty *cp2 = custom_property_create_using_value("prop1", &ROX_CUSTOM_PROPERTY_TYPE_STRING, "234");
+    CustomProperty *cp = custom_property_create_using_value("prop1", &ROX_CUSTOM_PROPERTY_TYPE_STRING,
+                                                            dynamic_value_create_string_copy("123"));
+    CustomProperty *cp2 = custom_property_create_using_value("prop1", &ROX_CUSTOM_PROPERTY_TYPE_STRING,
+                                                             dynamic_value_create_string_copy("234"));
     ck_assert(custom_property_repository_add_custom_property_if_not_exists(repo, cp));
     custom_property_repository_add_custom_property(repo, cp2);
     CustomProperty *prop = custom_property_repository_get_custom_property(repo, "prop1");
     ck_assert_ptr_nonnull(prop);
-    ck_assert_str_eq(custom_property_get_value(prop, NULL), "234");
+    rox_check_prop_str(prop, "234", NULL);
     custom_property_repository_free(repo);
 }
 
@@ -65,7 +70,8 @@ void test_property_handler(CustomProperty *property) {
 START_TEST (test_custom_property_repo_will_raise_prop_added_event) {
     CustomPropertyRepository *repo = custom_property_repository_create();
     custom_property_repository_set_handler(repo, &test_property_handler);
-    CustomProperty *cp = custom_property_create_using_value("prop1", &ROX_CUSTOM_PROPERTY_TYPE_STRING, "123");
+    CustomProperty *cp = custom_property_create_using_value("prop1", &ROX_CUSTOM_PROPERTY_TYPE_STRING,
+                                                            dynamic_value_create_string_copy("123"));
     custom_property_repository_add_custom_property(repo, cp);
     ck_assert_ptr_eq(TEST_REPO_HANDLER_PROP, cp);
     custom_property_repository_free(repo);
@@ -120,7 +126,7 @@ END_TEST
 
 static Variant *TEST_VARIANT_HANDLER_PROP;
 
-void test_variant_handler(void* target, Variant *variant) {
+void test_variant_handler(void *target, Variant *variant) {
     TEST_VARIANT_HANDLER_PROP = variant;
 }
 

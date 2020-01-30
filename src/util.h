@@ -23,6 +23,8 @@ double *ROX_INTERNAL mem_copy_double(double value);
 
 char *ROX_INTERNAL mem_copy_str(const char *ptr);
 
+bool *ROX_INTERNAL mem_copy_bool(bool value);
+
 int *ROX_INTERNAL mem_str_to_int(const char *str);
 
 double *ROX_INTERNAL mem_str_to_double(const char *str);
@@ -98,10 +100,17 @@ char *ROX_INTERNAL mem_base64_decode(const char *s);
 
 /**
  * NOTE: THE RETURNED STR MUST BE FREED AFTER USE
- * @param s The input string.
- * @return Pointer to the NEWLY CREATED string which is a string representation of a md5 hash of the given string.
+ * @param s The input string. Not <code>NULL</code>.
+ * @param buffer Buffer to output result to. Must not be <code>NULL</code>. Must be of length 16 (at least).
  */
-char *ROX_INTERNAL mem_md5(const char *s);
+void ROX_INTERNAL md5_str_b(const char *s, unsigned char *buffer);
+
+/**
+ * NOTE: THE RETURNED STR MUST BE FREED AFTER USE
+ * @param s The input string. Not <code>NULL</code>.
+ * @return Pointer to the NEWLY CREATED string which is a binary md5 hash of the given string.
+ */
+char *ROX_INTERNAL mem_md5_str(const char *s);
 
 /**
  * @return Number of milliseconds since Unix Epoch.

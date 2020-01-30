@@ -58,12 +58,22 @@ void ROX_INTERNAL variant_set_name(Variant *variant, const char *name);
 
 /**
  * @param variant Not <code>NULL</code>.
+ * @param condition Not <code>NULL</code>. The given string is copied internally.
+ */
+void ROX_INTERNAL variant_set_condition(Variant *variant, const char *condition);
+
+/**
+ * The returned value must be freed after use by the caller, if not <code>NULL</code>.
+ *
+ * @param variant Not <code>NULL</code>.
  * @param context May be <code>NULL</code>
  * @return Current value or <code>default_value</code> passed to <code>create_variant()</code>, if the value is not defined.
  */
 char *ROX_INTERNAL variant_get_value_or_default(Variant *variant, Context *context);
 
 /**
+ * The returned value must be freed after use by the caller, if not <code>NULL</code>.
+ *
  * @param variant Not <code>NULL</code>.
  * @param context May be <code>NULL</code>
  * @return Current value or <code>NULL</code>, if the value is not defined.

@@ -172,6 +172,9 @@ typedef struct ROX_INTERNAL TargetGroupRepository TargetGroupRepository;
 TargetGroupRepository *ROX_INTERNAL target_group_repository_create();
 
 /**
+ * By calling this method the ownership of the given <code>target_groups</code>
+ * list is delegated to the given <code>repository</code>.
+ *
  * @param repository Not <code>NULL</code>.
  * @param target_groups List of <code>TargetGroupModel *</code>. Not <code>NULL</code>.
  */

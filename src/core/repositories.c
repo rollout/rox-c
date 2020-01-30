@@ -211,3 +211,48 @@ void ROX_INTERNAL flag_repository_free(FlagRepository *repository) {
     hashtable_destroy(repository->variants);
     free(repository);
 }
+
+//
+// TargetGroupRepository
+//
+
+struct ROX_INTERNAL TargetGroupRepository {
+    List *target_groups;
+};
+
+TargetGroupRepository *ROX_INTERNAL target_group_repository_create() {
+    TargetGroupRepository *repository = calloc(1, sizeof(TargetGroupRepository));
+    list_new(&repository->target_groups);
+    return repository;
+}
+
+void ROX_INTERNAL target_group_repository_set_target_groups(
+        TargetGroupRepository *repository,
+        List *target_groups) {
+    assert(repository);
+    assert(target_groups);
+    list_destroy_cb(repository->target_groups, (void (*)(void *)) &target_group_model_free);
+    repository->target_groups = target_groups;
+}
+
+TargetGroupModel *ROX_INTERNAL target_group_repository_get_target_group(
+        TargetGroupRepository *repository,
+        const char *id) {
+    assert(repository);
+    assert(id);
+    TargetGroupModel *model = NULL;
+    LIST_FOREACH(item, repository->target_groups, {
+        TargetGroupModel *m = (TargetGroupModel *) item;
+        if (str_equals(m->id, id)) {
+            model = m;
+            break;
+        }
+    })
+    return model;
+}
+
+void ROX_INTERNAL target_group_repository_free(TargetGroupRepository *repository) {
+    assert(repository);
+    list_destroy_cb(repository->target_groups, (void (*)(void *)) &target_group_model_free);
+    free(repository);
+}

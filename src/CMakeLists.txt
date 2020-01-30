@@ -22,6 +22,7 @@ set(ROX_SRC
         roxx/parser.c
         roxx/stack.c
         roxapi.c
+        dynamic.c
         util.c)
 
 add_library(libroxc ${ROX_SRC})

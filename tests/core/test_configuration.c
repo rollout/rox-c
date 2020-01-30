@@ -105,8 +105,7 @@ static Configuration *configuration_test_context_parse(ConfigurationTestContext 
     assert(context);
     return configuration_parser_parse(
             context->parser,
-            context->result,
-            &context->sdk_settings);
+            context->result);
 }
 
 static void configuration_test_context_free(ConfigurationTestContext *context) {

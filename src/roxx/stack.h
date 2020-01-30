@@ -3,6 +3,7 @@
 #include <stdbool.h>
 #include <collectc/list.h>
 #include <collectc/hashtable.h>
+#include <dynamic.h>
 #include "roxapi.h"
 
 typedef struct ROX_INTERNAL CoreStack CoreStack;
@@ -44,6 +45,8 @@ void ROX_INTERNAL rox_stack_push_string_ptr(CoreStack *stack, char *value);
 void ROX_INTERNAL rox_stack_push_list(CoreStack *stack, List *value);
 
 void ROX_INTERNAL rox_stack_push_map(CoreStack *stack, HashTable *value);
+
+void ROX_INTERNAL rox_stack_push_dynamic_value(CoreStack *stack, DynamicValue* value);
 
 void ROX_INTERNAL rox_stack_push_null(CoreStack *stack);
 

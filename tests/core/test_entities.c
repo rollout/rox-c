@@ -8,6 +8,12 @@
 // VariantTests
 //
 
+void check_variant_value_eq(Variant *variant, const char *expected_value) {
+    char *string = variant_get_value_or_default(variant, NULL);
+    ck_assert_str_eq(string, expected_value);
+    free(string);
+}
+
 START_TEST (test_will_not_add_default_to_options_if_exsists) {
     Variant *variant = variant_create("1", ROX_LIST_COPY_STR("1", "2", "3"));
     ck_assert_int_eq(list_size(variant->options), 3);
@@ -37,16 +43,17 @@ END_TEST
 
 START_TEST (test_will_return_default_value_when_no_parser_or_condition) {
     Variant *variant = variant_create("1", ROX_LIST_COPY_STR("2", "3"));
-    ck_assert_str_eq(variant_get_value_or_default(variant, NULL), "1");
+    check_variant_value_eq(variant, "1");
+
     Parser *parser = parser_create();
     variant_set_for_evaluation(variant, parser, NULL, NULL);
-    ck_assert_str_eq(variant_get_value_or_default(variant, NULL), "1");
+    check_variant_value_eq(variant, "1");
     ExperimentModel *experiment = experiment_model_create(
             "id", "name", "123", false,
             ROX_LIST_COPY_STR("1"), ROX_EMPTY_HASH_SET,
             "stam");
     variant_set_for_evaluation(variant, NULL, experiment, NULL);
-    ck_assert_str_eq(variant_get_value_or_default(variant, NULL), "1");
+    check_variant_value_eq(variant, "1");
     variant_free(variant);
     experiment_model_free(experiment);
     parser_free(parser);
@@ -60,7 +67,7 @@ START_TEST (test_will_expression_value_when_result_not_in_options) {
     ExperimentModel *experiment = experiment_model_create("id", "name", "\"xxx\"", false, ROX_LIST_COPY_STR("1"),
                                                           ROX_EMPTY_HASH_SET, "stam");
     variant_set_for_evaluation(variant, parser, experiment, NULL);
-    ck_assert_str_eq(variant_get_value_or_default(variant, NULL), "xxx");
+    check_variant_value_eq(variant, "xxx");
     variant_free(variant);
     experiment_model_free(experiment);
     parser_free(parser);
@@ -74,7 +81,7 @@ START_TEST (test_will_return_value_when_on_evaluation) {
     ExperimentModel *experiment = experiment_model_create("id", "name", "2", false, ROX_LIST_COPY_STR("1"),
                                                           ROX_EMPTY_HASH_SET, "stam");
     variant_set_for_evaluation(variant, parser, experiment, NULL);
-    ck_assert_str_eq(variant_get_value_or_default(variant, NULL), "2");
+    check_variant_value_eq(variant, "2");
     variant_free(variant);
     experiment_model_free(experiment);
     parser_free(parser);
@@ -96,7 +103,7 @@ START_TEST (test_will_raise_impression) {
     ExperimentModel *experiment = experiment_model_create("id", "name", "2", false, ROX_LIST_COPY_STR("1"),
                                                           ROX_EMPTY_HASH_SET, "stam");
     variant_set_for_evaluation(variant, parser, experiment, imp_invoker);
-    ck_assert_str_eq(variant_get_value_or_default(variant, NULL), "2");
+    check_variant_value_eq(variant, "2");
     ck_assert(test_impression_raised);
     variant_free(variant);
     experiment_model_free(experiment);

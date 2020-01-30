@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include "properties.h"
 #include "util.h"
+#include "dynamic.h"
 
 //
 // CustomPropertyType
@@ -20,7 +21,7 @@ const CustomPropertyType ROX_INTERNAL ROX_CUSTOM_PROPERTY_TYPE_SEMVER = {"semver
 struct ROX_INTERNAL CustomProperty {
     char *name;
     const CustomPropertyType *type;
-    void *value;
+    DynamicValue *value;
     custom_property_value_generator value_generator;
 };
 
@@ -50,7 +51,7 @@ CustomProperty *ROX_INTERNAL custom_property_create(
 CustomProperty *ROX_INTERNAL custom_property_create_using_value(
         const char *name,
         const CustomPropertyType *type,
-        void *value) {
+        DynamicValue *value) {
     assert(name);
     assert(type);
     assert(value);
@@ -69,12 +70,15 @@ const CustomPropertyType *ROX_INTERNAL custom_property_get_type(CustomProperty *
     return property->type;
 }
 
-void *ROX_INTERNAL custom_property_get_value(CustomProperty *property, Context *context) {
+DynamicValue *ROX_INTERNAL custom_property_get_value(CustomProperty *property, Context *context) {
     assert(property);
     if (property->value_generator) {
         return property->value_generator(context);
     }
-    return property->value;
+    if (property->value) {
+        return dynamic_value_create_copy(property->value);
+    }
+    return NULL;
 }
 
 void ROX_INTERNAL custom_property_serialize_to_json(CustomProperty *property, const char *buffer, size_t buffer_size) {
@@ -116,7 +120,7 @@ CustomProperty *ROX_INTERNAL device_property_create(
 CustomProperty *ROX_INTERNAL device_property_create_using_value(
         const char *suffix,
         const CustomPropertyType *type,
-        void *value) {
+        DynamicValue *value) {
     char buffer[ROX_DEVICE_PROPERTY_NAME_BUFFER_SIZE];
     sprintf_s(buffer, ROX_DEVICE_PROPERTY_NAME_BUFFER_SIZE, "rox.%s", suffix);
     return custom_property_create_using_value(buffer, type, value);
@@ -126,7 +130,7 @@ CustomProperty *ROX_INTERNAL device_property_create_using_value(
 // DynamicProperties
 //
 
-void *ROX_INTERNAL default_dynamic_properties_rule(const char *prop_name, Context *context) {
+struct DynamicValue *ROX_INTERNAL default_dynamic_properties_rule(const char *prop_name, Context *context) {
     assert(prop_name);
     return context != NULL ? context_get(context, prop_name) : NULL;
 }

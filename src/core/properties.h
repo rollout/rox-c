@@ -2,6 +2,7 @@
 
 #include "roxapi.h"
 #include "context.h"
+#include "dynamic.h"
 
 //
 // CustomPropertyType
@@ -22,7 +23,7 @@ extern const ROX_INTERNAL CustomPropertyType ROX_CUSTOM_PROPERTY_TYPE_SEMVER;
 // CustomProperty
 //
 
-typedef ROX_INTERNAL void *(*custom_property_value_generator)(Context *context);
+typedef ROX_INTERNAL DynamicValue *(*custom_property_value_generator)(Context *context);
 
 typedef struct ROX_INTERNAL CustomProperty CustomProperty;
 
@@ -34,7 +35,7 @@ CustomProperty *ROX_INTERNAL custom_property_create(
 CustomProperty *ROX_INTERNAL custom_property_create_using_value(
         const char *name,
         const CustomPropertyType *type,
-        void *value);
+        DynamicValue *value);
 
 /**
  * @param property Not <code>NULL</code>.
@@ -49,9 +50,12 @@ char *ROX_INTERNAL custom_property_get_name(CustomProperty *property);
 const CustomPropertyType *ROX_INTERNAL custom_property_get_type(CustomProperty *property);
 
 /**
+ * The returned value must be freed after use by the caller
+ * via <code>dynamic_value_free()</code>.
+ *
  * @param property Not <code>NULL</code>.
  */
-void *ROX_INTERNAL custom_property_get_value(CustomProperty *property, Context *context);
+DynamicValue *ROX_INTERNAL custom_property_get_value(CustomProperty *property, Context *context);
 
 /**
  * @param property Not <code>NULL</code>.
@@ -78,7 +82,7 @@ CustomProperty *ROX_INTERNAL device_property_create(
 CustomProperty *ROX_INTERNAL device_property_create_using_value(
         const char *suffix,
         const CustomPropertyType *type,
-        void *value);
+        DynamicValue *value);
 
 //
 // DynamicProperties
@@ -86,7 +90,7 @@ CustomProperty *ROX_INTERNAL device_property_create_using_value(
 
 typedef struct ROX_INTERNAL DynamicProperties DynamicProperties;
 
-typedef ROX_INTERNAL void *(*dynamic_properties_rule)(const char *prop_name, Context *context);
+typedef ROX_INTERNAL DynamicValue *(*dynamic_properties_rule)(const char *prop_name, Context *context);
 
 DynamicProperties *dynamic_properties_create();
 
