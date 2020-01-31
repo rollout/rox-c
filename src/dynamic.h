@@ -19,6 +19,8 @@ DynamicValue *ROX_INTERNAL dynamic_value_create_int(int value);
 
 DynamicValue *ROX_INTERNAL dynamic_value_create_double(double value);
 
+DynamicValue *ROX_INTERNAL dynamic_value_create_double_ptr(double *value);
+
 DynamicValue *ROX_INTERNAL dynamic_value_create_boolean(bool value);
 
 /**
@@ -33,14 +35,19 @@ DynamicValue *ROX_INTERNAL dynamic_value_create_string_copy(const char *value);
 DynamicValue *ROX_INTERNAL dynamic_value_create_string_ptr(char *value);
 
 /**
- * Note: the list is passed by reference.
- * The caller is responsible for destroying it after use.
+ * Note: the ownership of the list is delegated to the dynamic value
+ * so all the memory will be freed by <code>dynamic_value_free</code>.
+ *
+ * @param value List of <code>DynamicValue*</code>
  */
 DynamicValue *ROX_INTERNAL dynamic_value_create_list(List *value);
 
 /**
- * Note: the map is passed by reference.
- * The caller is responsible for destroying it after use.
+ * Note: the ownership of the map is delegated to the dynamic value
+ * so all the memory including both keys and values
+ * will be freed by <code>dynamic_value_free</code>.
+ *
+ * @param value Keys are <code>char *</code>s and values are <code>DynamicValue*</code>s.
  */
 DynamicValue *ROX_INTERNAL dynamic_value_create_map(HashTable *value);
 
@@ -85,6 +92,12 @@ char *ROX_INTERNAL dynamic_value_get_string(DynamicValue *value);
 List *ROX_INTERNAL dynamic_value_get_list(DynamicValue *value);
 
 HashTable *ROX_INTERNAL dynamic_value_get_map(DynamicValue *value);
+
+//
+// Other
+//
+
+bool ROX_INTERNAL dynamic_value_equals(DynamicValue *v1, DynamicValue *v2);
 
 //
 // Destructor

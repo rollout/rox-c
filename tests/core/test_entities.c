@@ -14,7 +14,7 @@ void check_variant_value_eq(Variant *variant, const char *expected_value) {
     free(string);
 }
 
-START_TEST (test_will_not_add_default_to_options_if_exsists) {
+START_TEST (test_will_not_add_default_to_options_if_exists) {
     Variant *variant = variant_create("1", ROX_LIST_COPY_STR("1", "2", "3"));
     ck_assert_int_eq(list_size(variant->options), 3);
     variant_free(variant);
@@ -22,7 +22,7 @@ START_TEST (test_will_not_add_default_to_options_if_exsists) {
 
 END_TEST
 
-START_TEST (test_will_add_default_to_options_if_not_exsists) {
+START_TEST (test_will_add_default_to_options_if_not_exists) {
     Variant *variant = variant_create("1", ROX_LIST_COPY_STR("2", "3"));
     ck_assert_int_eq(list_size(variant->options), 3);
     ck_assert(str_in_list("1", variant->options));
@@ -328,19 +328,19 @@ END_TEST
 
 ROX_TEST_SUITE(
 // VariantTests
-        ROX_TEST_CASE(test_will_not_add_default_to_options_if_exsists),
-        ROX_TEST_CASE(test_will_add_default_to_options_if_not_exsists),
+        ROX_TEST_CASE(test_will_not_add_default_to_options_if_exists),
+        ROX_TEST_CASE(test_will_add_default_to_options_if_not_exists),
         ROX_TEST_CASE(test_will_set_name),
         ROX_TEST_CASE(test_will_return_default_value_when_no_parser_or_condition),
         ROX_TEST_CASE(test_will_expression_value_when_result_not_in_options),
         ROX_TEST_CASE(test_will_return_value_when_on_evaluation),
         ROX_TEST_CASE(test_will_raise_impression),
-// FlagTests
+//// FlagTests
         ROX_TEST_CASE(test_flag_without_default_value),
         ROX_TEST_CASE(test_flag_with_default_value),
         ROX_TEST_CASE(test_will_invoke_enabled_action),
         ROX_TEST_CASE(test_will_invoke_disabled_action),
-// FlagSetterTests
+//// FlagSetterTests
         ROX_TEST_CASE(test_will_set_flag_data),
         ROX_TEST_CASE(test_will_not_set_for_other_flag),
         ROX_TEST_CASE(test_will_set_experiment_for_flag_and_will_remove_it),

@@ -2,6 +2,7 @@
 
 #include "roxapi.h"
 #include "stack.h"
+#include "dynamic.h"
 #include "core/context.h"
 
 typedef struct ROX_INTERNAL Parser Parser;
@@ -28,17 +29,11 @@ typedef enum ROX_INTERNAL NodeType {
     NodeTypeUnknown
 } NodeType;
 
-typedef struct ROX_INTERNAL ParserNode {
-    NodeType type;
-    char *str_value;
-    double *double_value;
-    List *list_value;
-    HashTable *map_value;
-    bool is_undefined;
-    bool is_null;
-    bool is_true;
-    bool is_false;
-} ParserNode;
+typedef struct ROX_INTERNAL ParserNode ParserNode;
+
+NodeType ROX_INTERNAL node_get_type(ParserNode *node);
+
+DynamicValue *ROX_INTERNAL node_get_value(ParserNode *node);
 
 void ROX_INTERNAL node_free(ParserNode *node);
 

@@ -22,6 +22,7 @@ struct ROX_INTERNAL CustomProperty {
     char *name;
     const CustomPropertyType *type;
     DynamicValue *value;
+    void *target;
     custom_property_value_generator value_generator;
 };
 
@@ -39,11 +40,13 @@ CustomProperty *ROX_INTERNAL custom_property_create_no_value(
 CustomProperty *ROX_INTERNAL custom_property_create(
         const char *name,
         const CustomPropertyType *type,
+        void *target,
         custom_property_value_generator generator) {
     assert(name);
     assert(type);
     assert(generator);
     CustomProperty *p = custom_property_create_no_value(name, type);
+    p->target = target;
     p->value_generator = generator;
     return p;
 }
@@ -73,7 +76,7 @@ const CustomPropertyType *ROX_INTERNAL custom_property_get_type(CustomProperty *
 DynamicValue *ROX_INTERNAL custom_property_get_value(CustomProperty *property, Context *context) {
     assert(property);
     if (property->value_generator) {
-        return property->value_generator(context);
+        return property->value_generator(property->target, context);
     }
     if (property->value) {
         return dynamic_value_create_copy(property->value);
@@ -107,6 +110,7 @@ void ROX_INTERNAL custom_property_free(CustomProperty *property) {
 CustomProperty *ROX_INTERNAL device_property_create(
         const char *suffix,
         const CustomPropertyType *type,
+        void *target,
         custom_property_value_generator generator) {
 
     assert(suffix);
@@ -114,7 +118,7 @@ CustomProperty *ROX_INTERNAL device_property_create(
     assert(generator);
     char buffer[ROX_DEVICE_PROPERTY_NAME_BUFFER_SIZE];
     sprintf_s(buffer, ROX_DEVICE_PROPERTY_NAME_BUFFER_SIZE, "rox.%s", suffix);
-    return custom_property_create(buffer, type, generator);
+    return custom_property_create(buffer, type, target, generator);
 }
 
 CustomProperty *ROX_INTERNAL device_property_create_using_value(
@@ -130,12 +134,20 @@ CustomProperty *ROX_INTERNAL device_property_create_using_value(
 // DynamicProperties
 //
 
-struct DynamicValue *ROX_INTERNAL default_dynamic_properties_rule(const char *prop_name, Context *context) {
+struct DynamicValue *
+ROX_INTERNAL default_dynamic_properties_rule(const char *prop_name, void *target, Context *context) {
     assert(prop_name);
-    return context != NULL ? context_get(context, prop_name) : NULL;
+    if (context != NULL) {
+        DynamicValue *value = context_get(context, prop_name);
+        if (value) {
+            return dynamic_value_create_copy(value);
+        }
+    }
+    return NULL;
 }
 
 struct ROX_INTERNAL DynamicProperties {
+    void *target;
     dynamic_properties_rule rule;
 };
 
@@ -147,15 +159,23 @@ DynamicProperties *dynamic_properties_create() {
 
 void ROX_INTERNAL dynamic_properties_set_rule(
         DynamicProperties *properties,
+        void *target,
         dynamic_properties_rule rule) {
     assert(properties);
     assert(rule);
+    properties->target = target;
     properties->rule = rule;
 }
 
-dynamic_properties_rule ROX_INTERNAL dynamic_properties_get_rule(DynamicProperties *properties) {
+DynamicValue *ROX_INTERNAL dynamic_properties_invoke(
+        DynamicProperties *properties,
+        const char *prop_name,
+        Context *context) {
     assert(properties);
-    return properties->rule;
+    if (properties->rule) {
+        return properties->rule(prop_name, properties->target, context);
+    }
+    return NULL;
 }
 
 void dynamic_properties_free(DynamicProperties *properties) {

@@ -1,9 +1,11 @@
 ﻿#include <check.h>
 #include <assert.h>
 #include <util.h>
+#include <core/repositories.h>
 
 #include "roxtests.h"
 #include "roxx/parser.h"
+#include "roxx/extensions.h"
 
 START_TEST (test_simple_tokenization) {
 
@@ -17,27 +19,29 @@ START_TEST (test_simple_tokenization) {
 
     ParserNode *node;
     list_get_at(tokens, 0, (void **) &node);
-    ck_assert_int_eq(node->type, NodeTypeRator);
-    ck_assert_str_eq("eq", node->str_value);
+    ck_assert_int_eq(node_get_type(node), NodeTypeRator);
+    ck_assert(dynamic_value_is_string(node_get_value(node)));
+    ck_assert_str_eq("eq", dynamic_value_get_string(node_get_value(node)));
 
     list_get_at(tokens, 1, (void **) &node);
-    ck_assert_int_eq(node->type, NodeTypeRand);
-    ck_assert(!node->is_true);
-    ck_assert(node->is_false);
+    ck_assert_int_eq(node_get_type(node), NodeTypeRand);
+    ck_assert(dynamic_value_is_boolean(node_get_value(node)));
+    ck_assert(!dynamic_value_get_boolean(node_get_value(node)));
 
     list_get_at(tokens, 2, (void **) &node);
-    ck_assert_int_eq(node->type, NodeTypeRator);
-    ck_assert_str_eq("lt", node->str_value);
+    ck_assert_int_eq(node_get_type(node), NodeTypeRator);
+    ck_assert(dynamic_value_is_string(node_get_value(node)));
+    ck_assert_str_eq("lt", dynamic_value_get_string(node_get_value(node)));
 
     list_get_at(tokens, 3, (void **) &node);
-    ck_assert_int_eq(node->type, NodeTypeRand);
-    ck_assert_ptr_nonnull(node->double_value);
-    ck_assert_double_eq(*node->double_value, -123.0);
+    ck_assert_int_eq(node_get_type(node), NodeTypeRand);
+    ck_assert(dynamic_value_is_double(node_get_value(node)));
+    ck_assert_double_eq(dynamic_value_get_double(node_get_value(node)), -123.0);
 
     list_get_at(tokens, 4, (void **) &node);
-    ck_assert_int_eq(node->type, NodeTypeRand);
-    ck_assert_ptr_nonnull(node->str_value);
-    ck_assert_str_eq(node->str_value, "123");
+    ck_assert_int_eq(node_get_type(node), NodeTypeRand);
+    ck_assert(dynamic_value_is_string(node_get_value(node)));
+    ck_assert_str_eq(dynamic_value_get_string(node_get_value(node)), "123");
 
     list_destroy_cb(tokens, (void (*)(void *)) node_free);
 }
@@ -350,6 +354,54 @@ START_TEST (test_if_then_expression_evaluation_boolean) {
     parser_free(parser);
 }
 
+END_TEST
+
+START_TEST (test_in_array) {
+    Parser *parser = parser_create();
+    TargetGroupRepository *target_group_repository = target_group_repository_create();
+    ExperimentRepository *experiment_repository = experiment_repository_create();
+    FlagRepository *flag_repository = flag_repository_create();
+    CustomPropertyRepository *custom_property_repository = custom_property_repository_create();
+    DynamicProperties *dynamic_properties = dynamic_properties_create();
+
+    parser_add_experiments_extensions(parser, target_group_repository, flag_repository, experiment_repository);
+    parser_add_properties_extensions(parser, custom_property_repository, dynamic_properties);
+
+    eval_assert_boolean_result(parser, "inArray(\"123\", [\"222\", \"233\"])", false);
+    eval_assert_boolean_result(parser, "inArray(\"123\", [\"123\", \"233\"])", true);
+    eval_assert_boolean_result(parser, "inArray(\"123\", [123, \"233\"])", false);
+    eval_assert_boolean_result(parser, "inArray(\"123\", [123, \"123\", \"233\"])", true);
+    eval_assert_boolean_result(parser, "inArray(123, [123, \"233\"])", true);
+    eval_assert_boolean_result(parser, "inArray(123, [\"123\", \"233\"])", false);
+    eval_assert_boolean_result(parser, "inArray(\"123\", [])", false);
+    eval_assert_boolean_result(parser, "inArray(\"1 [23\", [\"1 [23\", \"]\"])", true);
+    eval_assert_boolean_result(parser, "inArray(\"123\", undefined)", false);
+    eval_assert_boolean_result(parser, "inArray(undefined, [])", false);
+    eval_assert_boolean_result(parser, "inArray(undefined, [undefined, 123])", true);
+    eval_assert_boolean_result(parser, "inArray(undefined, undefined)", false);
+    eval_assert_boolean_result(parser, "inArray(mergeSeed(\"123\", \"456\"), [\"123.456\", \"233\"])", true);
+    eval_assert_boolean_result(parser, "inArray(\"123.456\", [mergeSeed(\"123\", \"456\"), \"233\"])",
+                               false); // THIS CASE IS NOT SUPPORTED
+
+    eval_assert_string_result("07915255d64730d06d2349d11ac3bfd8", parser, "md5(\"stam\")");
+    eval_assert_string_result("stamstam2", parser, "concat(\"stam\",\"stam2\")");
+    eval_assert_boolean_result(parser, "inArray(md5(concat(\"st\",\"am\")), [\"07915255d64730d06d2349d11ac3bfd8\"]",
+                               true);
+    eval_assert_boolean_result(parser, "eq(md5(concat(\"st\",property(\"notProp\"))), undefined)", true);
+
+    eval_assert_string_result("stam", parser, "b64d(\"c3RhbQ==\")");
+    eval_assert_string_result("𩸽", parser, "b64d(\"8Km4vQ==\")");
+
+    experiment_repository_free(experiment_repository);
+    flag_repository_free(flag_repository);
+    dynamic_properties_free(dynamic_properties);
+    custom_property_repository_free(custom_property_repository);
+    target_group_repository_free(target_group_repository);
+    parser_free(parser);
+}
+
+END_TEST
+
 ROX_TEST_SUITE(
         ROX_TEST_CASE(test_simple_tokenization),
         ROX_TEST_CASE(test_token_type),
@@ -365,5 +417,6 @@ ROX_TEST_SUITE(
         ROX_TEST_CASE(test_if_then_expression_evaluation_string),
         ROX_TEST_CASE(test_if_then_expression_evaluation_int_number),
         ROX_TEST_CASE(test_if_then_expression_evaluation_double_number),
-        ROX_TEST_CASE(test_if_then_expression_evaluation_boolean)
+        ROX_TEST_CASE(test_if_then_expression_evaluation_boolean),
+        ROX_TEST_CASE(test_in_array)
 )

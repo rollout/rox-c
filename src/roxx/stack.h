@@ -66,9 +66,7 @@ void ROX_INTERNAL rox_stack_free(CoreStack *stack);
 // To check which type the stack item has one of the following functions should be called.
 //
 
-bool ROX_INTERNAL rox_stack_is_int(StackItem *item);
-
-bool ROX_INTERNAL rox_stack_is_double(StackItem *item);
+bool ROX_INTERNAL rox_stack_is_numeric(StackItem *item);
 
 bool ROX_INTERNAL rox_stack_is_boolean(StackItem *item);
 
@@ -102,3 +100,5 @@ char *ROX_INTERNAL rox_stack_get_string(StackItem *item);
 List *ROX_INTERNAL rox_stack_get_list(StackItem *item);
 
 HashTable *ROX_INTERNAL rox_stack_get_map(StackItem *item);
+
+DynamicValue *ROX_INTERNAL rox_stack_get_value(StackItem *item);

@@ -202,8 +202,8 @@ char *ROX_INTERNAL mem_str_replace(const char *str, const char *search, const ch
 char *ROX_INTERNAL mem_str_concat(const char *s1, const char *s2) {
     assert(s1);
     assert(s2);
-    size_t len = strlen(s1) + strlen(s2);
-    char *buffer = calloc(len + 1, sizeof(char));
+    size_t len = strlen(s1) + strlen(s2) + 1;
+    char *buffer = calloc(len, sizeof(char));
     sprintf_s(buffer, len, "%s%s", s1, s2);
     return buffer;
 }

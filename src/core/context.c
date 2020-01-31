@@ -6,7 +6,7 @@ struct ROX_INTERNAL Context {
     bool key_value_ownership_delegated;
 };
 
-void *ROX_INTERNAL context_get(Context *context, const char *key) {
+DynamicValue *ROX_INTERNAL context_get(Context *context, const char *key) {
     assert(context);
     assert(key);
     void *ptr;
@@ -57,7 +57,9 @@ void ROX_INTERNAL context_free(Context *context) {
         TableEntry *entry;
         HASHTABLE_FOREACH(entry, context->map, {
             free(entry->key);
-            free(entry->value);
+            if (entry->value) {
+                dynamic_value_free(entry->value);
+            }
         });
     }
     hashtable_destroy(context->map);

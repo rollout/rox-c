@@ -1,4 +1,6 @@
 #include <assert.h>
+#include <math.h>
+#include <float.h>
 #include "dynamic.h"
 #include "util.h"
 
@@ -35,6 +37,12 @@ DynamicValue *ROX_INTERNAL dynamic_value_create_int(int value) {
 DynamicValue *ROX_INTERNAL dynamic_value_create_double(double value) {
     DynamicValue *dynamic_value = _create_value();
     dynamic_value->double_value = mem_copy_double(value);
+    return dynamic_value;
+}
+
+DynamicValue *ROX_INTERNAL dynamic_value_create_double_ptr(double *value) {
+    DynamicValue *dynamic_value = _create_value();
+    dynamic_value->double_value = value;
     return dynamic_value;
 }
 
@@ -95,8 +103,22 @@ DynamicValue *ROX_INTERNAL dynamic_value_create_copy(DynamicValue *dynamic_value
     if (dynamic_value->str_value) {
         copy->str_value = mem_copy_str(dynamic_value->str_value);
     }
-    copy->list_value = dynamic_value->list_value;
-    copy->map_value = dynamic_value->map_value;
+    if (dynamic_value->list_value) {
+        list_new(&copy->list_value);
+        LIST_FOREACH(item, dynamic_value->list_value, {
+            DynamicValue *dv = (DynamicValue *) item;
+            list_add(copy->list_value, dynamic_value_create_copy(dv));
+        })
+    }
+    if (dynamic_value->map_value) {
+        hashtable_new(&copy->map_value);
+        TableEntry *entry;
+        HASHTABLE_FOREACH(entry, dynamic_value->map_value, {
+            hashtable_add(copy->map_value,
+                          mem_copy_str(entry->key),
+                          dynamic_value_create_copy(entry->value));
+        })
+    }
     copy->is_undefined = dynamic_value->is_undefined;
     copy->is_null = dynamic_value->is_null;
     copy->is_true = dynamic_value->is_true;
@@ -189,6 +211,37 @@ HashTable *ROX_INTERNAL dynamic_value_get_map(DynamicValue *value) {
 }
 
 //
+// Other
+//
+
+bool ROX_INTERNAL dynamic_value_equals(DynamicValue *v1, DynamicValue *v2) {
+    assert(v1);
+    assert(v2);
+    if (v1->is_null) {
+        return v2->is_null;
+    } else if (v1->is_undefined) {
+        return v2->is_undefined;
+    } else if (v1->int_value || v1->double_value) {
+        if (!v2->int_value && !v2->double_value) {
+            return false;
+        }
+        double d1 = v1->int_value ? *v1->int_value : *v1->double_value;
+        double d2 = v2->int_value ? *v2->int_value : *v2->double_value;
+        return fabs(d1 - d2) < FLT_EPSILON;
+    } else if (v1->is_true) {
+        return v2->is_true;
+    } else if (v1->is_false) {
+        return v2->is_false;
+    } else if (v1->str_value) {
+        if (!v2->str_value) {
+            return false;
+        }
+        return strcmp(v1->str_value, v2->str_value) == 0;
+    }
+    return false;
+}
+
+//
 // Destructor
 //
 
@@ -203,7 +256,15 @@ DynamicValue *ROX_INTERNAL dynamic_value_free(DynamicValue *value) {
     if (value->str_value) {
         free(value->str_value);
     }
-    // NOTE: we don't manage lists and maps,
-    // so not destroying them here.
+    if (value->list_value) {
+        list_destroy_cb(value->list_value, (void (*)(void *)) &dynamic_value_free);
+    }
+    if (value->map_value) {
+        TableEntry *entry;
+        HASHTABLE_FOREACH(entry, value->map_value, {
+            free(entry->key);
+            dynamic_value_free(entry->value);
+        })
+    }
     free(value);
 }

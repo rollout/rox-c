@@ -154,27 +154,25 @@ void ROX_INTERNAL _parser_operator_property(void *target, Parser *parser, CoreSt
 
     StackItem *item = rox_stack_pop(stack);
     const char *prop_name = rox_stack_get_string(item);
-    CustomProperty *property = custom_property_repository_get_custom_property(extensions->custom_property_repository,
-                                                                              prop_name);
+    CustomProperty *property = custom_property_repository_get_custom_property(
+            extensions->custom_property_repository, prop_name);
 
     if (!property) {
-        dynamic_properties_rule rule = dynamic_properties_get_rule(extensions->dynamic_properties);
-        if (rule) {
-            DynamicValue *value = rule(prop_name, context);
-            if (value) {
-                if (dynamic_value_is_string(value)) {
+        DynamicValue *value = dynamic_properties_invoke(extensions->dynamic_properties, prop_name, context);
+        if (value) {
+            if (dynamic_value_is_string(value) ||
+                dynamic_value_is_boolean(value) ||
+                dynamic_value_is_double(value) ||
+                dynamic_value_is_int(value)) {
+                if (dynamic_value_is_int(value)) {
+                    rox_stack_push_double(stack, dynamic_value_get_int(value)); // convert int to double
+                    dynamic_value_free(value);
+                } else {
                     rox_stack_push_dynamic_value(stack, value);
-                    return;
-                } else if (dynamic_value_is_boolean(value)) {
-                    rox_stack_push_dynamic_value(stack, value);
-                    return;
-                } else if (dynamic_value_is_int(value)) {
-                    rox_stack_push_double(stack, dynamic_value_get_int(value));
-                    return;
-                } else if (dynamic_value_is_double(value)) {
-                    rox_stack_push_dynamic_value(stack, value);
-                    return;
                 }
+                return;
+            } else {
+                dynamic_value_free(value);
             }
         }
         rox_stack_push_undefined(stack);
@@ -183,8 +181,12 @@ void ROX_INTERNAL _parser_operator_property(void *target, Parser *parser, CoreSt
 
     DynamicValue *value = custom_property_get_value(property, context);
     if (value) {
-        rox_stack_push_dynamic_value(stack, value);
-        return;
+        if (dynamic_value_is_null(value)) {
+            dynamic_value_free(value);
+        } else {
+            rox_stack_push_dynamic_value(stack, value);
+            return;
+        }
     }
 
     rox_stack_push_undefined(stack);

@@ -135,14 +135,10 @@ StackItem *ROX_INTERNAL rox_stack_peek(CoreStack *stack) {
     return stack->current;
 }
 
-bool ROX_INTERNAL rox_stack_is_int(StackItem *item) {
+bool ROX_INTERNAL rox_stack_is_numeric(StackItem *item) {
     assert(item);
-    return dynamic_value_is_int(item->value);
-}
-
-bool ROX_INTERNAL rox_stack_is_double(StackItem *item) {
-    assert(item);
-    return dynamic_value_is_double(item->value);
+    return dynamic_value_is_int(item->value) ||
+           dynamic_value_is_double(item->value);
 }
 
 bool ROX_INTERNAL rox_stack_is_boolean(StackItem *item) {
@@ -177,12 +173,16 @@ bool ROX_INTERNAL rox_stack_is_null(StackItem *item) {
 
 int ROX_INTERNAL rox_stack_get_int(StackItem *item) {
     assert(item);
-    return dynamic_value_get_int(item->value);
+    return dynamic_value_is_int(item->value)
+           ? dynamic_value_get_int(item->value)
+           : (int) dynamic_value_get_double(item->value);
 }
 
 double ROX_INTERNAL rox_stack_get_double(StackItem *item) {
     assert(item);
-    return dynamic_value_get_double(item->value);
+    return dynamic_value_is_double(item->value)
+           ? dynamic_value_get_double(item->value)
+           : (double) dynamic_value_get_int(item->value);
 }
 
 bool ROX_INTERNAL rox_stack_get_boolean(StackItem *item) {
@@ -203,4 +203,9 @@ List *ROX_INTERNAL rox_stack_get_list(StackItem *item) {
 HashTable *ROX_INTERNAL rox_stack_get_map(StackItem *item) {
     assert(item);
     return dynamic_value_get_map(item->value);
+}
+
+DynamicValue *ROX_INTERNAL rox_stack_get_value(StackItem *item) {
+    assert(item);
+    return item->value;
 }

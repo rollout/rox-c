@@ -1,6 +1,7 @@
 #pragma once
 
 #include <collectc/hashtable.h>
+#include "dynamic.h"
 #include "roxapi.h"
 
 typedef struct ROX_INTERNAL Context Context;
@@ -15,7 +16,7 @@ Context *ROX_INTERNAL context_create_empty();
  * including its keys and values, is delegated to the created context,
  * and all of the memory will be freed in <code>context_free()</code>.
  *
- * @param map Not <code>NULL</code>. Keys are strings, value can be arbitrary objects.
+ * @param map Not <code>NULL</code>. Keys are strings, values are <code>DynamicValue *</code>.
  * @return Not <code>NULL</code>.
  */
 Context *ROX_INTERNAL context_create_from_hashtable(HashTable *map);
@@ -36,7 +37,7 @@ Context *ROX_INTERNAL context_create_merged(Context *global_context, Context *lo
  * @param key Not <code>NULL</code>.
  * @return May be <code>NULL</code>.
  */
-void *ROX_INTERNAL context_get(Context *context, const char *key);
+DynamicValue *ROX_INTERNAL context_get(Context *context, const char *key);
 
 /**
  * @param context Not <code>NULL</code>.

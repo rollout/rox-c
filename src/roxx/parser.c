@@ -82,19 +82,12 @@ EvaluationResult *ROX_INTERNAL _create_result_from_stack_item(StackItem *item) {
         return result;
     }
 
-    if (rox_stack_is_int(item)) {
-        int value = rox_stack_get_int(item);
-        result->int_value = mem_copy_int(value);
-        result->double_value = mem_copy_double(value);
-        result->str_value = mem_int_to_str(value);
-        return result;
-    }
-
-    if (rox_stack_is_double(item)) {
-        double value = rox_stack_get_double(item);
-        result->int_value = mem_copy_int((int) value);
-        result->double_value = mem_copy_double(value);
-        result->str_value = mem_double_to_str(value);
+    if (rox_stack_is_numeric(item)) {
+        int int_value = rox_stack_get_int(item);
+        double double_value = rox_stack_get_double(item);
+        result->int_value = mem_copy_int(int_value);
+        result->double_value = mem_copy_double(double_value);
+        result->str_value = mem_double_to_str(double_value);
         return result;
     }
 
@@ -152,6 +145,21 @@ void ROX_INTERNAL result_free(EvaluationResult *result) {
 // Node
 //
 
+struct ROX_INTERNAL ParserNode {
+    NodeType type;
+    DynamicValue *value;
+};
+
+NodeType ROX_INTERNAL node_get_type(ParserNode *node) {
+    assert(node);
+    return node->type;
+}
+
+DynamicValue *ROX_INTERNAL node_get_value(ParserNode *node) {
+    assert(node);
+    return node->value;
+}
+
 ParserNode *ROX_INTERNAL _node_create_empty(NodeType type) {
     ParserNode *node = (ParserNode *) calloc(1, sizeof(ParserNode));
     node->type = type;
@@ -161,7 +169,7 @@ ParserNode *ROX_INTERNAL _node_create_empty(NodeType type) {
 ParserNode *ROX_INTERNAL node_create_str_ptr(NodeType type, char *str) {
     assert(str);
     ParserNode *node = _node_create_empty(type);
-    node->str_value = str;
+    node->value = dynamic_value_create_string_ptr(str);
     return node;
 }
 
@@ -172,8 +180,7 @@ ParserNode *ROX_INTERNAL node_create_str_copy(NodeType type, const char *str) {
 
 ParserNode *ROX_INTERNAL node_create_double_ptr(NodeType type, double *value) {
     ParserNode *node = _node_create_empty(type);
-    node->double_value = value;
-    node->str_value = mem_double_to_str(*value);
+    node->value = dynamic_value_create_double_ptr(value);
     return node;
 }
 
@@ -183,56 +190,39 @@ ParserNode *ROX_INTERNAL node_create_double(NodeType type, double value) {
 
 ParserNode *ROX_INTERNAL node_create_bool(NodeType type, bool value) {
     ParserNode *node = _node_create_empty(type);
-    node->is_true = value;
-    node->is_false = !value;
-    node->str_value = mem_bool_to_str(value, ROXX_TRUE, ROXX_FALSE);
+    node->value = dynamic_value_create_boolean(value);
     return node;
 }
 
 ParserNode *ROX_INTERNAL node_create_list(NodeType type, List *value) {
     assert(value);
     ParserNode *node = _node_create_empty(type);
-    node->list_value = value; // NOTE: collections aren't copied
+    node->value = dynamic_value_create_list(value);
     return node;
 }
 
 ParserNode *ROX_INTERNAL node_create_map(NodeType type, HashTable *value) {
     assert(value);
     ParserNode *node = _node_create_empty(type);
-    node->map_value = value; // NOTE: collections aren't copied
+    node->value = dynamic_value_create_map(value);
     return node;
 }
 
 ParserNode *ROX_INTERNAL node_create_null(NodeType type) {
     ParserNode *node = _node_create_empty(type);
-    node->is_null = true;
+    node->value = dynamic_value_create_null();
     return node;
 }
 
 ParserNode *ROX_INTERNAL node_create_undefined(NodeType type) {
     ParserNode *node = _node_create_empty(type);
-    node->is_undefined = true;
+    node->value = dynamic_value_create_undefined();
     return node;
 }
 
 void ROX_INTERNAL node_free(ParserNode *node) {
     assert(node);
-    if (node->str_value) {
-        free(node->str_value);
-    }
-    if (node->double_value) {
-        free(node->double_value);
-    }
-    if (node->list_value) {
-        list_destroy_cb(node->list_value, (void (*)(void *)) node_free);
-    }
-    if (node->map_value) {
-        TableEntry *entry;
-        HASHTABLE_FOREACH(entry, node->map_value, {
-            node_free(entry->value); // must be a pointer to ParserNode
-        })
-        hashtable_destroy(node->map_value);
-    }
+    dynamic_value_free(node->value);
     free(node);
 }
 
@@ -411,14 +401,16 @@ void ROX_INTERNAL _tokenized_expression_push_node(TokenizedExpression *expr, Par
     assert(node);
     assert(node_list);
     if (expr->dict_accumulator && !expr->dict_key) {
-        expr->dict_key = node->str_value;
+        expr->dict_key = dynamic_value_get_string(node->value);
     } else if (expr->dict_accumulator && expr->dict_key) {
         if (!hashtable_contains_key(expr->dict_accumulator, expr->dict_key)) {
-            hashtable_add(expr->dict_accumulator, expr->dict_key, node);
+            hashtable_add(expr->dict_accumulator,
+                          mem_copy_str(expr->dict_key),
+                          node->value);
         }
         expr->dict_key = NULL;
     } else if (expr->array_accumulator) {
-        list_add(expr->array_accumulator, node);
+        list_add(expr->array_accumulator, node->value);
     } else {
         list_add(node_list, node);
     }
@@ -566,8 +558,8 @@ int _parser_compare_stack_items(StackItem *item, StackItem *item2) {
         ret_value = rox_stack_is_null(item2) ? 0 : 1;
     } else if (rox_stack_is_undefined(item)) {
         ret_value = rox_stack_is_undefined(item2) ? 0 : 1;
-    } else if (rox_stack_is_double(item)) {
-        ret_value = rox_stack_is_double(item2)
+    } else if (rox_stack_is_numeric(item)) {
+        ret_value = rox_stack_is_numeric(item2)
                     ? fabs(rox_stack_get_double(item) - rox_stack_get_double(item2)) < FLT_EPSILON
                       ? 0 : 1
                     : -1;
@@ -579,37 +571,6 @@ int _parser_compare_stack_items(StackItem *item, StackItem *item2) {
     } else if (rox_stack_is_string(item)) {
         ret_value = rox_stack_is_string(item2)
                     ? strcmp(rox_stack_get_string(item), rox_stack_get_string(item2))
-                    : -1;
-    }
-    return ret_value;
-}
-
-int _parser_compare_stack_item_with_node(StackItem *item, const ParserNode *node) {
-    assert(item);
-    assert(node);
-
-    // we return -1 in case when node value type and stack item value type doesn't match.,
-    // 1 in case when values are of the same type but not equal,
-    // and 0 in case when they are equal.
-
-    int ret_value = -1;
-    if (rox_stack_is_null(item)) {
-        ret_value = node->is_null ? 0 : 1;
-    } else if (rox_stack_is_undefined(item)) {
-        ret_value = node->is_undefined ? 0 : 1;
-    } else if (rox_stack_is_double(item)) {
-        ret_value = node->double_value != NULL
-                    ? fabs(rox_stack_get_double(item) - *node->double_value) < FLT_EPSILON
-                      ? 0 : 1
-                    : -1;
-    } else if (rox_stack_is_boolean(item)) {
-        ret_value = node->is_true || node->is_false
-                    ? rox_stack_get_boolean(item) == node->is_true
-                      ? 0 : 1
-                    : -1;
-    } else if (rox_stack_is_string(item)) {
-        ret_value = node->str_value != NULL
-                    ? strcmp(rox_stack_get_string(item), node->str_value)
                     : -1;
     }
     return ret_value;
@@ -692,14 +653,20 @@ void ROX_INTERNAL _parser_operator_in_array(void *target, Parser *parser, CoreSt
     assert(stack);
     StackItem *op1 = rox_stack_pop(stack);
     StackItem *op2 = rox_stack_pop(stack);
-    if (!rox_stack_is_list(op1)) {
+    if (!rox_stack_is_list(op2)) {
         rox_stack_push_boolean(stack, false);
         return;
     }
-    List *list = rox_stack_get_list(op1);
-    rox_stack_push_boolean(stack, list_contains_value(
-            list, op2, (int (*)(const void *, const void *))
-                    &_parser_compare_stack_item_with_node));
+    List *list = rox_stack_get_list(op2);
+    DynamicValue *v1 = rox_stack_get_value(op1);
+    LIST_FOREACH(item, list, {
+        DynamicValue *v2 = (DynamicValue *) item;
+        if (dynamic_value_equals(v1, v2)) {
+            rox_stack_push_boolean(stack, true);
+            return;
+        }
+    })
+    rox_stack_push_boolean(stack, false);
 }
 
 void ROX_INTERNAL _parser_operator_md5(void *target, Parser *parser, CoreStack *stack, Context *context) {
@@ -748,13 +715,13 @@ _parser_operator_cmp_dbl(Parser *parser, CoreStack *stack, Context *context, par
     assert(stack);
     StackItem *op1 = rox_stack_pop(stack);
     StackItem *op2 = rox_stack_pop(stack);
-    if ((!rox_stack_is_double(op1) && !rox_stack_is_int(op1)) ||
-        (!rox_stack_is_double(op2) && !rox_stack_is_int(op2))) {
+    if (!rox_stack_is_numeric(op1) ||
+        !rox_stack_is_numeric(op2)) {
         rox_stack_push_boolean(stack, false);
         return;
     }
-    double d1 = rox_stack_is_double(op1) ? rox_stack_get_double(op1) : rox_stack_get_int(op1);
-    double d2 = rox_stack_is_double(op2) ? rox_stack_get_double(op2) : rox_stack_get_int(op2);
+    double d1 = rox_stack_get_double(op1);
+    double d2 = rox_stack_get_double(op2);
     bool result = cmp(d1, d2);
     rox_stack_push_boolean(stack, result);
 }
@@ -983,30 +950,6 @@ void ROX_INTERNAL parser_add_operator(Parser *parser, const char *name, void *ta
     hashtable_add(parser->operators_map, (void *) mem_copy_str(name), operator);
 }
 
-void ROX_INTERNAL _stack_push_node_data(CoreStack *stack, ParserNode *node) {
-    assert(stack);
-    assert(node);
-    if (node->double_value) {
-        rox_stack_push_double(stack, *node->double_value);
-    } else if (node->is_true || node->is_false) {
-        rox_stack_push_boolean(stack, node->is_true);
-    } else if (node->list_value) {
-        rox_stack_push_list(stack, node->list_value);
-    } else if (node->map_value) {
-        rox_stack_push_map(stack, node->map_value);
-    } else if (node->is_undefined) {
-        rox_stack_push_undefined(stack);
-    } else if (node->is_null) {
-        rox_stack_push_null(stack);
-    } else {
-        // node->str_value may be set for other primitive types as well, and contain str
-        // representation of them, so checking str_value last.
-        if (node->str_value) {
-            rox_stack_push_string_copy(stack, node->str_value);
-        }
-    }
-}
-
 EvaluationResult *ROX_INTERNAL parser_evaluate_expression(Parser *parser, const char *expression, Context *context) {
     assert(parser);
     assert(expression);
@@ -1020,11 +963,11 @@ EvaluationResult *ROX_INTERNAL parser_evaluate_expression(Parser *parser, const 
     LIST_FOREACH(token, tokens, {
         ParserNode *node = token;
         if (node->type == NodeTypeRand) {
-            _stack_push_node_data(stack, node);
+            rox_stack_push_dynamic_value(stack, dynamic_value_create_copy(node->value));
         } else if (node->type == NodeTypeRator) {
-            assert(node->str_value);
+            assert(dynamic_value_is_string(node->value));
             ParserOperator *op;
-            if (hashtable_get(parser->operators_map, node->str_value, (void **) &op) == CC_OK) {
+            if (hashtable_get(parser->operators_map, dynamic_value_get_string(node->value), (void **) &op) == CC_OK) {
                 op->operation(op->target, parser, stack, context);
             }
         } else {

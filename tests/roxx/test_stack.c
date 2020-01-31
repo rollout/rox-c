@@ -29,7 +29,7 @@ START_TEST (test_will_push_into_stack_integer) {
 
     StackItem *popped_item = rox_stack_pop(stack);
     fail_if(!popped_item);
-    ck_assert(rox_stack_is_int(popped_item));
+    ck_assert(rox_stack_is_numeric(popped_item));
     ck_assert_int_eq(rox_stack_get_int(popped_item), 5);
 
     ck_assert(rox_stack_is_empty(stack));
@@ -47,7 +47,7 @@ START_TEST (test_will_push_into_stack_double) {
 
     StackItem *popped_item = rox_stack_pop(stack);
     fail_if(!popped_item);
-    ck_assert(rox_stack_is_double(popped_item));
+    ck_assert(rox_stack_is_numeric(popped_item));
     ck_assert_double_eq(rox_stack_get_double(popped_item), 5.5);
 
     ck_assert(rox_stack_is_empty(stack));
@@ -90,13 +90,13 @@ START_TEST (test_will_push_into_stack_null) {
 
     StackItem *popped_item = rox_stack_pop(stack);
     fail_if(!popped_item);
-    ck_assert(rox_stack_is_int(popped_item));
+    ck_assert(rox_stack_is_numeric(popped_item));
     ck_assert(!rox_stack_is_null(popped_item));
 
     popped_item = rox_stack_pop(stack);
     fail_if(!popped_item);
     ck_assert(rox_stack_is_null(popped_item));
-    ck_assert(!rox_stack_is_int(popped_item));
+    ck_assert(!rox_stack_is_numeric(popped_item));
 
     ck_assert(rox_stack_is_empty(stack));
 
@@ -121,7 +121,7 @@ START_TEST (test_will_push_into_stack_integer_and_string) {
     ck_assert(rox_stack_is_string(first));
     ck_assert_str_eq(rox_stack_get_string(first), "testString");
 
-    ck_assert(rox_stack_is_int(second));
+    ck_assert(rox_stack_is_numeric(second));
     ck_assert_int_eq(rox_stack_get_int(second), 5);
 
     ck_assert(rox_stack_is_empty(stack));
