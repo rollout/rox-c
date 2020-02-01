@@ -1,5 +1,4 @@
 #include <stdlib.h>
-#include <string.h>
 #include <assert.h>
 #include "consts.h"
 #include "util.h"
@@ -10,6 +9,11 @@
 
 const char *ROX_INTERNAL ROX_PLATFORM = "C";
 const char *ROX_INTERNAL ROX_API_VERSION = "1.8.0";
+const char *ROX_INTERNAL ROX_LIB_VERSION = "1.0.0";
+const char *ROX_INTERNAL ROX_ENV_MODE_KEY = "ROLLOUT_MODE";
+const char *ROX_INTERNAL ROX_ENV_MODE_QA = "QA";
+const char *ROX_INTERNAL ROX_ENV_MODE_LOCAL = "LOCAL";
+const char *ROX_INTERNAL ROX_ENV_MODE_PRODUCTION = "PRODUCTION";
 
 //
 // Environment
@@ -33,15 +37,17 @@ void ROX_INTERNAL _rox_env_return_value_using_mode_env(
     assert(buffer_size > 0);
     char value[ROX_ENV_VAL_BUFFER_SIZE];
     size_t len;
-    if (getenv_s(&len, value, ROX_ENV_VAL_BUFFER_SIZE, "ROLLOUT_MODE") != 0 && len > 0) {
-        if (strcmp(value, "QA") == 0) {
+    if (getenv_s(&len, value, ROX_ENV_VAL_BUFFER_SIZE, ROX_ENV_MODE_KEY) != 0 && len > 0) {
+        if (str_equals(value, ROX_ENV_MODE_QA)) {
             str_copy_value_to_buffer(buffer, buffer_size, qa_mode_value);
-        } else if (strcmp(value, "LOCAL") == 0) {
+        } else if (str_equals(value, ROX_ENV_MODE_LOCAL)) {
             str_copy_value_to_buffer(buffer, buffer_size, local_mode_value);
         }
     }
     str_copy_value_to_buffer(buffer, buffer_size, prod_mode_value);
 }
+
+#undef ROX_ENV_VAL_BUFFER_SIZE
 
 void ROX_INTERNAL rox_env_get_cdn_path(char *buffer, int buffer_size) {
     assert(buffer);

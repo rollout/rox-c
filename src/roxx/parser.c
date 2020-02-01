@@ -368,16 +368,15 @@ tokenizer_next_token_with_delim(StringTokenizer *tokenizer, const char *delim, c
 // TokenizedExpression
 //
 
-const char *DICT_START_DELIMITER = "{";
-const char *DICT_END_DELIMITER = "}";
-const char *ARRAY_START_DELIMITER = "[";
-const char *ARRAY_END_DELIMITER = "]";
-const char *TOKEN_DELIMITERS = "{}[]():, \t\r\n\"";
-const char *PRE_POST_STRING_CHAR = "";
-const char *STRING_DELIMITER = "\"";
-
-const char *ESCAPED_QUOTE = "\\\"";
-const char *ESCAPED_QUOTE_PLACEHOLDER = "\\RO_Q";
+static const char *DICT_START_DELIMITER = "{";
+static const char *DICT_END_DELIMITER = "}";
+static const char *ARRAY_START_DELIMITER = "[";
+static const char *ARRAY_END_DELIMITER = "]";
+static const char *TOKEN_DELIMITERS = "{}[]():, \t\r\n\"";
+static const char *PRE_POST_STRING_CHAR = "";
+static const char *STRING_DELIMITER = "\"";
+static const char *ESCAPED_QUOTE = "\\\"";
+static const char *ESCAPED_QUOTE_PLACEHOLDER = "\\RO_Q";
 
 typedef struct ROX_INTERNAL TokenizedExpression {
     List *array_accumulator;
@@ -525,6 +524,8 @@ List *ROX_INTERNAL tokenized_expression_get_tokens(const char *expression, HashT
 
     return result_list;
 }
+
+#undef ROX_TOKEN_BUFFER_SIZE
 
 //
 // Parser

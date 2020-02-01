@@ -2,6 +2,7 @@
 #include <assert.h>
 #include <core/configuration/models.h>
 #include "core/configuration.h"
+#include "xpack/security.h"
 #include "roxtests.h"
 
 bool _test_true_signature_verifier(SignatureVerifier *verifier, const char *data, const char *signature_base64) {

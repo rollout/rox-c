@@ -45,6 +45,14 @@ bool ROX_INTERNAL str_equals(const char *str, const char *another);
 
 bool ROX_INTERNAL str_is_empty(const char *str);
 
+/**
+ * Note the passed <code>str</code> is modified in-place, without creating new strings.
+ *
+ * @param str Not <code>NULL</code>.
+ * @return <code>str</code> itself, no new string is created.
+ */
+char *ROX_INTERNAL str_to_upper(char *str);
+
 bool ROX_INTERNAL str_in_list(const char *str, List *list_of_strings);
 
 void ROX_INTERNAL str_substring_b(const char *str, int start, int len, char *buffer);
@@ -113,9 +121,25 @@ void ROX_INTERNAL md5_str_b(const char *s, unsigned char *buffer);
 char *ROX_INTERNAL mem_md5_str(const char *s);
 
 /**
+ * NOTE: THE RETURNED STR MUST BE FREED AFTER USE
+ * @param separator Separator string. Not <code>NULL</code>.
+ * @param strings List of <code>char *</code>. Not <code>NULL</code>.
+ * @return Not <code>NULL</code>.
+ */
+char *ROX_INTERNAL mem_str_join(const char *separator, List *strings);
+
+/**
  * @return Number of milliseconds since Unix Epoch.
  */
 double ROX_INTERNAL current_time_millis();
+
+/**
+ * @param file_path Path to the file to read. Not <code>NULL</code>.
+ * @param buffer Not <code>NULL</code>.
+ * @param buffer_size Not negative.
+ * @return Number of bytes read or -1 in case of an error.
+ */
+size_t ROX_INTERNAL rox_file_read_b(const char *file_path, unsigned char *buffer, size_t buffer_size);
 
 void ROX_INTERNAL rox_json_serialize(char *buffer, size_t buffer_size, unsigned int options, ...);
 

@@ -11,15 +11,14 @@
 //
 
 Variant *ROX_INTERNAL variant_create(const char *default_value, List *options) {
-    assert(default_value);
     Variant *variant = calloc(1, sizeof(Variant));
-    variant->default_value = mem_copy_str(default_value);
+    variant->default_value = default_value ? mem_copy_str(default_value) : NULL;
     variant->options = options;
     if (!variant->options) {
         list_new(&variant->options);
     }
-    if (!str_in_list(variant->default_value, options)) {
-        list_add(options, variant->default_value);
+    if (variant->default_value && !str_in_list(variant->default_value, options)) {
+        list_add(options, mem_copy_str(variant->default_value));
     }
     return variant;
 }
@@ -134,6 +133,9 @@ void ROX_INTERNAL variant_free(Variant *variant) {
     if (variant->default_value) {
         free(variant->default_value);
     }
+    if (variant->options) {
+        list_destroy_cb(variant->options, &free);
+    }
     free(variant);
 }
 
@@ -152,8 +154,10 @@ Variant *ROX_INTERNAL variant_create_flag() {
 }
 
 Variant *ROX_INTERNAL variant_create_flag_with_default(bool default_value) {
-    return variant_create(default_value ? FLAG_TRUE_VALUE : FLAG_FALSE_VALUE,
-                          ROX_LIST(ROX_COPY(FLAG_TRUE_VALUE), ROX_COPY(FLAG_FALSE_VALUE)));
+    Variant *flag = variant_create(default_value ? FLAG_TRUE_VALUE : FLAG_FALSE_VALUE,
+                                   ROX_LIST(ROX_COPY(FLAG_TRUE_VALUE), ROX_COPY(FLAG_FALSE_VALUE)));
+    flag->is_flag = true;
+    return flag;
 }
 
 bool ROX_INTERNAL flag_is_enabled(Variant *variant, Context *context) {
@@ -275,4 +279,34 @@ void ROX_INTERNAL flag_setter_free(FlagSetter *flag_setter) {
         impression_invoker_free(flag_setter->impression_invoker);
     }
     free(flag_setter);
+}
+
+//
+// EntitiesProvider
+//
+
+struct ROX_INTERNAL EntitiesProvider {
+    int stub; // so that it has at least one member
+};
+
+EntitiesProvider *ROX_INTERNAL entities_provider_create() {
+    return calloc(1, sizeof(EntitiesProvider));
+}
+
+Variant *ROX_INTERNAL entities_provider_create_flag(EntitiesProvider *provider, bool default_value) {
+    assert(provider);
+    return variant_create_flag_with_default(default_value);
+}
+
+Variant *ROX_INTERNAL entities_provider_create_variant(
+        EntitiesProvider *provider,
+        const char *defaultValue,
+        List *options) {
+    assert(provider);
+    return variant_create(defaultValue, options);
+}
+
+void ROX_INTERNAL entities_provider_free(EntitiesProvider *provider) {
+    assert(provider);
+    free(provider);
 }

@@ -8,24 +8,29 @@
 
 extern const char *ROX_INTERNAL ROX_PLATFORM;
 extern const char *ROX_INTERNAL ROX_API_VERSION;
+extern const char *ROX_INTERNAL ROX_LIB_VERSION;
+extern const char *ROX_INTERNAL ROX_ENV_MODE_KEY;
+extern const char *ROX_INTERNAL ROX_ENV_MODE_QA;
+extern const char *ROX_INTERNAL ROX_ENV_MODE_LOCAL;
+extern const char *ROX_INTERNAL ROX_ENV_MODE_PRODUCTION;
 
 //
 // Environment
 //
 
-void ROX_INTERNAL rox_env_get_internal_path(char* buffer, int buffer_size);
+void ROX_INTERNAL rox_env_get_internal_path(char *buffer, int buffer_size);
 
-void ROX_INTERNAL rox_env_get_cdn_path(char* buffer, int buffer_size);
+void ROX_INTERNAL rox_env_get_cdn_path(char *buffer, int buffer_size);
 
-void ROX_INTERNAL rox_env_get_api_path(char* buffer, int buffer_size);
+void ROX_INTERNAL rox_env_get_api_path(char *buffer, int buffer_size);
 
-void ROX_INTERNAL rox_env_get_state_cdn_path(char* buffer, int buffer_size);
+void ROX_INTERNAL rox_env_get_state_cdn_path(char *buffer, int buffer_size);
 
-void ROX_INTERNAL rox_env_get_state_api_path(char* buffer, int buffer_size);
+void ROX_INTERNAL rox_env_get_state_api_path(char *buffer, int buffer_size);
 
-void ROX_INTERNAL rox_env_get_analytics_path(char* buffer, int buffer_size);
+void ROX_INTERNAL rox_env_get_analytics_path(char *buffer, int buffer_size);
 
-void ROX_INTERNAL rox_env_get_notifications_path(char* buffer, int buffer_size);
+void ROX_INTERNAL rox_env_get_notifications_path(char *buffer, int buffer_size);
 
 //
 // PropertyType
@@ -33,7 +38,7 @@ void ROX_INTERNAL rox_env_get_notifications_path(char* buffer, int buffer_size);
 
 typedef struct ROX_INTERNAL PropertyType {
     const int value;
-    const char *const name;
+    char *name;
 } PropertyType;
 
 extern const ROX_INTERNAL PropertyType ROX_PROPERTY_TYPE_CACHE_MISS_RELATIVE_URL;

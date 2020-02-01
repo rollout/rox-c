@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <time.h>
 #include <stdarg.h>
+#include <ctype.h>
 
 #include "util.h"
 #include "base64.h"
@@ -66,6 +67,8 @@ char *ROX_INTERNAL mem_int_to_str(int value) {
     return mem_copy_str(buffer);
 }
 
+#undef ROX_MEM_INT_TO_STR_BUFFER_SIZE
+
 #define MEM_DOUBLE_TO_STR_BUFFER_SIZE 100
 
 char *ROX_INTERNAL mem_double_to_str(double value) {
@@ -81,6 +84,8 @@ char *ROX_INTERNAL mem_double_to_str(double value) {
     }
     return mem_copy_str(buffer);
 }
+
+#undef MEM_DOUBLE_TO_STR_BUFFER_SIZE
 
 char *ROX_INTERNAL mem_bool_to_str(bool value,
                                    const char *true_value,
@@ -131,6 +136,8 @@ bool ROX_INTERNAL str_matches(const char *str, const char *pattern, unsigned int
     return rc >= 0;
 }
 
+#undef ROX_STR_MATCHES_BUFFER_SIZE
+
 int ROX_INTERNAL str_index_of(const char *str, char c) {
     assert(str);
     char *e = strchr(str, c);
@@ -148,6 +155,14 @@ bool ROX_INTERNAL str_equals(const char *str, const char *another) {
 
 bool ROX_INTERNAL str_is_empty(const char *str) {
     return !str || str_equals(str, "");
+}
+
+char *ROX_INTERNAL str_to_upper(char *str) {
+    assert(str);
+    for (int i = 0; str[i] != '\0'; ++i) {
+        str[i] = (char) toupper(str[i]);
+    }
+    return str;
 }
 
 bool ROX_INTERNAL str_in_list(const char *str, List *list_of_strings) {
@@ -219,11 +234,43 @@ char *ROX_INTERNAL mem_str_format(const char *fmt, ...) {
     return mem_copy_str(buffer);
 }
 
+#undef ROX_MEM_STR_FORMAT_BUFFER_SIZE
+
 double ROX_INTERNAL current_time_millis() {
     time_t t;
     time(&t);
     // TODO: get millis somehow
     return (double) (t * 1000);
+}
+
+size_t ROX_INTERNAL rox_file_read_b(const char *file_path, unsigned char *buffer, size_t buffer_size) {
+    FILE *fp;
+    if ((fopen_s(&fp, file_path, "rb")) != 0 || !fp) {
+        return -1;
+    }
+    if (fseek(fp, 0, SEEK_END)) {
+        fclose(fp);
+        return -1;
+    }
+    const size_t file_size = ftell(fp);
+    if (file_size == -1) {
+        fclose(fp);
+        return -1;
+    }
+    if ((size_t) file_size > buffer_size) {
+        fclose(fp);
+        return -1;
+    }
+    if (fseek(fp, 0, SEEK_SET)) {
+        fclose(fp);
+        return -1;
+    }
+    if (fread(buffer, sizeof(char), file_size, fp) != file_size) {
+        fclose(fp);
+        return -1;
+    }
+    fclose(fp);
+    return file_size;
 }
 
 #define ROX_MEM_BASE64_ENCODE_BUFFER_SIZE 1024
@@ -236,6 +283,8 @@ char *ROX_INTERNAL mem_base64_encode(const char *s) {
     assert(result == 0);
     return result == 0 ? mem_copy_str(buffer) : NULL;
 }
+
+#undef ROX_MEM_BASE64_ENCODE_BUFFER_SIZE
 
 void ROX_INTERNAL md5_str_b(const char *s, unsigned char *buffer) {
     MD5_CTX context;
@@ -260,6 +309,41 @@ char *ROX_INTERNAL mem_md5_str(const char *s) {
     return result;
 }
 
+char *ROX_INTERNAL mem_str_join(const char *separator, List *strings) {
+    assert(separator);
+    assert(strings);
+    size_t result_len = 0;
+    int count = 0;
+    LIST_FOREACH(item, strings, {
+        char *str = (char *) item;
+        result_len += strlen(str);
+        ++count;
+    })
+    if (count == 0) {
+        return mem_copy_str("");
+    }
+    size_t separator_len = strlen(separator);
+    result_len += separator_len * (count - 1);
+    char *result = malloc((result_len + 1) * sizeof(char));
+    result[result_len] = '\0';
+    char *dest = result;
+    LIST_FOREACH(item, strings, {
+        char *str = (char *) item;
+        int len = strlen(str);
+        if (len > 0) {
+            strncpy_s(dest, len + 1, str, len);
+            dest += len;
+        }
+        if (--count > 0) {
+            if (separator_len > 0) {
+                strncpy_s(dest, separator_len + 1, separator, separator_len);
+                dest += separator_len;
+            }
+        }
+    })
+    return result;
+}
+
 #define ROX_MEM_BASE64_DECODE_BUFFER_SIZE 1024
 
 char *ROX_INTERNAL mem_base64_decode(const char *s) {
@@ -275,6 +359,8 @@ char *ROX_INTERNAL mem_base64_decode(const char *s) {
     }
     return NULL;
 }
+
+#undef ROX_MEM_BASE64_DECODE_BUFFER_SIZE
 
 void ROX_INTERNAL rox_json_serialize(char *buffer, size_t buffer_size, unsigned int options, ...) {
     va_list args;

@@ -112,7 +112,8 @@ ExperimentModel *ROX_INTERNAL experiment_repository_get_experiment_by_flag(
     assert(repository);
     assert(flag_name);
     LIST_FOREACH(model, repository->experiments, {
-        if (str_in_list(flag_name, ((ExperimentModel *) model)->flags)) {
+        List *flags = ((ExperimentModel *) model)->flags;
+        if (flags && str_in_list(flag_name, flags)) {
             return model;
         }
     })

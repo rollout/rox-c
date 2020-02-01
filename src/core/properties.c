@@ -130,6 +130,8 @@ CustomProperty *ROX_INTERNAL device_property_create_using_value(
     return custom_property_create_using_value(buffer, type, value);
 }
 
+#undef ROX_DEVICE_PROPERTY_NAME_BUFFER_SIZE
+
 //
 // DynamicProperties
 //

@@ -35,6 +35,13 @@ int ROX_INTERNAL _rox_run_tests(Suite *suite) {
     return number_failed;
 }
 
+void ROX_INTERNAL check_and_free(char *str, const char *expected_value) {
+    ck_assert_str_eq(str, expected_value);
+    if (str) {
+        free(str);
+    }
+}
+
 #define ROX_TEST_CASE(test) _rox_create_test_case(#test, test)
 #define ROX_RUN_TESTS(...) _rox_run_tests(_rox_create_test_suite(__FILE__, __VA_ARGS__, NULL))
 #define ROX_TEST_SUITE(...) int main(int argc, char *argv[]) { return ROX_RUN_TESTS(__VA_ARGS__); }

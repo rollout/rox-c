@@ -17,12 +17,13 @@ typedef struct ROX_INTERNAL Variant {
     ImpressionInvoker *impression_invoker;
     ExperimentModel *experiment;
     char *name;
+    bool is_flag;
 } Variant;
 
 /**
  * The returned object must be freed after use by calling <code>variant_free()</code>.
  *
- * @param default_value Not <code>NULL</code>. Value is copied internally so the caller holds ownership.
+ * @param default_value May be <code>NULL</code>. Value is copied internally so the caller holds ownership.
  * @param options List of strings. May be <code>NULL</code>. If passed, ownership is delegated to variant.
  * @return Not <code>NULL</code>.
  */
@@ -180,21 +181,21 @@ typedef struct ROX_INTERNAL EntitiesProvider EntitiesProvider;
  * The returned object must be destroyed after use by calling <code>entities_provider_free()</code>.
  * @return Not <code>NULL</code>.
  */
-EntitiesProvider *entities_provider_create();
+EntitiesProvider *ROX_INTERNAL entities_provider_create();
 
 /**
  * @param  provider Not <code>NULL</code>.
  * @return Not <code>NULL</code>.
  */
-Variant *entities_provider_create_flag(EntitiesProvider *provider);
+Variant *ROX_INTERNAL entities_provider_create_flag(EntitiesProvider *provider, bool default_value);
 
 /**
- * @param provider  Not <code>NULL</code>.
- * @param defaultValue  Not <code>NULL</code>.
- * @param options List of strings. Not <code>NULL</code>. Ownership of this list is delegated to provider.
+ * @param provider Not <code>NULL</code>.
+ * @param defaultValue  May be <code>NULL</code>.
+ * @param options List of strings. May be <code>NULL</code>. Ownership of this list is delegated to the <code>provider</code>.
  * @return Not <code>NULL</code>.
  */
-Variant *entities_provider_create_variant(
+Variant *ROX_INTERNAL entities_provider_create_variant(
         EntitiesProvider *provider,
         const char *defaultValue,
         List *options);
@@ -202,4 +203,4 @@ Variant *entities_provider_create_variant(
 /**
  * @param entities_provider Not <code>NULL</code>.
  */
-void entities_provider_free(EntitiesProvider *provider);
+void ROX_INTERNAL entities_provider_free(EntitiesProvider *provider);

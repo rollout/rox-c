@@ -21,8 +21,10 @@ set(ROX_SRC
         roxx/extensions.c
         roxx/parser.c
         roxx/stack.c
-        roxapi.c
+        xpack/security.c
+        device.c
         dynamic.c
+        roxapi.c
         util.c)
 
 add_library(libroxc ${ROX_SRC})

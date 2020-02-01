@@ -274,7 +274,6 @@ START_TEST (test_will_set_flag_without_experiment_and_then_add_experiment) {
     ck_assert_ptr_nonnull(flag->experiment);
     ck_assert_str_eq(flag->experiment->id, "id1");
 
-
     experiment_repository_set_experiments(exp_repo, ROX_EMPTY_LIST);
 
     flag_setter_set_experiments(flag_setter);

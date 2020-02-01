@@ -5,7 +5,6 @@
 #include "security.h"
 #include "reporting.h"
 #include "network.h"
-#include "client.h"
 
 //
 // Configuration

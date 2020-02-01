@@ -2,6 +2,7 @@
 #include <collectc/list.h>
 #include "configuration.h"
 #include "configuration/models.h"
+#include "xpack/security.h"
 #include "util.h"
 
 //
