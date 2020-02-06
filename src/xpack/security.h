@@ -2,6 +2,11 @@
 
 #include "roxapi.h"
 #include "core/client.h"
+#include "core/security.h"
+
+//
+// APIKeyVerifier
+//
 
 typedef bool ROX_INTERNAL (*api_key_verifier_func)(APIKeyVerifier *key_verifier, const char *api_key);
 

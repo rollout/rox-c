@@ -177,7 +177,7 @@ START_TEST (test_base64_encode) {
 END_TEST
 
 START_TEST (test_base64_decode) {
-    char *str = mem_base64_decode("dGVzdA==");
+    char *str = mem_base64_decode_str("dGVzdA==");
     ck_assert_str_eq(str, "test");
     free(str);
 }

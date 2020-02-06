@@ -19,7 +19,7 @@ typedef struct ROX_INTERNAL SignatureVerifierConfig {
 } SignatureVerifierConfig;
 
 /**
- * @param config Not <code>NULL</code>.
+ * @param config May be <code>NULL</code>.
  * @return Not <code>NULL</code>.
  */
 SignatureVerifier *ROX_INTERNAL signature_verifier_create(SignatureVerifierConfig *config);

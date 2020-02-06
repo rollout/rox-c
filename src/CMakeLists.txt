@@ -2,8 +2,6 @@
 
 include(external-libs.cmake)
 
-set(LIBS ${LIBS} pcre2 collectc cjson)
-
 set(ROX_SRC
         core/configuration/models.c
         core/impression/models.c
@@ -17,7 +15,6 @@ set(ROX_SRC
         core/properties.c
         core/reporting.c
         core/repositories.c
-        core/security.c
         roxx/extensions.c
         roxx/parser.c
         roxx/stack.c
@@ -28,7 +25,7 @@ set(ROX_SRC
         util.c)
 
 add_library(libroxc ${ROX_SRC})
-target_link_libraries(libroxc ${LIBS})
+target_link_libraries(libroxc ${ROX_EXTERNAL_LIBS})
 
 add_library(libroxcpp ${ROX_SRC} api.cxx)
-target_link_libraries(libroxcpp ${LIBS})
+target_link_libraries(libroxcpp ${ROX_EXTERNAL_LIBS})

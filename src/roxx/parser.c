@@ -705,7 +705,7 @@ void ROX_INTERNAL _parser_operator_b64d(void *target, Parser *parser, CoreStack 
         return;
     }
     char *s = rox_stack_get_string(item);
-    rox_stack_push_string_ptr(stack, mem_base64_decode(s));
+    rox_stack_push_string_ptr(stack, mem_base64_decode_str(s));
 }
 
 typedef bool (*parser_comparison_op)(double d1, double d2);

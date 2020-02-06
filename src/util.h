@@ -17,6 +17,8 @@
 // to be pre-allocated and passed as the (usually last) argument.
 //
 
+void *ROX_INTERNAL mem_copy(void *ptr, size_t bytes);
+
 int *ROX_INTERNAL mem_copy_int(int value);
 
 double *ROX_INTERNAL mem_copy_double(double value);
@@ -100,11 +102,17 @@ char *ROX_INTERNAL mem_str_format(const char *fmt, ...);
 char *ROX_INTERNAL mem_base64_encode(const char *s);
 
 /**
+ * @param s The BASE64-ed string to decode.
+ * @return Size if the resulting decoded data in bytes.
+ */
+size_t ROX_INTERNAL base64_decode_b(const char *s, unsigned char* buffer);
+
+/**
  * NOTE: THE RETURNED STR MUST BE FREED AFTER USE
  * @param s The BASE64-ed string to decode.
  * @return Pointer to the NEWLY CREATED string which is a base64-decoded version of the given string.
  */
-char *ROX_INTERNAL mem_base64_decode(const char *s);
+char *ROX_INTERNAL mem_base64_decode_str(const char *s);
 
 /**
  * NOTE: THE RETURNED STR MUST BE FREED AFTER USE
@@ -119,6 +127,10 @@ void ROX_INTERNAL md5_str_b(const char *s, unsigned char *buffer);
  * @return Pointer to the NEWLY CREATED string which is a binary md5 hash of the given string.
  */
 char *ROX_INTERNAL mem_md5_str(const char *s);
+
+unsigned char *ROX_INTERNAL mem_sha256(const char *s);
+
+char *ROX_INTERNAL mem_sha256_str(const char *s);
 
 /**
  * NOTE: THE RETURNED STR MUST BE FREED AFTER USE

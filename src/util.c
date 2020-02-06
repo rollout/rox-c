@@ -1,6 +1,7 @@
 #define PCRE2_CODE_UNIT_WIDTH 8
 #define PCRE2_STATIC
 
+#include <openssl/sha.h>
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
@@ -14,6 +15,14 @@
 #include "base64.h"
 #include "strrep.h"
 #include "md5.h"
+
+void *ROX_INTERNAL mem_copy(void *ptr, size_t bytes) {
+    assert(ptr);
+    assert(bytes >= 0);
+    unsigned char *copy = malloc(bytes);
+    memcpy(copy, ptr, bytes);
+    return copy;
+}
 
 int *mem_copy_int(int value) {
     int *copy = malloc(sizeof(value));
@@ -223,7 +232,7 @@ char *ROX_INTERNAL mem_str_concat(const char *s1, const char *s2) {
     return buffer;
 }
 
-#define ROX_MEM_STR_FORMAT_BUFFER_SIZE 1024
+#define ROX_MEM_STR_FORMAT_BUFFER_SIZE 2048
 
 char *ROX_INTERNAL mem_str_format(const char *fmt, ...) {
     assert(fmt);
@@ -309,6 +318,29 @@ char *ROX_INTERNAL mem_md5_str(const char *s) {
     return result;
 }
 
+unsigned char *ROX_INTERNAL mem_sha256(const char *s) {
+    assert(s);
+    unsigned char hash[SHA256_DIGEST_LENGTH];
+    SHA256_CTX sha256;
+    SHA256_Init(&sha256);
+    SHA256_Update(&sha256, s, strlen(s));
+    SHA256_Final(hash, &sha256);
+    return mem_copy(hash, SHA256_DIGEST_LENGTH);
+}
+
+char *ROX_INTERNAL mem_sha256_str(const char *s) {
+    assert(s);
+    unsigned char *hash = mem_sha256(s);
+    int i = 0;
+    char *result = malloc(65);
+    for (i = 0; i < SHA256_DIGEST_LENGTH; i++) {
+        sprintf(result + (i * 2), "%02x", hash[i]);
+    }
+    result[64] = 0;
+    free(hash);
+    return result;
+}
+
 char *ROX_INTERNAL mem_str_join(const char *separator, List *strings) {
     assert(separator);
     assert(strings);
@@ -344,9 +376,23 @@ char *ROX_INTERNAL mem_str_join(const char *separator, List *strings) {
     return result;
 }
 
+/**
+ * @param s The BASE64-ed string to decode.
+ * @return Size if the resulting decoded data in bytes.
+ */
+size_t ROX_INTERNAL base64_decode_b(const char *s, unsigned char *buffer) {
+    assert(s);
+    assert(buffer);
+    size_t len = strlen(s);
+    size_t result_len;
+    int result = base64decode(s, len, buffer, &result_len);
+    assert(result == 0);
+    return result_len;
+}
+
 #define ROX_MEM_BASE64_DECODE_BUFFER_SIZE 1024
 
-char *ROX_INTERNAL mem_base64_decode(const char *s) {
+unsigned char *ROX_INTERNAL mem_base64_decode(const char *s, size_t *result_length) {
     assert(s);
     unsigned char buffer[ROX_MEM_BASE64_DECODE_BUFFER_SIZE];
     size_t len = strlen(s);
@@ -354,10 +400,23 @@ char *ROX_INTERNAL mem_base64_decode(const char *s) {
     int result = base64decode(s, len, buffer, &resulting_str_len);
     assert(result == 0);
     if (result == 0) {
-        buffer[resulting_str_len] = 0;
-        return mem_copy_str((char *) buffer);
+        unsigned char *copy = mem_copy(buffer, resulting_str_len);
+        if (result_length) {
+            *result_length = resulting_str_len;
+        }
+        return copy;
     }
     return NULL;
+}
+
+char *ROX_INTERNAL mem_base64_decode_str(const char *s) {
+    assert(s);
+    unsigned char buffer[ROX_MEM_BASE64_DECODE_BUFFER_SIZE];
+    size_t resulting_str_len = base64_decode_b(s, buffer);
+    assert(resulting_str_len);
+    assert(resulting_str_len < ROX_MEM_BASE64_DECODE_BUFFER_SIZE);
+    buffer[resulting_str_len] = 0;
+    return mem_copy(buffer, resulting_str_len + 1);
 }
 
 #undef ROX_MEM_BASE64_DECODE_BUFFER_SIZE
