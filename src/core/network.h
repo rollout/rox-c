@@ -3,6 +3,18 @@
 #include <cjson/cJSON.h>
 #include "roxapi.h"
 
+//
+// Request
+//
+
+typedef struct ROX_INTERNAL HttpResponseMessage HttpResponseMessage;
+
+typedef struct ROX_INTERNAL Request Request;
+
+//
+// ConfigurationFetchResult
+//
+
 typedef enum ROX_INTERNAL ConfigurationSource {
     CDN = 1,
     API,

@@ -12,6 +12,15 @@ TBD
 
 https://cmake.org/download/
 
+MIN version tested is TBD.
+
+### Third party libs
+
+Below is the list of third party libraries used in the Software. All of them may be downloaded
+and compiled automatically, see "Building third party libraries" section below. However the build 
+tries its best in finding the already installed libraries in the system and, if found, to use them 
+during compilation.
+
 #### OpenSSL
 
 OpenSSL can be installed locally or built from sources during the 3rd party libraries build.
@@ -37,7 +46,13 @@ TBD
 
 TBD
 
+#### Curl
 
+TBD
+
+#### PCRE2
+
+TBD
 
 ### Build
 
