@@ -20,8 +20,6 @@ rox_external_lib(openssl
         URL https://github.com/openssl/openssl/archive/OpenSSL_1_1_1.tar.gz
         TRY_FIND OpenSSL
         TRY_FIND_THEN OPENSSL_FOUND
-        # FIXME: do we need to force 1.1.1 or it would work ok with the earlier openssl lib versions, too?
-        #TRY_FIND_VERSION 1.1.1
         TRY_FIND_IN_INSTALL_DIR OPENSSL_ROOT_DIR
         TRY_FIND_INCLUDE_DIR OPENSSL_INCLUDE_DIR
         TARGETS OpenSSL::Crypto libcrypto)
