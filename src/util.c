@@ -50,6 +50,28 @@ bool *ROX_INTERNAL mem_copy_bool(bool value) {
     return copy;
 }
 
+HashTable *ROX_INTERNAL mem_copy_map(HashTable *map) {
+    assert(map);
+    HashTable *params;
+    hashtable_new(&params);
+    TableEntry *entry;
+    HASHTABLE_FOREACH(entry, map, {
+        hashtable_add(params, entry->key, entry->value);
+    })
+    return params;
+}
+
+HashTable *ROX_INTERNAL mem_deep_copy_str_value_map(HashTable *map) {
+    assert(map);
+    HashTable *copy;
+    hashtable_new(&copy);
+    TableEntry *entry;
+    HASHTABLE_FOREACH(entry, map, {
+        hashtable_add(copy, entry->key, mem_copy_str(entry->value));
+    })
+    return copy;
+}
+
 int *ROX_INTERNAL mem_str_to_int(const char *str) {
     assert(str);
     long num = strtol(str, NULL, 0);
@@ -192,13 +214,14 @@ void ROX_INTERNAL str_substring_b(const char *str, int start, int len, char *buf
     buffer[len] = '\0';
 }
 
-void ROX_INTERNAL str_copy_value_to_buffer(char *buffer, int buffer_size, const char *value) {
+size_t ROX_INTERNAL str_copy_value_to_buffer(char *buffer, int buffer_size, const char *value) {
     assert(buffer);
     assert(buffer_size > 0);
     assert(value);
     size_t len = strlen(value);
     assert(len < buffer_size);
     strncpy_s(buffer, buffer_size, value, len);
+    return len;
 }
 
 char *ROX_INTERNAL mem_str_substring(const char *str, int start, int len) {
@@ -240,6 +263,7 @@ char *ROX_INTERNAL mem_str_format(const char *fmt, ...) {
     va_list args;
             va_start(args, fmt);
     vsprintf_s(buffer, ROX_MEM_STR_FORMAT_BUFFER_SIZE, fmt, args);
+            va_end(args);
     return mem_copy_str(buffer);
 }
 
@@ -472,7 +496,7 @@ List *ROX_INTERNAL rox_list_create_str(void *skip, ...) {
     return list;
 }
 
-HashSet *ROX_INTERNAL rox_hash_set_create(void *skip, ...) {
+HashSet *ROX_INTERNAL rox_set_create(void *skip, ...) {
     va_list args;
             va_start(args, skip);
 
@@ -487,7 +511,7 @@ HashSet *ROX_INTERNAL rox_hash_set_create(void *skip, ...) {
     return hash_set;
 }
 
-HashTable *rox_hash_table_create(void *skip, ...) {
+HashTable *rox_map_create(void *skip, ...) {
     va_list args;
             va_start(args, skip);
 
@@ -501,4 +525,36 @@ HashTable *rox_hash_table_create(void *skip, ...) {
     };
             va_end(args);
     return map;
+}
+
+void ROX_INTERNAL rox_map_free_with_values(HashTable *map) {
+    assert(map);
+    rox_map_free_with_values_cb(map, &free);
+}
+
+void ROX_INTERNAL rox_map_free_with_keys_and_values(HashTable *map) {
+    assert(map);
+    rox_hash_table_free_with_keys_and_values_cb(map, &free, &free);
+}
+
+void ROX_INTERNAL rox_map_free_with_values_cb(HashTable *map, void (*f)(void *)) {
+    assert(map);
+    TableEntry *entry;
+    HASHTABLE_FOREACH(entry, map, {
+        f(entry->value);
+    })
+    hashtable_destroy(map);
+}
+
+void ROX_INTERNAL
+rox_hash_table_free_with_keys_and_values_cb(HashTable *map, void (*f_key)(void *), void (*f_value)(void *)) {
+    assert(map);
+    TableEntry *entry;
+    HASHTABLE_FOREACH(entry, map, {
+        f_key(entry->key);
+        if (entry->value) {
+            f_value(entry->value);
+        }
+    })
+    hashtable_destroy(map);
 }

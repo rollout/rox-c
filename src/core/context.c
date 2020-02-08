@@ -1,5 +1,6 @@
 #include <assert.h>
 #include "context.h"
+#include "util.h"
 
 struct ROX_INTERNAL Context {
     HashTable *map;
@@ -54,14 +55,11 @@ Context *ROX_INTERNAL context_create_merged(Context *global_context, Context *lo
 void ROX_INTERNAL context_free(Context *context) {
     assert(context);
     if (!context->key_value_ownership_delegated) {
-        TableEntry *entry;
-        HASHTABLE_FOREACH(entry, context->map, {
-            free(entry->key);
-            if (entry->value) {
-                dynamic_value_free(entry->value);
-            }
-        });
+        rox_hash_table_free_with_keys_and_values_cb(
+                context->map, &free,
+                (void (*)(void *)) &dynamic_value_free);
+    } else {
+        hashtable_destroy(context->map);
     }
-    hashtable_destroy(context->map);
     free(context);
 }

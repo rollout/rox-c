@@ -260,11 +260,9 @@ DynamicValue *ROX_INTERNAL dynamic_value_free(DynamicValue *value) {
         list_destroy_cb(value->list_value, (void (*)(void *)) &dynamic_value_free);
     }
     if (value->map_value) {
-        TableEntry *entry;
-        HASHTABLE_FOREACH(entry, value->map_value, {
-            free(entry->key);
-            dynamic_value_free(entry->value);
-        })
+        rox_hash_table_free_with_keys_and_values_cb(
+                value->map_value, &free,
+                (void (*)(void *)) &dynamic_value_free);
     }
     free(value);
 }

@@ -18,19 +18,19 @@ extern const char *ROX_INTERNAL ROX_ENV_MODE_PRODUCTION;
 // Environment
 //
 
-void ROX_INTERNAL rox_env_get_internal_path(char *buffer, int buffer_size);
+size_t ROX_INTERNAL rox_env_get_internal_path(char *buffer, size_t buffer_size);
 
-void ROX_INTERNAL rox_env_get_cdn_path(char *buffer, int buffer_size);
+size_t ROX_INTERNAL rox_env_get_cdn_path(char *buffer, size_t buffer_size);
 
-void ROX_INTERNAL rox_env_get_api_path(char *buffer, int buffer_size);
+size_t ROX_INTERNAL rox_env_get_api_path(char *buffer, size_t buffer_size);
 
-void ROX_INTERNAL rox_env_get_state_cdn_path(char *buffer, int buffer_size);
+size_t ROX_INTERNAL rox_env_get_state_cdn_path(char *buffer, size_t buffer_size);
 
-void ROX_INTERNAL rox_env_get_state_api_path(char *buffer, int buffer_size);
+size_t ROX_INTERNAL rox_env_get_state_api_path(char *buffer, size_t buffer_size);
 
-void ROX_INTERNAL rox_env_get_analytics_path(char *buffer, int buffer_size);
+size_t ROX_INTERNAL rox_env_get_analytics_path(char *buffer, size_t buffer_size);
 
-void ROX_INTERNAL rox_env_get_notifications_path(char *buffer, int buffer_size);
+size_t ROX_INTERNAL rox_env_get_notifications_path(char *buffer, size_t buffer_size);
 
 //
 // PropertyType

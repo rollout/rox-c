@@ -14,7 +14,6 @@ if (WIN32)
     endif ()
 
     set(OPENSSL_CONFIGURE_COMMAND ${PERL_EXECUTABLE} Configure ${OPENSSL_VERSION})
-    set(LIB_LINK crypt32 wsock32 ws2_32)
 
 else ()
 

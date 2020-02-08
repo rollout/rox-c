@@ -13,24 +13,26 @@ macro(_rox_build_cmake_command VAR LIB_SOURCE_DIR)
 endmacro()
 
 macro(_rox_build_lib_file_locations VAR)
-    set(LIB_TARGET_FILE_NAMES "")
-    list(LENGTH LIB_TARGETS TARGET_LIST_LEN)
-    math(EXPR RANGE_END "${TARGET_LIST_LEN}-1")
-    foreach (index RANGE 0 ${RANGE_END} 2)
-        math(EXPR next_index "${index}+1")
-        list(GET LIB_TARGETS ${index} LIB_TARGET_NAME)
-        list(GET LIB_TARGETS ${next_index} LIB_TARGET_FILE_NAME)
-        if (NOT LIB_TARGET_FILE_NAME MATCHES "${LIB_SUFFIX}$")
-            set(LIB_TARGET_FILE_NAME "${LIB_TARGET_FILE_NAME}${LIB_SUFFIX}")
-        endif ()
-        if (LIB_SHARED)
-            set(LIB_FILE_LOCATION ${LIB_SHARED_DIR}/${LIB_TARGET_FILE_NAME})
-        else ()
-            set(LIB_FILE_LOCATION ${LIB_STATIC_DIR}/${LIB_TARGET_FILE_NAME})
-        endif ()
-        list(APPEND LIB_TARGET_FILE_NAMES ${LIB_FILE_LOCATION})
-    endforeach ()
-    set(${VAR} ${LIB_TARGET_FILE_NAMES})
+    if (LIB_TARGETS)
+        set(LIB_TARGET_FILE_NAMES "")
+        list(LENGTH LIB_TARGETS TARGET_LIST_LEN)
+        math(EXPR RANGE_END "${TARGET_LIST_LEN}-1")
+        foreach (index RANGE 0 ${RANGE_END} 2)
+            math(EXPR next_index "${index}+1")
+            list(GET LIB_TARGETS ${index} LIB_TARGET_NAME)
+            list(GET LIB_TARGETS ${next_index} LIB_TARGET_FILE_NAME)
+            if (NOT LIB_TARGET_FILE_NAME MATCHES "${LIB_SUFFIX}$")
+                set(LIB_TARGET_FILE_NAME "${LIB_TARGET_FILE_NAME}${LIB_SUFFIX}")
+            endif ()
+            if (LIB_SHARED)
+                set(LIB_FILE_LOCATION ${LIB_SHARED_DIR}/${LIB_TARGET_FILE_NAME})
+            else ()
+                set(LIB_FILE_LOCATION ${LIB_STATIC_DIR}/${LIB_TARGET_FILE_NAME})
+            endif ()
+            list(APPEND LIB_TARGET_FILE_NAMES ${LIB_FILE_LOCATION})
+        endforeach ()
+        set(${VAR} ${LIB_TARGET_FILE_NAMES})
+    endif ()
 endmacro()
 
 macro(_rox_prepare_lib_dependencies)
@@ -59,6 +61,14 @@ macro(_rox_init_third_party_lib_vars)
 
     if (NOT LIB_FILE)
         set(LIB_FILE ${LIB_NAME})
+    else ()
+        if (NOT LIB_TARGETS)
+            set(LIB_TARGETS ${LIB_NAME} ${LIB_FILE})
+        endif ()
+    endif ()
+
+    if (NOT LIB_TARGETS AND NOT LIB_TRY_FIND_LIBRARIES)
+        set(LIB_TARGETS ${LIB_NAME} ${LIB_FILE})
     endif ()
 
     if (LIB_SHARED)
@@ -99,14 +109,14 @@ macro(_rox_init_third_party_lib_vars)
         set(LIB_CONFIGURE <CMAKE> -D CMAKE_INSTALL_PREFIX=${LIB_INSTALL_DIR} ${LIB_CMAKE_ARGS})
     endif ()
 
-    if (NOT LIB_TARGETS)
-        set(LIB_TARGETS ${LIB_NAME} ${LIB_FILE})
-    endif ()
-
     _rox_build_lib_file_locations(LIB_FILE_LOCATIONS)
     _rox_prepare_lib_dependencies()
 
     string(REPLACE "<CMAKE>" "${LIB_CMAKE}" LIB_CONFIGURE "${LIB_CONFIGURE}")
+
+    if (WIN32 AND LIB_LINK_WIN)
+        list(APPEND LIB_LINK ${LIB_LINK_WIN})
+    endif ()
 
     if (LIB_VERBOSE)
         message("LIB_NAME = ${LIB_NAME}")
@@ -129,12 +139,14 @@ macro(_rox_init_third_party_lib_vars)
         message("LIB_BUILD_IN_SOURCE = ${LIB_BUILD_IN_SOURCE}")
         message("LIB_DRY_RUN = ${LIB_DRY_RUN}")
         message("LIB_LINK = ${LIB_LINK}")
+        message("LIB_LINK_WIN = ${LIB_LINK_WIN}")
         message("LIB_TARGETS = ${LIB_TARGETS}")
         message("LIB_TRY_FIND = ${LIB_TRY_FIND}")
         message("LIB_TRY_FIND_THEN = ${LIB_TRY_FIND_THEN}")
         message("LIB_TRY_FIND_VERSION = ${LIB_TRY_FIND_VERSION}")
         message("LIB_TRY_FIND_IN_INSTALL_DIR = ${LIB_TRY_FIND_IN_INSTALL_DIR}")
         message("LIB_TRY_FIND_INCLUDE_DIR = ${LIB_TRY_FIND_INCLUDE_DIR}")
+        message("LIB_TRY_FIND_LIBRARIES = ${LIB_TRY_FIND_LIBRARIES}")
         message("LIB_FILE_LOCATIONS = ${LIB_FILE_LOCATIONS}")
         message("LIB_DEPENDENCIES = ${LIB_DEPENDENCIES}")
     endif ()
@@ -142,17 +154,34 @@ macro(_rox_init_third_party_lib_vars)
 endmacro()
 
 macro(_rox_check_if_all_file_locations_exist)
-    foreach (arg IN LISTS LIB_FILE_LOCATIONS)
-        if (LIB_VERBOSE)
-            message("Checking for file existence: ${arg}")
-        endif ()
-        if (NOT EXISTS ${arg})
+    if (LIB_FILE_LOCATIONS)
+        foreach (arg IN LISTS LIB_FILE_LOCATIONS)
             if (LIB_VERBOSE)
-                message("Library file ${arg} not found")
+                message("Checking for file existence: ${arg}")
             endif ()
+            if (NOT EXISTS ${arg})
+                if (LIB_VERBOSE)
+                    message("Library file ${arg} not found")
+                endif ()
+                set(LIB_FILE_NOT_FOUND 1)
+            endif ()
+        endforeach ()
+    endif ()
+    if (${LIB_TRY_FIND_LIBRARIES})
+        if ("${${LIB_TRY_FIND_LIBRARIES}}" STREQUAL "")
+            message("${LIB_NAME} lib file not found")
             set(LIB_FILE_NOT_FOUND 1)
+        else ()
+            foreach (arg IN LISTS ${LIB_TRY_FIND_LIBRARIES})
+                if (NOT EXISTS ${arg})
+                    if (LIB_VERBOSE)
+                        message("${LIB_NAME} lib file not found: ${arg}")
+                        set(LIB_FILE_NOT_FOUND 1)
+                    endif ()
+                endif ()
+            endforeach ()
         endif ()
-    endforeach ()
+    endif ()
 endmacro()
 
 macro(_rox_build_third_party_lib)
@@ -229,7 +258,7 @@ macro(_rox_try_find_third_party_lib)
 
         find_package(${LIB_TRY_FIND})
 
-        if (NOT ${LIB_TRY_FIND_THEN} AND ${LIB_TRY_FIND_IN_INSTALL_DIR})
+        if (NOT ${LIB_TRY_FIND_THEN} AND LIB_TRY_FIND_IN_INSTALL_DIR)
             set(${TRY_FIND_IN_INSTALL_DIR} ${LIB_INSTALL_DIR})
             find_package(${LIB_TRY_FIND})
         endif ()
@@ -245,60 +274,70 @@ endmacro()
 
 macro(_rox_link_third_party_lib)
 
-    list(LENGTH LIB_TARGETS TARGET_LIST_LEN)
-    math(EXPR RANGE_END "${TARGET_LIST_LEN}/2-1")
+    if (LIB_TARGETS)
+        list(LENGTH LIB_TARGETS TARGET_LIST_LEN)
+        math(EXPR RANGE_END "${TARGET_LIST_LEN}/2-1")
 
-    foreach (index RANGE 0 ${RANGE_END})
+        foreach (index RANGE 0 ${RANGE_END})
 
-        math(EXPR lib_target_name_index "${index}*2")
-        math(EXPR lib_file_name_index "${index}*2+1")
-        list(GET LIB_TARGETS ${lib_target_name_index} LIB_TARGET_NAME)
-        list(GET LIB_TARGETS ${lib_file_name_index} LIB_TARGET_FILE_NAME)
+            math(EXPR lib_target_name_index "${index}*2")
+            math(EXPR lib_file_name_index "${index}*2+1")
+            list(GET LIB_TARGETS ${lib_target_name_index} LIB_TARGET_NAME)
+            list(GET LIB_TARGETS ${lib_file_name_index} LIB_TARGET_FILE_NAME)
 
-        if (NOT TARGET ${LIB_TARGET_NAME})
+            if (NOT TARGET ${LIB_TARGET_NAME})
 
-            list(GET LIB_FILE_LOCATIONS ${index} LIB_FILE_LOCATION)
+                list(GET LIB_FILE_LOCATIONS ${index} LIB_FILE_LOCATION)
 
-            if (EXISTS "${LIB_FILE_LOCATION}")
+                if (EXISTS "${LIB_FILE_LOCATION}")
 
-                if (LIB_SHARED)
-                    add_library(${LIB_TARGET_NAME} SHARED IMPORTED)
+                    if (LIB_SHARED)
+                        add_library(${LIB_TARGET_NAME} SHARED IMPORTED)
+                    else ()
+                        add_library(${LIB_TARGET_NAME} STATIC IMPORTED)
+                    endif ()
+
+                    set_target_properties(${LIB_TARGET_NAME} PROPERTIES
+                            IMPORTED_LOCATION "${LIB_FILE_LOCATION}"
+                            INTERFACE_INCLUDE_DIRECTORIES "${LIB_INSTALL_DIR}/include")
+
                 else ()
-                    add_library(${LIB_TARGET_NAME} STATIC IMPORTED)
+
+                    message(FATAL_ERROR "${LIB_NAME} library not found in ${LIB_FILE_LOCATION}. Build third-party libs by navigating to vendor and calling ./build-third-party-libs.sh.")
+
                 endif ()
-
-                set_target_properties(${LIB_TARGET_NAME} PROPERTIES
-                        IMPORTED_LOCATION "${LIB_FILE_LOCATION}"
-                        INTERFACE_INCLUDE_DIRECTORIES "${LIB_INSTALL_DIR}/include")
-
-            else ()
-
-                message(FATAL_ERROR "${LIB_NAME} library not found in ${LIB_FILE_LOCATION}. Build third-party libs by navigating to vendor and calling ./build-third-party-libs.sh.")
 
             endif ()
 
-        endif ()
+            if (LIB_LINK)
+                set_target_properties(${LIB_TARGET_NAME} PROPERTIES IMPORTED_LINK_DEPENDENT_LIBRARIES "${LIB_LINK}")
+            endif ()
 
-        if (LIB_LINK)
-            set_target_properties(${LIB_TARGET_NAME} PROPERTIES IMPORTED_LINK_DEPENDENT_LIBRARIES "${LIB_LINK}")
-        endif ()
+            list(APPEND ROX_EXTERNAL_LIBS ${LIB_TARGET_NAME})
 
-        list(APPEND ROX_EXTERNAL_LIBS ${LIB_TARGET_NAME})
+        endforeach ()
+    endif ()
 
-    endforeach ()
+    if (${LIB_TRY_FIND_LIBRARIES})
+        list(APPEND ROX_EXTERNAL_LIBS ${${LIB_TRY_FIND_LIBRARIES}})
+    endif ()
+
 endmacro()
 
 function(rox_external_lib LIB_NAME)
 
     set(options VERBOSE DRY_RUN SHARED BUILD_IN_SOURCE)
-    set(oneValueArgs VERSION URL HASH FILE CONFIGURE SUBDIR CMAKE TRY_FIND TRY_FIND_THEN TRY_FIND_VERSION TRY_FIND_INCLUDE_DIR TRY_FIND_IN_INSTALL_DIR)
-    set(multiValueArgs CMAKE_ARGS TARGETS LINK DEPENDS_ON)
+    set(oneValueArgs VERSION URL HASH FILE CONFIGURE SUBDIR CMAKE TRY_FIND TRY_FIND_THEN TRY_FIND_VERSION TRY_FIND_INCLUDE_DIR TRY_FIND_LIBRARIES TRY_FIND_IN_INSTALL_DIR)
+    set(multiValueArgs CMAKE_ARGS TARGETS LINK LINK_WIN DEPENDS_ON)
 
     cmake_parse_arguments(LIB "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
     set(ROX_EXTERNAL_LIBS ${ROX_EXTERNAL_LIBS})
 
     _rox_init_third_party_lib_vars()
+
+    list(APPEND CMAKE_PREFIX_PATH ${LIB_INSTALL_DIR})
+
     _rox_try_find_third_party_lib()
 
     if (ROX_BUILD_THIRD_PARTY_LIBS)
@@ -313,8 +352,8 @@ function(rox_external_lib LIB_NAME)
 
         _rox_link_third_party_lib()
 
-    endif ()
+        set(ROX_EXTERNAL_LIBS ${ROX_EXTERNAL_LIBS} PARENT_SCOPE)
 
-    set(ROX_EXTERNAL_LIBS ${ROX_EXTERNAL_LIBS} PARENT_SCOPE)
+    endif ()
 
 endfunction()

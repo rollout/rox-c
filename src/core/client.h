@@ -186,7 +186,7 @@ DeviceProperties *ROX_INTERNAL device_properties_create(
         RoxOptions *rox_options);
 
 /**
- * The returned hashtable must not be freed by the caller. It will be done automatically
+ * The returned hashtable must <em>NOT</em> be freed by the caller. It will be done automatically
  * when calling <code>device_properties_free()</code>.
  *
  * @param properties Not <code>NULL</code>.
@@ -334,20 +334,18 @@ typedef struct ROX_INTERNAL BUID BUID;
 BUID *ROX_INTERNAL buid_create(DeviceProperties *device_properties);
 
 /**
+ * @param build Not <code>NULL</code>. Will be coped internally.
+ * @return Not <code>NULL</code>.
+ */
+BUID *ROX_INTERNAL buid_create_dummy(const char *buid);
+
+/**
  * Note the returned value will be freed when calling <code>buid_free()</code>.
  *
  * @param buid Not <code>NULL</code>.
  * @return Not <code>NULL</code>.
  */
 char *ROX_INTERNAL buid_get_value(BUID *buid);
-
-/**
- * The returned hashtable must be freed by the caller after use.
- *
- * @param buid Not <code>NULL</code>.
- * @return Map <code>char *</code> => <code>char *</code>. Not <code>NULL</code>.
- */
-HashTable *ROX_INTERNAL buid_get_query_string_parts(BUID *buid);
 
 /**
  * @param buid Not <code>NULL</code>.

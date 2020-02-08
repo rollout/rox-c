@@ -75,11 +75,8 @@ void ROX_INTERNAL custom_property_repository_set_handler(
 
 void custom_property_repository_free(CustomPropertyRepository *repository) {
     assert(repository);
-    TableEntry *entry;
-    HASHTABLE_FOREACH(entry, repository->custom_properties, {
-        custom_property_free(entry->value);
-    })
-    hashtable_destroy(repository->custom_properties);
+    rox_map_free_with_values_cb(repository->custom_properties,
+                                (void (*)(void *)) &custom_property_free);
     free(repository);
 }
 
@@ -205,11 +202,8 @@ void ROX_INTERNAL flag_repository_add_flag_added_callback(
 void ROX_INTERNAL flag_repository_free(FlagRepository *repository) {
     assert(repository);
     list_destroy_cb(repository->callbacks, &free);
-    TableEntry *entry;
-    HASHTABLE_FOREACH(entry, repository->variants, {
-        variant_free(entry->value);
-    })
-    hashtable_destroy(repository->variants);
+    rox_map_free_with_values_cb(repository->variants,
+                                (void (*)(void *)) &variant_free);
     free(repository);
 }
 

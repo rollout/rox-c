@@ -81,7 +81,7 @@ END_TEST
 
 START_TEST (test_experiment_repository_will_return_null_when_not_found) {
     List *exp = ROX_LIST(
-            experiment_model_create("1", "1", "1", false, ROX_LIST(ROX_COPY("a")), ROX_EMPTY_HASH_SET, "stam"));
+            experiment_model_create("1", "1", "1", false, ROX_LIST(ROX_COPY("a")), ROX_EMPTY_SET, "stam"));
     ExperimentRepository *repo = experiment_repository_create();
     experiment_repository_set_experiments(repo, exp);
     ExperimentModel *experiment = experiment_repository_get_experiment_by_flag(repo, "b");
@@ -93,7 +93,7 @@ END_TEST
 
 START_TEST (test_experiment_repository_will_return_when_found) {
     List *exp = ROX_LIST(
-            experiment_model_create("1", "1", "1", false, ROX_LIST(ROX_COPY("a")), ROX_EMPTY_HASH_SET, "stam"));
+            experiment_model_create("1", "1", "1", false, ROX_LIST(ROX_COPY("a")), ROX_EMPTY_SET, "stam"));
     ExperimentRepository *repo = experiment_repository_create();
     experiment_repository_set_experiments(repo, exp);
     ExperimentModel *experiment = experiment_repository_get_experiment_by_flag(repo, "a");

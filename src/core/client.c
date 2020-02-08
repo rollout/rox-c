@@ -196,6 +196,8 @@ DeviceProperties *ROX_INTERNAL device_properties_create_from_map(
     return properties;
 }
 
+#undef ROX_ENV_VAL_BUFFER_SIZE
+
 DeviceProperties *ROX_INTERNAL device_properties_create(
         SdkSettings *sdk_settings,
         RoxOptions *rox_options) {
@@ -218,8 +220,6 @@ DeviceProperties *ROX_INTERNAL device_properties_create(
 
     return device_properties_create_from_map(sdk_settings, rox_options, map);
 }
-
-#undef ROX_ENV_VAL_BUFFER_SIZE
 
 HashTable *ROX_INTERNAL device_properties_get_all_properties(DeviceProperties *properties) {
     assert(properties);
@@ -249,10 +249,7 @@ const char *ROX_INTERNAL device_properties_get_rollout_key(DeviceProperties *pro
 void ROX_INTERNAL device_properties_free(DeviceProperties *properties) {
     assert(properties);
     free(properties->env);
-    TableEntry *entry;
-    HASHTABLE_FOREACH(entry, properties->map, {
-        free(entry->value);
-    })
+    rox_map_free_with_values(properties->map);
     free(properties);
 }
 
@@ -444,6 +441,13 @@ BUID *ROX_INTERNAL buid_create(DeviceProperties *device_properties) {
     return buid;
 }
 
+BUID *ROX_INTERNAL buid_create_dummy(const char *value) {
+    assert(value);
+    BUID *buid = calloc(1, sizeof(BUID));
+    buid->buid = mem_copy_str(value);
+    return buid;
+}
+
 char *ROX_INTERNAL buid_get_value(BUID *buid) {
     assert(buid);
 
@@ -465,26 +469,10 @@ char *ROX_INTERNAL buid_get_value(BUID *buid) {
     return buid->buid;
 }
 
-HashTable *ROX_INTERNAL buid_get_query_string_parts(BUID *buid) {
-    assert(buid);
-
-    char *value = buid_get_value(buid);
-
-    List *generators;
-    list_new(&generators);
-    list_add(generators, (void *) ROX_PROPERTY_TYPE_PLATFORM.name);
-    list_add(generators, (void *) ROX_PROPERTY_TYPE_APP_KEY.name);
-    list_add(generators, (void *) ROX_PROPERTY_TYPE_LIB_VERSION.name);
-    list_add(generators, (void *) ROX_PROPERTY_TYPE_API_VERSION.name);
-
-    HashTable *result;
-    hashtable_new(&result);
-    hashtable_add(result, (void *) ROX_PROPERTY_TYPE_BUID.name, value);
-
-    return result;
-}
-
 void ROX_INTERNAL buid_free(BUID *buid) {
     assert(buid);
+    if (buid->buid) {
+        free(buid->buid);
+    }
     free(buid);
 }

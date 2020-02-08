@@ -252,30 +252,30 @@ END_TEST
 START_TEST (test_string_join) {
     List *list;
     list_new(&list);
-    check_and_free(mem_str_join("", list), "");
-    check_and_free(mem_str_join("|", list), "");
+    rox_check_and_free(mem_str_join("", list), "");
+    rox_check_and_free(mem_str_join("|", list), "");
 
     list_add(list, "");
-    check_and_free(mem_str_join("", list), "");
-    check_and_free(mem_str_join("|", list), "");
+    rox_check_and_free(mem_str_join("", list), "");
+    rox_check_and_free(mem_str_join("|", list), "");
 
     list_add(list, "");
-    check_and_free(mem_str_join("", list), "");
-    check_and_free(mem_str_join("|", list), "|");
+    rox_check_and_free(mem_str_join("", list), "");
+    rox_check_and_free(mem_str_join("|", list), "|");
 
     list_remove_all(list);
     list_add(list, "one");
-    check_and_free(mem_str_join("", list), "one");
-    check_and_free(mem_str_join("|", list), "one");
+    rox_check_and_free(mem_str_join("", list), "one");
+    rox_check_and_free(mem_str_join("|", list), "one");
 
     list_add(list, "two");
-    check_and_free(mem_str_join("", list), "onetwo");
-    check_and_free(mem_str_join("|", list), "one|two");
+    rox_check_and_free(mem_str_join("", list), "onetwo");
+    rox_check_and_free(mem_str_join("|", list), "one|two");
 
     list_add(list, "three");
-    check_and_free(mem_str_join("", list), "onetwothree");
-    check_and_free(mem_str_join("|", list), "one|two|three");
-    check_and_free(mem_str_join(" AND ", list), "one AND two AND three");
+    rox_check_and_free(mem_str_join("", list), "onetwothree");
+    rox_check_and_free(mem_str_join("|", list), "one|two|three");
+    rox_check_and_free(mem_str_join(" AND ", list), "one AND two AND three");
 
     list_destroy(list);
 }
@@ -283,15 +283,15 @@ START_TEST (test_string_join) {
 END_TEST
 
 START_TEST (test_string_uppercase) {
-    check_and_free(str_to_upper(mem_copy_str("")), "");
-    check_and_free(str_to_upper(mem_copy_str("A")), "A");
-    check_and_free(str_to_upper(mem_copy_str("a")), "A");
-    check_and_free(str_to_upper(mem_copy_str("The quick brown fox jumps over the lazy dog")),
-                   "THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG");
-    check_and_free(str_to_upper(mem_copy_str("The Quick Brown Fox Jumps Over The Lazy Dog")),
-                   "THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG");
-    check_and_free(str_to_upper(mem_copy_str("THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG")),
-                   "THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG");
+    rox_check_and_free(str_to_upper(mem_copy_str("")), "");
+    rox_check_and_free(str_to_upper(mem_copy_str("A")), "A");
+    rox_check_and_free(str_to_upper(mem_copy_str("a")), "A");
+    rox_check_and_free(str_to_upper(mem_copy_str("The quick brown fox jumps over the lazy dog")),
+                       "THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG");
+    rox_check_and_free(str_to_upper(mem_copy_str("The Quick Brown Fox Jumps Over The Lazy Dog")),
+                       "THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG");
+    rox_check_and_free(str_to_upper(mem_copy_str("THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG")),
+                       "THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG");
 }
 
 END_TEST

@@ -1,10 +1,11 @@
 #pragma once
 
 #include <collectc/list.h>
+#include <cjson/cJSON.h>
+
 #include "roxapi.h"
 #include "security.h"
 #include "reporting.h"
-#include "network.h"
 
 //
 // Configuration
@@ -35,6 +36,33 @@ Configuration *ROX_INTERNAL configuration_create(
 void ROX_INTERNAL configuration_free(Configuration *configuration);
 
 //
+// ConfigurationFetchResult
+//
+
+typedef enum ROX_INTERNAL ConfigurationSource {
+    CONFIGURATION_SOURCE_CDN = 1,
+    CONFIGURATION_SOURCE_API,
+    CONFIGURATION_SOURCE_ROXY,
+    CONFIGURATION_SOURCE_URL
+} ConfigurationSource;
+
+typedef struct ROX_INTERNAL ConfigurationFetchResult {
+    ConfigurationSource source;
+    cJSON *parsed_data;
+} ConfigurationFetchResult;
+
+/**
+ * @param data Not <code>NULL</code>. The caller is responsible for freeing the given pointer.
+ * @return Not <code>NULL</code>.
+ */
+ConfigurationFetchResult *ROX_INTERNAL configuration_fetch_result_create(cJSON *data, ConfigurationSource source);
+
+/**
+ * @param result Not <code>NULL</code>.
+ */
+void ROX_INTERNAL configuration_fetch_result_free(ConfigurationFetchResult *result);
+
+//
 // ConfigurationFetchedArgs
 //
 
@@ -51,7 +79,7 @@ typedef enum ROX_INTERNAL FetcherError {
     SignatureVerificationError,
     NetworkError,
     MismatchAppKey,
-    Unknown,
+    UnknownError,
     NoError
 } FetcherError;
 

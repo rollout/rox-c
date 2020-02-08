@@ -32,6 +32,25 @@ void ROX_INTERNAL configuration_free(Configuration *configuration) {
 }
 
 //
+// ConfigurationFetchResult
+//
+
+ConfigurationFetchResult *ROX_INTERNAL configuration_fetch_result_create(cJSON *data, ConfigurationSource source) {
+    assert(data);
+    assert(source);
+    ConfigurationFetchResult *result = calloc(1, sizeof(ConfigurationFetchResult));
+    result->parsed_data = data;
+    result->source = source;
+    return result;
+}
+
+void ROX_INTERNAL configuration_fetch_result_free(ConfigurationFetchResult *result) {
+    assert(result);
+    cJSON_Delete(result->parsed_data);
+    free(result);
+}
+
+//
 // ConfigurationFetchedArgs
 //
 
@@ -340,7 +359,7 @@ Configuration *ROX_INTERNAL configuration_parser_parse(
         str_is_empty(data_json->valuestring)) {
         configuration_fetched_invoker_invoke_error(
                 parser->configuration_fetched_invoker,
-                Unknown);
+                UnknownError);
         // TODO: log error
         return NULL;
     }
@@ -373,7 +392,7 @@ Configuration *ROX_INTERNAL configuration_parser_parse(
         // TODO: log error "Failed to parse configurations"
         configuration_fetched_invoker_invoke_error(
                 parser->configuration_fetched_invoker,
-                Unknown);
+                UnknownError);
     }
 
     return configuration_create(

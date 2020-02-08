@@ -1,17 +1,19 @@
 #pragma once
 
+#include <stdarg.h>
 #include "roxapi.h"
 
 typedef struct ROX_INTERNAL ErrorReporter ErrorReporter;
 
-typedef void ROX_INTERNAL (*error_reporting_func)(ErrorReporter *reporter, const char *fmt, ...);
+typedef void ROX_INTERNAL (*error_reporting_func)(void *target, ErrorReporter *reporter, const char *fmt, va_list ars);
 
 typedef struct ROX_INTERNAL ErrorReporterConfig {
+    void *target;
     error_reporting_func reporting_func;
 } ErrorReporterConfig;
 
 /**
- * @return Not <code>NULL</code>.
+ * @return Can be <code>NULL</code>.
  */
 ErrorReporter *ROX_INTERNAL error_reporter_create(ErrorReporterConfig *config);
 

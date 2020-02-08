@@ -50,7 +50,7 @@ START_TEST (test_will_return_default_value_when_no_parser_or_condition) {
     check_variant_value_eq(variant, "1");
     ExperimentModel *experiment = experiment_model_create(
             "id", "name", "123", false,
-            ROX_LIST_COPY_STR("1"), ROX_EMPTY_HASH_SET,
+            ROX_LIST_COPY_STR("1"), ROX_EMPTY_SET,
             "stam");
     variant_set_for_evaluation(variant, NULL, experiment, NULL);
     check_variant_value_eq(variant, "1");
@@ -65,7 +65,7 @@ START_TEST (test_will_expression_value_when_result_not_in_options) {
     Parser *parser = parser_create();
     Variant *variant = variant_create("1", ROX_LIST_COPY_STR("2", "3"));
     ExperimentModel *experiment = experiment_model_create("id", "name", "\"xxx\"", false, ROX_LIST_COPY_STR("1"),
-                                                          ROX_EMPTY_HASH_SET, "stam");
+                                                          ROX_EMPTY_SET, "stam");
     variant_set_for_evaluation(variant, parser, experiment, NULL);
     check_variant_value_eq(variant, "xxx");
     variant_free(variant);
@@ -79,7 +79,7 @@ START_TEST (test_will_return_value_when_on_evaluation) {
     Parser *parser = parser_create();
     Variant *variant = variant_create("1", ROX_LIST_COPY_STR("2", "3"));
     ExperimentModel *experiment = experiment_model_create("id", "name", "2", false, ROX_LIST_COPY_STR("1"),
-                                                          ROX_EMPTY_HASH_SET, "stam");
+                                                          ROX_EMPTY_SET, "stam");
     variant_set_for_evaluation(variant, parser, experiment, NULL);
     check_variant_value_eq(variant, "2");
     variant_free(variant);
@@ -101,7 +101,7 @@ START_TEST (test_will_raise_impression) {
     ImpressionInvoker *imp_invoker = impression_invoker_create();
     impression_invoker_register(imp_invoker, NULL, &test_impression_handler);
     ExperimentModel *experiment = experiment_model_create("id", "name", "2", false, ROX_LIST_COPY_STR("1"),
-                                                          ROX_EMPTY_HASH_SET, "stam");
+                                                          ROX_EMPTY_SET, "stam");
     variant_set_for_evaluation(variant, parser, experiment, imp_invoker);
     check_variant_value_eq(variant, "2");
     ck_assert(test_impression_raised);
@@ -172,7 +172,7 @@ START_TEST (test_will_set_flag_data) {
     flag_repository_add_flag(flag_repo, variant_create_flag(), "f1");
     experiment_repository_set_experiments(exp_repo, ROX_LIST(
             experiment_model_create("33", "1", "1", false, ROX_LIST_COPY_STR("f1"),
-                                    ROX_EMPTY_HASH_SET, "stam")
+                                    ROX_EMPTY_SET, "stam")
     ));
     FlagSetter *flag_setter = flag_setter_create(flag_repo, parser, exp_repo, impression_invoker);
     flag_setter_set_experiments(flag_setter);
@@ -199,7 +199,7 @@ START_TEST (test_will_not_set_for_other_flag) {
 
     experiment_repository_set_experiments(exp_repo, ROX_LIST(
             experiment_model_create("1", "1", "1", false, ROX_LIST_COPY_STR("f1"),
-                                    ROX_EMPTY_HASH_SET, "stam")
+                                    ROX_EMPTY_SET, "stam")
     ));
 
     FlagSetter *flag_setter = flag_setter_create(flag_repo, parser, exp_repo, impression_invoker);
@@ -234,7 +234,7 @@ START_TEST (test_will_set_experiment_for_flag_and_will_remove_it) {
 
     experiment_repository_set_experiments(exp_repo, ROX_LIST(
             experiment_model_create("id1", "1", "con", false, ROX_LIST_COPY_STR("f2"),
-                                    ROX_EMPTY_HASH_SET, "stam")
+                                    ROX_EMPTY_SET, "stam")
     ));
 
     flag_setter_set_experiments(flag_setter);
@@ -262,7 +262,7 @@ START_TEST (test_will_set_flag_without_experiment_and_then_add_experiment) {
     flag_repository_add_flag(flag_repo, variant_create_flag(), "f2");
     experiment_repository_set_experiments(exp_repo, ROX_LIST(
             experiment_model_create("id1", "1", "con1", false, ROX_LIST_COPY_STR("f2"),
-                                    ROX_EMPTY_HASH_SET, "stam")
+                                    ROX_EMPTY_SET, "stam")
     ));
 
     flag_setter_set_experiments(flag_setter);
@@ -298,7 +298,7 @@ START_TEST (test_will_set_data_for_added_flag) {
 
     experiment_repository_set_experiments(exp_repo, ROX_LIST(
             experiment_model_create("1", "1", "1", false, ROX_LIST_COPY_STR("f1"),
-                                    ROX_EMPTY_HASH_SET, "stam")
+                                    ROX_EMPTY_SET, "stam")
     ));
 
     FlagSetter *flag_setter = flag_setter_create(flag_repo, parser, exp_repo, impression_invoker);

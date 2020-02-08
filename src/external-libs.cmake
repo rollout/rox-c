@@ -22,11 +22,14 @@ rox_external_lib(openssl
         TRY_FIND_THEN OPENSSL_FOUND
         TRY_FIND_IN_INSTALL_DIR OPENSSL_ROOT_DIR
         TRY_FIND_INCLUDE_DIR OPENSSL_INCLUDE_DIR
-        TARGETS OpenSSL::Crypto libcrypto)
+        TRY_FIND_LIBRARIES OPENSSL_CRYPTO_LIBRARY
+        LINK_WIN crypt32 wsock32 ws2_32)
 
 rox_external_lib(curl
         VERSION 7.68.0
         URL https://github.com/curl/curl/releases/download/curl-7_68_0/curl-7.68.0.tar.gz
-        FILE libcurl-d_imp
-        LINK libcurl-d
-        DEPENDS_ON openssl)
+        CMAKE_ARGS CURL_STATICLIB=On
+        TRY_FIND CURL
+        TRY_FIND_THEN CURL_FOUND
+        TRY_FIND_INCLUDE_DIR CURL_INCLUDE_DIRS
+        TRY_FIND_LIBRARIES CURL_LIBRARIES)

@@ -30,7 +30,7 @@ const char *ROX_INTERNAL ROXX_EMPTY_STRING = "\"\"";
 // TokenTypes
 //
 
-TokenType ROX_INTERNAL get_token_type_from_token(const char *token) {
+ParserTokenType ROX_INTERNAL get_token_type_from_token(const char *token) {
     if (!token) {
         return TokenTypeNotAType;
     }
@@ -417,7 +417,7 @@ void ROX_INTERNAL _tokenized_expression_push_node(TokenizedExpression *expr, Par
 
 ParserNode *ROX_INTERNAL _tokenized_expression_node_from_token(NodeType nodeType, const char *token) {
     assert(token);
-    TokenType token_type = get_token_type_from_token(token);
+    ParserTokenType token_type = get_token_type_from_token(token);
     if (str_equals(token, ROXX_TRUE)) {
         return node_create_bool(nodeType, true);
     }
@@ -930,12 +930,7 @@ void ROX_INTERNAL parser_free(Parser *parser) {
         ParserDisposalHandler *handler = (ParserDisposalHandler *) item;
         handler->handler(handler->target, parser);
     })
-    TableEntry *entry;
-    HASHTABLE_FOREACH(entry, parser->operators_map, {
-        free(entry->key);
-        free(entry->value);
-    })
-    hashtable_destroy(parser->operators_map);
+    rox_map_free_with_keys_and_values(parser->operators_map);
     list_destroy_cb(parser->disposal_handlers, &free);
     free(parser);
 }

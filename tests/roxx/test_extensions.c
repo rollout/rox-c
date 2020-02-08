@@ -136,7 +136,7 @@ START_TEST (test_flag_value_no_flag_evaluate_experiment) {
     experiment_repository_set_experiments(
             context->experiment_repository, ROX_LIST(
             experiment_model_create("id", "name", "\"op2\"", false, ROX_LIST_COPY_STR("f1"),
-                                    ROX_EMPTY_HASH_SET, "stam")));
+                                    ROX_EMPTY_SET, "stam")));
 
     EvaluationResult *result = parser_evaluate_expression(context->parser, "flagValue(\"f1\")", NULL);
     ck_assert_str_eq(result_get_string(result), "op2");
@@ -242,10 +242,10 @@ START_TEST (test_flag_dependency_unexisting_flag_but_existing_experiment) {
 
     List *experiment_models = ROX_LIST(
             experiment_model_create("exp1id", "exp1name", "ifThen(true, \"true\", \"false\")", false,
-                                    ROX_LIST_COPY_STR("someFlag"), ROX_EMPTY_HASH_SET, "stam"),
+                                    ROX_LIST_COPY_STR("someFlag"), ROX_EMPTY_SET, "stam"),
             experiment_model_create("exp2id", "exp2name",
                                     "ifThen(eq(\"true\", flagValue(\"someFlag\")), \"blue\", \"green\")", false,
-                                    ROX_LIST_COPY_STR("colorVar"), ROX_EMPTY_HASH_SET, "stam"));
+                                    ROX_LIST_COPY_STR("colorVar"), ROX_EMPTY_SET, "stam"));
 
     FlagSetter *flag_setter = flag_setter_create(context->flag_repository, context->parser,
                                                  context->experiment_repository, NULL);
@@ -270,10 +270,10 @@ START_TEST (test_flag_dependency_unexisting_flag_and_experiment_undefined) {
 
     List *experiment_models = ROX_LIST(
             experiment_model_create("exp1id", "exp1name", "undefined", false, ROX_LIST_COPY_STR("someFlag"),
-                                    ROX_EMPTY_HASH_SET, "stam"),
+                                    ROX_EMPTY_SET, "stam"),
             experiment_model_create("exp2id", "exp2name",
                                     "ifThen(eq(\"true\", flagValue(\"someFlag\")), \"blue\", \"green\")", false,
-                                    ROX_LIST_COPY_STR("colorVar"), ROX_EMPTY_HASH_SET, "stam"));
+                                    ROX_LIST_COPY_STR("colorVar"), ROX_EMPTY_SET, "stam"));
 
     FlagSetter *flag_setter = flag_setter_create(context->flag_repository, context->parser,
                                                  context->experiment_repository, NULL);
@@ -313,7 +313,7 @@ START_TEST (test_flag_dependency_with_context) {
     variant_set_condition(flag2, "flagValue(\"flag1\")");
     flag_repository_add_flag(context->flag_repository, flag2, "flag2");
 
-    Context *ctx = context_create_from_hashtable(ROX_HASH_TABLE(
+    Context *ctx = context_create_from_hashtable(ROX_MAP(
                                                          mem_copy_str("isPropOn"),
                                                          dynamic_value_create_boolean(true)));
 
@@ -344,11 +344,11 @@ START_TEST (test_flag_dependency_with_context_used_on_experiment_with_no_flag) {
 
     List *experiment_models = ROX_LIST(
             experiment_model_create("exp1id", "exp1name", "property(\"prop\")", false, ROX_LIST_COPY_STR("flag2"),
-                                    ROX_EMPTY_HASH_SET, "stam"));
+                                    ROX_EMPTY_SET, "stam"));
 
     experiment_repository_set_experiments(context->experiment_repository, experiment_models);
 
-    Context *ctx = context_create_from_hashtable(ROX_HASH_TABLE(
+    Context *ctx = context_create_from_hashtable(ROX_MAP(
                                                          mem_copy_str("isPropOn"),
                                                          dynamic_value_create_boolean(true)));
 
@@ -384,11 +384,11 @@ START_TEST (test_flag_dependency_with_context2_level_mid_level_no_flag_eval_expe
 
     List *experiment_models = ROX_LIST(
             experiment_model_create("exp1id", "exp1name", "flagValue(\"flag1\")", false, ROX_LIST_COPY_STR("flag2"),
-                                    ROX_EMPTY_HASH_SET, "stam"));
+                                    ROX_EMPTY_SET, "stam"));
 
     experiment_repository_set_experiments(context->experiment_repository, experiment_models);
 
-    Context *ctx = context_create_from_hashtable(ROX_HASH_TABLE(
+    Context *ctx = context_create_from_hashtable(ROX_MAP(
                                                          mem_copy_str("isPropOn"),
                                                          dynamic_value_create_boolean(true)));
 
@@ -470,7 +470,7 @@ START_TEST (test_roxx_properties_extensions_with_context_string) {
                     &ROX_CUSTOM_PROPERTY_TYPE_STRING,
                     context, &_parser_extensions_custom_property_generator));
 
-    Context *ctx = context_create_from_hashtable(ROX_HASH_TABLE(
+    Context *ctx = context_create_from_hashtable(ROX_MAP(
                                                          mem_copy_str("ContextTestKey"),
                                                          dynamic_value_create_string_copy("test")));
 
@@ -496,7 +496,7 @@ START_TEST (test_roxx_properties_extensions_with_context_int) {
                     &ROX_CUSTOM_PROPERTY_TYPE_INT,
                     context, &_parser_extensions_custom_property_generator));
 
-    Context *ctx = context_create_from_hashtable(ROX_HASH_TABLE(
+    Context *ctx = context_create_from_hashtable(ROX_MAP(
                                                          mem_copy_str("ContextTestKey"),
                                                          dynamic_value_create_int(3)));
 
@@ -522,7 +522,7 @@ START_TEST (test_roxx_properties_extensions_with_context_int_with_string) {
                     &ROX_CUSTOM_PROPERTY_TYPE_INT,
                     context, &_parser_extensions_custom_property_generator));
 
-    Context *ctx = context_create_from_hashtable(ROX_HASH_TABLE(
+    Context *ctx = context_create_from_hashtable(ROX_MAP(
                                                          mem_copy_str("ContextTestKey"),
                                                          dynamic_value_create_int(3)));
 
@@ -548,7 +548,7 @@ START_TEST (test_roxx_properties_extensions_with_context_int_not_equal) {
                     &ROX_CUSTOM_PROPERTY_TYPE_INT,
                     context, &_parser_extensions_custom_property_generator));
 
-    Context *ctx = context_create_from_hashtable(ROX_HASH_TABLE(
+    Context *ctx = context_create_from_hashtable(ROX_MAP(
                                                          mem_copy_str("ContextTestKey"),
                                                          dynamic_value_create_int(3)));
 
@@ -632,7 +632,7 @@ END_TEST
 START_TEST (test_default_dynamic_rule) {
     ParserExtensionsTestContext *context = parser_extensions_test_context_create();
 
-    Context *ctx = context_create_from_hashtable(ROX_HASH_TABLE(
+    Context *ctx = context_create_from_hashtable(ROX_MAP(
                                                          mem_copy_str("testKeyRule"),
                                                          dynamic_value_create_string_copy("test")));
 
@@ -655,7 +655,7 @@ START_TEST (test_custom_dynamic_rule) {
     ParserExtensionsTestContext *context = parser_extensions_test_context_create();
     dynamic_properties_set_rule(context->dynamic_properties, NULL, &_test_inc_value);
 
-    Context *ctx = context_create_from_hashtable(ROX_HASH_TABLE(
+    Context *ctx = context_create_from_hashtable(ROX_MAP(
                                                          mem_copy_str("testKeyRule"),
                                                          dynamic_value_create_int(5)));
 
@@ -673,7 +673,7 @@ END_TEST
 START_TEST (test_dynamic_rule_returns_null) {
     ParserExtensionsTestContext *context = parser_extensions_test_context_create();
 
-    Context *ctx = context_create_from_hashtable(ROX_HASH_TABLE(
+    Context *ctx = context_create_from_hashtable(ROX_MAP(
                                                          mem_copy_str("testKeyRule"),
                                                          NULL));
 
@@ -692,7 +692,7 @@ START_TEST (test_dynamic_rule_returns_supported_type) {
     ParserExtensionsTestContext *context = parser_extensions_test_context_create();
 
     Context *ctx = context_create_from_hashtable(
-            ROX_HASH_TABLE(
+            ROX_MAP(
                     mem_copy_str("testKeyRule"), dynamic_value_create_string_copy("test1"),
                     mem_copy_str("testKeyRule2"), dynamic_value_create_boolean(true),
                     mem_copy_str("testKeyRule3"), dynamic_value_create_double(3.9999),
@@ -728,7 +728,7 @@ START_TEST (test_dynamic_rule_return_unsupported_type) {
     hashtable_new(&map);
 
     Context *ctx = context_create_from_hashtable(
-            ROX_HASH_TABLE(
+            ROX_MAP(
                     mem_copy_str("testKeyRule"),
                     dynamic_value_create_map(map)));
 

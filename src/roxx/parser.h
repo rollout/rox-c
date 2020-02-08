@@ -13,15 +13,15 @@ typedef ROX_INTERNAL void (*parser_operation)(void *target, Parser *parser, Core
 
 typedef ROX_INTERNAL void (*parser_disposal_handler)(void *target, Parser *parser);
 
-typedef enum ROX_INTERNAL TokenType {
+typedef enum ROX_INTERNAL ParserTokenType {
     TokenTypeString,
     TokenTypeBool,
     TokenTypeNumber,
     TokenTypeUndefined,
     TokenTypeNotAType
-} TokenType;
+} ParserTokenType;
 
-TokenType ROX_INTERNAL get_token_type_from_token(const char *token);
+ParserTokenType ROX_INTERNAL get_token_type_from_token(const char *token);
 
 typedef enum ROX_INTERNAL NodeType {
     NodeTypeRand,

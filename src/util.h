@@ -27,6 +27,10 @@ char *ROX_INTERNAL mem_copy_str(const char *ptr);
 
 bool *ROX_INTERNAL mem_copy_bool(bool value);
 
+HashTable *ROX_INTERNAL mem_copy_map(HashTable *map);
+
+HashTable *ROX_INTERNAL mem_deep_copy_str_value_map(HashTable *map);
+
 int *ROX_INTERNAL mem_str_to_int(const char *str);
 
 double *ROX_INTERNAL mem_str_to_double(const char *str);
@@ -59,7 +63,7 @@ bool ROX_INTERNAL str_in_list(const char *str, List *list_of_strings);
 
 void ROX_INTERNAL str_substring_b(const char *str, int start, int len, char *buffer);
 
-void ROX_INTERNAL str_copy_value_to_buffer(char *buffer, int buffer_size, const char *value);
+size_t ROX_INTERNAL str_copy_value_to_buffer(char *buffer, int buffer_size, const char *value);
 
 /**
  * NOTE: THE RETURNED STR MUST BE FREED AFTER USE
@@ -105,7 +109,7 @@ char *ROX_INTERNAL mem_base64_encode(const char *s);
  * @param s The BASE64-ed string to decode.
  * @return Size if the resulting decoded data in bytes.
  */
-size_t ROX_INTERNAL base64_decode_b(const char *s, unsigned char* buffer);
+size_t ROX_INTERNAL base64_decode_b(const char *s, unsigned char *buffer);
 
 /**
  * NOTE: THE RETURNED STR MUST BE FREED AFTER USE
@@ -159,9 +163,18 @@ List *ROX_INTERNAL rox_list_create(void *skip, ...);
 
 List *ROX_INTERNAL rox_list_create_str(void *skip, ...);
 
-HashSet *ROX_INTERNAL rox_hash_set_create(void *skip, ...);
+HashSet *ROX_INTERNAL rox_set_create(void *skip, ...);
 
-HashTable *rox_hash_table_create(void *skip, ...);
+HashTable *ROX_INTERNAL rox_map_create(void *skip, ...);
+
+void ROX_INTERNAL rox_map_free_with_values(HashTable *map);
+
+void ROX_INTERNAL rox_map_free_with_values_cb(HashTable *map, void (*f)(void *));
+
+void ROX_INTERNAL rox_map_free_with_keys_and_values(HashTable *map);
+
+void ROX_INTERNAL
+rox_hash_table_free_with_keys_and_values_cb(HashTable *map, void (*f_key)(void *), void (*f_value)(void *));
 
 #define ROX_JSON_PRETTY_PRINT 1u
 
@@ -189,12 +202,12 @@ HashTable *rox_hash_table_create(void *skip, ...);
 
 #define ROX_LIST_COPY_STR(...) rox_list_create_str(NULL, __VA_ARGS__, NULL)
 
-#define ROX_HASH_SET(...) rox_hash_set_create(NULL, __VA_ARGS__, NULL)
+#define ROX_SET(...) rox_set_create(NULL, __VA_ARGS__, NULL)
 
-#define ROX_EMPTY_HASH_SET ROX_HASH_SET(NULL)
+#define ROX_EMPTY_SET ROX_SET(NULL)
 
 #define ROX_COPY(str) mem_copy_str(str)
 
-#define ROX_HASH_TABLE(...) rox_hash_table_create(NULL, __VA_ARGS__, NULL)
+#define ROX_MAP(...) rox_map_create(NULL, __VA_ARGS__, NULL)
 
-#define ROX_EMPTY_HASH_TABLE ROX_HASH_TABLE(NULL)
+#define ROX_EMPTY_MAP ROX_MAP(NULL)

@@ -35,11 +35,17 @@ int ROX_INTERNAL _rox_run_tests(Suite *suite) {
     return number_failed;
 }
 
-void ROX_INTERNAL check_and_free(char *str, const char *expected_value) {
+void ROX_INTERNAL rox_check_and_free(char *str, const char *expected_value) {
     ck_assert_str_eq(str, expected_value);
     if (str) {
         free(str);
     }
+}
+
+void ROX_INTERNAL rox_check_map_contains(HashTable *map, const char *key, const char *expected_value) {
+    char *actual_value;
+    ck_assert_int_eq(hashtable_get(map, (void *) key, (void **) &actual_value), CC_OK);
+    ck_assert_str_eq(actual_value, expected_value);
 }
 
 #define ROX_TEST_CASE(test) _rox_create_test_case(#test, test)

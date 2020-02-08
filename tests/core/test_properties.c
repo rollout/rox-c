@@ -125,7 +125,7 @@ DynamicValue *_test_capture_context(void *target, Context *context) {
 
 START_TEST (test_will_pass_context) {
     Context *context = context_create_from_hashtable(
-            ROX_HASH_TABLE(mem_copy_str("a"),
+            ROX_MAP(mem_copy_str("a"),
                            dynamic_value_create_int(test_int_value)));
     CustomProperty *prop_string = custom_property_create("prop1", &ROX_CUSTOM_PROPERTY_TYPE_STRING,
                                                          NULL, &_test_capture_context);

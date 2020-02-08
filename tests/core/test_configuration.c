@@ -126,11 +126,11 @@ START_TEST (test_will_return_null_when_unexpected_exception) {
                            "   \"signed_date\":\"2018-01-09T19:02:00.720Z\"\n"
                            "}";
 
-    ConfigurationTestContext *context = configuration_test_context_create(json_str, API, true, true);
+    ConfigurationTestContext *context = configuration_test_context_create(json_str, CONFIGURATION_SOURCE_API, true, true);
     Configuration *config = configuration_test_context_parse(context);
     ck_assert_ptr_null(config);
     ck_assert(context->configuration_fetched);
-    ck_assert_int_eq(context->fetcher_error, Unknown);
+    ck_assert_int_eq(context->fetcher_error, UnknownError);
     configuration_test_context_free(context);
 }
 
@@ -143,7 +143,7 @@ START_TEST (test_will_return_null_when_wrong_signature) {
                            "   \"signed_date\":\"2018-01-09T19:02:00.720Z\"\n"
                            "}";
 
-    ConfigurationTestContext *context = configuration_test_context_create(json_str, API, false, true);
+    ConfigurationTestContext *context = configuration_test_context_create(json_str, CONFIGURATION_SOURCE_API, false, true);
     Configuration *config = configuration_test_context_parse(context);
     ck_assert_ptr_null(config);
     ck_assert(context->configuration_fetched);
@@ -160,7 +160,7 @@ START_TEST (test_will_return_null_when_wrong_api_key) {
                            "   \"signed_date\":\"2018-01-09T19:02:00.720Z\"\n"
                            "}";
 
-    ConfigurationTestContext *context = configuration_test_context_create(json_str, API, true, false);
+    ConfigurationTestContext *context = configuration_test_context_create(json_str, CONFIGURATION_SOURCE_API, true, false);
     Configuration *config = configuration_test_context_parse(context);
     ck_assert_ptr_null(config);
     ck_assert(context->configuration_fetched);
@@ -177,7 +177,7 @@ START_TEST (test_will_parse_experiments_and_target_groups) {
                            "   \"signed_date\":\"2018-01-09T19:02:00.720Z\"\n"
                            "}";
 
-    ConfigurationTestContext *context = configuration_test_context_create(json_str, API, true, true);
+    ConfigurationTestContext *context = configuration_test_context_create(json_str, CONFIGURATION_SOURCE_API, true, true);
     Configuration *conf = configuration_test_context_parse(context);
     ck_assert_ptr_nonnull(conf);
     ck_assert(!context->configuration_fetched);
