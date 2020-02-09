@@ -46,13 +46,15 @@ TBD
 
 TBD
 
+TBD: MIN and MAX tested versions.
+
 #### Curl
 
-TBD
+TBD: MIN and MAX tested versions. 
 
 #### PCRE2
 
-TBD
+TBD: MIN and MAX tested versions.
 
 ### Build
 

@@ -17,19 +17,24 @@ rox_external_lib(cjson
 
 rox_external_lib(openssl
         VERSION 1.1.1
-        URL https://github.com/openssl/openssl/archive/OpenSSL_1_1_1.tar.gz
-        TRY_FIND OpenSSL
-        TRY_FIND_THEN OPENSSL_FOUND
+        # looking for preinstalled openssl
+        TRY_FIND OpenSSL OpenSSL::Crypto
         TRY_FIND_IN_INSTALL_DIR OPENSSL_ROOT_DIR
+        TRY_FIND_THEN OPENSSL_FOUND
         TRY_FIND_INCLUDE_DIR OPENSSL_INCLUDE_DIR
-        TRY_FIND_LIBRARIES OPENSSL_CRYPTO_LIBRARY
-        LINK_WIN crypt32 wsock32 ws2_32)
+        # OR building from sources
+        URL https://github.com/openssl/openssl/archive/OpenSSL_1_1_1.tar.gz)
 
 rox_external_lib(curl
         VERSION 7.68.0
-        URL https://github.com/curl/curl/releases/download/curl-7_68_0/curl-7.68.0.tar.gz
-        CMAKE_ARGS CURL_STATICLIB=On
-        TRY_FIND CURL
+        # looking for preinstalled curl
+        TRY_FIND CURL CURL::libcurl
         TRY_FIND_THEN CURL_FOUND
         TRY_FIND_INCLUDE_DIR CURL_INCLUDE_DIRS
-        TRY_FIND_LIBRARIES CURL_LIBRARIES)
+        # OR building from sources
+        DEPENDS_ON openssl
+        URL https://github.com/curl/curl/releases/download/curl-7_68_0/curl-7.68.0.tar.gz
+        CMAKE_ARGS BUILD_CURL_TESTS=OFF CURL_DISABLE_LDAP=ON BUILD_SHARED_LIBS=OFF
+        TARGETS CURL::libcurl libcurl-d
+        DEFINITIONS CURL_STATICLIB
+        LINK_WIN crypt32 wsock32 ws2_32)

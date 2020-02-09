@@ -5,7 +5,7 @@ if (WIN32)
         message(FATAL_ERROR "Cannot build OpenSSL without Perl")
     endif ()
 
-    # TODO: check if NASM is in Path
+    # TODO: check if NASM is in the Path
 
     if (CMAKE_CL_64)
         set(OPENSSL_VERSION VC-WIN64A)

@@ -38,7 +38,9 @@ endmacro()
 macro(_rox_prepare_lib_dependencies)
     set(LIB_DEPENDENCIES "")
     foreach (arg IN LISTS LIB_DEPENDS_ON)
-        list(APPEND LIB_DEPENDENCIES build_${arg})
+        if (TARGET lib_${arg})
+            list(APPEND LIB_DEPENDENCIES lib_${arg})
+        endif ()
     endforeach ()
 endmacro()
 
@@ -61,13 +63,15 @@ macro(_rox_init_third_party_lib_vars)
 
     if (NOT LIB_FILE)
         set(LIB_FILE ${LIB_NAME})
-    else ()
-        if (NOT LIB_TARGETS)
-            set(LIB_TARGETS ${LIB_NAME} ${LIB_FILE})
-        endif ()
     endif ()
 
-    if (NOT LIB_TARGETS AND NOT LIB_TRY_FIND_LIBRARIES)
+    list(LENGTH LIB_TRY_FIND LIB_TRY_FIND_LEN)
+    list(SUBLIST LIB_TRY_FIND 1 -1 LIB_TRY_FIND_TARGET_NAMES)
+    if (LIB_TRY_FIND_LEN GREATER 0)
+        list(GET LIB_TRY_FIND 0 LIB_TRY_FIND_PACKAGE_NAME)
+    endif ()
+
+    if (NOT LIB_TARGETS AND NOT LIB_TRY_FIND_LIBRARIES AND NOT LIB_TRY_FIND_TARGET_NAMES)
         set(LIB_TARGETS ${LIB_NAME} ${LIB_FILE})
     endif ()
 
@@ -142,10 +146,15 @@ macro(_rox_init_third_party_lib_vars)
         message("LIB_LINK_WIN = ${LIB_LINK_WIN}")
         message("LIB_TARGETS = ${LIB_TARGETS}")
         message("LIB_TRY_FIND = ${LIB_TRY_FIND}")
+        message("LIB_TRY_FIND_PACKAGE_NAME = ${LIB_TRY_FIND_PACKAGE_NAME}")
+        message("LIB_TRY_FIND_TARGET_NAMES = ${LIB_TRY_FIND_TARGET_NAMES}")
         message("LIB_TRY_FIND_THEN = ${LIB_TRY_FIND_THEN}")
         message("LIB_TRY_FIND_VERSION = ${LIB_TRY_FIND_VERSION}")
+        message("LIB_TRY_FIND_IN = ${LIB_TRY_FIND_IN}")
         message("LIB_TRY_FIND_IN_INSTALL_DIR = ${LIB_TRY_FIND_IN_INSTALL_DIR}")
         message("LIB_TRY_FIND_INCLUDE_DIR = ${LIB_TRY_FIND_INCLUDE_DIR}")
+        message("LIB_TRY_FIND_LIBRARIES = ${LIB_TRY_FIND_LIBRARIES}")
+        message("LIB_TRY_FIND_LINK = ${LIB_TRY_FIND_LINK}")
         message("LIB_TRY_FIND_LIBRARIES = ${LIB_TRY_FIND_LIBRARIES}")
         message("LIB_FILE_LOCATIONS = ${LIB_FILE_LOCATIONS}")
         message("LIB_DEPENDENCIES = ${LIB_DEPENDENCIES}")
@@ -166,21 +175,35 @@ macro(_rox_check_if_all_file_locations_exist)
                 set(LIB_FILE_NOT_FOUND 1)
             endif ()
         endforeach ()
-    endif ()
-    if (${LIB_TRY_FIND_LIBRARIES})
+    elseif (LIB_TRY_FIND_LIBRARIES)
         if ("${${LIB_TRY_FIND_LIBRARIES}}" STREQUAL "")
-            message("${LIB_NAME} lib file not found")
+            if (LIB_VERBOSE)
+                message("${LIB_NAME} lib file not found")
+            endif ()
             set(LIB_FILE_NOT_FOUND 1)
         else ()
             foreach (arg IN LISTS ${LIB_TRY_FIND_LIBRARIES})
                 if (NOT EXISTS ${arg})
                     if (LIB_VERBOSE)
                         message("${LIB_NAME} lib file not found: ${arg}")
-                        set(LIB_FILE_NOT_FOUND 1)
                     endif ()
+                    set(LIB_FILE_NOT_FOUND 1)
                 endif ()
             endforeach ()
         endif ()
+    elseif (LIB_TRY_FIND_TARGET_NAMES)
+        foreach (arg IN LISTS LIB_TRY_FIND_TARGET_NAMES)
+            if (LIB_VERBOSE)
+                if (TARGET ${arg})
+                    message("Target ${arg} exists")
+                else ()
+                    message("${LIB_NAME} target not found: ${arg}")
+                endif ()
+            endif ()
+            if (NOT TARGET ${arg})
+                set(LIB_FILE_NOT_FOUND 1)
+            endif ()
+        endforeach ()
     endif ()
 endmacro()
 
@@ -212,7 +235,7 @@ macro(_rox_build_third_party_lib)
 
             # TODO: check for library archive in the project source dir
 
-            ExternalProject_Add(build_${LIB_NAME}
+            ExternalProject_Add(lib_${LIB_NAME}
                     PREFIX ${LIB_VERSION}
                     GIT_REPOSITORY ${LIB_URL}
                     GIT_TAG ${GIT_TAG}
@@ -228,7 +251,7 @@ macro(_rox_build_third_party_lib)
 
         else ()
 
-            ExternalProject_Add(build_${LIB_NAME}
+            ExternalProject_Add(lib_${LIB_NAME}
                     PREFIX ${LIB_VERSION}
                     URL ${LIB_URL}
                     URL_MD5 ${LIB_HASH}
@@ -250,17 +273,38 @@ macro(_rox_build_third_party_lib)
 endmacro()
 
 macro(_rox_try_find_third_party_lib)
+
+    if (LIB_TRY_FIND_IN_INSTALL_DIR)
+        list(APPEND LIB_TRY_FIND_IN ${LIB_INSTALL_DIR})
+        if (NOT "${LIB_TRY_FIND_IN_INSTALL_DIR}" STREQUAL "")
+            set(${LIB_TRY_FIND_IN_INSTALL_DIR} ${LIB_INSTALL_DIR})
+        endif ()
+    endif ()
+
+    if (LIB_TRY_FIND_IN)
+        foreach (dir IN LISTS LIB_TRY_FIND_IN)
+            if (LIB_VERBOSE)
+                message("Looking for ${LIB_NAME} in ${dir}")
+            endif ()
+            list(APPEND CMAKE_PREFIX_PATH ${dir})
+        endforeach ()
+    endif ()
+
     if (LIB_TRY_FIND)
 
         if (NOT LIB_TRY_FIND_THEN)
             set(LIB_TRY_FIND_THEN ${LIB_TRY_FIND}_FOUND)
         endif ()
 
-        find_package(${LIB_TRY_FIND})
+        list(GET LIB_TRY_FIND 0 LIB_TRY_FIND_PACKAGE_NAME)
+        find_package(${LIB_TRY_FIND_PACKAGE_NAME})
 
-        if (NOT ${LIB_TRY_FIND_THEN} AND LIB_TRY_FIND_IN_INSTALL_DIR)
-            set(${TRY_FIND_IN_INSTALL_DIR} ${LIB_INSTALL_DIR})
-            find_package(${LIB_TRY_FIND})
+        if (LIB_VERBOSE)
+            if (${LIB_TRY_FIND_THEN})
+                message("Library ${LIB_NAME} found")
+            else ()
+                message("Library ${LIB_NAME} NOT found")
+            endif ()
         endif ()
 
         if (${LIB_TRY_FIND_THEN} AND ${LIB_TRY_FIND_INCLUDE_DIR})
@@ -274,6 +318,39 @@ endmacro()
 
 macro(_rox_link_third_party_lib)
 
+    # Link with target created by find_package
+    if (LIB_TRY_FIND_TARGET_NAMES)
+        foreach (LIB_TRY_FIND_TARGET_NAME IN LISTS LIB_TRY_FIND_TARGET_NAMES)
+            if (TARGET ${LIB_TRY_FIND_TARGET_NAME})
+                if (LIB_TRY_LIB_LINK)
+                    if (LIB_VERBOSE)
+                        message("Linking target ${LIB_TRY_FIND_TARGET_NAME} with ${LIB_TRY_FIND_LINK}")
+                    endif ()
+                    if (LIB_SHARED)
+                        set_target_properties(${LIB_TRY_FIND_TARGET_NAME} PROPERTIES IMPORTED_LINK_DEPENDENT_LIBRARIES "${LIB_TRY_FIND_LINK}")
+                    else ()
+                        set_target_properties(${LIB_TRY_FIND_TARGET_NAME} PROPERTIES IMPORTED_LINK_INTERFACE_LIBRARIES "${LIB_TRY_FIND_LINK}")
+                    endif ()
+                endif ()
+                if (LIB_TRY_FIND_DEFINITIONS)
+                    if (LIB_VERBOSE)
+                        message("Setting compile definitions for target ${LIB_TRY_FIND_TARGET_NAME} to ${LIB_TRY_FIND_DEFINITIONS}")
+                    endif ()
+                    set_target_properties(${LIB_TRY_FIND_TARGET_NAME} PROPERTIES INTERFACE_COMPILE_DEFINITIONS ${LIB_TRY_FIND_DEFINITIONS})
+                endif ()
+                list(APPEND ROX_EXTERNAL_LIBS ${LIB_TRY_FIND_TARGET_NAME})
+            elseif (LIB_VERBOSE)
+                message("Target ${LIB_TRY_FIND_TARGET_NAME} NOT found. Trying to use the built one.")
+            endif ()
+        endforeach ()
+    endif ()
+
+    # link with library found by find-package directly
+    if (${LIB_TRY_FIND_LIBRARIES})
+        list(APPEND ROX_EXTERNAL_LIBS ${${LIB_TRY_FIND_LIBRARIES}})
+    endif ()
+
+    # link with custom-build targets
     if (LIB_TARGETS)
         list(LENGTH LIB_TARGETS TARGET_LIST_LEN)
         math(EXPR RANGE_END "${TARGET_LIST_LEN}/2-1")
@@ -307,19 +384,29 @@ macro(_rox_link_third_party_lib)
 
                 endif ()
 
-            endif ()
+                if (LIB_LINK)
+                    if (LIB_VERBOSE)
+                        message("Linking target ${LIB_TARGET_NAME} with ${LIB_LINK}")
+                    endif ()
+                    if (LIB_SHARED)
+                        set_target_properties(${LIB_TARGET_NAME} PROPERTIES IMPORTED_LINK_DEPENDENT_LIBRARIES "${LIB_LINK}")
+                    else ()
+                        set_target_properties(${LIB_TARGET_NAME} PROPERTIES IMPORTED_LINK_INTERFACE_LIBRARIES "${LIB_LINK}")
+                    endif ()
+                endif ()
 
-            if (LIB_LINK)
-                set_target_properties(${LIB_TARGET_NAME} PROPERTIES IMPORTED_LINK_DEPENDENT_LIBRARIES "${LIB_LINK}")
-            endif ()
+                if (LIB_DEFINITIONS)
+                    if (LIB_VERBOSE)
+                        message("Setting compile definitions for target ${LIB_TARGET_NAME} to ${LIB_DEFINITIONS}")
+                    endif ()
+                    set_target_properties(${LIB_TARGET_NAME} PROPERTIES INTERFACE_COMPILE_DEFINITIONS ${LIB_DEFINITIONS})
+                endif ()
 
-            list(APPEND ROX_EXTERNAL_LIBS ${LIB_TARGET_NAME})
+                list(APPEND ROX_EXTERNAL_LIBS ${LIB_TARGET_NAME})
+
+            endif ()
 
         endforeach ()
-    endif ()
-
-    if (${LIB_TRY_FIND_LIBRARIES})
-        list(APPEND ROX_EXTERNAL_LIBS ${${LIB_TRY_FIND_LIBRARIES}})
     endif ()
 
 endmacro()
@@ -327,17 +414,14 @@ endmacro()
 function(rox_external_lib LIB_NAME)
 
     set(options VERBOSE DRY_RUN SHARED BUILD_IN_SOURCE)
-    set(oneValueArgs VERSION URL HASH FILE CONFIGURE SUBDIR CMAKE TRY_FIND TRY_FIND_THEN TRY_FIND_VERSION TRY_FIND_INCLUDE_DIR TRY_FIND_LIBRARIES TRY_FIND_IN_INSTALL_DIR)
-    set(multiValueArgs CMAKE_ARGS TARGETS LINK LINK_WIN DEPENDS_ON)
+    set(oneValueArgs VERSION URL HASH FILE CONFIGURE SUBDIR CMAKE TRY_FIND_THEN TRY_FIND_VERSION TRY_FIND_INCLUDE_DIR TRY_FIND_LIBRARIES TRY_FIND_IN_INSTALL_DIR)
+    set(multiValueArgs CMAKE_ARGS TARGETS DEFINITIONS LINK LINK_WIN DEPENDS_ON TRY_FIND TRY_FIND_LINK TRY_FIND_DEFINITIONS TRY_FIND_IN)
 
     cmake_parse_arguments(LIB "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
     set(ROX_EXTERNAL_LIBS ${ROX_EXTERNAL_LIBS})
 
     _rox_init_third_party_lib_vars()
-
-    list(APPEND CMAKE_PREFIX_PATH ${LIB_INSTALL_DIR})
-
     _rox_try_find_third_party_lib()
 
     if (ROX_BUILD_THIRD_PARTY_LIBS)
@@ -353,6 +437,10 @@ function(rox_external_lib LIB_NAME)
         _rox_link_third_party_lib()
 
         set(ROX_EXTERNAL_LIBS ${ROX_EXTERNAL_LIBS} PARENT_SCOPE)
+
+        if (LIB_VERBOSE)
+            message("ROX_EXTERNAL_LIBS = ${ROX_EXTERNAL_LIBS}")
+        endif ()
 
     endif ()
 
