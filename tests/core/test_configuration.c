@@ -5,14 +5,16 @@
 #include "xpack/security.h"
 #include "roxtests.h"
 
-bool _test_true_signature_verifier(SignatureVerifier *verifier, const char *data, const char *signature_base64) {
+bool _test_true_signature_verifier(void *target, SignatureVerifier *verifier, const char *data,
+                                   const char *signature_base64) {
     assert(verifier);
     assert(data);
     assert(signature_base64);
     return true;
 }
 
-bool _test_false_signature_verifier(SignatureVerifier *verifier, const char *data, const char *signature_base64) {
+bool _test_false_signature_verifier(void *target, SignatureVerifier *verifier, const char *data,
+                                    const char *signature_base64) {
     assert(verifier);
     assert(data);
     assert(signature_base64);
@@ -70,12 +72,6 @@ static ConfigurationTestContext *configuration_test_context_create(
             "12345"
     };
 
-    SignatureVerifierConfig signature_verifier_config = {
-            signature_verified
-            ? &_test_true_signature_verifier
-            : &_test_false_signature_verifier
-    };
-
     APIKeyVerifierConfig config = {
             &sdk_settings,
             api_key_verified
@@ -86,6 +82,12 @@ static ConfigurationTestContext *configuration_test_context_create(
     ErrorReporterConfig error_reporter_config = {&_test_error_report};
 
     ConfigurationTestContext *context = calloc(1, sizeof(ConfigurationTestContext));
+    SignatureVerifierConfig signature_verifier_config = {
+            context,
+            signature_verified
+            ? &_test_true_signature_verifier
+            : &_test_false_signature_verifier
+    };
     context->signature_verifier = signature_verifier_create(&signature_verifier_config);
     context->error_reporter = error_reporter_create(&error_reporter_config);
     context->sdk_settings = sdk_settings;
@@ -126,7 +128,8 @@ START_TEST (test_will_return_null_when_unexpected_exception) {
                            "   \"signed_date\":\"2018-01-09T19:02:00.720Z\"\n"
                            "}";
 
-    ConfigurationTestContext *context = configuration_test_context_create(json_str, CONFIGURATION_SOURCE_API, true, true);
+    ConfigurationTestContext *context = configuration_test_context_create(json_str, CONFIGURATION_SOURCE_API, true,
+                                                                          true);
     Configuration *config = configuration_test_context_parse(context);
     ck_assert_ptr_null(config);
     ck_assert(context->configuration_fetched);
@@ -143,7 +146,8 @@ START_TEST (test_will_return_null_when_wrong_signature) {
                            "   \"signed_date\":\"2018-01-09T19:02:00.720Z\"\n"
                            "}";
 
-    ConfigurationTestContext *context = configuration_test_context_create(json_str, CONFIGURATION_SOURCE_API, false, true);
+    ConfigurationTestContext *context = configuration_test_context_create(json_str, CONFIGURATION_SOURCE_API, false,
+                                                                          true);
     Configuration *config = configuration_test_context_parse(context);
     ck_assert_ptr_null(config);
     ck_assert(context->configuration_fetched);
@@ -160,7 +164,8 @@ START_TEST (test_will_return_null_when_wrong_api_key) {
                            "   \"signed_date\":\"2018-01-09T19:02:00.720Z\"\n"
                            "}";
 
-    ConfigurationTestContext *context = configuration_test_context_create(json_str, CONFIGURATION_SOURCE_API, true, false);
+    ConfigurationTestContext *context = configuration_test_context_create(json_str, CONFIGURATION_SOURCE_API, true,
+                                                                          false);
     Configuration *config = configuration_test_context_parse(context);
     ck_assert_ptr_null(config);
     ck_assert(context->configuration_fetched);
@@ -177,7 +182,8 @@ START_TEST (test_will_parse_experiments_and_target_groups) {
                            "   \"signed_date\":\"2018-01-09T19:02:00.720Z\"\n"
                            "}";
 
-    ConfigurationTestContext *context = configuration_test_context_create(json_str, CONFIGURATION_SOURCE_API, true, true);
+    ConfigurationTestContext *context = configuration_test_context_create(json_str, CONFIGURATION_SOURCE_API, true,
+                                                                          true);
     Configuration *conf = configuration_test_context_parse(context);
     ck_assert_ptr_nonnull(conf);
     ck_assert(!context->configuration_fetched);

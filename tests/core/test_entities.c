@@ -334,12 +334,12 @@ ROX_TEST_SUITE(
         ROX_TEST_CASE(test_will_expression_value_when_result_not_in_options),
         ROX_TEST_CASE(test_will_return_value_when_on_evaluation),
         ROX_TEST_CASE(test_will_raise_impression),
-//// FlagTests
+// FlagTests
         ROX_TEST_CASE(test_flag_without_default_value),
         ROX_TEST_CASE(test_flag_with_default_value),
         ROX_TEST_CASE(test_will_invoke_enabled_action),
         ROX_TEST_CASE(test_will_invoke_disabled_action),
-//// FlagSetterTests
+// FlagSetterTests
         ROX_TEST_CASE(test_will_set_flag_data),
         ROX_TEST_CASE(test_will_not_set_for_other_flag),
         ROX_TEST_CASE(test_will_set_experiment_for_flag_and_will_remove_it),

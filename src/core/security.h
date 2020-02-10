@@ -10,11 +10,13 @@
 typedef struct ROX_INTERNAL SignatureVerifier SignatureVerifier;
 
 typedef bool ROX_INTERNAL (*signature_verifier_func)(
+        void* target,
         SignatureVerifier *verifier,
         const char *data,
         const char *signature_base64);
 
 typedef struct ROX_INTERNAL SignatureVerifierConfig {
+    void* target;
     signature_verifier_func verify_func;
 } SignatureVerifierConfig;
 
