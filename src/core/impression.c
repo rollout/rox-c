@@ -34,7 +34,6 @@ void ROX_INTERNAL impression_invoker_invoke(
         ExperimentModel *experiment,
         Context *context) {
     assert(impression_invoker);
-    assert(value);
     Experiment *exp = experiment ? experiment_create(experiment) : NULL;
     LIST_FOREACH(h, impression_invoker->handlers, {
         ImpressionHandler *handler = (ImpressionHandler *) h;

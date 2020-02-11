@@ -363,9 +363,9 @@ bool ROX_INTERNAL internal_flags_is_enabled(InternalFlags *flags, const char *fl
     }
     EvaluationResult *value = parser_evaluate_expression(flags->parser, internal_experiment->condition, NULL);
     char *str_result = result_get_string(value);
-    bool result = str_result && str_equals(FLAG_TRUE_VALUE, str_result);
+    bool enabled = str_result && str_equals(FLAG_TRUE_VALUE, str_result);
     result_free(value);
-    return result;
+    return enabled;
 }
 
 int *ROX_INTERNAL internal_flags_get_int_value(InternalFlags *flags, const char *flag_name) {

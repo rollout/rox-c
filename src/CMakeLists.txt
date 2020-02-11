@@ -18,6 +18,9 @@ set(ROX_SRC
         roxx/extensions.c
         roxx/parser.c
         roxx/stack.c
+        xpack/analytics/client.c
+        xpack/analytics/model.c
+        xpack/impression.c
         xpack/security.c
         device.c
         dynamic.c

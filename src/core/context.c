@@ -32,7 +32,7 @@ Context *ROX_INTERNAL context_create_empty() {
     return context;
 }
 
-Context *ROX_INTERNAL context_create_from_hashtable(HashTable *map) {
+Context *ROX_INTERNAL context_create_from_map(HashTable *map) {
     assert(map);
     Context *context = calloc(1, sizeof(Context));
     context->map = map;

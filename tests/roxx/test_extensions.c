@@ -313,9 +313,9 @@ START_TEST (test_flag_dependency_with_context) {
     variant_set_condition(flag2, "flagValue(\"flag1\")");
     flag_repository_add_flag(context->flag_repository, flag2, "flag2");
 
-    Context *ctx = context_create_from_hashtable(ROX_MAP(
-                                                         mem_copy_str("isPropOn"),
-                                                         dynamic_value_create_boolean(true)));
+    Context *ctx = context_create_from_map(ROX_MAP(
+                                                   mem_copy_str("isPropOn"),
+                                                   dynamic_value_create_boolean(true)));
 
     char *flag_value = variant_get_value_or_default(flag2, ctx);
     ck_assert_str_eq(flag_value, "true");
@@ -348,9 +348,9 @@ START_TEST (test_flag_dependency_with_context_used_on_experiment_with_no_flag) {
 
     experiment_repository_set_experiments(context->experiment_repository, experiment_models);
 
-    Context *ctx = context_create_from_hashtable(ROX_MAP(
-                                                         mem_copy_str("isPropOn"),
-                                                         dynamic_value_create_boolean(true)));
+    Context *ctx = context_create_from_map(ROX_MAP(
+                                                   mem_copy_str("isPropOn"),
+                                                   dynamic_value_create_boolean(true)));
 
     char *flag_value = variant_get_value_or_default(flag3, ctx);
     ck_assert_str_eq(flag_value, "true");
@@ -388,9 +388,9 @@ START_TEST (test_flag_dependency_with_context2_level_mid_level_no_flag_eval_expe
 
     experiment_repository_set_experiments(context->experiment_repository, experiment_models);
 
-    Context *ctx = context_create_from_hashtable(ROX_MAP(
-                                                         mem_copy_str("isPropOn"),
-                                                         dynamic_value_create_boolean(true)));
+    Context *ctx = context_create_from_map(ROX_MAP(
+                                                   mem_copy_str("isPropOn"),
+                                                   dynamic_value_create_boolean(true)));
 
     char *flag_value = variant_get_value_or_default(flag3, ctx);
     ck_assert_str_eq(flag_value, "true");
@@ -470,9 +470,9 @@ START_TEST (test_roxx_properties_extensions_with_context_string) {
                     &ROX_CUSTOM_PROPERTY_TYPE_STRING,
                     context, &_parser_extensions_custom_property_generator));
 
-    Context *ctx = context_create_from_hashtable(ROX_MAP(
-                                                         mem_copy_str("ContextTestKey"),
-                                                         dynamic_value_create_string_copy("test")));
+    Context *ctx = context_create_from_map(ROX_MAP(
+                                                   mem_copy_str("ContextTestKey"),
+                                                   dynamic_value_create_string_copy("test")));
 
     EvaluationResult *result = parser_evaluate_expression(
             context->parser, "eq(\"test\", property(\"CustomPropertyTestKey\"))", ctx);
@@ -496,9 +496,9 @@ START_TEST (test_roxx_properties_extensions_with_context_int) {
                     &ROX_CUSTOM_PROPERTY_TYPE_INT,
                     context, &_parser_extensions_custom_property_generator));
 
-    Context *ctx = context_create_from_hashtable(ROX_MAP(
-                                                         mem_copy_str("ContextTestKey"),
-                                                         dynamic_value_create_int(3)));
+    Context *ctx = context_create_from_map(ROX_MAP(
+                                                   mem_copy_str("ContextTestKey"),
+                                                   dynamic_value_create_int(3)));
 
     EvaluationResult *result = parser_evaluate_expression(
             context->parser, "eq(3, property(\"CustomPropertyTestKey\"))", ctx);
@@ -522,9 +522,9 @@ START_TEST (test_roxx_properties_extensions_with_context_int_with_string) {
                     &ROX_CUSTOM_PROPERTY_TYPE_INT,
                     context, &_parser_extensions_custom_property_generator));
 
-    Context *ctx = context_create_from_hashtable(ROX_MAP(
-                                                         mem_copy_str("ContextTestKey"),
-                                                         dynamic_value_create_int(3)));
+    Context *ctx = context_create_from_map(ROX_MAP(
+                                                   mem_copy_str("ContextTestKey"),
+                                                   dynamic_value_create_int(3)));
 
     EvaluationResult *result = parser_evaluate_expression(
             context->parser, "eq(\"3\", property(\"CustomPropertyTestKey\"))", ctx);
@@ -548,9 +548,9 @@ START_TEST (test_roxx_properties_extensions_with_context_int_not_equal) {
                     &ROX_CUSTOM_PROPERTY_TYPE_INT,
                     context, &_parser_extensions_custom_property_generator));
 
-    Context *ctx = context_create_from_hashtable(ROX_MAP(
-                                                         mem_copy_str("ContextTestKey"),
-                                                         dynamic_value_create_int(3)));
+    Context *ctx = context_create_from_map(ROX_MAP(
+                                                   mem_copy_str("ContextTestKey"),
+                                                   dynamic_value_create_int(3)));
 
     EvaluationResult *result = parser_evaluate_expression(
             context->parser, "eq(4, property(\"CustomPropertyTestKey\"))", ctx);
@@ -632,9 +632,9 @@ END_TEST
 START_TEST (test_default_dynamic_rule) {
     ParserExtensionsTestContext *context = parser_extensions_test_context_create();
 
-    Context *ctx = context_create_from_hashtable(ROX_MAP(
-                                                         mem_copy_str("testKeyRule"),
-                                                         dynamic_value_create_string_copy("test")));
+    Context *ctx = context_create_from_map(ROX_MAP(
+                                                   mem_copy_str("testKeyRule"),
+                                                   dynamic_value_create_string_copy("test")));
 
     EvaluationResult *result = parser_evaluate_expression(
             context->parser, "eq(\"test\", property(\"testKeyRule\"))", ctx);
@@ -655,9 +655,9 @@ START_TEST (test_custom_dynamic_rule) {
     ParserExtensionsTestContext *context = parser_extensions_test_context_create();
     dynamic_properties_set_rule(context->dynamic_properties, NULL, &_test_inc_value);
 
-    Context *ctx = context_create_from_hashtable(ROX_MAP(
-                                                         mem_copy_str("testKeyRule"),
-                                                         dynamic_value_create_int(5)));
+    Context *ctx = context_create_from_map(ROX_MAP(
+                                                   mem_copy_str("testKeyRule"),
+                                                   dynamic_value_create_int(5)));
 
     EvaluationResult *result = parser_evaluate_expression(
             context->parser, "eq(6, property(\"testKeyRule\"))", ctx);
@@ -673,9 +673,9 @@ END_TEST
 START_TEST (test_dynamic_rule_returns_null) {
     ParserExtensionsTestContext *context = parser_extensions_test_context_create();
 
-    Context *ctx = context_create_from_hashtable(ROX_MAP(
-                                                         mem_copy_str("testKeyRule"),
-                                                         NULL));
+    Context *ctx = context_create_from_map(ROX_MAP(
+                                                   mem_copy_str("testKeyRule"),
+                                                   NULL));
 
     EvaluationResult *result = parser_evaluate_expression(
             context->parser, "eq(undefined, property(\"testKeyRule\"))", ctx);
@@ -691,7 +691,7 @@ END_TEST
 START_TEST (test_dynamic_rule_returns_supported_type) {
     ParserExtensionsTestContext *context = parser_extensions_test_context_create();
 
-    Context *ctx = context_create_from_hashtable(
+    Context *ctx = context_create_from_map(
             ROX_MAP(
                     mem_copy_str("testKeyRule"), dynamic_value_create_string_copy("test1"),
                     mem_copy_str("testKeyRule2"), dynamic_value_create_boolean(true),
@@ -727,7 +727,7 @@ START_TEST (test_dynamic_rule_return_unsupported_type) {
     HashTable *map;
     hashtable_new(&map);
 
-    Context *ctx = context_create_from_hashtable(
+    Context *ctx = context_create_from_map(
             ROX_MAP(
                     mem_copy_str("testKeyRule"),
                     dynamic_value_create_map(map)));

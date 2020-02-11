@@ -12,6 +12,7 @@ typedef struct ROX_INTERNAL Experiment {
     char *identifier;
     bool archived;
     HashSet *labels;
+    char *stickiness_property;
 } Experiment;
 
 /**

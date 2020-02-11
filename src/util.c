@@ -214,7 +214,7 @@ void ROX_INTERNAL str_substring_b(const char *str, int start, int len, char *buf
     buffer[len] = '\0';
 }
 
-size_t ROX_INTERNAL str_copy_value_to_buffer(char *buffer, int buffer_size, const char *value) {
+size_t ROX_INTERNAL str_copy_value_to_buffer(char *buffer, size_t buffer_size, const char *value) {
     assert(buffer);
     assert(buffer_size > 0);
     assert(value);
@@ -222,6 +222,14 @@ size_t ROX_INTERNAL str_copy_value_to_buffer(char *buffer, int buffer_size, cons
     assert(len < buffer_size);
     strncpy_s(buffer, buffer_size, value, len);
     return len;
+}
+
+char *ROX_INTERNAL str_format_b(char *buffer, size_t buffer_size, const char *fmt, ...) {
+    va_list args;
+            va_start(args, fmt);
+    vsprintf_s(buffer, buffer_size, fmt, args);
+            va_end(args);
+    return buffer;
 }
 
 char *ROX_INTERNAL mem_str_substring(const char *str, int start, int len) {

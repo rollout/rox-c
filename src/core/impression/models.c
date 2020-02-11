@@ -14,6 +14,7 @@ Experiment *ROX_INTERNAL experiment_create(ExperimentModel *model) {
     experiment->name = model->name;
     experiment->archived = model->archived;
     experiment->labels = model->labels;
+    experiment->stickiness_property = model->stickiness_property;
     return experiment;
 }
 

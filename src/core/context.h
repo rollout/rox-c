@@ -19,7 +19,7 @@ Context *ROX_INTERNAL context_create_empty();
  * @param map Not <code>NULL</code>. Keys are strings, values are <code>DynamicValue *</code>.
  * @return Not <code>NULL</code>.
  */
-Context *ROX_INTERNAL context_create_from_hashtable(HashTable *map);
+Context *ROX_INTERNAL context_create_from_map(HashTable *map);
 
 /**
  * The ownership of the given contexts' keys and values are delegated to the created context,

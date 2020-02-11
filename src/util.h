@@ -63,7 +63,9 @@ bool ROX_INTERNAL str_in_list(const char *str, List *list_of_strings);
 
 void ROX_INTERNAL str_substring_b(const char *str, int start, int len, char *buffer);
 
-size_t ROX_INTERNAL str_copy_value_to_buffer(char *buffer, int buffer_size, const char *value);
+size_t ROX_INTERNAL str_copy_value_to_buffer(char *buffer, size_t buffer_size, const char *value);
+
+char *ROX_INTERNAL str_format_b(char *buffer, size_t buffer_size, const char *fmt, ...);
 
 /**
  * NOTE: THE RETURNED STR MUST BE FREED AFTER USE
@@ -211,3 +213,15 @@ rox_hash_table_free_with_keys_and_values_cb(HashTable *map, void (*f_key)(void *
 #define ROX_MAP(...) rox_map_create(NULL, __VA_ARGS__, NULL)
 
 #define ROX_EMPTY_MAP ROX_MAP(NULL)
+
+/**
+ * Collectc has a bug in HASHSET_FOREACH it uses HashsetIter name instead of HashSetIter.
+ */
+#define ROX_SET_FOREACH(val, hashset, body)                             \
+    {                                                                   \
+        HashSetIter hashset_iter_53d46d2a04458e7b;                      \
+        hashset_iter_init(&hashset_iter_53d46d2a04458e7b, hashset);     \
+        void *val;                                                      \
+        while (hashset_iter_next(&hashset_iter_53d46d2a04458e7b, &val) != CC_ITER_END) \
+            body                                                        \
+                }
