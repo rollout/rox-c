@@ -296,6 +296,16 @@ START_TEST (test_string_uppercase) {
 
 END_TEST
 
+START_TEST (test_build_url) {
+    rox_check_and_free(mem_build_url("", ""), "");
+    rox_check_and_free(mem_build_url("/", "/"), "/");
+    rox_check_and_free(mem_build_url("test", ""), "test");
+    rox_check_and_free(mem_build_url("test/", "/"), "test/");
+    rox_check_and_free(mem_build_url("test/", "/me"), "test/me");
+}
+
+END_TEST
+
 ROX_TEST_SUITE(
 // mem_str_to_double
         ROX_TEST_CASE(test_str_to_double_nan),
@@ -341,5 +351,8 @@ ROX_TEST_SUITE(
         ROX_TEST_CASE(test_string_join),
 
 // str_to_upper
-        ROX_TEST_CASE(test_string_uppercase)
+        ROX_TEST_CASE(test_string_uppercase),
+
+// build_url
+        ROX_TEST_CASE(test_build_url)
 )

@@ -47,7 +47,11 @@ bool ROX_INTERNAL str_matches(const char *str, const char *pattern, unsigned int
 
 int ROX_INTERNAL str_index_of(const char *str, char c);
 
+bool ROX_INTERNAL str_starts_with(const char *str, const char *prefix);
+
 bool ROX_INTERNAL str_equals(const char *str, const char *another);
+
+bool ROX_INTERNAL str_eq_n(const char *str, int start, int end, const char *another);
 
 bool ROX_INTERNAL str_is_empty(const char *str);
 
@@ -69,12 +73,22 @@ char *ROX_INTERNAL str_format_b(char *buffer, size_t buffer_size, const char *fm
 
 /**
  * NOTE: THE RETURNED STR MUST BE FREED AFTER USE
- * @param str The input string.
+ * @param str The input string. <em>Must</em> be zero-terminated.
  * @param start The start offset.
  * @param len Length of the returned substring.
  * @return Pointer to the NEWLY CREATED string which is a substring of the given string or NULL in case where start offset or length is out of bounds.
  */
 char *ROX_INTERNAL mem_str_substring(const char *str, int start, int len);
+
+/**
+ * NOTE: THE RETURNED STR MUST BE FREED AFTER USE
+ * @param str The input string. Could be non-zero-terminated.
+ * @param str_len The length of the given <code>str</code>.
+ * @param start The start offset.
+ * @param len Length of the returned substring.
+ * @return Pointer to the NEWLY CREATED string which is a substring of the given string or NULL in case where start offset or length is out of bounds.
+ */
+char *ROX_INTERNAL mem_str_substring_n(const char *str, size_t str_len, int start, int len);
 
 /**
  * NOTE: THE RETURNED STR MUST BE FREED AFTER USE
@@ -99,6 +113,12 @@ char *ROX_INTERNAL mem_str_concat(const char *s1, const char *s2);
  * @return Pointer to the NEWLY CREATED string which is a formatted string.
  */
 char *ROX_INTERNAL mem_str_format(const char *fmt, ...);
+
+/**
+ * NOTE: THE RETURNED STR MUST BE FREED AFTER USE
+ * @return Pointer to the NEWLY CREATED string which is a formatted string.
+ */
+char *ROX_INTERNAL mem_build_url(const char *base_uri, const char *path);
 
 /**
  * NOTE: THE RETURNED STR MUST BE FREED AFTER USE

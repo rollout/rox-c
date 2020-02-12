@@ -101,6 +101,8 @@ ConfigurationFetchedArgs *ROX_INTERNAL configuration_fetched_args_create(
 
 ConfigurationFetchedArgs *ROX_INTERNAL configuration_fetched_args_create_error(FetcherError error_details);
 
+ConfigurationFetchedArgs *ROX_INTERNAL configuration_fetched_args_copy(ConfigurationFetchedArgs *args);
+
 void ROX_INTERNAL configuration_fetched_args_free(ConfigurationFetchedArgs *args);
 
 //

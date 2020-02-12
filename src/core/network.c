@@ -163,7 +163,7 @@ static HttpResponseMessage *_request_send_post_json(void *target, Request *reque
     curl_easy_setopt(request->curl, CURLOPT_HTTPPOST, true);
     curl_easy_setopt(request->curl, CURLOPT_POSTFIELDS, json);
     curl_easy_setopt(request->curl, CURLOPT_WRITEDATA, &context);
-    curl_easy_setopt(request->curl, CURLOPT_HEADER, headers);
+    curl_easy_setopt(request->curl, CURLOPT_HTTPHEADER, headers);
     CURLcode res = curl_easy_perform(request->curl);
     curl_slist_free_all(headers);
     if (res != CURLE_OK) {

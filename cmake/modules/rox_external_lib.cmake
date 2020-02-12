@@ -113,13 +113,27 @@ macro(_rox_init_third_party_lib_vars)
         set(LIB_CONFIGURE <CMAKE> -D CMAKE_INSTALL_PREFIX=${LIB_INSTALL_DIR} ${LIB_CMAKE_ARGS})
     endif ()
 
+    if (NOT LIB_BUILD)
+        set(LIB_BUILD ${CMAKE_MAKE_PROGRAM})
+    endif ()
+
+    if (LIB_CFLAGS)
+        set(LIB_BUILD "${LIB_BUILD} CFLAGS=\"${LIB_CFLAGS}\"")
+    endif ()
+
     _rox_build_lib_file_locations(LIB_FILE_LOCATIONS)
     _rox_prepare_lib_dependencies()
 
+    string(REPLACE "<DEFAULT_BUILD>" "${CMAKE_MAKE_PROGRAM}" LIB_BUILD "${LIB_BUILD}")
+    string(REPLACE "<DEFAULT_CONFIGURE>" "<CMAKE> -D CMAKE_INSTALL_PREFIX=${LIB_INSTALL_DIR} ${LIB_CMAKE_ARGS}" LIB_CONFIGURE "${LIB_CONFIGURE}")
     string(REPLACE "<CMAKE>" "${LIB_CMAKE}" LIB_CONFIGURE "${LIB_CONFIGURE}")
 
     if (WIN32 AND LIB_LINK_WIN)
         list(APPEND LIB_LINK ${LIB_LINK_WIN})
+    endif ()
+
+    if (NOT LIB_INCLUDE_DIR)
+        set(LIB_INCLUDE_DIR ${LIB_INSTALL_DIR}/include)
     endif ()
 
     if (LIB_VERBOSE)
@@ -137,8 +151,12 @@ macro(_rox_init_third_party_lib_vars)
         message("LIB_BINARY_DIR = ${LIB_BINARY_DIR}")
         message("LIB_STAMP_DIR = ${LIB_STAMP_DIR}")
         message("LIB_TMP_DIR = ${LIB_TMP_DIR}")
+        message("LIB_INCLUDE_DIR = ${LIB_INCLUDE_DIR}")
         message("LIB_CMAKE = ${LIB_CMAKE}")
         message("LIB_CMAKE_ARGS = ${LIB_CMAKE_ARGS}")
+        message("LIB_CFLAGS = ${LIB_CFLAGS}")
+        message("LIB_BUILD = ${LIB_BUILD}")
+        message("LIB_PATCH = ${LIB_PATCH}")
         message("LIB_CONFIGURE = ${LIB_CONFIGURE}")
         message("LIB_BUILD_IN_SOURCE = ${LIB_BUILD_IN_SOURCE}")
         message("LIB_DRY_RUN = ${LIB_DRY_RUN}")
@@ -246,6 +264,8 @@ macro(_rox_build_third_party_lib)
                     INSTALL_DIR ${LIB_INSTALL_DIR}
                     BINARY_DIR ${LIB_BINARY_DIR}
                     CONFIGURE_COMMAND ${LIB_CONFIGURE}
+                    PATCH_COMMAND ${LIB_PATCH}
+                    BUILD_COMMAND ${LIB_BUILD}
                     BUILD_IN_SOURCE ${LIB_BUILD_IN_SOURCE}
                     DEPENDS ${LIB_DEPENDENCIES})
 
@@ -263,6 +283,8 @@ macro(_rox_build_third_party_lib)
                     INSTALL_DIR ${LIB_INSTALL_DIR}
                     BINARY_DIR ${LIB_BINARY_DIR}
                     CONFIGURE_COMMAND ${LIB_CONFIGURE}
+                    PATCH_COMMAND ${LIB_PATCH}
+                    BUILD_COMMAND ${LIB_BUILD}
                     BUILD_IN_SOURCE ${LIB_BUILD_IN_SOURCE}
                     DEPENDS ${LIB_DEPENDENCIES})
 
@@ -277,7 +299,7 @@ macro(_rox_try_find_third_party_lib)
     if (LIB_TRY_FIND_IN_INSTALL_DIR)
         list(APPEND LIB_TRY_FIND_IN ${LIB_INSTALL_DIR})
         if (NOT "${LIB_TRY_FIND_IN_INSTALL_DIR}" STREQUAL "")
-            set(${LIB_TRY_FIND_IN_INSTALL_DIR} ${LIB_INSTALL_DIR})
+            set(${LIB_TRY_FIND_IN_INSTALL_DIR} ${LIB_INSTALL_DIR} PARENT_SCOPE)
         endif ()
     endif ()
 
@@ -308,6 +330,9 @@ macro(_rox_try_find_third_party_lib)
         endif ()
 
         if (${LIB_TRY_FIND_THEN} AND ${LIB_TRY_FIND_INCLUDE_DIR})
+            if (LIB_VERBOSE)
+                message("Including library directory ${${LIB_TRY_FIND_INCLUDE_DIR}}")
+            endif ()
             include_directories(${${LIB_TRY_FIND_INCLUDE_DIR}})
         endif ()
 
@@ -376,7 +401,7 @@ macro(_rox_link_third_party_lib)
 
                     set_target_properties(${LIB_TARGET_NAME} PROPERTIES
                             IMPORTED_LOCATION "${LIB_FILE_LOCATION}"
-                            INTERFACE_INCLUDE_DIRECTORIES "${LIB_INSTALL_DIR}/include")
+                            INTERFACE_INCLUDE_DIRECTORIES "${LIB_INCLUDE_DIR}")
 
                 else ()
 
@@ -414,8 +439,8 @@ endmacro()
 function(rox_external_lib LIB_NAME)
 
     set(options VERBOSE DRY_RUN SHARED BUILD_IN_SOURCE)
-    set(oneValueArgs VERSION URL HASH FILE CONFIGURE SUBDIR CMAKE TRY_FIND_THEN TRY_FIND_VERSION TRY_FIND_INCLUDE_DIR TRY_FIND_LIBRARIES TRY_FIND_IN_INSTALL_DIR)
-    set(multiValueArgs CMAKE_ARGS TARGETS DEFINITIONS LINK LINK_WIN DEPENDS_ON TRY_FIND TRY_FIND_LINK TRY_FIND_DEFINITIONS TRY_FIND_IN)
+    set(oneValueArgs VERSION URL HASH FILE CFLAGS CONFIGURE BUILD SUBDIR INCLUDE_DIR CMAKE TRY_FIND_THEN TRY_FIND_VERSION TRY_FIND_INCLUDE_DIR TRY_FIND_LIBRARIES TRY_FIND_IN_INSTALL_DIR)
+    set(multiValueArgs CMAKE_ARGS TARGETS DEFINITIONS PATCH LINK LINK_WIN DEPENDS_ON TRY_FIND TRY_FIND_LINK TRY_FIND_DEFINITIONS TRY_FIND_IN)
 
     cmake_parse_arguments(LIB "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 

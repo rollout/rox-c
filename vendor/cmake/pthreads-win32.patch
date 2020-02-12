@@ -1,0 +1,15 @@
+diff --git a/pthreads-win32/pthread.h b/pthreads-win32/pthread.h
+index b4072f7..32e0a5c 100644
+--- a/pthreads-win32/pthread.h
++++ b/pthreads-win32/pthread.h
+@@ -313,6 +313,10 @@ enum {
+ #endif
+ #endif
+ 
++#if !defined(HAVE_STRUCT_TIMESPEC)
++#define HAVE_STRUCT_TIMESPEC 1
++#endif // !defined(HAVE_STRUCT_TIMESPEC)
++
+ #if !defined(HAVE_STRUCT_TIMESPEC)
+ #define HAVE_STRUCT_TIMESPEC
+ #if !defined(_TIMESPEC_DEFINED)

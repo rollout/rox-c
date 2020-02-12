@@ -4,7 +4,6 @@
 #include "roxtests.h"
 #include "xpack/impression.h"
 #include "core/consts.h"
-#include "device.h"
 
 typedef struct ROX_INTERNAL ImpressionValues {
     const char *reporting_value_name;

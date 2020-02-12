@@ -64,14 +64,26 @@ ConfigurationFetchedArgs *ROX_INTERNAL configuration_fetched_args_create(
     args->fetcher_status = fetcher_status;
     args->creation_date = creation_date;
     args->has_changes = has_changes;
+    args->error_details = NoError;
     return args;
 }
 
 ConfigurationFetchedArgs *ROX_INTERNAL configuration_fetched_args_create_error(FetcherError error_details) {
     assert(error_details);
     ConfigurationFetchedArgs *args = calloc(1, sizeof(ConfigurationFetchedArgs));
+    args->fetcher_status = ErrorFetchedFailed;
     args->error_details = error_details;
     return args;
+}
+
+ConfigurationFetchedArgs *ROX_INTERNAL configuration_fetched_args_copy(ConfigurationFetchedArgs *args) {
+    assert(args);
+    ConfigurationFetchedArgs *copy = calloc(1, sizeof(ConfigurationFetchedArgs));
+    copy->fetcher_status = args->fetcher_status;
+    copy->creation_date = args->creation_date;
+    copy->has_changes = args->has_changes;
+    copy->error_details = args->error_details;
+    return copy;
 }
 
 void ROX_INTERNAL configuration_fetched_args_free(ConfigurationFetchedArgs *args) {

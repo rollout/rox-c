@@ -178,10 +178,32 @@ int ROX_INTERNAL str_index_of(const char *str, char c) {
     return (int) (e - str);
 }
 
+bool ROX_INTERNAL str_starts_with(const char *str, const char *prefix) {
+    assert(str);
+    assert(prefix);
+    for (int i = 0, n = (int) strlen(prefix); i < n; ++i) {
+        if (str[i] != prefix[i]) {
+            return false;
+        }
+    }
+    return true;
+}
+
 bool ROX_INTERNAL str_equals(const char *str, const char *another) {
     assert(str);
     assert(another);
     return str == another || strcmp(str, another) == 0;
+}
+
+bool ROX_INTERNAL str_eq_n(const char *str, int start, int end, const char *another) {
+    assert(str);
+    assert(another);
+    for (int i = start; i < end; ++i) {
+        if (str[i] != another[i - start]) {
+            return false;
+        }
+    }
+    return true;
 }
 
 bool ROX_INTERNAL str_is_empty(const char *str) {
@@ -236,7 +258,15 @@ char *ROX_INTERNAL mem_str_substring(const char *str, int start, int len) {
     assert(str);
     assert(start >= 0);
     assert(len >= 0);
-    if (start + len > strlen(str)) {
+    return mem_str_substring_n(str, strlen(str), start, len);
+}
+
+char *ROX_INTERNAL mem_str_substring_n(const char *str, size_t str_len, int start, int len) {
+    assert(str);
+    assert(start >= 0);
+    assert(len >= 0);
+    assert(str_len >= 0);
+    if (start + len > str_len) {
         return NULL;
     }
     char *buffer = calloc(len + 1, sizeof(char));
@@ -276,6 +306,33 @@ char *ROX_INTERNAL mem_str_format(const char *fmt, ...) {
 }
 
 #undef ROX_MEM_STR_FORMAT_BUFFER_SIZE
+
+char *ROX_INTERNAL mem_build_url(const char *base_uri, const char *path) {
+    assert(base_uri);
+    assert(path);
+    size_t base_uri_len = strlen(base_uri);
+    if (!base_uri_len) {
+        return mem_copy_str("");
+    }
+    if (base_uri[base_uri_len - 1] == '/') {
+        --base_uri_len;
+    }
+    size_t path_len = strlen(path);
+    if (path_len > 0) {
+        if (path[0] == '/') {
+            ++path;
+            --path_len;
+        }
+        size_t resulting_string_len = base_uri_len + 1 + path_len;
+        char *result = malloc(resulting_string_len + 1);
+        memcpy(result, base_uri, base_uri_len * sizeof(char));
+        memcpy(result + base_uri_len, "/", sizeof(char));
+        memcpy(result + base_uri_len + 1, path, path_len);
+        result[resulting_string_len] = 0;
+        return result;
+    }
+    return mem_copy_str(base_uri);
+}
 
 double ROX_INTERNAL current_time_millis() {
     time_t t;
