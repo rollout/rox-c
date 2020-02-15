@@ -358,6 +358,18 @@ void ROX_INTERNAL thread_sleep(int sleep_millis) {
 #endif
 }
 
+struct timespec ROX_INTERNAL get_future_timespec(int ms) {
+    struct timespec now, due;
+    timespec_get(&now, TIME_UTC);
+    due.tv_sec = now.tv_sec + ms / 1000;
+    due.tv_nsec = now.tv_nsec + (ms % 1000) * 1000000;
+    if (due.tv_nsec >= 1000000000) {
+        due.tv_nsec -= 1000000000;
+        due.tv_sec++;
+    }
+    return due;
+}
+
 size_t ROX_INTERNAL rox_file_read_b(const char *file_path, unsigned char *buffer, size_t buffer_size) {
     FILE *fp;
     if ((fopen_s(&fp, file_path, "rb")) != 0 || !fp) {

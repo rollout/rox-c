@@ -8,10 +8,10 @@ static void _default_logging_handler(void *target, RoxLogMessage *message) {
     fprintf(message->level == RoxLogLevelDebug
             ? stdout
             : stderr,
-            "[%s] (%s:%d) %s\n",
-            message->level_name,
+            "%s:%d [%s] %s\n",
             message->file,
             message->line,
+            message->level_name,
             message->message);
 }
 

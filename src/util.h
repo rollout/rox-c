@@ -5,6 +5,7 @@
 #include <collectc/hashset.h>
 #include <collectc/hashtable.h>
 #include <stdbool.h>
+#include <time.h>
 #include "roxapi.h"
 
 //
@@ -172,6 +173,8 @@ char *ROX_INTERNAL mem_str_join(const char *separator, List *strings);
 double ROX_INTERNAL current_time_millis();
 
 void ROX_INTERNAL thread_sleep(int sleep_millis);
+
+struct ROX_INTERNAL timespec get_future_timespec(int ms);
 
 /**
  * @param file_path Path to the file to read. Not <code>NULL</code>.

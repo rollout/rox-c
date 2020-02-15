@@ -2,8 +2,9 @@
 #include <assert.h>
 #include "roxtests.h"
 #include "xpack/notifications.h"
+#include "util.h"
 
-START_TEST (test_sse) {
+START_TEST (test_sse_shutting_down_gracefully) {
 
     RoxLoggingConfig logging_config = {RoxLogLevelDebug, NULL, NULL};
     rox_logging_init(&logging_config);
@@ -13,9 +14,10 @@ START_TEST (test_sse) {
             "5b3356d00d81206da3055bc0"
     };
 
-    config.current_thread = true; // run in a single threaded mode
     NotificationListener *listener = notification_listener_create(&config);
     notification_listener_start(listener);
+    thread_sleep(2000);
+    notification_listener_stop(listener);
     notification_listener_free(listener);
 }
 
@@ -237,7 +239,7 @@ START_TEST (test_listener_events_multi_line_data_no_space_after_field_name) {
 END_TEST
 
 ROX_TEST_SUITE(
-//        ROX_TEST_CASE(test_sse), // To be invoked manually, just for checking if everything works
+        ROX_TEST_CASE(test_sse_shutting_down_gracefully),
         ROX_TEST_CASE(test_listener_events_empty_line),
         ROX_TEST_CASE(test_listener_events_empty_line_cr),
         ROX_TEST_CASE(test_listener_events_empty_line_cr2),

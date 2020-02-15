@@ -37,18 +37,6 @@ Debouncer *ROX_INTERNAL debouncer_create(int interval_millis, void *target, debo
     return debouncer;
 }
 
-static struct timespec get_future_timespec(int ms) {
-    struct timespec now, due;
-    timespec_get(&now, TIME_UTC);
-    due.tv_sec = now.tv_sec + ms / 1000;
-    due.tv_nsec = now.tv_nsec + (ms % 1000) * 1000000;
-    if (due.tv_nsec >= 1000000000) {
-        due.tv_nsec -= 1000000000;
-        due.tv_sec++;
-    }
-    return due;
-}
-
 static void *_debouncer_thread_func(void *ptr) {
     Debouncer *debouncer = (Debouncer *) ptr;
     double time = current_time_millis();

@@ -37,6 +37,7 @@ typedef struct ROX_INTERNAL NotificationListenerConfig {
     const char *app_key;
     bool testing;
     bool current_thread;
+    int reconnect_timeout_millis;
 } NotificationListenerConfig;
 
 /**

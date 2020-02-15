@@ -38,6 +38,8 @@ typedef struct ROX_INTERNAL EventSourceReader {
     bool reading;
     int reconnect_timeout_millis;
     pthread_t thread;
+    pthread_mutex_t thread_mutex;
+    pthread_cond_t thread_cond;
     CURL *curl;
     char *last_event_id;
     bool skip_ssl_cert_verification;
@@ -51,6 +53,10 @@ void ROX_INTERNAL _event_source_reader_stop(EventSourceReader *reader) {
             curl_easy_cleanup(reader->curl);
             reader->curl = NULL;
         }
+        pthread_mutex_lock(&reader->thread_mutex);
+        pthread_cond_signal(&reader->thread_cond);
+        pthread_mutex_unlock(&reader->thread_mutex);
+        pthread_join(reader->thread, NULL);
     }
 }
 
@@ -129,8 +135,6 @@ static void _event_source_reader_reset_state(EventSourceReaderFsm *fsm, int inde
     fsm->state = InitialState;
 }
 
-#define DEFAULT_RECONNECT_TIMEOUT_SECONDS 3
-
 static void _event_source_reader_message_read(
         EventSourceReader *reader,
         EventSourceReaderFsm *fsm,
@@ -174,7 +178,6 @@ static void _event_source_reader_message_read(
                 free(reconnect_millis);
             } else {
                 ROX_WARN("failed to parse retry field value '%s'", value);
-                reader->reconnect_timeout_millis = DEFAULT_RECONNECT_TIMEOUT_SECONDS * 1000;
             }
             free(value);
 
@@ -302,7 +305,13 @@ static void *_event_source_reader_thread_func(void *ptr) {
             ROX_WARN("curl_easy_perform() failed: %s", curl_easy_strerror(res));
         }
         ROX_DEBUG("reconnecting after %d milliseconds", reader->reconnect_timeout_millis);
-        thread_sleep(reader->reconnect_timeout_millis);
+        struct timespec ts = get_future_timespec(reader->reconnect_timeout_millis);
+        pthread_mutex_lock(&reader->thread_mutex);
+        int result = pthread_cond_timedwait(&reader->thread_cond, &reader->thread_mutex, &ts);
+        pthread_mutex_unlock(&reader->thread_mutex);
+        if (result != ETIMEDOUT) { // reader stopped
+            break;
+        }
     }
 
     if (headers) {
@@ -324,7 +333,8 @@ static void _event_source_reader_start(EventSourceReader *reader, bool join) {
 static EventSourceReader *_event_source_reader_create(
         const char *url,
         void *target,
-        event_source_reader_on_message_func on_message) {
+        event_source_reader_on_message_func on_message,
+        int reconnect_timeout_millis) {
 
     assert(url);
     assert(on_message);
@@ -333,11 +343,11 @@ static EventSourceReader *_event_source_reader_create(
     reader->url = mem_copy_str(url);
     reader->target = target;
     reader->on_message = on_message;
-    reader->reconnect_timeout_millis = DEFAULT_RECONNECT_TIMEOUT_SECONDS * 1000;
+    reader->thread_mutex = PTHREAD_MUTEX_INITIALIZER;
+    reader->thread_cond = PTHREAD_COND_INITIALIZER;
+    reader->reconnect_timeout_millis = reconnect_timeout_millis;
     return reader;
 }
-
-#undef DEFAULT_RECONNECT_TIMEOUT_SECONDS
 
 void ROX_INTERNAL _event_source_reader_free(EventSourceReader *reader) {
     assert(reader);
@@ -388,6 +398,7 @@ struct ROX_INTERNAL NotificationListener {
     // debugging options
     bool testing;
     bool current_thread;
+    int reconnect_timeout_millis;
 };
 
 static void _notification_listener_message_received(void *target, EventSourceMessageEventArgs *args) {
@@ -408,6 +419,8 @@ static void _notification_listener_message_received(void *target, EventSourceMes
     }
 }
 
+#define DEFAULT_RECONNECT_TIMEOUT_SECONDS 3
+
 NotificationListener *ROX_INTERNAL notification_listener_create(NotificationListenerConfig *config) {
     assert(config);
     assert(config->listen_url);
@@ -419,14 +432,20 @@ NotificationListener *ROX_INTERNAL notification_listener_create(NotificationList
 
     listener->testing = config->testing;
     listener->current_thread = config->current_thread;
+    listener->reconnect_timeout_millis = config->reconnect_timeout_millis > 0
+                                         ? config->reconnect_timeout_millis
+                                         : DEFAULT_RECONNECT_TIMEOUT_SECONDS * 1000;
 
     if (config->testing) {
         listener->reader = _event_source_reader_create(
-                "test", listener, &_notification_listener_message_received);
+                "test", listener, &_notification_listener_message_received,
+                listener->reconnect_timeout_millis);
     }
 
     return listener;
 }
+
+#undef DEFAULT_RECONNECT_TIMEOUT_SECONDS
 
 void ROX_INTERNAL notification_listener_on(
         NotificationListener *listener,
@@ -473,7 +492,8 @@ void ROX_INTERNAL notification_listener_start(NotificationListener *listener) {
     }
     char *url = mem_build_url(listener->listen_url, listener->app_key);
     listener->reader = _event_source_reader_create(
-            url, listener, &_notification_listener_message_received);
+            url, listener, &_notification_listener_message_received,
+            listener->reconnect_timeout_millis);
     _event_source_reader_start(listener->reader, listener->current_thread);
     free(url);
 }
