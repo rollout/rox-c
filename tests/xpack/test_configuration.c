@@ -52,7 +52,7 @@ static void _test_configuration_fetch_func(void *target, bool is_source_pushing)
     ctx->is_source_pushing = is_source_pushing;
 }
 
-void ROX_INTERNAL _test_configuration_fetched_handler(void *target, ConfigurationFetchedArgs *args) {
+static void _test_configuration_fetched_handler(void *target, ConfigurationFetchedArgs *args) {
     assert(target);
     assert(args);
     ConfigurationFetchedInvokerTestContext *ctx = (ConfigurationFetchedInvokerTestContext *) target;

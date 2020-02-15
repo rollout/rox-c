@@ -179,6 +179,10 @@ double ROX_INTERNAL current_time_millis();
  */
 size_t ROX_INTERNAL rox_file_read_b(const char *file_path, unsigned char *buffer, size_t buffer_size);
 
+cJSON *ROX_INTERNAL rox_json_create_object(void *skip, ...);
+
+cJSON *ROX_INTERNAL rox_json_create_array(void *skip, ...);
+
 void ROX_INTERNAL rox_json_serialize(char *buffer, size_t buffer_size, unsigned int options, ...);
 
 List *ROX_INTERNAL rox_list_create(void *skip, ...);
@@ -203,6 +207,10 @@ rox_hash_table_free_with_keys_and_values_cb(HashTable *map, void (*f_key)(void *
 #define ROX_JSON_SERIALIZE(buffer, buffer_size, ...) rox_json_serialize(buffer, buffer_size, 0, __VA_ARGS__, NULL)
 
 #define ROX_JSON_SERIALIZE_PRETTY(buffer, buffer_size, ...) rox_json_serialize(buffer, buffer_size, ROX_JSON_PRETTY_PRINT, __VA_ARGS__, NULL)
+
+#define ROX_JSON_OBJECT(...) rox_json_create_object(NULL, __VA_ARGS__, NULL)
+
+#define ROX_JSON_ARRAY(...) rox_json_create_array(NULL, __VA_ARGS__, NULL)
 
 #define ROX_JSON_STRING(value) cJSON_CreateString(value)
 

@@ -23,6 +23,7 @@ set(ROX_SRC
         xpack/configuration.c
         xpack/impression.c
         xpack/notifications.c
+        xpack/reporting.c
         xpack/security.c
         device.c
         dynamic.c

@@ -510,6 +510,36 @@ char *ROX_INTERNAL mem_base64_decode_str(const char *s) {
 
 #undef ROX_MEM_BASE64_DECODE_BUFFER_SIZE
 
+cJSON *ROX_INTERNAL rox_json_create_object(void *skip, ...) {
+    va_list args;
+            va_start(args, skip);
+
+    cJSON *json = cJSON_CreateObject();
+    char *property_name = va_arg(args, char*);
+    while (property_name) {
+        cJSON *property_value = va_arg(args, cJSON *);
+        cJSON_AddItemToObject(json, property_name, property_value);
+        property_name = va_arg(args, char*);
+    };
+            va_end(args);
+
+    return json;
+}
+
+cJSON *ROX_INTERNAL rox_json_create_array(void *skip, ...) {
+    va_list args;
+            va_start(args, skip);
+
+    cJSON *arr = cJSON_CreateArray();
+    cJSON *item = va_arg(args, cJSON*);
+    while (item) {
+        cJSON_AddItemToArray(arr, item);
+        item = va_arg(args, cJSON*);
+    };
+            va_end(args);
+    return arr;
+}
+
 void ROX_INTERNAL rox_json_serialize(char *buffer, size_t buffer_size, unsigned int options, ...) {
     va_list args;
             va_start(args, options);

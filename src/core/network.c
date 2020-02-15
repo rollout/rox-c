@@ -333,7 +333,7 @@ static ConfigurationFetchResult *_configuration_fetcher_create_result(
         configuration_fetched_invoker_invoke_error(fetcher->invoker, EmptyJson);
         // TODO: log
 //        Logging.Logging.GetLogger().Debug("Failed to parse JSON configuration - Null Or Empty", ae);
-        error_reporter_report(fetcher->reporter, "Failed to parse JSON configuration - Null Or Empty");
+        error_reporter_report(fetcher->reporter, __FILE__, __LINE__, "Failed to parse JSON configuration - Null Or Empty");
         return NULL;
     }
 
@@ -342,7 +342,7 @@ static ConfigurationFetchResult *_configuration_fetcher_create_result(
         configuration_fetched_invoker_invoke_error(fetcher->invoker, CorruptedJson);
         // TODO: log
 //        Logging.Logging.GetLogger().Debug("Failed to parse JSON configuration", ex);
-        error_reporter_report(fetcher->reporter, "Failed to parse JSON configuration");
+        error_reporter_report(fetcher->reporter, __FILE__, __LINE__, "Failed to parse JSON configuration");
         return NULL;
     }
 

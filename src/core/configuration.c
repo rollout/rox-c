@@ -183,13 +183,15 @@ static bool _configuration_parser_is_verified_signature(ConfigurationParser *par
 
     cJSON *data_json = cJSON_GetObjectItem(json, "data");
     if (!data_json || str_is_empty(data_json->valuestring)) {
-        error_reporter_report(parser->error_reporter, "Failed to validate signature. Data is empty");
+        error_reporter_report(parser->error_reporter, __FILE__, __LINE__,
+                              "Failed to validate signature. Data is empty");
         return false;
     }
 
     cJSON *signature_v0_json = cJSON_GetObjectItem(json, "signature_v0");
     if (!signature_v0_json || str_is_empty(signature_v0_json->valuestring)) {
-        error_reporter_report(parser->error_reporter, "Failed to validate signature. Signature is empty");
+        error_reporter_report(parser->error_reporter, __FILE__, __LINE__,
+                              "Failed to validate signature. Signature is empty");
         return false;
     }
 
@@ -200,6 +202,7 @@ static bool _configuration_parser_is_verified_signature(ConfigurationParser *par
 
         error_reporter_report(
                 parser->error_reporter,
+                __FILE__, __LINE__,
                 "Failed to validate signature. Data : %s Signature : %s",
                 data_json->valuestring,
                 signature_v0_json->valuestring);
@@ -219,6 +222,7 @@ static bool _configuration_parser_is_api_key_verified(ConfigurationParser *parse
 
         error_reporter_report(
                 parser->error_reporter,
+                __FILE__, __LINE__,
                 "Failed to verify app key: \"application\" property is empty");
 
         return false;
@@ -230,6 +234,7 @@ static bool _configuration_parser_is_api_key_verified(ConfigurationParser *parse
 
         error_reporter_report(
                 parser->error_reporter,
+                __FILE__, __LINE__,
                 "Failed to parse JSON configuration - Internal Data: %s; SdkSettings: %s",
                 application_json->valuestring,
                 api_key_verifier_get_sdk_settings(parser->api_key_verifier)->api_key);
@@ -269,6 +274,7 @@ static List *_configuration_parser_parse_experiments(ConfigurationParser *parser
 
             error_reporter_report(
                     parser->error_reporter,
+                    __FILE__, __LINE__,
                     "Failed to parse configuration: one of \"_id\", \"name\", or "
                     "\"deploymentConfiguration\".\"condition\" is empty");
 
