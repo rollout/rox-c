@@ -2,6 +2,7 @@
 #include <collectc/list.h>
 #include "configuration.h"
 #include "configuration/models.h"
+#include "core/logging.h"
 #include "xpack/security.h"
 #include "util.h"
 
@@ -278,8 +279,6 @@ static List *_configuration_parser_parse_experiments(ConfigurationParser *parser
                     "Failed to parse configuration: one of \"_id\", \"name\", or "
                     "\"deploymentConfiguration\".\"condition\" is empty");
 
-            // TODO: log error!
-
             list_destroy_cb(result, (void (*)(void *)) &experiment_model_free);
             return NULL;
         }
@@ -343,7 +342,7 @@ static List *_configuration_parser_parse_target_groups(ConfigurationParser *pars
         if (!id_json || !condition_json ||
             str_is_empty(id_json->valuestring) ||
             str_is_empty(condition_json->valuestring)) {
-            // TODO: log error!
+            ROX_ERROR("Invalid JSON provided: no id or condition: %s, %s", id_json, condition_json);
             list_destroy_cb(result, (void (*)(void *)) &target_group_model_free);
             return NULL;
         }
@@ -378,7 +377,9 @@ Configuration *ROX_INTERNAL configuration_parser_parse(
         configuration_fetched_invoker_invoke_error(
                 parser->configuration_fetched_invoker,
                 UnknownError);
-        // TODO: log error
+        error_reporter_report(parser->error_reporter, __FILE__, __LINE__,
+                              "Failed to parse JSON configuration - ",
+                              signature_date_json, data_json);
         return NULL;
     }
 
@@ -394,7 +395,6 @@ Configuration *ROX_INTERNAL configuration_parser_parse(
         configuration_fetched_invoker_invoke_error(
                 parser->configuration_fetched_invoker,
                 MismatchAppKey);
-        // TODO: log error
         return NULL;
     }
 
@@ -407,7 +407,7 @@ Configuration *ROX_INTERNAL configuration_parser_parse(
         if (target_groups) {
             list_destroy_cb(target_groups, (void (*)(void *)) &target_group_model_free);
         }
-        // TODO: log error "Failed to parse configurations"
+        ROX_ERROR("Failed to parse configurations");
         configuration_fetched_invoker_invoke_error(
                 parser->configuration_fetched_invoker,
                 UnknownError);

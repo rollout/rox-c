@@ -11,6 +11,7 @@ set(ROX_SRC
         core/context.c
         core/entities.c
         core/impression.c
+        core/logging.c
         core/network.c
         core/properties.c
         core/reporting.c
@@ -22,6 +23,7 @@ set(ROX_SRC
         xpack/analytics/model.c
         xpack/configuration.c
         xpack/impression.c
+        xpack/network.c
         xpack/notifications.c
         xpack/reporting.c
         xpack/security.c

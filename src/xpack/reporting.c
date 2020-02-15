@@ -2,6 +2,7 @@
 #include <assert.h>
 #include <stdio.h>
 #include "core/consts.h"
+#include "core/logging.h"
 #include "reporting.h"
 #include "core/client.h"
 #include "util.h"
@@ -44,9 +45,10 @@ void ROX_INTERNAL x_error_reporter_free(XErrorReporter *reporter) {
 static void _x_error_reporter_send_error(XErrorReporter *x_reporter, cJSON *json) {
     assert(x_reporter);
     assert(json);
-    // TODO: log Logging.Logging.GetLogger().Debug("Sending bugsnag error report...");
+
+    ROX_DEBUG("Sending bugsnag error report...");
     request_send_post_json(x_reporter->request, BUGSNAG_NOTIFY_URL, json);
-    // TODO: log Logging.Logging.GetLogger().Debug("Bugsnag error report was sent");
+    ROX_DEBUG("Bugsnag error report was sent");
 }
 
 #undef BUGSNAG_NOTIFY_URL
@@ -168,7 +170,7 @@ void ROX_INTERNAL x_error_reporter_report(
     char message[ROX_X_ERROR_REPORTER_MESSAGE_BUFFER_SIZE];
     vsprintf_s(message, ROX_X_ERROR_REPORTER_MESSAGE_BUFFER_SIZE, fmt, args);
 
-    // TODO: log Logging.Logging.GetLogger().Error("Error report: " + message, ex);
+    ROX_ERROR("Error report: %s", message);
     cJSON *json = x_error_reporter_create_payload(x_reporter, message, file, line);
     _x_error_reporter_send_error(x_reporter, json);
     cJSON_Delete(json);

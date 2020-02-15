@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cjson/cJSON.h>
 #include "roxapi.h"
 #include "context.h"
 #include "dynamic.h"
@@ -67,11 +68,9 @@ DynamicValue *ROX_INTERNAL custom_property_get_value(CustomProperty *property, C
 
 /**
  * @param property Not <code>NULL</code>.
- * @param buffer Output buffer. Not <code>NULL</code>.
- * @param buffer_size MAX output size.
- * @return Newly created JSON string. Not <code>NULL</code>.
+ * @return Not <code>NULL</code>. Must be freed after use.
  */
-void custom_property_serialize_to_json(CustomProperty *property, const char *buffer, size_t buffer_size);
+cJSON *custom_property_to_json(CustomProperty *property);
 
 /**
  * @param property Not <code>NULL</code>.
@@ -126,9 +125,9 @@ void ROX_INTERNAL dynamic_properties_set_rule(
  * @param context May be <code>NULL</code>.
  * @return May be <code>NULL</code>.
  */
-DynamicValue* ROX_INTERNAL dynamic_properties_invoke(
+DynamicValue *ROX_INTERNAL dynamic_properties_invoke(
         DynamicProperties *properties,
-        const char* prop_name,
-        Context* context);
+        const char *prop_name,
+        Context *context);
 
 void dynamic_properties_free(DynamicProperties *properties);

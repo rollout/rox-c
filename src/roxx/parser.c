@@ -16,6 +16,7 @@
 #include "parser.h"
 #include "stack.h"
 #include "semver.h"
+#include "core/logging.h"
 
 //
 // Symbols
@@ -333,11 +334,10 @@ void ROX_INTERNAL tokenizer_next_token(StringTokenizer *tokenizer, char *buffer,
     tokenizer->new_position = -1;
 
     if (tokenizer->current_position >= tokenizer->max_position) {
-        // TODO: log
-        fprintf(stderr, "tokenizer->current_position (%d) is "
-                        "expected to be greater or equal to tokenizer->max_position (%d)",
-                tokenizer->current_position,
-                tokenizer->max_position);
+        ROX_ERROR("tokenizer->current_position (%d) is "
+                  "expected to be greater or equal to tokenizer->max_position (%d)",
+                  tokenizer->current_position,
+                  tokenizer->max_position);
         exit(1);
     }
 
@@ -469,7 +469,7 @@ List *ROX_INTERNAL tokenized_expression_get_tokens(const char *expression, HashT
 
         if (!in_string && str_equals(token, DICT_START_DELIMITER)) {
             if (expr->dict_accumulator) {
-                // TODO: log illegal case warning? (new dict has started before the existing is closed)
+                ROX_WARN("new dict has started before the existing is closed");
                 hashtable_destroy(expr->dict_accumulator); // FIXME: what about dict-in-dict case?
             }
             hashtable_new(&expr->dict_accumulator);
@@ -482,7 +482,7 @@ List *ROX_INTERNAL tokenized_expression_get_tokens(const char *expression, HashT
                     result_list);
         } else if (!in_string && str_equals(token, ARRAY_START_DELIMITER)) {
             if (expr->array_accumulator) {
-                // TODO: log illegal case warning? (new array has started before the existing is closed)
+                ROX_WARN("new array has started before the existing is closed");
                 list_destroy(expr->array_accumulator);  // FIXME: what about array-in-array case?
             }
             list_new(&expr->array_accumulator);

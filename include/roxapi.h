@@ -1,5 +1,7 @@
 ﻿#pragma once
 
+#include <stdlib.h>
+
 // Generic helper definitions for shared library support.
 // (see https://gcc.gnu.org/wiki/Visibility/)
 #if defined _WIN32 || defined __CYGWIN__
@@ -39,7 +41,34 @@ extern "C"
 {
 #endif
 
-// TODO: put C functions exports here
+//
+// Logging
+//
+
+typedef enum RoxLogLevel {
+    RoxLogLevelDebug = 1,
+    RoxLogLevelWarning,
+    RoxLogLevelError,
+    RoxLogLevelNone
+} RoxLogLevel;
+
+typedef struct RoxLogMessage {
+    const char *file;
+    int line;
+    RoxLogLevel level;
+    const char *level_name;
+    const char *message;
+} RoxLogMessage;
+
+typedef void ROX_API (*rox_logging_handler)(void *target, RoxLogMessage *message);
+
+typedef struct ROX_API RoxLoggingConfig {
+    RoxLogLevel min_level;
+    void *target;
+    rox_logging_handler handler;
+} RoxLoggingConfig;
+
+void ROX_API rox_logging_init(RoxLoggingConfig *config);
 
 #ifdef __cplusplus
 } // extern "C"

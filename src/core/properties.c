@@ -84,12 +84,9 @@ DynamicValue *ROX_INTERNAL custom_property_get_value(CustomProperty *property, C
     return NULL;
 }
 
-void ROX_INTERNAL custom_property_serialize_to_json(CustomProperty *property, const char *buffer, size_t buffer_size) {
+cJSON *ROX_INTERNAL custom_property_to_json(CustomProperty *property) {
     assert(property);
-    assert(buffer);
-    assert(buffer_size > 0);
-    ROX_JSON_SERIALIZE(
-            buffer, buffer_size,
+    return ROX_JSON_OBJECT(
             "name", ROX_JSON_STRING(property->name),
             "type", ROX_JSON_STRING(property->type->type),
             "externalType", ROX_JSON_STRING(property->type->external_type));

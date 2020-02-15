@@ -10,6 +10,7 @@
 
 struct ROX_INTERNAL CustomPropertyRepository {
     HashTable *custom_properties;
+    void *target;
     custom_property_handler handler;
 };
 
@@ -31,7 +32,7 @@ void ROX_INTERNAL custom_property_repository_add_custom_property(
     }
     hashtable_add(repository->custom_properties, name, property);
     if (repository->handler) {
-        repository->handler(property);
+        repository->handler(repository->target, property);
     }
 }
 
@@ -44,7 +45,7 @@ bool ROX_INTERNAL custom_property_repository_add_custom_property_if_not_exists(
     if (!hashtable_contains_key(repository->custom_properties, name)) {
         hashtable_add(repository->custom_properties, name, property);
         if (repository->handler) {
-            repository->handler(property);
+            repository->handler(repository->target, property);
         }
         return true;
     }
@@ -68,8 +69,11 @@ HashTable *ROX_INTERNAL custom_property_repository_get_all_custom_properties(Cus
 
 void ROX_INTERNAL custom_property_repository_set_handler(
         CustomPropertyRepository *repository,
+        void *target,
         custom_property_handler handler) {
     assert(repository);
+    assert(handler);
+    repository->target = target;
     repository->handler = handler;
 }
 

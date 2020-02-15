@@ -15,6 +15,16 @@
 #include "base64.h"
 #include "strrep.h"
 #include "md5.h"
+#include "os.h"
+#include "core/logging.h"
+
+#ifdef ROX_WINDOWS
+
+#include <windows.h>
+
+#else
+#include <unistd.h>
+#endif
 
 void *ROX_INTERNAL mem_copy(void *ptr, size_t bytes) {
     assert(ptr);
@@ -143,9 +153,7 @@ bool ROX_INTERNAL str_matches(const char *str, const char *pattern, unsigned int
     if (re == NULL) {
         PCRE2_UCHAR buffer[ROX_STR_MATCHES_BUFFER_SIZE];
         pcre2_get_error_message(error_number, buffer, sizeof(buffer));
-        // TODO: log
-//        printf("PCRE2 compilation failed at offset %d: %s\n", (int)error_offset,
-//               buffer);
+        ROX_WARN("PCRE2 compilation failed at offset %d: %s", (int) error_offset, buffer);
         return false;
     }
 
@@ -339,6 +347,15 @@ double ROX_INTERNAL current_time_millis() {
     time(&t);
     // TODO: get millis somehow
     return (double) (t * 1000);
+}
+
+void ROX_INTERNAL thread_sleep(int sleep_millis) {
+    assert(sleep_millis >= 0);
+#ifdef ROX_WINDOWS
+    Sleep(sleep_millis);
+#else
+    usleep(sleep_millis * 1000);   // usleep takes sleep time in us (1 millionth of a second)
+#endif
 }
 
 size_t ROX_INTERNAL rox_file_read_b(const char *file_path, unsigned char *buffer, size_t buffer_size) {
@@ -538,27 +555,6 @@ cJSON *ROX_INTERNAL rox_json_create_array(void *skip, ...) {
     };
             va_end(args);
     return arr;
-}
-
-void ROX_INTERNAL rox_json_serialize(char *buffer, size_t buffer_size, unsigned int options, ...) {
-    va_list args;
-            va_start(args, options);
-
-    cJSON *json = cJSON_CreateObject();
-    char *property_name = va_arg(args, char*);
-    while (property_name != NULL) {
-        cJSON *property_value = va_arg(args, cJSON *);
-        cJSON_AddItemToObject(json, property_name, property_value);
-        property_name = va_arg(args, char*);
-    };
-            va_end(args);
-
-    char *str = (options & ROX_JSON_PRETTY_PRINT) != 0
-                ? cJSON_Print(json)
-                : cJSON_PrintUnformatted(json);
-    str_copy_value_to_buffer(buffer, buffer_size, str);
-    cJSON_Delete(json);
-    free(str);
 }
 
 List *ROX_INTERNAL rox_list_create(void *skip, ...) {

@@ -63,13 +63,13 @@ END_TEST
 
 static CustomProperty *TEST_REPO_HANDLER_PROP;
 
-void test_property_handler(CustomProperty *property) {
+void test_property_handler(void *target, CustomProperty *property) {
     TEST_REPO_HANDLER_PROP = property;
 }
 
 START_TEST (test_custom_property_repo_will_raise_prop_added_event) {
     CustomPropertyRepository *repo = custom_property_repository_create();
-    custom_property_repository_set_handler(repo, &test_property_handler);
+    custom_property_repository_set_handler(repo, NULL, &test_property_handler);
     CustomProperty *cp = custom_property_create_using_value("prop1", &ROX_CUSTOM_PROPERTY_TYPE_STRING,
                                                             dynamic_value_create_string_copy("123"));
     custom_property_repository_add_custom_property(repo, cp);

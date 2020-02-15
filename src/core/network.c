@@ -2,6 +2,7 @@
 #include <curl/curl.h>
 #include <stdlib.h>
 #include <assert.h>
+#include "core/logging.h"
 #include "network.h"
 #include "util.h"
 #include "consts.h"
@@ -59,7 +60,7 @@ void ROX_INTERNAL response_message_free(HttpResponseMessage *message) {
     free(message);
 }
 
-char *ROX_INTERNAL response_read_as_string(HttpResponseMessage *message) {
+char *ROX_INTERNAL response_get_contents(HttpResponseMessage *message) {
     assert(message);
     return message->content;
 }
@@ -140,9 +141,7 @@ static HttpResponseMessage *_request_send_get(void *target, Request *request, Re
     curl_easy_setopt(request->curl, CURLOPT_WRITEDATA, &context);
     CURLcode res = curl_easy_perform(request->curl);
     if (res != CURLE_OK) {
-        // TODO: log
-        fprintf(stderr, "curl_easy_perform() failed: %s\n",
-                curl_easy_strerror(res));
+        ROX_ERROR("curl_easy_perform() failed: %s", curl_easy_strerror(res));
     }
     if (url != data->url) {
         free(url);
@@ -167,9 +166,7 @@ static HttpResponseMessage *_request_send_post_json(void *target, Request *reque
     CURLcode res = curl_easy_perform(request->curl);
     curl_slist_free_all(headers);
     if (res != CURLE_OK) {
-        // TODO: log
-        fprintf(stderr, "curl_easy_perform() failed: %s\n",
-                curl_easy_strerror(res));
+        ROX_ERROR("curl_easy_perform() failed: %s", curl_easy_strerror(res));
     }
     free(json);
     return message;
@@ -300,22 +297,21 @@ static void _configuration_fetcher_handle_error(
         ConfigurationFetcher *fetcher,
         ConfigurationSource source,
         HttpResponseMessage *message,
-        bool raiseConfigurationHandler,
-        ConfigurationSource nextSource) {
+        bool raise_configuration_handler,
+        ConfigurationSource next_source) {
 
     assert(fetcher);
     assert(source);
 
-    char *retryMsg = NULL;
-    if (nextSource) {
-        retryMsg = mem_str_format("Trying from {0}. ", nextSource);
+    int status = message ? response_message_get_status(message) : 0;
+    if (next_source) {
+        ROX_DEBUG("Failed to fetch from %d. Trying from %d. http error code: %d", source,
+                  status, next_source);
+    } else {
+        ROX_DEBUG("Failed to fetch from %d. http error code: %d", source, status);
     }
 
-// TODO: log
-//Logging.Logging.GetLogger().Debug(
-//        string.Format("Failed to fetch from {0}. {1}http error code: {2}", source, retryMsg, response.StatusCode));
-
-    if (raiseConfigurationHandler) {
+    if (raise_configuration_handler) {
         configuration_fetched_invoker_invoke_error(fetcher->invoker, NetworkError);
     }
 }
@@ -331,17 +327,14 @@ static ConfigurationFetchResult *_configuration_fetcher_create_result(
     char *data = message->content;
     if (str_is_empty(data)) {
         configuration_fetched_invoker_invoke_error(fetcher->invoker, EmptyJson);
-        // TODO: log
-//        Logging.Logging.GetLogger().Debug("Failed to parse JSON configuration - Null Or Empty", ae);
-        error_reporter_report(fetcher->reporter, __FILE__, __LINE__, "Failed to parse JSON configuration - Null Or Empty");
+        error_reporter_report(fetcher->reporter, __FILE__, __LINE__,
+                              "Failed to parse JSON configuration - Null Or Empty");
         return NULL;
     }
 
     cJSON *json = cJSON_Parse(data);
     if (!json) {
         configuration_fetched_invoker_invoke_error(fetcher->invoker, CorruptedJson);
-        // TODO: log
-//        Logging.Logging.GetLogger().Debug("Failed to parse JSON configuration", ex);
         error_reporter_report(fetcher->reporter, __FILE__, __LINE__, "Failed to parse JSON configuration");
         return NULL;
     }

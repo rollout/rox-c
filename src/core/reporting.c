@@ -1,12 +1,15 @@
 #include <stdarg.h>
 #include <assert.h>
+#include <stdio.h>
 #include "reporting.h"
-#include "properties.h"
+#include "core/logging.h"
 
 struct ROX_INTERNAL ErrorReporter {
     void *target;
     error_reporting_func report;
 };
+
+#define ROX_ERROR_REPORT_MESSAGE_BUFFER_LENGTH 1024
 
 void ROX_INTERNAL _error_reporter_report_dummy(
         void *target,
@@ -14,15 +17,19 @@ void ROX_INTERNAL _error_reporter_report_dummy(
         const char *file,
         int line,
         const char *fmt,
-        va_list ars) {
+        va_list args) {
 
     assert(reporter);
     assert(file);
     assert(line);
     assert(fmt);
 
-    // Stub
+    char buffer[ROX_ERROR_REPORT_MESSAGE_BUFFER_LENGTH];
+    vsprintf_s(buffer, ROX_ERROR_REPORT_MESSAGE_BUFFER_LENGTH, fmt, args);
+    ROX_DEBUG("Dummy error report at %s:%d: %s", file, line, buffer);
 }
+
+#undef ROX_ERROR_REPORT_MESSAGE_BUFFER_LENGTH
 
 ErrorReporter *ROX_INTERNAL error_reporter_create(ErrorReporterConfig *config) {
     ErrorReporter *reporter = calloc(1, sizeof(ErrorReporter));

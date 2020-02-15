@@ -171,6 +171,8 @@ char *ROX_INTERNAL mem_str_join(const char *separator, List *strings);
  */
 double ROX_INTERNAL current_time_millis();
 
+void ROX_INTERNAL thread_sleep(int sleep_millis);
+
 /**
  * @param file_path Path to the file to read. Not <code>NULL</code>.
  * @param buffer Not <code>NULL</code>.
@@ -182,8 +184,6 @@ size_t ROX_INTERNAL rox_file_read_b(const char *file_path, unsigned char *buffer
 cJSON *ROX_INTERNAL rox_json_create_object(void *skip, ...);
 
 cJSON *ROX_INTERNAL rox_json_create_array(void *skip, ...);
-
-void ROX_INTERNAL rox_json_serialize(char *buffer, size_t buffer_size, unsigned int options, ...);
 
 List *ROX_INTERNAL rox_list_create(void *skip, ...);
 
@@ -199,18 +199,18 @@ void ROX_INTERNAL rox_map_free_with_values_cb(HashTable *map, void (*f)(void *))
 
 void ROX_INTERNAL rox_map_free_with_keys_and_values(HashTable *map);
 
-void ROX_INTERNAL
-rox_hash_table_free_with_keys_and_values_cb(HashTable *map, void (*f_key)(void *), void (*f_value)(void *));
+void ROX_INTERNAL rox_hash_table_free_with_keys_and_values_cb(
+        HashTable *map, void (*f_key)(void *), void (*f_value)(void *));
 
-#define ROX_JSON_PRETTY_PRINT 1u
+#define ROX_JSON_SERIALIZE(json) cJSON_PrintUnformatted(json)
 
-#define ROX_JSON_SERIALIZE(buffer, buffer_size, ...) rox_json_serialize(buffer, buffer_size, 0, __VA_ARGS__, NULL)
-
-#define ROX_JSON_SERIALIZE_PRETTY(buffer, buffer_size, ...) rox_json_serialize(buffer, buffer_size, ROX_JSON_PRETTY_PRINT, __VA_ARGS__, NULL)
+#define ROX_JSON_SERIALIZE_PRETTY(json) cJSON_Print(json)
 
 #define ROX_JSON_OBJECT(...) rox_json_create_object(NULL, __VA_ARGS__, NULL)
 
 #define ROX_JSON_ARRAY(...) rox_json_create_array(NULL, __VA_ARGS__, NULL)
+
+#define ROX_EMPTY_JSON_ARRAY ROX_JSON_ARRAY(NULL)
 
 #define ROX_JSON_STRING(value) cJSON_CreateString(value)
 

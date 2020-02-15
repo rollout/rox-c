@@ -219,19 +219,16 @@ START_TEST (test_md5_rfc1321_test_suite) {
 
 END_TEST
 
-#define TEST_JSON_SERIALIZATION_BUFFER_SIZE 1024
-
 START_TEST (test_json_serialization) {
-    char buffer[TEST_JSON_SERIALIZATION_BUFFER_SIZE];
-    ROX_JSON_SERIALIZE(
-            buffer, TEST_JSON_SERIALIZATION_BUFFER_SIZE,
+    cJSON *json = ROX_JSON_OBJECT(
             "string", ROX_JSON_STRING("test"),
             "int", ROX_JSON_INT(1099),
             "double", ROX_JSON_DOUBLE(1099.99));
-    ck_assert_str_eq("{\"string\":\"test\",\"int\":1099,\"double\":1099.99}", buffer);
+    char *json_string = ROX_JSON_SERIALIZE(json);
+    cJSON_Delete(json);
+    ck_assert_str_eq("{\"string\":\"test\",\"int\":1099,\"double\":1099.99}", json_string);
+    free(json_string);
 }
-
-END_TEST
 
 START_TEST (test_string_in_list) {
     List *list;

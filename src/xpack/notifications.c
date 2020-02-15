@@ -3,18 +3,9 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <pthread.h>
-#include <ctype.h>
 #include "notifications.h"
 #include "util.h"
-#include "os.h"
-
-#ifdef ROX_WINDOWS
-
-#include <windows.h>
-
-#else
-#include <unistd.h>
-#endif
+#include "core/logging.h"
 
 //
 // DisconnectEventArgs
@@ -68,7 +59,7 @@ size_t _event_source_reader_header_callback(char *buffer, size_t size, size_t ni
     EventSourceReader *reader = (EventSourceReader *) userdata;
     if (str_starts_with(buffer, "Content-Type: ")) {
         if (!str_starts_with(buffer + strlen("Content-Type: "), "text/event-stream")) {
-            fprintf(stderr, "Specified URI does not return server-sent events: %s\n", reader->url); // TODO: log
+            ROX_ERROR("Specified URI does not return server-sent events: %s", reader->url);
             _event_source_reader_stop(reader);
         }
     }
@@ -84,7 +75,7 @@ static void _event_source_reader_fire_event(
     assert(reader);
     assert(event);
 
-    fprintf(stdout, "New event: %s [%s] (%s)\n", event, id, message); // TODO: log (debug)
+    ROX_DEBUG("New event: %s [%s] (%s)", event, id, message);
     EventSourceMessageEventArgs *args = calloc(1, sizeof(EventSourceMessageEventArgs));
     args->event = event;
     args->message = message;
@@ -182,7 +173,7 @@ static void _event_source_reader_message_read(
                 reader->reconnect_timeout_millis = *reconnect_millis;
                 free(reconnect_millis);
             } else {
-                fprintf(stderr, "failed to parse retry field value '%s'\n", value); // TODO: log (warning)
+                ROX_WARN("failed to parse retry field value '%s'", value);
                 reader->reconnect_timeout_millis = DEFAULT_RECONNECT_TIMEOUT_SECONDS * 1000;
             }
             free(value);
@@ -191,7 +182,7 @@ static void _event_source_reader_message_read(
 
             char *name = mem_str_substring_n(src, bytes_read, fsm->field_name_start,
                                              fsm->field_name_end - fsm->field_name_start);
-            fprintf(stderr, "Unknown field name: '%s'\n", name); // TODO: log (warning)
+            ROX_WARN("Unknown field name: '%s'", name);
             free(name);
         }
     }
@@ -256,7 +247,7 @@ static void _event_source_reader_update_state(EventSourceReader *reader, const c
             default:
             case ReadError:
                 char *line = mem_str_substring_n(ptr, bytes_read, 0, bytes_read);
-                fprintf(stderr, "failed to parse line '%s': error at pos %d\n", line, i); // TODO: log (warning)
+                ROX_WARN("failed to parse line '%s': error at pos %d", line, i);
                 free(line);
                 i = bytes_read;
                 break;
@@ -305,18 +296,13 @@ static void *_event_source_reader_thread_func(void *ptr) {
     }
 
     while (reader->reading) {
-        fprintf(stdout, "connecting to %s\n", reader->url); // TODO: log
+        ROX_DEBUG("connecting to %s", reader->url);
         CURLcode res = curl_easy_perform(reader->curl);
         if (res != CURLE_OK) {
-            fprintf(stderr, "curl_easy_perform() failed: %s\n", curl_easy_strerror(res)); // TODO: log
+            ROX_WARN("curl_easy_perform() failed: %s", curl_easy_strerror(res));
         }
-        fprintf(stderr, "reconnecting after %d seconds\n", reader->reconnect_timeout_millis); // TODO: log
-        int sleep_millis = reader->reconnect_timeout_millis * 1000;
-#ifdef ROX_WINDOWS
-        Sleep(sleep_millis);
-#else
-        usleep(sleep_millis * 1000);   // usleep takes sleep time in us (1 millionth of a second)
-#endif
+        ROX_DEBUG("reconnecting after %d milliseconds", reader->reconnect_timeout_millis);
+        thread_sleep(reader->reconnect_timeout_millis);
     }
 
     if (headers) {

@@ -54,11 +54,11 @@ int ROX_INTERNAL response_message_get_status(HttpResponseMessage *message);
 bool ROX_INTERNAL response_message_is_successful(HttpResponseMessage *message);
 
 /**
- * Note: the returned string must be freed after use by the caller.
+ * Note: the returned string must <em>NOT</em> be freed after use by the caller.
  * @param message Not <code>NULL</code>.
  * @return May be <code>NULL</code>.
  */
-char *ROX_INTERNAL response_read_as_string(HttpResponseMessage *message);
+char *ROX_INTERNAL response_get_contents(HttpResponseMessage *message);
 
 /**
  * @param message Not <code>NULL</code>.

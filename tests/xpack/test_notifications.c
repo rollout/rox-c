@@ -5,6 +5,9 @@
 
 START_TEST (test_sse) {
 
+    RoxLoggingConfig logging_config = {RoxLogLevelDebug, NULL, NULL};
+    rox_logging_init(&logging_config);
+
     NotificationListenerConfig config = {
             "https://qax-push.rollout.io/sse",
             "5b3356d00d81206da3055bc0"

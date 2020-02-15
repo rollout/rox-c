@@ -11,7 +11,7 @@
 
 typedef struct ROX_INTERNAL CustomPropertyRepository CustomPropertyRepository;
 
-typedef void ROX_INTERNAL (*custom_property_handler)(CustomProperty *property);
+typedef void ROX_INTERNAL (*custom_property_handler)(void *target, CustomProperty *property);
 
 /**
  * The returned object myst be freed after use by calling <code>custom_property_repository_free()</code>.
@@ -55,8 +55,14 @@ CustomProperty *ROX_INTERNAL custom_property_repository_get_custom_property(
 HashTable *ROX_INTERNAL custom_property_repository_get_all_custom_properties(
         CustomPropertyRepository *repository);
 
+/**
+ * @param repository Not <code>NULL</code>.
+ * @param target May be <code>NULL</code>.
+ * @param handler Not <code>NULL</code>.
+ */
 void ROX_INTERNAL custom_property_repository_set_handler(
         CustomPropertyRepository *repository,
+        void *target,
         custom_property_handler handler);
 
 /**
