@@ -155,7 +155,7 @@ Variant *ROX_INTERNAL variant_create_flag() {
 
 Variant *ROX_INTERNAL variant_create_flag_with_default(bool default_value) {
     Variant *flag = variant_create(default_value ? FLAG_TRUE_VALUE : FLAG_FALSE_VALUE,
-                                   ROX_LIST(ROX_COPY(FLAG_TRUE_VALUE), ROX_COPY(FLAG_FALSE_VALUE)));
+                                   ROX_LIST(ROX_COPY(FLAG_FALSE_VALUE), ROX_COPY(FLAG_TRUE_VALUE)));
     flag->is_flag = true;
     return flag;
 }

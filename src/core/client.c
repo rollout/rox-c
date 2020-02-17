@@ -8,6 +8,26 @@
 #include "repositories.h"
 
 //
+// SdkSettings
+//
+
+SdkSettings *ROX_INTERNAL sdk_settings_create(const char *api_key, const char *dev_mode_secret) {
+    assert(api_key);
+    assert(dev_mode_secret);
+    SdkSettings *settings = calloc(1, sizeof(SdkSettings));
+    settings->api_key = mem_copy_str(api_key);
+    settings->dev_mode_secret = mem_copy_str(dev_mode_secret);
+    return settings;
+}
+
+void ROX_INTERNAL sdk_settings_free(SdkSettings *sdk_settings) {
+    assert(sdk_settings);
+    free(sdk_settings->api_key);
+    free(sdk_settings->dev_mode_secret);
+    free(sdk_settings);
+}
+
+//
 // RoxOptions
 //
 

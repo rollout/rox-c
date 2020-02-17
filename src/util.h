@@ -243,6 +243,8 @@ void ROX_INTERNAL rox_hash_table_free_with_keys_and_values_cb(
 
 #define ROX_MAP(...) rox_map_create(NULL, __VA_ARGS__, NULL)
 
+#define ROX_STR(value) #value
+
 #define ROX_EMPTY_MAP ROX_MAP(NULL)
 
 /**

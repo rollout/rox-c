@@ -19,6 +19,18 @@ typedef struct ROX_INTERNAL SdkSettings {
     char *dev_mode_secret;
 } SdkSettings;
 
+/**
+ * @param api_key Not <code>NULL</code>. Value is copied internally.
+ * @param dev_mode_secret Not <code>NULL</code>. Value is copied internally.
+ * @return Not <code>NULL</code>.
+ */
+SdkSettings *ROX_INTERNAL sdk_settings_create(const char *api_key, const char *dev_mode_secret);
+
+/**
+ * @param sdk_settings Not <code>NULL</code>.
+ */
+void ROX_INTERNAL sdk_settings_free(SdkSettings *sdk_settings);
+
 //
 // RoxOptions
 //

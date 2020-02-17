@@ -65,9 +65,7 @@ static ConfigurationFetchedInvokerTestContext *_configuration_fetched_invoker_te
     ctx->experiment_repository = experiment_repository_create();
     ctx->parser = parser_create();
     ctx->flags = internal_flags_create(ctx->experiment_repository, ctx->parser);
-    ctx->sdk_settings = calloc(1, sizeof(SdkSettings));
-    ctx->sdk_settings->api_key = "test";
-    ctx->sdk_settings->dev_mode_secret = "test";
+    ctx->sdk_settings = sdk_settings_create("test", "test");
     ctx->x_invoker = x_configuration_fetched_invoker_create(
             ctx->flags, ctx->sdk_settings, ctx, &_test_configuration_fetch_func);
     list_new(&ctx->args);
@@ -80,11 +78,11 @@ static void _configuration_fetched_invoker_test_context_free(ConfigurationFetche
     assert(ctx);
     x_configuration_fetched_invoker_free(ctx->x_invoker);
     internal_flags_free(ctx->flags);
+    sdk_settings_free(ctx->sdk_settings);
     experiment_repository_free(ctx->experiment_repository);
     parser_free(ctx->parser);
     configuration_fetched_invoker_free(ctx->invoker);
     list_destroy_cb(ctx->args, (void (*)(void *)) &configuration_fetched_args_free);
-    free(ctx->sdk_settings);
     free(ctx);
 }
 

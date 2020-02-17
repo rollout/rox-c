@@ -92,23 +92,45 @@ struct ROX_INTERNAL StateSender {
     List *relevant_api_call_params;
 };
 
+static int _state_sender_list_key_cmp(const void *e1, const void *e2) {
+    const char *s1 = *(char **) e1;
+    const char *s2 = *(char **) e2;
+    return strcmp(s1, s2);
+}
+
+static List *_state_sender_get_sorted_keys(HashTable *map) {
+    assert(map);
+    List *keys;
+    list_new(&keys);
+    TableEntry *entry;
+    HASHTABLE_FOREACH(entry, map, {
+        list_add(keys, entry->key);
+    })
+    list_sort(keys, &_state_sender_list_key_cmp);
+    return keys;
+}
+
 static char *_state_sender_serialize_feature_flags(StateSender *sender) {
     assert(sender);
-    cJSON *arr = cJSON_CreateObject();
+    cJSON *arr = cJSON_CreateArray();
     HashTable *flags = flag_repository_get_all_flags(sender->flag_repository);
-    TableEntry *entry;
-    HASHTABLE_FOREACH(entry, flags, {
-        Variant *flag = (Variant *) entry->value;
-        cJSON *options_arr = cJSON_CreateArray();
-        LIST_FOREACH(item, flag->options, {
-                char* option = (char*)item;
-                cJSON_AddItemToArray(item, ROX_JSON_STRING(option));
-        })
-        cJSON_AddItemToArray(arr, ROX_JSON_OBJECT(
-                "name", flag->name,
-                "defaultValue", flag->default_value,
-                "options", options_arr
-        ));
+    List *keys = _state_sender_get_sorted_keys(flags);
+    LIST_FOREACH(key, keys, {
+        Variant *flag;
+        if (hashtable_get(flags, key, (void **) &flag) == CC_OK) {
+            cJSON *options_arr = cJSON_CreateArray();
+            ListIter list_iter;
+            list_iter_init(&list_iter, flag->options);
+            char *option;
+            while (list_iter_next(&list_iter, (void **) &option) != CC_ITER_END) {
+                cJSON_AddItemToArray(options_arr, ROX_JSON_STRING(option));
+            }
+            cJSON_AddItemToArray(arr, ROX_JSON_OBJECT(
+                    "name", ROX_JSON_STRING(flag->name),
+                    "defaultValue", ROX_JSON_STRING(flag->default_value),
+                    "options", options_arr
+            ));
+        }
     })
     char *json_str = ROX_JSON_SERIALIZE(arr);
     cJSON_Delete(arr);
@@ -119,11 +141,16 @@ static char *_state_sender_serialize_custom_properties(StateSender *sender) {
     assert(sender);
     cJSON *arr = cJSON_CreateArray();
     HashTable *props = custom_property_repository_get_all_custom_properties(sender->custom_property_repository);
-    TableEntry *entry;
-    HASHTABLE_FOREACH(entry, props, {
-        CustomProperty *property = (CustomProperty *) entry->value;
-        cJSON_AddItemToArray(arr, custom_property_to_json(property));
+
+    List *keys = _state_sender_get_sorted_keys(props);
+    LIST_FOREACH(key, keys, {
+        CustomProperty *property;
+        if (hashtable_get(props, key, (void **) &property) == CC_OK) {
+            cJSON_AddItemToArray(arr, custom_property_to_json(property));
+        }
     })
+    list_destroy(keys);
+
     char *json_str = ROX_JSON_SERIALIZE(arr);
     cJSON_Delete(arr);
     return json_str;
@@ -210,19 +237,6 @@ static HttpResponseMessage *_state_sender_send_state_to_api(StateSender *sender,
     return response;
 }
 
-static void _state_sender_log_send_state_error(
-        ConfigurationSource source,
-        HttpResponseMessage *response,
-        ConfigurationSource next_source) {
-    if (next_source) {
-        ROX_DEBUG("Failed to send state to %d. Trying to send state to %d. http result code: %d",
-                  source, response_message_get_status(response), next_source);
-    } else {
-        ROX_DEBUG("Failed to send state to %d. http result code: %d",
-                  source, response_message_get_status(response));
-    }
-}
-
 static void _state_sender_log_log_send_state_exception(ConfigurationSource source) {
     ROX_ERROR("Failed to send state. Source: %d", source);
 }
@@ -246,7 +260,8 @@ void ROX_INTERNAL state_sender_send(StateSender *sender) {
         cJSON *response_json = cJSON_Parse(response_as_string);
         if (response_json) {
             cJSON *result = cJSON_GetObjectItem(response_json, "result");
-            if (result && result->valueint == 404) {
+            if (result && (result->valueint == 404 ||
+                           (result->valuestring && str_equals(result->valuestring, "404")))) {
                 should_retry = true;
             }
         }
@@ -255,14 +270,21 @@ void ROX_INTERNAL state_sender_send(StateSender *sender) {
             // success from cdn
             response_message_free(fetch_result);
             rox_map_free_with_values(properties);
-            return;
+            if (response_json) {
+                return;
+            }
         }
     }
 
     if (should_retry ||
         response_message_get_status(fetch_result) == 403 ||
         response_message_get_status(fetch_result) == 404) {
-        _state_sender_log_send_state_error(source, fetch_result, CONFIGURATION_SOURCE_API);
+
+        ROX_DEBUG("Failed to send state to %s. Trying to send state to %s. http result code: %d",
+                  ROX_STR(CONFIGURATION_SOURCE_CDN),
+                  ROX_STR(CONFIGURATION_SOURCE_API),
+                  response_message_get_status(fetch_result));
+
         source = CONFIGURATION_SOURCE_API;
 
         response_message_free(fetch_result);
@@ -282,7 +304,7 @@ void ROX_INTERNAL state_sender_send(StateSender *sender) {
         }
     }
 
-    _state_sender_log_send_state_error(source, fetch_result, 0);
+    ROX_ERROR("Failed to send state. Source: %d", source);
 }
 
 static void _state_sender_custom_property_handler(void *target, CustomProperty *property) {
@@ -340,8 +362,8 @@ StateSender *ROX_INTERNAL state_sender_create(
 
 void ROX_INTERNAL state_sender_free(StateSender *sender) {
     assert(sender);
+    debouncer_free(sender->state_debouncer);
     list_destroy(sender->state_generators);
     list_destroy(sender->relevant_api_call_params);
-    debouncer_free(sender->state_debouncer);
     free(sender);
 }
