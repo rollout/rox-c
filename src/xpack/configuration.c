@@ -33,7 +33,7 @@ static void _config_notification_listener_event_handler(void *target, Notificati
     assert(target);
     assert(event);
     XConfigurationFetchedInvoker *invoker = (XConfigurationFetchedInvoker *) target;
-    invoker->fetch_func(invoker->fetch_target, true);
+    invoker->fetch_func(invoker->fetch_target);
 }
 
 #define X_CONF_FETCH_NOTIFICATIONS_PATH_BUFFER_SIZE 1024

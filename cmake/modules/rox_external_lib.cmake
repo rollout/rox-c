@@ -424,7 +424,7 @@ macro(_rox_link_third_party_lib)
                     if (LIB_VERBOSE)
                         message("Setting compile definitions for target ${LIB_TARGET_NAME} to ${LIB_DEFINITIONS}")
                     endif ()
-                    set_target_properties(${LIB_TARGET_NAME} PROPERTIES INTERFACE_COMPILE_DEFINITIONS ${LIB_DEFINITIONS})
+                    target_compile_definitions(${LIB_TARGET_NAME} INTERFACE ${LIB_DEFINITIONS})
                 endif ()
 
                 list(APPEND ROX_EXTERNAL_LIBS ${LIB_TARGET_NAME})
@@ -438,7 +438,7 @@ endmacro()
 
 function(rox_external_lib LIB_NAME)
 
-    set(options VERBOSE DRY_RUN SHARED BUILD_IN_SOURCE)
+    set(options VERBOSE DRY_RUN SHARED BUILD_IN_SOURCE REQUIRED)
     set(oneValueArgs VERSION URL HASH FILE CFLAGS CONFIGURE BUILD SUBDIR INCLUDE_DIR CMAKE TRY_FIND_THEN TRY_FIND_VERSION TRY_FIND_INCLUDE_DIR TRY_FIND_LIBRARIES TRY_FIND_IN_INSTALL_DIR)
     set(multiValueArgs CMAKE_ARGS TARGETS DEFINITIONS PATCH LINK LINK_WIN DEPENDS_ON TRY_FIND TRY_FIND_LINK TRY_FIND_DEFINITIONS TRY_FIND_IN)
 

@@ -149,10 +149,10 @@ typedef struct ROX_INTERNAL ExperimentRepository ExperimentRepository;
 /**
  * The returned object must be destroyed after use by calling <code>flag_setter_free</code>.
  *
- * @param flag_repository Not <code>NULL</code>. The ownership is delegated to the returned <code>FlagSetter</code>.
- * @param parser Not <code>NULL</code>. The ownership is delegated to the returned <code>FlagSetter</code>.
- * @param experiment_repository Not <code>NULL</code>. The ownership is delegated to the returned <code>FlagSetter</code>.
- * @param impression_invoker May be <code>NULL</code>. If passed, the ownership is delegated to the returned <code>FlagSetter</code>.
+ * @param flag_repository Not <code>NULL</code>. The callers holds the ownership.
+ * @param parser Not <code>NULL</code>. The callers holds the ownership.
+ * @param experiment_repository Not <code>NULL</code>. The callers holds the ownership.
+ * @param impression_invoker May be <code>NULL</code>. The callers holds the ownership.
  * @return Not <code>NULL</code>.
  */
 FlagSetter *ROX_INTERNAL flag_setter_create(

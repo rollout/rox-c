@@ -4,6 +4,10 @@
 #include "core/network.h"
 #include "roxapi.h"
 
+//
+// Requests
+//
+
 typedef struct ROX_INTERNAL RequestTestFixture {
     int status_to_return_to_get;
     const char *data_to_return_to_get;
@@ -21,3 +25,28 @@ typedef struct ROX_INTERNAL RequestTestFixture {
 RequestTestFixture *ROX_INTERNAL request_test_fixture_create();
 
 void ROX_INTERNAL request_test_fixture_free(RequestTestFixture *fixture);
+
+//
+// Logging
+//
+
+typedef struct ROX_INTERNAL LogRecord {
+    RoxLogLevel level;
+    char *message;
+} LogRecord;
+
+typedef struct ROX_INTERNAL LoggingTestFixture {
+    List *log_records;
+} LoggingTestFixture;
+
+LoggingTestFixture *ROX_INTERNAL logging_test_fixture_create(RoxLogLevel log_level);
+
+void ROX_INTERNAL logging_test_fixture_check_no_errors(LoggingTestFixture *fixture);
+
+void ROX_INTERNAL logging_test_fixture_check_no_messages(LoggingTestFixture *fixture, RoxLogLevel log_level);
+
+void ROX_INTERNAL logging_test_fixture_check_log_message(
+        LoggingTestFixture *fixture, RoxLogLevel log_level, const char *message);
+
+void ROX_INTERNAL logging_test_fixture_free(LoggingTestFixture *fixture);
+

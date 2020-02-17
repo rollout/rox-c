@@ -10,7 +10,7 @@
 
 typedef struct ROX_INTERNAL XConfigurationFetchedInvoker XConfigurationFetchedInvoker;
 
-typedef void ROX_INTERNAL (*x_configuration_fetch_func)(void *target, bool is_source_pushing);
+typedef void ROX_INTERNAL (*x_configuration_fetch_func)(void *target);
 
 /**
  * @param flags Not <code>NULL</code>.

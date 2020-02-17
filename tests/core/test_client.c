@@ -35,6 +35,9 @@ START_TEST (test_is_enabled) {
     dynamic_api_free(api);
     entities_provider_free(entities_provider);
     flag_setter_free(flag_setter);
+    flag_repository_free(flag_repo);
+    parser_free(parser);
+    experiment_repository_free(exp_repo);
 }
 
 END_TEST
@@ -58,6 +61,9 @@ START_TEST (test_is_enabled_after_setup) {
     dynamic_api_free(api);
     entities_provider_free(entities_provider);
     flag_setter_free(flag_setter);
+    flag_repository_free(flag_repo);
+    parser_free(parser);
+    experiment_repository_free(exp_repo);
 }
 
 END_TEST
@@ -90,6 +96,9 @@ START_TEST (test_get_value) {
     dynamic_api_free(api);
     entities_provider_free(entities_provider);
     flag_setter_free(flag_setter);
+    flag_repository_free(flag_repo);
+    parser_free(parser);
+    experiment_repository_free(exp_repo);
 }
 
 END_TEST

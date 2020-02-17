@@ -59,4 +59,9 @@ void ROX_INTERNAL state_sender_send(StateSender *sender);
 /**
  * @param sender Not <code>NULL</code>.
  */
+void ROX_INTERNAL state_sender_send_debounce(StateSender *sender);
+
+/**
+ * @param sender Not <code>NULL</code>.
+ */
 void ROX_INTERNAL state_sender_free(StateSender *sender);

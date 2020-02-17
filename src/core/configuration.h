@@ -31,6 +31,12 @@ Configuration *ROX_INTERNAL configuration_create(
         const char *signature_date);
 
 /**
+ * @param c1 Not <code>NULL</code>.
+ * @param c2 Not <code>NULL</code>.
+ */
+bool ROX_INTERNAL configuration_equals(Configuration *c1, Configuration *c2);
+
+/**
  * param configuration Not <code>NULL</code>.
  */
 void ROX_INTERNAL configuration_free(Configuration *configuration);

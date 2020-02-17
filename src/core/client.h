@@ -123,7 +123,7 @@ int ROX_INTERNAL rox_options_get_fetch_interval(RoxOptions *options);
  * @param options Not <code>NULL</code>.
  * @return May be <code>NULL</code>.
  */
-char *ROX_INTERNAL rox_options_get_roxy_url(RoxOptions *options);
+const char *ROX_INTERNAL rox_options_get_roxy_url(RoxOptions *options);
 
 /**
  * @param options Not <code>NULL</code>.

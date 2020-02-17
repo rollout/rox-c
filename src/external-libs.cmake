@@ -2,7 +2,8 @@ rox_external_lib(pcre2
         VERSION 10.34
         URL https://ftp.pcre.org/pub/pcre/pcre2-<LIB_VERSION>.tar.gz
         HASH E3E15CCA49557A9C07A21DDE2DA05EA5
-        FILE pcre2-8d)
+        FILE pcre2-8d
+        DEFINITIONS PCRE2_CODE_UNIT_WIDTH=8 PCRE2_STATIC)
 
 rox_external_lib(collectc
         URL https://github.com/srdja/Collections-C.git
@@ -47,4 +48,8 @@ if (WIN32)
             HASH f29fd36
             FILE pthreadsVC2d
             DEFINITIONS PTW32_STATIC_LIB)
+else ()
+    rox_external_lib(pthreads
+            TRY_FIND Threads Threads::Threads
+            REQUIRED)
 endif ()

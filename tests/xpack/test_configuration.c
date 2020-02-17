@@ -17,7 +17,6 @@ typedef struct ROX_INTERNAL ConfigurationFetchedInvokerTestContext {
     XConfigurationFetchedInvoker *x_invoker;
     int times_invoked;
     int times_fetch_invoked;
-    bool is_source_pushing;
     List *args;
 } ConfigurationFetchedInvokerTestContext;
 
@@ -45,11 +44,10 @@ static void _check_conf_fetched_args(
     }
 }
 
-static void _test_configuration_fetch_func(void *target, bool is_source_pushing) {
+static void _test_configuration_fetch_func(void *target) {
     assert(target);
     ConfigurationFetchedInvokerTestContext *ctx = (ConfigurationFetchedInvokerTestContext *) target;
     ++ctx->times_fetch_invoked;
-    ctx->is_source_pushing = is_source_pushing;
 }
 
 static void _test_configuration_fetched_handler(void *target, ConfigurationFetchedArgs *args) {

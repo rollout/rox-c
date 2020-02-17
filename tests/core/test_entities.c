@@ -184,6 +184,10 @@ START_TEST (test_will_set_flag_data) {
     ck_assert_str_eq(flag->experiment->id, "33");
 
     flag_setter_free(flag_setter);
+    flag_repository_free(flag_repo);
+    parser_free(parser);
+    experiment_repository_free(exp_repo);
+    impression_invoker_free(impression_invoker);
 }
 
 END_TEST
@@ -212,6 +216,10 @@ START_TEST (test_will_not_set_for_other_flag) {
     ck_assert_ptr_null(flag->experiment);
 
     flag_setter_free(flag_setter);
+    flag_repository_free(flag_repo);
+    parser_free(parser);
+    experiment_repository_free(exp_repo);
+    impression_invoker_free(impression_invoker);
 }
 
 END_TEST
@@ -247,6 +255,10 @@ START_TEST (test_will_set_experiment_for_flag_and_will_remove_it) {
     ck_assert_str_eq(flag->experiment->id, "id1");
 
     flag_setter_free(flag_setter);
+    flag_repository_free(flag_repo);
+    parser_free(parser);
+    experiment_repository_free(exp_repo);
+    impression_invoker_free(impression_invoker);
 }
 
 END_TEST
@@ -285,6 +297,10 @@ START_TEST (test_will_set_flag_without_experiment_and_then_add_experiment) {
     ck_assert_ptr_null(flag->experiment);
 
     flag_setter_free(flag_setter);
+    flag_repository_free(flag_repo);
+    parser_free(parser);
+    experiment_repository_free(exp_repo);
+    impression_invoker_free(impression_invoker);
 }
 
 END_TEST
@@ -321,6 +337,10 @@ START_TEST (test_will_set_data_for_added_flag) {
     ck_assert_ptr_null(f2->experiment);
 
     flag_setter_free(flag_setter);
+    flag_repository_free(flag_repo);
+    parser_free(parser);
+    experiment_repository_free(exp_repo);
+    impression_invoker_free(impression_invoker);
 }
 
 END_TEST

@@ -30,6 +30,10 @@ bool *ROX_INTERNAL mem_copy_bool(bool value);
 
 HashTable *ROX_INTERNAL mem_copy_map(HashTable *map);
 
+List *ROX_INTERNAL mem_copy_list(List *list);
+
+HashSet *ROX_INTERNAL mem_copy_set(HashSet *set);
+
 HashTable *ROX_INTERNAL mem_deep_copy_str_value_map(HashTable *map);
 
 int *ROX_INTERNAL mem_str_to_int(const char *str);
@@ -191,6 +195,10 @@ cJSON *ROX_INTERNAL rox_json_create_array(void *skip, ...);
 List *ROX_INTERNAL rox_list_create(void *skip, ...);
 
 List *ROX_INTERNAL rox_list_create_str(void *skip, ...);
+
+bool ROX_INTERNAL list_equals(List *one, List *another, bool (*cmp)(void *v1, void *v2));
+
+bool ROX_INTERNAL str_list_equals(List *one, List *another);
 
 HashSet *ROX_INTERNAL rox_set_create(void *skip, ...);
 

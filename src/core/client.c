@@ -125,7 +125,7 @@ int ROX_INTERNAL rox_options_get_fetch_interval(RoxOptions *options) {
     return options->fetch_interval;
 }
 
-char *ROX_INTERNAL rox_options_get_roxy_url(RoxOptions *options) {
+const char *ROX_INTERNAL rox_options_get_roxy_url(RoxOptions *options) {
     assert(options);
     return options->roxy_url;
 }

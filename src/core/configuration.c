@@ -24,6 +24,16 @@ Configuration *ROX_INTERNAL configuration_create(
     return configuration;
 }
 
+bool ROX_INTERNAL configuration_equals(Configuration *c1, Configuration *c2) {
+    assert(c1);
+    assert(c2);
+    if (!str_equals(c1->signature_date, c2->signature_date)) {
+        return false;
+    }
+    return str_list_equals(c1->experiments, c2->experiments) &&
+           str_list_equals(c1->target_groups, c2->target_groups);
+}
+
 void ROX_INTERNAL configuration_free(Configuration *configuration) {
     assert(configuration);
     free(configuration->signature_date);
@@ -47,7 +57,9 @@ ConfigurationFetchResult *ROX_INTERNAL configuration_fetch_result_create(cJSON *
 
 void ROX_INTERNAL configuration_fetch_result_free(ConfigurationFetchResult *result) {
     assert(result);
-    cJSON_Delete(result->parsed_data);
+    if (result->parsed_data) {
+        cJSON_Delete(result->parsed_data);
+    }
     free(result);
 }
 

@@ -1,6 +1,3 @@
-#define PCRE2_CODE_UNIT_WIDTH 8
-#define PCRE2_STATIC
-
 #include <openssl/sha.h>
 #include <stdlib.h>
 #include <string.h>
@@ -69,6 +66,23 @@ HashTable *ROX_INTERNAL mem_copy_map(HashTable *map) {
         hashtable_add(params, entry->key, entry->value);
     })
     return params;
+}
+
+List *ROX_INTERNAL mem_copy_list(List *list) {
+    assert(list);
+    List *copy;
+    list_copy_shallow(list, &copy);
+    return copy;
+}
+
+HashSet *ROX_INTERNAL mem_copy_set(HashSet *set) {
+    assert(set);
+    HashSet *copy;
+    hashset_new(&copy);
+    ROX_SET_FOREACH(item, set, {
+        hashset_add(copy, item);
+    })
+    return copy;
 }
 
 HashTable *ROX_INTERNAL mem_deep_copy_str_value_map(HashTable *map) {
@@ -597,6 +611,30 @@ List *ROX_INTERNAL rox_list_create_str(void *skip, ...) {
     };
             va_end(args);
     return list;
+}
+
+bool ROX_INTERNAL list_equals(List *one, List *another, bool (*cmp)(void *v1, void *v2)) {
+    assert(one);
+    assert(another);
+    if (list_size(one) != list_size(another)) {
+        return false;
+    }
+    ListIter i1, i2;
+    list_iter_init(&i1, one);
+    list_iter_init(&i2, another);
+    void *v1, *v2;
+    while (list_iter_next(&i1, &v1) != CC_ITER_END && list_iter_next(&i2, &v2) != CC_ITER_END) {
+        if (!cmp(v1, v2)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool ROX_INTERNAL str_list_equals(List *one, List *another) {
+    assert(one);
+    assert(another);
+    return list_equals(one, another, (bool (*)(void *, void *)) &str_equals);
 }
 
 HashSet *ROX_INTERNAL rox_set_create(void *skip, ...) {

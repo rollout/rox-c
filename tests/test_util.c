@@ -1,6 +1,3 @@
-#define PCRE2_CODE_UNIT_WIDTH 8
-#define PCRE2_STATIC
-
 #include <check.h>
 #include <stdlib.h>
 #include <pcre2.h>
@@ -303,6 +300,24 @@ START_TEST (test_build_url) {
 
 END_TEST
 
+static bool check_str_lists_equal(List *l1, List *l2) {
+    bool result = str_list_equals(l1, l2);
+    list_destroy(l1);
+    list_destroy(l2);
+    return result;
+}
+
+START_TEST (test_str_list_equals) {
+    ck_assert(check_str_lists_equal(ROX_EMPTY_LIST, ROX_EMPTY_LIST));
+    ck_assert(check_str_lists_equal(ROX_LIST(""), ROX_LIST("")));
+    ck_assert(check_str_lists_equal(ROX_LIST("1"), ROX_LIST("1")));
+    ck_assert(!check_str_lists_equal(ROX_LIST("1"), ROX_LIST("2")));
+    ck_assert(check_str_lists_equal(ROX_LIST("1", "2", "3"), ROX_LIST("1", "2", "3")));
+    ck_assert(!check_str_lists_equal(ROX_LIST("1", "2", "3"), ROX_LIST("3", "2", "1")));
+}
+
+END_TEST
+
 ROX_TEST_SUITE(
 // mem_str_to_double
         ROX_TEST_CASE(test_str_to_double_nan),
@@ -351,5 +366,8 @@ ROX_TEST_SUITE(
         ROX_TEST_CASE(test_string_uppercase),
 
 // build_url
-        ROX_TEST_CASE(test_build_url)
+        ROX_TEST_CASE(test_build_url),
+
+// str_list_equals
+        ROX_TEST_CASE(test_str_list_equals)
 )

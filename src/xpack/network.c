@@ -307,18 +307,23 @@ void ROX_INTERNAL state_sender_send(StateSender *sender) {
     ROX_ERROR("Failed to send state. Source: %d", source);
 }
 
+void ROX_INTERNAL state_sender_send_debounce(StateSender *sender) {
+    assert(sender);
+    debouncer_invoke(sender->state_debouncer);
+}
+
 static void _state_sender_custom_property_handler(void *target, CustomProperty *property) {
     assert(target);
     assert(property);
     StateSender *sender = (StateSender *) target;
-    debouncer_invoke(sender->state_debouncer);
+    state_sender_send_debounce(sender);
 }
 
 static void _state_sender_flag_added_callback(void *target, Variant *variant) {
     assert(target);
     assert(variant);
     StateSender *sender = (StateSender *) target;
-    debouncer_invoke(sender->state_debouncer);
+    state_sender_send_debounce(sender);
 }
 
 StateSender *ROX_INTERNAL state_sender_create(

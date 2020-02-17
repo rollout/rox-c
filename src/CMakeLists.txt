@@ -27,6 +27,7 @@ set(ROX_SRC
         xpack/notifications.c
         xpack/reporting.c
         xpack/security.c
+        core.c
         device.c
         dynamic.c
         roxapi.c

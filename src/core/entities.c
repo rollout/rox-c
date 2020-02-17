@@ -266,18 +266,6 @@ void ROX_INTERNAL flag_setter_set_experiments(FlagSetter *flag_setter) {
 
 void ROX_INTERNAL flag_setter_free(FlagSetter *flag_setter) {
     assert(flag_setter);
-    if (flag_setter->flag_repository) {
-        flag_repository_free(flag_setter->flag_repository);
-    }
-    if (flag_setter->parser) {
-        parser_free(flag_setter->parser);
-    }
-    if (flag_setter->experiment_repository) {
-        experiment_repository_free(flag_setter->experiment_repository);
-    }
-    if (flag_setter->impression_invoker) {
-        impression_invoker_free(flag_setter->impression_invoker);
-    }
     free(flag_setter);
 }
 

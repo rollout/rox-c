@@ -88,17 +88,6 @@ END_TEST
 // StateSenderTests
 //
 
-typedef struct ROX_INTERNAL LogRecord {
-    RoxLogLevel level;
-    char *message;
-} LogRecord;
-
-void log_record_free(LogRecord *record) {
-    assert(record);
-    free(record->message);
-    free(record);
-}
-
 typedef struct ROX_INTERNAL StateSenderTestContext {
     RequestTestFixture *request;
     SdkSettings *sdk_settings;
@@ -106,18 +95,9 @@ typedef struct ROX_INTERNAL StateSenderTestContext {
     DeviceProperties *device_properties;
     FlagRepository *flag_repo;
     CustomPropertyRepository *cp_repo;
-    List *log_records;
+    LoggingTestFixture *logging;
     StateSender *sender;
 } StateSenderTestContext;
-
-static void _state_sender_test_logging_handler(void *target, RoxLogMessage *message) {
-    assert(target);
-    StateSenderTestContext *context = (StateSenderTestContext *) target;
-    LogRecord *record = calloc(1, sizeof(LogRecord));
-    record->level = message->level;
-    record->message = mem_copy_str(message->message);
-    list_add(context->log_records, record);
-}
 
 static StateSenderTestContext *_state_sender_test_context_create() {
 
@@ -139,11 +119,8 @@ static StateSenderTestContext *_state_sender_test_context_create() {
                     "app_key", mem_copy_str(ctx->sdk_settings->api_key),
                     "api_version", mem_copy_str("4.0.0")
             ));
-    list_new(&ctx->log_records);
 
-    RoxLoggingConfig cfg = {RoxLogLevelDebug, ctx, &_state_sender_test_logging_handler};
-    rox_logging_init(&cfg);
-
+    ctx->logging = logging_test_fixture_create(RoxLogLevelDebug);
     ctx->sender = state_sender_create(ctx->request->request, ctx->device_properties, ctx->flag_repo, ctx->cp_repo);
 
     return ctx;
@@ -170,7 +147,7 @@ static void _state_sender_test_context_add_double_property(
 static void _state_sender_test_context_free(StateSenderTestContext *ctx) {
     assert(ctx);
     state_sender_free(ctx->sender);
-    list_destroy_cb(ctx->log_records, (void (*)(void *)) &log_record_free);
+    logging_test_fixture_free(ctx->logging);
     device_properties_free(ctx->device_properties);
     flag_repository_free(ctx->flag_repo);
     custom_property_repository_free(ctx->cp_repo);
@@ -178,10 +155,6 @@ static void _state_sender_test_context_free(StateSenderTestContext *ctx) {
     sdk_settings_free(ctx->sdk_settings);
     request_test_fixture_free(ctx->request);
     free(ctx);
-}
-
-static void _validate_no_errors(StateSenderTestContext *ctx) {
-    ck_assert_int_eq(list_size(ctx->log_records), 0);
 }
 
 static void check_map_value(HashTable *map, const char *key, const char *expected_value) {
@@ -201,34 +174,13 @@ static void _validate_request_params(StateSenderTestContext *ctx) {
     check_map_value(params, ROX_PROPERTY_TYPE_DEV_MODE_SECRET.name, "shh...");
 }
 
-static void check_no_log_messages(StateSenderTestContext *ctx, RoxLogLevel log_level) {
-    LIST_FOREACH(item, ctx->log_records, {
-        LogRecord *log_record = (LogRecord *) item;
-        if (log_record->level == log_level) {
-            ck_assert(false);
-            return;
-        }
-    })
-}
-
-static void check_log_message(StateSenderTestContext *ctx, RoxLogLevel log_level, const char *message) {
-    LIST_FOREACH(item, ctx->log_records, {
-        LogRecord *log_record = (LogRecord *) item;
-        if (log_record->level == log_level) {
-            ck_assert(str_starts_with(log_record->message, message));
-            return;
-        }
-    })
-    ck_assert(false); // no log record found
-}
-
 START_TEST (test_will_call_cdn_successfully) {
     StateSenderTestContext *ctx = _state_sender_test_context_create();
 
     flag_repository_add_flag(ctx->flag_repo, variant_create_flag(), "flag1");
 
     state_sender_send(ctx->sender);
-    _validate_no_errors(ctx);
+    logging_test_fixture_check_no_errors(ctx->logging);
 
     ck_assert_int_eq(ctx->request->times_get_sent, 1);
     ck_assert_str_eq(ctx->request->last_get_uri, "https://statestore.rollout.io/123/C973890080E2E1074002239A8F093068");
@@ -243,14 +195,14 @@ START_TEST (test_will_call_only_cdn_state_md5_changes_for_flag) {
 
     flag_repository_add_flag(ctx->flag_repo, variant_create_flag(), "flag1");
     state_sender_send(ctx->sender);
-    _validate_no_errors(ctx);
+    logging_test_fixture_check_no_errors(ctx->logging);
 
     ck_assert_int_eq(ctx->request->times_get_sent, 1);
     ck_assert_str_eq(ctx->request->last_get_uri, "https://statestore.rollout.io/123/C973890080E2E1074002239A8F093068");
 
     flag_repository_add_flag(ctx->flag_repo, variant_create_flag(), "flag2");
     state_sender_send(ctx->sender);
-    _validate_no_errors(ctx);
+    logging_test_fixture_check_no_errors(ctx->logging);
 
     ck_assert_int_eq(ctx->request->times_get_sent, 2);
     ck_assert_str_eq(ctx->request->last_get_uri, "https://statestore.rollout.io/123/F81295A07A291D828AA7BFFCCD9DA0B7");
@@ -265,14 +217,14 @@ START_TEST (test_will_call_only_cdn_state_md5_changes_for_custom_property) {
 
     _state_sender_test_context_add_string_property(ctx, "cp1", "true");
     state_sender_send(ctx->sender);
-    _validate_no_errors(ctx);
+    logging_test_fixture_check_no_errors(ctx->logging);
 
     ck_assert_int_eq(ctx->request->times_get_sent, 1);
     ck_assert_str_eq(ctx->request->last_get_uri, "https://statestore.rollout.io/123/08C5B082527CE9B45B6AC79A52B7804E");
 
     _state_sender_test_context_add_double_property(ctx, "cp2", 20);
     state_sender_send(ctx->sender);
-    _validate_no_errors(ctx);
+    logging_test_fixture_check_no_errors(ctx->logging);
 
     ck_assert_int_eq(ctx->request->times_get_sent, 2);
     ck_assert_str_eq(ctx->request->last_get_uri, "https://statestore.rollout.io/123/91E9221FB21ED170B50D73B285A315C1");
@@ -289,7 +241,7 @@ START_TEST (test_will_call_only_cdn_state_md5_flag_order_not_important) {
     flag_repository_add_flag(ctx->flag_repo, variant_create_flag(), "flag1");
 
     state_sender_send(ctx->sender);
-    _validate_no_errors(ctx);
+    logging_test_fixture_check_no_errors(ctx->logging);
 
     ck_assert_int_eq(ctx->request->times_get_sent, 1);
     ck_assert_str_eq(ctx->request->last_get_uri, "https://statestore.rollout.io/123/F81295A07A291D828AA7BFFCCD9DA0B7");
@@ -306,7 +258,7 @@ START_TEST (test_will_call_only_cdn_state_md5_custom_property_order_not_importan
     _state_sender_test_context_add_string_property(ctx, "cp2", "2222");
 
     state_sender_send(ctx->sender);
-    _validate_no_errors(ctx);
+    logging_test_fixture_check_no_errors(ctx->logging);
 
     ck_assert_int_eq(ctx->request->times_get_sent, 1);
     ck_assert_str_eq(ctx->request->last_get_uri, "https://statestore.rollout.io/123/0D07300D3F83F344E7C472E3EF2ECCF0");
@@ -319,7 +271,7 @@ START_TEST (test_will_call_only_cdn_state_md5_custom_property_order_not_importan
     _state_sender_test_context_add_string_property(ctx, "cp1", "1111");
 
     state_sender_send(ctx->sender);
-    _validate_no_errors(ctx);
+    logging_test_fixture_check_no_errors(ctx->logging);
 
     ck_assert_int_eq(ctx->request->times_get_sent, 1);
     ck_assert_str_eq(ctx->request->last_get_uri, "https://statestore.rollout.io/123/0D07300D3F83F344E7C472E3EF2ECCF0");
@@ -335,7 +287,7 @@ START_TEST (test_will_return_null_when_cdn_fails_with_exception) {
 
     flag_repository_add_flag(ctx->flag_repo, variant_create_flag(), "flag");
     state_sender_send(ctx->sender);
-    check_log_message(ctx, RoxLogLevelError, "Failed to send state");
+    logging_test_fixture_check_log_message(ctx->logging, RoxLogLevelError, "Failed to send state");
 
     ck_assert_int_eq(ctx->request->times_get_sent, 1);
     ck_assert_str_eq(ctx->request->last_get_uri, "https://statestore.rollout.io/123/CF09F3555C13395B5F2DE947450F6FA9");
@@ -352,7 +304,7 @@ START_TEST (test_will_return_null_when_cdn_succeed_with_empty_response) {
 
     flag_repository_add_flag(ctx->flag_repo, variant_create_flag(), "flag");
     state_sender_send(ctx->sender);
-    check_log_message(ctx, RoxLogLevelError, "Failed to send state");
+    logging_test_fixture_check_log_message(ctx->logging, RoxLogLevelError, "Failed to send state");
 
     ck_assert_int_eq(ctx->request->times_get_sent, 1);
     ck_assert_str_eq(ctx->request->last_get_uri, "https://statestore.rollout.io/123/CF09F3555C13395B5F2DE947450F6FA9");
@@ -369,7 +321,7 @@ START_TEST (test_will_return_null_when_cdn_succeed_with_not_json_response) {
 
     flag_repository_add_flag(ctx->flag_repo, variant_create_flag(), "flag");
     state_sender_send(ctx->sender);
-    check_log_message(ctx, RoxLogLevelError, "Failed to send state");
+    logging_test_fixture_check_log_message(ctx->logging, RoxLogLevelError, "Failed to send state");
 
     ck_assert_int_eq(ctx->request->times_get_sent, 1);
     ck_assert_str_eq(ctx->request->last_get_uri, "https://statestore.rollout.io/123/CF09F3555C13395B5F2DE947450F6FA9");
@@ -388,7 +340,7 @@ START_TEST (test_will_return_null_when_cdn_fails_404_api_with_exception) {
     flag_repository_add_flag(ctx->flag_repo, variant_create_flag(), "flag");
     _state_sender_test_context_add_string_property(ctx, "id", "1111");
     state_sender_send(ctx->sender);
-    check_log_message(ctx, RoxLogLevelError, "Failed to send state");
+    logging_test_fixture_check_log_message(ctx->logging, RoxLogLevelError, "Failed to send state");
 
     ck_assert_int_eq(ctx->request->times_get_sent, 1);
     ck_assert_str_eq(ctx->request->last_get_uri, "https://statestore.rollout.io/123/9351683310939C0C53BB3EE38E6B99FC");
@@ -412,8 +364,8 @@ START_TEST (test_will_return_api_data_when_cdn_succeed_with_result_404_api_ok) {
     _state_sender_test_context_add_string_property(ctx, "id", "1111");
     state_sender_send(ctx->sender);
 
-    check_log_message(ctx, RoxLogLevelDebug, "Failed to send state");
-    check_no_log_messages(ctx, RoxLogLevelError);
+    logging_test_fixture_check_log_message(ctx->logging, RoxLogLevelDebug, "Failed to send state");
+    logging_test_fixture_check_no_messages(ctx->logging, RoxLogLevelError);
 
     ck_assert_int_eq(ctx->request->times_get_sent, 1);
     ck_assert_str_eq(ctx->request->last_get_uri, "https://statestore.rollout.io/123/9351683310939C0C53BB3EE38E6B99FC");
@@ -437,8 +389,8 @@ START_TEST (test_will_return_apidata_when_cdn_fails_404_api_ok) {
     _state_sender_test_context_add_string_property(ctx, "id", "1111");
     state_sender_send(ctx->sender);
 
-    check_log_message(ctx, RoxLogLevelDebug, "Failed to send state");
-    check_no_log_messages(ctx, RoxLogLevelError);
+    logging_test_fixture_check_log_message(ctx->logging, RoxLogLevelDebug, "Failed to send state");
+    logging_test_fixture_check_no_messages(ctx->logging, RoxLogLevelError);
 
     ck_assert_int_eq(ctx->request->times_get_sent, 1);
     ck_assert_str_eq(ctx->request->last_get_uri, "https://statestore.rollout.io/123/9351683310939C0C53BB3EE38E6B99FC");
@@ -464,7 +416,7 @@ START_TEST (test_will_return_null_data_when_both_not_found) {
     ck_assert_int_eq(ctx->request->times_get_sent, 1);
     ck_assert_int_eq(ctx->request->times_post_sent, 1);
 
-    check_log_message(ctx, RoxLogLevelError, "Failed to send state");
+    logging_test_fixture_check_log_message(ctx->logging, RoxLogLevelError, "Failed to send state");
 
     _state_sender_test_context_free(ctx);
 }
