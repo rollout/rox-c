@@ -15,6 +15,7 @@ typedef struct ROX_INTERNAL CoreTestContext {
     RoxOptions *rox_options;
     RoxCore *core;
     LoggingTestFixture *logging;
+    RequestTestFixture *request;
 } CoreTestContext;
 
 static CoreTestContext *_core_test_context_create(const char *api_key, const char *roxy_url) {
@@ -28,7 +29,11 @@ static CoreTestContext *_core_test_context_create(const char *api_key, const cha
     }
     ctx->device_properties = device_properties_create_from_map(ctx->sdk_settings, ctx->rox_options, ROX_EMPTY_MAP);
     ctx->logging = logging_test_fixture_create(RoxLogLevelDebug);
-    ctx->core = rox_core_create();
+    ctx->request = request_test_fixture_create();
+    ctx->request->status_to_return_to_get = 200;
+    ctx->request->status_to_return_to_post = 200;
+    ctx->request->status_to_return_to_post_json = 200;
+    ctx->core = rox_core_create(&ctx->request->config);
     return ctx;
 }
 
@@ -45,6 +50,7 @@ static void _core_test_context_free(CoreTestContext *ctx) {
     device_properties_free(ctx->device_properties);
     rox_options_free(ctx->rox_options);
     logging_test_fixture_free(ctx->logging);
+    request_test_fixture_free(ctx->request);
     free(ctx);
 }
 

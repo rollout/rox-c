@@ -2,10 +2,8 @@
 #include <assert.h>
 #include <pthread.h>
 #include <time.h>
-#include <stdio.h>
 #include "core/consts.h"
 #include "core/logging.h"
-#include "roxx/stack.h"
 #include "network.h"
 #include "util.h"
 
@@ -22,6 +20,7 @@ struct ROX_INTERNAL Debouncer {
     pthread_mutex_t thread_mutex;
     pthread_cond_t thread_cond;
     bool thread_started;
+    bool stopped;
 };
 
 Debouncer *ROX_INTERNAL debouncer_create(int interval_millis, void *target, debouncer_func func) {
@@ -39,17 +38,19 @@ Debouncer *ROX_INTERNAL debouncer_create(int interval_millis, void *target, debo
 
 static void *_debouncer_thread_func(void *ptr) {
     Debouncer *debouncer = (Debouncer *) ptr;
-    double time = current_time_millis();
-    if (time >= debouncer->cancel_until) {
-        // The following code is an analogue of sleep() with the exception
-        // that it allows the thread to be awakened by the debouncer when
-        // it's destroyed for example.
-        struct timespec ts = get_future_timespec(debouncer->interval_millis);
-        pthread_mutex_lock(&debouncer->thread_mutex);
-        int result = pthread_cond_timedwait(&debouncer->thread_cond, &debouncer->thread_mutex, &ts);
-        pthread_mutex_unlock(&debouncer->thread_mutex);
-        if (result == ETIMEDOUT) {
-            debouncer->func(debouncer->target);
+    if (!debouncer->stopped) {
+        double time = current_time_millis();
+        if (time >= debouncer->cancel_until) {
+            // The following code is an analogue of sleep() with the exception
+            // that it allows the thread to be awakened by the debouncer when
+            // it's destroyed for example.
+            struct timespec ts = get_future_timespec(debouncer->interval_millis);
+            pthread_mutex_lock(&debouncer->thread_mutex);
+            int result = pthread_cond_timedwait(&debouncer->thread_cond, &debouncer->thread_mutex, &ts);
+            pthread_mutex_unlock(&debouncer->thread_mutex);
+            if (result == ETIMEDOUT) {
+                debouncer->func(debouncer->target);
+            }
         }
     }
     debouncer->thread_started = false;
@@ -66,6 +67,7 @@ void ROX_INTERNAL debouncer_invoke(Debouncer *debouncer) {
 
 void ROX_INTERNAL debouncer_free(Debouncer *debouncer) {
     assert(debouncer);
+    debouncer->stopped = true;
     if (debouncer->thread_started) {
         pthread_mutex_lock(&debouncer->thread_mutex);
         pthread_cond_signal(&debouncer->thread_cond);
@@ -240,7 +242,7 @@ static HttpResponseMessage *_state_sender_send_state_to_api(StateSender *sender,
 }
 
 static void _state_sender_log_log_send_state_exception(ConfigurationSource source) {
-    ROX_ERROR("Failed to send state. Source: %d", source);
+    ROX_ERROR("Failed to send state. Source: %s", configuration_source_to_str(source));
 }
 
 void ROX_INTERNAL state_sender_send(StateSender *sender) {
@@ -283,8 +285,8 @@ void ROX_INTERNAL state_sender_send(StateSender *sender) {
         response_message_get_status(fetch_result) == 404) {
 
         ROX_DEBUG("Failed to send state to %s. Trying to send state to %s. http result code: %d",
-                  ROX_STR(CONFIGURATION_SOURCE_CDN),
-                  ROX_STR(CONFIGURATION_SOURCE_API),
+                  configuration_source_to_str(CONFIGURATION_SOURCE_CDN),
+                  configuration_source_to_str(CONFIGURATION_SOURCE_API),
                   response_message_get_status(fetch_result));
 
         source = CONFIGURATION_SOURCE_API;
@@ -306,7 +308,7 @@ void ROX_INTERNAL state_sender_send(StateSender *sender) {
         }
     }
 
-    ROX_ERROR("Failed to send state. Source: %d", source);
+    ROX_ERROR("Failed to send state. Source: %s", configuration_source_to_str(source));
 }
 
 void ROX_INTERNAL state_sender_send_debounce(StateSender *sender) {

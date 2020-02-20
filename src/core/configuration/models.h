@@ -42,6 +42,12 @@ ExperimentModel *ROX_INTERNAL experiment_model_create(
 
 /**
  * @param model Not <code>NULL</code>.
+ * @return Not <code>NULL</code>. Deep copy of the given <code>model</code>.
+ */
+ExperimentModel *ROX_INTERNAL experiment_model_copy(ExperimentModel *model);
+
+/**
+ * @param model Not <code>NULL</code>.
  */
 void ROX_INTERNAL experiment_model_free(ExperimentModel *model);
 
@@ -64,6 +70,12 @@ typedef struct ROX_INTERNAL TargetGroupModel {
 TargetGroupModel *ROX_INTERNAL target_group_model_create(
         const char *id,
         const char *condition);
+
+/**
+ * @param model Not <code>NULL</code>.
+ * @retun Not <code>NULL</code>. Deep copy of the given <code>model</code>.
+ */
+TargetGroupModel *ROX_INTERNAL target_group_model_copy(TargetGroupModel *model);
 
 /**
  * @param model Not <code>NULL</code>.

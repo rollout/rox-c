@@ -75,12 +75,30 @@ List *ROX_INTERNAL mem_copy_list(List *list) {
     return copy;
 }
 
+List *ROX_INTERNAL mem_deep_copy_list(List *list, void *(*copy_func)(void *)) {
+    assert(list);
+    assert(copy_func);
+    List *copy;
+    list_copy_deep(list, copy_func, &copy);
+    return copy;
+}
+
 HashSet *ROX_INTERNAL mem_copy_set(HashSet *set) {
     assert(set);
     HashSet *copy;
     hashset_new(&copy);
     ROX_SET_FOREACH(item, set, {
         hashset_add(copy, item);
+    })
+    return copy;
+}
+
+HashSet *ROX_INTERNAL mem_deep_copy_set(HashSet *set, void *(*copy_func)(void *)) {
+    assert(set);
+    HashSet *copy;
+    hashset_new(&copy);
+    ROX_SET_FOREACH(item, set, {
+        hashset_add(copy, copy_func(item));
     })
     return copy;
 }

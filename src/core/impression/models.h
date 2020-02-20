@@ -20,6 +20,12 @@
 RoxExperiment *ROX_INTERNAL experiment_create(ExperimentModel *model);
 
 /**
+ * @param model Not <code>NULL</code>.
+ * @return Not <code>NULL</code>.
+ */
+RoxExperiment *ROX_INTERNAL experiment_copy(RoxExperiment *experiment);
+
+/**
  * @param experiment Not <code>NULL</code>.
  */
 void ROX_INTERNAL experiment_free(RoxExperiment *experiment);
@@ -34,6 +40,12 @@ void ROX_INTERNAL experiment_free(RoxExperiment *experiment);
  * @return Not <code>NULL</code>.
  */
 RoxReportingValue *ROX_INTERNAL reporting_value_create(const char *name, const char *value);
+
+/**
+ * @param value Not <code>NULL</code>.
+ * @return Not <code>NULL</code>.
+ */
+RoxReportingValue *ROX_INTERNAL reporting_value_copy(RoxReportingValue *value);
 
 void ROX_INTERNAL reporting_value_free(RoxReportingValue *reporting_value);
 

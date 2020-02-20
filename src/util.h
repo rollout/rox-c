@@ -32,7 +32,11 @@ HashTable *ROX_INTERNAL mem_copy_map(HashTable *map);
 
 List *ROX_INTERNAL mem_copy_list(List *list);
 
+List *ROX_INTERNAL mem_deep_copy_list(List *list, void *(*copy_func)(void *));
+
 HashSet *ROX_INTERNAL mem_copy_set(HashSet *set);
+
+HashSet *ROX_INTERNAL mem_deep_copy_set(HashSet *set, void *(*copy_func)(void *));
 
 HashTable *ROX_INTERNAL mem_deep_copy_str_value_map(HashTable *map);
 

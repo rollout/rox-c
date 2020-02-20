@@ -2,6 +2,8 @@
 
 #include <stdlib.h>
 #include <stdbool.h>
+
+// FIXME: get rid of external dependencies in the API; define own RoxSet, RoxMap and RoxList backed by any lib.
 #include <collectc/hashset.h>
 #include <collectc/list.h>
 
@@ -382,6 +384,7 @@ typedef struct ROX_API RoxVariant RoxVariant;
 
 /**
  * @param name Not <code>NULL</code>. Flag name <em>including namespace prefix</em>. Value is copied internally.
+ * @return Not <code>NULL</code>. Memory is managed by ROX.
  */
 RoxVariant *ROX_API rox_add_flag(const char *name, bool default_value);
 
@@ -389,6 +392,7 @@ RoxVariant *ROX_API rox_add_flag(const char *name, bool default_value);
  * @param name Not <code>NULL</code>. Flag name <em>including namespace prefix</em>. Value is copied internally.
  * @param default_value May be <code>NULL</code>. If passed, value is copied internally.
  * @param options May be <code>NULL</code>. If passed, ownership is delegated to ROX.
+ * @return Not <code>NULL</code>. Memory is managed by ROX.
  */
 RoxVariant *ROX_API rox_add_variant(const char *name, const char *default_value, List *options);
 
@@ -404,9 +408,27 @@ char *ROX_API rox_variant_get_value_or_default(RoxVariant *variant);
  * The returned value must be freed after use by the caller, if not <code>NULL</code>.
  *
  * @param variant Not <code>NULL</code>.
+ * @param context Not <code>NULL</code>.
+ * @return Current value or <code>default_value</code> passed to <code>create_variant()</code>, if the value is not defined.
+ */
+char *ROX_API rox_variant_get_value_or_default_ctx(RoxVariant *variant, RoxContext *context);
+
+/**
+ * The returned value must be freed after use by the caller, if not <code>NULL</code>.
+ *
+ * @param variant Not <code>NULL</code>.
  * @return Current value or <code>NULL</code>, if the value is not defined.
  */
 char *ROX_API rox_variant_get_value_or_null(RoxVariant *variant);
+
+/**
+ * The returned value must be freed after use by the caller, if not <code>NULL</code>.
+ *
+ * @param variant Not <code>NULL</code>.
+ * @param context Not <code>NULL</code>.
+ * @return Current value or <code>NULL</code>, if the value is not defined.
+ */
+char *ROX_API rox_variant_get_value_or_null_ctx(RoxVariant *variant, RoxContext *context);
 
 /**
  * @param variant Not <code>NULL</code>.
@@ -415,9 +437,26 @@ bool ROX_API rox_flag_is_enabled(RoxVariant *variant);
 
 /**
  * @param variant Not <code>NULL</code>.
+ * @param context Not <code>NULL</code>.
+ */
+bool ROX_API rox_flag_is_enabled_ctx(RoxVariant *variant, RoxContext *context);
+
+/**
+ * Note the returned pointer must <em>NOT</em> be freed.
+ *
+ * @param variant Not <code>NULL</code>.
  * @return <code>true</code> or <code>false</code> or <code>NULL</code>.
  */
 const bool *ROX_API rox_flag_is_enabled_or_null(RoxVariant *variant);
+
+/**
+ * Note the returned pointer must <em>NOT</em> be freed.
+ *
+ * @param variant Not <code>NULL</code>.
+ * @param context Not <code>NULL</code>.
+ * @return <code>true</code> or <code>false</code> or <code>NULL</code>.
+ */
+const bool *ROX_API rox_flag_is_enabled_or_null_ctx(RoxVariant *variant, RoxContext *context);
 
 typedef ROX_API void (*rox_flag_action)();
 
@@ -429,9 +468,23 @@ void ROX_API rox_flag_enabled_do(RoxVariant *variant, rox_flag_action action);
 
 /**
  * @param variant Not <code>NULL</code>.
+ * @param context Not <code>NULL</code>.
+ * @param action Not <code>NULL</code>.
+ */
+void ROX_API rox_flag_enabled_do_ctx(RoxVariant *variant, RoxContext *context, rox_flag_action action);
+
+/**
+ * @param variant Not <code>NULL</code>.
  * @param action Not <code>NULL</code>.
  */
 void ROX_API rox_flag_disabled_do(RoxVariant *variant, rox_flag_action action);
+
+/**
+ * @param variant Not <code>NULL</code>.
+ * @param context Not <code>NULL</code>.
+ * @param action Not <code>NULL</code>.
+ */
+void ROX_API rox_flag_disabled_do_ctx(RoxVariant *variant, RoxContext *context, rox_flag_action action);
 
 typedef ROX_API RoxDynamicValue *(*rox_custom_property_value_generator)(void *target, RoxContext *context);
 

@@ -1,3 +1,4 @@
+#include <pthread.h>
 #include <collectc/list.h>
 #include <curl/curl.h>
 #include <stdlib.h>
@@ -32,6 +33,7 @@ void ROX_INTERNAL request_data_free(RequestData *data) {
 struct ROX_INTERNAL HttpResponseMessage {
     int status;
     char *content;
+    size_t content_len;
 };
 
 HttpResponseMessage *ROX_INTERNAL response_message_create(int status, char *data) {
@@ -74,7 +76,8 @@ struct ROX_INTERNAL Request {
     request_send_get_func send_get;
     request_send_post_func send_post;
     request_send_post_json_func send_post_json;
-    CURL *curl;
+    pthread_key_t thread_local_storage_key;
+    int request_timeout;
 };
 
 typedef struct ROX_INTERNAL RequestCurlContext {
@@ -82,16 +85,34 @@ typedef struct ROX_INTERNAL RequestCurlContext {
     HttpResponseMessage *message;
 } RequestCurlContext;
 
-static size_t _request_curl_write_callback(char *ptr, size_t size, size_t nmemb, void *userdata) {
+static void _request_delete_handle(CURL *curl) {
+    assert(curl);
+    curl_easy_cleanup(curl);
+}
+
+static CURL *_request_get_handle(Request *request) {
+    assert(request);
+    CURL *curl = pthread_getspecific(request->thread_local_storage_key);
+    if (!curl) {
+        curl = curl_easy_init();
+        pthread_setspecific(request->thread_local_storage_key, curl);
+    }
+    return curl;
+}
+
+static size_t _request_curl_write_callback(char *contents, size_t size, size_t nmemb, void *userdata) {
     size_t real_size = size * nmemb;
     RequestCurlContext *context = (RequestCurlContext *) userdata;
     HttpResponseMessage *message = context->message;
-    if (message->content) {
-        free(message->content);
+    char *ptr = realloc(message->content, message->content_len + real_size + 1);
+    if (ptr == NULL) {
+        ROX_ERROR("not enough memory");
+        return 0;
     }
-    message->content = malloc(real_size + 1);
-    memcpy(message->content, ptr, real_size);
-    message->content[real_size] = 0;
+    message->content = ptr;
+    memcpy(&(message->content[message->content_len]), contents, real_size);
+    message->content_len += real_size;
+    message->content[message->content_len] = 0;
     return real_size;
 }
 
@@ -101,10 +122,11 @@ static char *_request_build_url_with_params(Request *request, const char *url, H
     assert(params);
     List *kv_pairs;
     list_new(&kv_pairs);
+    CURL *curl = _request_get_handle(request);
     TableEntry *entry;
     HASHTABLE_FOREACH(entry, params, {
-        char *key = curl_easy_escape(request->curl, entry->key, 0);
-        char *value = curl_easy_escape(request->curl, entry->value, 0);
+        char *key = curl_easy_escape(curl, entry->key, 0);
+        char *value = curl_easy_escape(curl, entry->value, 0);
         char *pair = mem_str_format("%s=%s", key, value);
         free(key);
         free(value);
@@ -128,6 +150,17 @@ static cJSON *_build_json_from_params(HashTable *params) {
     return json;
 }
 
+static void _request_reset_handle(Request *request, CURL *curl) {
+    assert(request);
+    curl_easy_reset(curl);
+    curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, true);
+    curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, ""); // enable all supported built-in compressions
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &_request_curl_write_callback);
+    curl_easy_setopt(curl, CURLOPT_TIMEOUT, request->request_timeout > 0
+                                            ? request->request_timeout : 30);
+    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, false); // FIXME: use system CA/root certs
+}
+
 static HttpResponseMessage *_request_send_get(void *target, Request *request, RequestData *data) {
     assert(request);
     assert(data);
@@ -136,12 +169,17 @@ static HttpResponseMessage *_request_send_get(void *target, Request *request, Re
                 : data->url;
     HttpResponseMessage *message = response_message_create(0, NULL);
     RequestCurlContext context = {request, message};
-    curl_easy_setopt(request->curl, CURLOPT_URL, url);
-    curl_easy_setopt(request->curl, CURLOPT_HTTPGET, true);
-    curl_easy_setopt(request->curl, CURLOPT_WRITEDATA, &context);
-    CURLcode res = curl_easy_perform(request->curl);
+    CURL *curl = _request_get_handle(request);
+    _request_reset_handle(request, curl);
+    curl_easy_setopt(curl, CURLOPT_URL, url);
+    curl_easy_setopt(curl, CURLOPT_HTTPGET, 1L);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &context);
+//    curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
+    CURLcode res = curl_easy_perform(curl);
     if (res != CURLE_OK) {
         ROX_ERROR("curl_easy_perform() failed: %s", curl_easy_strerror(res));
+    } else {
+        curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &message->status);
     }
     if (url != data->url) {
         free(url);
@@ -156,19 +194,24 @@ static HttpResponseMessage *_request_send_post_json(void *target, Request *reque
 
     struct curl_slist *headers = curl_slist_append(NULL, "Content-Type: application/json");
 
+    char *json_str = cJSON_Print(json);
     HttpResponseMessage *message = response_message_create(0, NULL);
     RequestCurlContext context = {request, message};
-    curl_easy_setopt(request->curl, CURLOPT_URL, uri);
-    curl_easy_setopt(request->curl, CURLOPT_HTTPPOST, true);
-    curl_easy_setopt(request->curl, CURLOPT_POSTFIELDS, json);
-    curl_easy_setopt(request->curl, CURLOPT_WRITEDATA, &context);
-    curl_easy_setopt(request->curl, CURLOPT_HTTPHEADER, headers);
-    CURLcode res = curl_easy_perform(request->curl);
+    CURL *curl = _request_get_handle(request);
+    _request_reset_handle(request, curl);
+    curl_easy_setopt(curl, CURLOPT_URL, uri);
+    curl_easy_setopt(curl, CURLOPT_HTTPPOST, 1L);
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, json_str);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &context);
+    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+    CURLcode res = curl_easy_perform(curl);
     curl_slist_free_all(headers);
+    free(json_str);
     if (res != CURLE_OK) {
         ROX_ERROR("curl_easy_perform() failed: %s", curl_easy_strerror(res));
+    } else {
+        curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &message->status);
     }
-    free(json);
     return message;
 }
 
@@ -199,12 +242,9 @@ Request *ROX_INTERNAL request_create(RequestConfig *config) {
     if (!request->send_post_json) {
         request->send_post_json = &_request_send_post_json;
     }
-    request->curl = curl_easy_init();
-    curl_easy_setopt(request->curl, CURLOPT_FOLLOWLOCATION, true);
-    curl_easy_setopt(request->curl, CURLOPT_ACCEPT_ENCODING, ""); // enable all supported built-in compressions
-    curl_easy_setopt(request->curl, CURLOPT_WRITEFUNCTION, &_request_curl_write_callback);
-    curl_easy_setopt(request->curl, CURLOPT_TIMEOUT, config && config->request_timeout > 0
-                                                     ? config->request_timeout : 30);
+    request->request_timeout = config ? config->request_timeout : 0;
+    int ret = pthread_key_create(&request->thread_local_storage_key, &_request_delete_handle);
+    assert(ret == 0);
     return request;
 }
 
@@ -229,7 +269,6 @@ HttpResponseMessage *ROX_INTERNAL request_send_post_json(Request *request, const
 
 void ROX_INTERNAL request_free(Request *request) {
     assert(request);
-    curl_easy_cleanup(request->curl);
     free(request);
 }
 
@@ -303,12 +342,16 @@ static void _configuration_fetcher_handle_error(
     assert(fetcher);
     assert(source);
 
+    const char *source_str = configuration_source_to_str(source);
+    const char *content = message && message->content ? message->content : "empty content";
     int status = message ? response_message_get_status(message) : 0;
+
     if (next_source) {
-        ROX_DEBUG("Failed to fetch from %d. Trying from %d. http error code: %d", source,
-                  status, next_source);
+        const char *next_source_str = configuration_source_to_str(next_source);
+        ROX_DEBUG("Failed to fetch from %s. Trying from %s. http error code: %d (%s)", source_str,
+                  next_source_str, status, content);
     } else {
-        ROX_DEBUG("Failed to fetch from %d. http error code: %d", source, status);
+        ROX_DEBUG("Failed to fetch from %s. http error code: %d (%s)", source_str, status, content);
     }
 
     if (raise_configuration_handler) {
@@ -507,8 +550,8 @@ ConfigurationFetchResult *ROX_INTERNAL configuration_fetcher_fetch(Configuration
     }
 
     rox_map_free_with_values(properties);
+    _configuration_fetcher_handle_error(fetcher, source, message, true, 0);
     response_message_free(message);
-    _configuration_fetcher_handle_error(fetcher, source, NULL, true, 0);
 
     return NULL;
 }

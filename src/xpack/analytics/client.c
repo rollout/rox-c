@@ -5,6 +5,18 @@
 // Client
 //
 
+const AnalyticsClientConfig ANALYTICS_CLIENT_INITIAL_CONFIG = {
+        NULL,
+        NULL,
+        0,
+        0,
+        false,
+        false,
+        0,
+        NULL,
+        NULL
+};
+
 struct ROX_INTERNAL AnalyticsClient {
     char *write_key;
     AnalyticsClientConfig *config;

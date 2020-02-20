@@ -52,6 +52,8 @@ typedef enum ROX_INTERNAL ConfigurationSource {
     CONFIGURATION_SOURCE_URL
 } ConfigurationSource;
 
+const char *ROX_INTERNAL configuration_source_to_str(ConfigurationSource source);
+
 typedef struct ROX_INTERNAL ConfigurationFetchResult {
     ConfigurationSource source;
     cJSON *parsed_data;

@@ -25,23 +25,26 @@ typedef struct ROX_INTERNAL PeriodicTask {
     periodic_task_func func;
     int period_seconds;
     bool thread_started;
+    bool stopped;
 } PeriodicTask;
 
 static void *_periodic_task_thread_func(void *ptr) {
     PeriodicTask *task = (PeriodicTask *) ptr;
-    int result;
-    do {
-        // The following code is an analogue of sleep() with the exception
-        // that it allows the thread to be awakened by the state sender when
-        // it's destroyed for example.
-        struct timespec ts = get_future_timespec(task->period_seconds);
-        pthread_mutex_lock(&task->thread_mutex);
-        result = pthread_cond_timedwait(&task->thread_cond, &task->thread_mutex, &ts);
-        pthread_mutex_unlock(&task->thread_mutex);
-        if (result == ETIMEDOUT) {
-            task->func(task->target);
-        }
-    } while (result == ETIMEDOUT);
+    if (!task->stopped) {
+        int result;
+        do {
+            // The following code is an analogue of sleep() with the exception
+            // that it allows the thread to be awakened by the state sender when
+            // it's destroyed for example.
+            struct timespec ts = get_future_timespec(task->period_seconds * 1000);
+            pthread_mutex_lock(&task->thread_mutex);
+            result = pthread_cond_timedwait(&task->thread_cond, &task->thread_mutex, &ts);
+            pthread_mutex_unlock(&task->thread_mutex);
+            if (result == ETIMEDOUT) {
+                task->func(task->target);
+            }
+        } while (result == ETIMEDOUT);
+    }
     task->thread_started = false;
     return NULL;
 }
@@ -62,6 +65,7 @@ static PeriodicTask *_periodic_task_create(int seconds, void *target, periodic_t
 
 static void _periodic_task_free(PeriodicTask *task) {
     assert(task);
+    task->stopped = true;
     if (task->thread_started) {
         pthread_mutex_lock(&task->thread_mutex);
         pthread_cond_signal(&task->thread_cond);
@@ -109,9 +113,11 @@ struct ROX_INTERNAL RoxCore {
     BUID *buid;
     double last_fetch_time;
     ConfigurationFetchResult *last_configuration;
+    pthread_mutex_t fetch_lock;
+    bool stopped;
 };
 
-RoxCore *ROX_INTERNAL rox_core_create() {
+RoxCore *ROX_INTERNAL rox_core_create(RequestConfig *request_config) {
 
     RoxCore *core = calloc(1, sizeof(RoxCore));
 
@@ -131,9 +137,9 @@ RoxCore *ROX_INTERNAL rox_core_create() {
             core->impression_invoker);
 
     core->signature_verifier = signature_verifier_create(NULL);
-    core->configuration_fetcher_request = request_create(NULL);
-    core->state_sender_request = request_create(NULL);
-    core->report_request = request_create(NULL);
+    core->configuration_fetcher_request = request_create(request_config);
+    core->state_sender_request = request_create(request_config);
+    core->report_request = request_create(request_config);
 
     parser_add_properties_extensions(core->parser, core->custom_property_repository, core->dynamic_properties);
     parser_add_experiments_extensions(core->parser, core->target_group_repository, core->flag_repository,
@@ -166,13 +172,23 @@ void ROX_INTERNAL rox_core_fetch(RoxCore *core, bool is_source_pushing) {
         return;
     }
 
+    pthread_mutex_lock(&core->fetch_lock);
+
+    if (core->stopped) {
+        ROX_DEBUG("ROX is stopped. Cancelling fetch");
+        pthread_mutex_unlock(&core->fetch_lock);
+        return;
+    }
+
     if (!_core_check_throttle_interval(core, is_source_pushing)) {
         ROX_WARN("Skipping fetch - kill switch");
+        pthread_mutex_unlock(&core->fetch_lock);
         return;
     }
 
     ConfigurationFetchResult *result = configuration_fetcher_fetch(core->configuration_fetcher);
     if (!result) {
+        pthread_mutex_unlock(&core->fetch_lock);
         return;
     }
 
@@ -188,11 +204,13 @@ void ROX_INTERNAL rox_core_fetch(RoxCore *core, bool is_source_pushing) {
 
         experiment_repository_set_experiments(
                 core->experiment_repository,
-                mem_copy_list(configuration->experiments));
+                mem_deep_copy_list(configuration->experiments,
+                                   (void *(*)(void *)) &experiment_model_copy));
 
         target_group_repository_set_target_groups(
                 core->target_group_repository,
-                mem_copy_list(configuration->target_groups));
+                mem_deep_copy_list(configuration->target_groups,
+                                   (void *(*)(void *)) &target_group_model_copy));
 
         flag_setter_set_experiments(core->flag_setter);
 
@@ -204,6 +222,8 @@ void ROX_INTERNAL rox_core_fetch(RoxCore *core, bool is_source_pushing) {
 
         configuration_free(configuration);
     }
+
+    pthread_mutex_unlock(&core->fetch_lock);
 }
 
 static void _core_x_configuration_fetch_func(void *target) {
@@ -227,6 +247,11 @@ bool ROX_INTERNAL rox_core_setup(
         return false;
     }
 
+    if (pthread_mutex_init(&core->fetch_lock, NULL) != 0) {
+        ROX_ERROR("mutex init has failed");
+        return false;
+    }
+
     const char *roxy_url = NULL;
     if (rox_options) {
         roxy_url = rox_options_get_roxy_url(rox_options);
@@ -245,8 +270,8 @@ bool ROX_INTERNAL rox_core_setup(
     core->sdk_settings = sdk_settings;
     core->device_properties = device_properties;
 
-    APIKeyVerifierConfig config = {sdk_settings, NULL};
-    core->api_key_verifier = api_key_verifier_create(&config);
+    APIKeyVerifierConfig api_key_verifier_config = {sdk_settings, NULL};
+    core->api_key_verifier = api_key_verifier_create(&api_key_verifier_config);
 
     core->internal_flags = internal_flags_create(core->experiment_repository, core->parser);
     core->buid = buid_create(device_properties);
@@ -288,15 +313,19 @@ bool ROX_INTERNAL rox_core_setup(
                 core->configuration_fetched_invoker,
                 core->error_reporter);
 
-        AnalyticsClientConfig config; // TODO: initialize!
+        AnalyticsClientConfig analytics_client_config = ANALYTICS_CLIENT_INITIAL_CONFIG;
         core->analytics_client = analytics_client_create(
                 device_properties_get_rollout_key(device_properties),
-                &config, device_properties);
+                &analytics_client_config, device_properties);
 
         core->x_impression_invoker = x_impression_invoker_create(
                 core->internal_flags,
                 core->custom_property_repository,
                 core->analytics_client);
+
+        impression_invoker_register(core->impression_invoker,
+                                    core->x_impression_invoker,
+                                    &x_impression_handler);
     }
 
     if (rox_options) {
@@ -327,8 +356,9 @@ bool ROX_INTERNAL rox_core_setup(
 
         rox_impression_handler handler = rox_options_get_impression_handler(rox_options);
         if (handler) {
-            impression_invoker_register(core->impression_invoker, handler,
-                                        rox_options_get_impression_handler_target(rox_options));
+            impression_invoker_register(core->impression_invoker,
+                                        rox_options_get_impression_handler_target(rox_options),
+                                        handler);
         }
 
         int fetch_interval = rox_options_get_fetch_interval(rox_options);
@@ -395,6 +425,8 @@ RoxDynamicApi *ROX_INTERNAL rox_core_create_dynamic_api(RoxCore *core, EntitiesP
 void ROX_INTERNAL rox_core_free(RoxCore *core) {
     assert(core);
 
+    core->stopped = true;
+
     flag_setter_free(core->flag_setter);
     configuration_fetched_invoker_free(core->configuration_fetched_invoker);
     flag_repository_free(core->flag_repository);
@@ -459,6 +491,10 @@ void ROX_INTERNAL rox_core_free(RoxCore *core) {
 
     if (core->last_configuration) {
         configuration_fetch_result_free(core->last_configuration);
+    }
+
+    if (core->fetch_lock) {
+        pthread_mutex_destroy(&core->fetch_lock);
     }
 
     free(core);

@@ -32,6 +32,17 @@ ExperimentModel *ROX_INTERNAL experiment_model_create(
     return model;
 }
 
+ExperimentModel *ROX_INTERNAL experiment_model_copy(ExperimentModel *model) {
+    assert(model);
+    return experiment_model_create(model->id,
+                                   model->name,
+                                   model->condition,
+                                   model->archived,
+                                   mem_deep_copy_list(model->flags, (void *(*)(void *)) &mem_copy_str),
+                                   mem_deep_copy_set(model->labels, (void *(*)(void *)) &mem_copy_str),
+                                   model->stickiness_property);
+}
+
 void ROX_INTERNAL experiment_model_free(ExperimentModel *model) {
     assert(model);
     free(model->id);
@@ -67,6 +78,11 @@ TargetGroupModel *ROX_INTERNAL target_group_model_create(
     model->id = mem_copy_str(id);
     model->condition = mem_copy_str(condition);
     return model;
+}
+
+TargetGroupModel *ROX_INTERNAL target_group_model_copy(TargetGroupModel *model) {
+    assert(model);
+    return target_group_model_create(model->id, model->condition);
 }
 
 void ROX_INTERNAL target_group_model_free(TargetGroupModel *model) {

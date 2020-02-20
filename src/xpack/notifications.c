@@ -282,12 +282,12 @@ static void *_event_source_reader_thread_func(void *ptr) {
     curl_easy_setopt(reader->curl, CURLOPT_NOPROGRESS, 1);
     curl_easy_setopt(reader->curl, CURLOPT_ACCEPT_ENCODING, ""); // enable all supported built-in compressions
     curl_easy_setopt(reader->curl, CURLOPT_TIMEOUT, 0);
-    curl_easy_setopt(reader->curl, CURLOPT_HTTPGET, true);
+    curl_easy_setopt(reader->curl, CURLOPT_HTTPGET, 1L);
     curl_easy_setopt(reader->curl, CURLOPT_WRITEFUNCTION, &_event_source_reader_write_callback);
     curl_easy_setopt(reader->curl, CURLOPT_WRITEDATA, reader);
     curl_easy_setopt(reader->curl, CURLOPT_HEADERFUNCTION, &_event_source_reader_header_callback);
     curl_easy_setopt(reader->curl, CURLOPT_HEADERDATA, reader);
-    curl_easy_setopt(reader->curl, CURLOPT_SSL_VERIFYPEER, !reader->skip_ssl_cert_verification);
+    curl_easy_setopt(reader->curl, CURLOPT_SSL_VERIFYPEER, !reader->skip_ssl_cert_verification); // FIXME: use system CA/root certs
 
     struct curl_slist *headers = NULL;
 

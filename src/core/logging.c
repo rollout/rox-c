@@ -5,14 +5,21 @@
 #include "logging.h"
 
 static void _default_logging_handler(void *target, RoxLogMessage *message) {
-    fprintf(message->level == RoxLogLevelDebug
-            ? stdout
-            : stderr,
+    FILE *stream = message->level == RoxLogLevelDebug ? stdout : stderr;
+#ifndef NDEBUG
+    fprintf(stream,
             "%s:%d [%s] %s\n",
             message->file,
             message->line,
             message->level_name,
             message->message);
+#else
+    fprintf(stream,
+            "[%s] %s\n",
+            message->level_name,
+            message->message);
+#endif
+    fflush(stream);
 }
 
 static void *ROX_LOGGING_TARGET = NULL;
@@ -26,7 +33,7 @@ void ROX_API rox_logging_init(RoxLoggingConfig *config) {
     ROX_MIN_LOGGING_LEVEL = config->min_level > 0 ? config->min_level : RoxLogLevelError;
 }
 
-#define ROX_LOG_MESSAGE_BUFFER_SIZE 1024
+#define ROX_LOG_MESSAGE_BUFFER_SIZE 10240
 
 static void _rox_handle_log_message(
         const char *file_name, int line, RoxLogLevel log_level, const char *fmt, va_list args) {

@@ -2,10 +2,15 @@
 
 #include "roxapi.h"
 #include "core/client.h"
+#include "core/network.h"
 
 typedef struct ROX_INTERNAL RoxCore RoxCore;
 
-RoxCore *ROX_INTERNAL rox_core_create();
+/**
+ * @param request_config May be <code>NULL</code>. Used for testing.
+ * @return Not <code>NULL</code>.
+ */
+RoxCore *ROX_INTERNAL rox_core_create(RequestConfig *request_config);
 
 /**
  * @param core Not <code>NULL</code>.

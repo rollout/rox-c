@@ -22,6 +22,8 @@ typedef struct ROX_INTERNAL AnalyticsClientConfig {
     analytics_client_track_func track_func;
 } AnalyticsClientConfig;
 
+extern const AnalyticsClientConfig ANALYTICS_CLIENT_INITIAL_CONFIG;
+
 //
 // Client
 //

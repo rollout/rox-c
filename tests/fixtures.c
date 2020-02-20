@@ -1,5 +1,6 @@
 #include <assert.h>
 #include <check.h>
+#include <stdio.h>
 #include "fixtures.h"
 #include "util.h"
 
@@ -39,10 +40,29 @@ static HttpResponseMessage *_test_request_send_post_func(void *target, Request *
             : NULL);
 }
 
+static HttpResponseMessage *
+_test_request_send_post_json_func(void *target, Request *request, const char *uri, cJSON *json) {
+    assert(target);
+    assert(request);
+    assert(uri);
+    assert(json);
+    RequestTestFixture *ctx = (RequestTestFixture *) target;
+    if (!ctx->status_to_return_to_post_json) {
+        return NULL;
+    }
+    return response_message_create(
+            ctx->status_to_return_to_post_json,
+            ctx->data_to_return_to_post_json
+            ? mem_copy_str(ctx->data_to_return_to_post_json)
+            : NULL);
+}
+
 RequestTestFixture *ROX_INTERNAL request_test_fixture_create() {
     RequestTestFixture *ctx = calloc(1, sizeof(RequestTestFixture));
-    RequestConfig request_config = {ctx, _test_request_send_get_func, &_test_request_send_post_func, NULL};
-    ctx->request = request_create(&request_config);
+    RequestConfig config = {ctx, _test_request_send_get_func, &_test_request_send_post_func,
+                            &_test_request_send_post_json_func};
+    ctx->config = config;
+    ctx->request = request_create(&ctx->config);
     return ctx;
 }
 
@@ -53,6 +73,9 @@ void ROX_INTERNAL request_test_fixture_free(RequestTestFixture *ctx) {
     }
     if (ctx->last_post_uri) {
         free(ctx->last_post_uri);
+    }
+    if (ctx->last_post_json_uri) {
+        free(ctx->last_post_json_uri);
     }
     if (ctx->last_get_params) {
         rox_map_free_with_values(ctx->last_get_params);
@@ -81,6 +104,15 @@ static void _test_logging_handler(void *target, RoxLogMessage *message) {
     record->level = message->level;
     record->message = mem_copy_str(message->message);
     list_add(fixture->log_records, record);
+
+    FILE *stream = message->level == RoxLogLevelDebug ? stdout : stderr;
+    fprintf(stream,
+            "%s:%d [%s] %s\n",
+            message->file,
+            message->line,
+            message->level_name,
+            message->message);
+    fflush(stream);
 }
 
 LoggingTestFixture *ROX_INTERNAL logging_test_fixture_create(RoxLogLevel log_level) {

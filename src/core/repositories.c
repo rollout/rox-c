@@ -112,12 +112,15 @@ ExperimentModel *ROX_INTERNAL experiment_repository_get_experiment_by_flag(
         const char *flag_name) {
     assert(repository);
     assert(flag_name);
-    LIST_FOREACH(model, repository->experiments, {
-        List *flags = ((ExperimentModel *) model)->flags;
+    ListIter i;
+    list_iter_init(&i, repository->experiments);
+    ExperimentModel *model;
+    while (list_iter_next(&i, (void **) &model) != CC_ITER_END) {
+        List *flags = model->flags;
         if (flags && str_in_list(flag_name, flags)) {
             return model;
         }
-    })
+    }
     return NULL;
 }
 
@@ -240,13 +243,15 @@ TargetGroupModel *ROX_INTERNAL target_group_repository_get_target_group(
     assert(repository);
     assert(id);
     TargetGroupModel *model = NULL;
-    LIST_FOREACH(item, repository->target_groups, {
-        TargetGroupModel *m = (TargetGroupModel *) item;
+    ListIter i;
+    list_iter_init(&i, repository->target_groups);
+    TargetGroupModel *m;
+    while (list_iter_next(&i, (void **) &m) != CC_ITER_END) {
         if (str_equals(m->id, id)) {
             model = m;
             break;
         }
-    })
+    }
     return model;
 }
 

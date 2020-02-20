@@ -2,6 +2,7 @@
 #include <core/consts.h>
 #include "core/logging.h"
 #include "core.h"
+#include "util.h"
 
 typedef struct ROX_INTERNAL Rox {
     RoxCore *core;
@@ -9,15 +10,24 @@ typedef struct ROX_INTERNAL Rox {
     SdkSettings *sdk_settings;
     DeviceProperties *device_properties;
     RoxOptions *options;
+    bool initialized;
 } Rox;
 
-static Rox *rox = NULL;
+static Rox *_rox = NULL;
+
+static Rox *_rox_get_or_create() {
+    if (!_rox) {
+        _rox = calloc(1, sizeof(Rox));
+        _rox->core = rox_core_create(NULL);
+    }
+    return _rox;
+}
 
 static void _create_custom_property(
         HashTable *map,
         const char *name,
         const char *value,
-        const char *suffix,
+        const char *prefix,
         const PropertyType *type,
         const CustomPropertyType *property_type) {
 
@@ -27,26 +37,36 @@ static void _create_custom_property(
         hashtable_get(map, type->name, (void **) &value);
     }
 
+    if (!name) {
+        name = type->name;
+    }
+
+    char *property_name = prefix
+                          ? mem_str_format("%s%s", prefix, name)
+                          : mem_copy_str(name);
+
+    Rox *rox = _rox_get_or_create();
     rox_core_add_custom_property_if_not_exists(
             rox->core,
             device_property_create_using_value(
-                    name ? name : type->name,
+                    property_name,
                     property_type,
                     value
                     ? rox_dynamic_value_create_string_copy(value)
                     : rox_dynamic_value_create_null()));
+
+    free(property_name);
 }
 
 void ROX_API rox_setup(const char *api_key, RoxOptions *options) {
     assert(api_key);
 
-    if (rox) {
+    if (_rox && _rox->initialized) {
         ROX_ERROR("Calling rox_setup more than once");
         return;
     }
 
-    rox = calloc(1, sizeof(Rox));
-    rox->core = rox_core_create();
+    Rox *rox = _rox_get_or_create();
 
     if (!options) {
         options = rox_options_create();
@@ -75,16 +95,26 @@ void ROX_API rox_setup(const char *api_key, RoxOptions *options) {
 
     if (!rox_core_setup(rox->core, rox->sdk_settings, rox->device_properties, options)) {
         ROX_ERROR("Failed in rox_setup");
+    } else {
+        rox->initialized = true;
     }
 }
 
 static bool _check_setup_called() {
-    assert(rox);
-    if (!rox) {
+    assert(_rox);
+    assert(_rox->initialized);
+    if (!_rox || !_rox->initialized) {
         ROX_ERROR("rox_setup is not called");
         return false;
     }
     return true;
+}
+
+void ROX_API rox_fetch() {
+    if (!_check_setup_called()) {
+        return;
+    }
+    rox_core_fetch(_rox->core, false);
 }
 
 void ROX_API rox_set_context(RoxContext *context) {
@@ -92,28 +122,26 @@ void ROX_API rox_set_context(RoxContext *context) {
     if (!_check_setup_called()) {
         return;
     }
-    if (rox->global_context) {
-        rox_context_free(rox->global_context);
+    if (_rox->global_context) {
+        rox_context_free(_rox->global_context);
     }
-    rox->global_context = context;
-    rox_core_set_context(rox->core, context);
+    _rox->global_context = context;
+    rox_core_set_context(_rox->core, context);
 }
 
 RoxVariant *ROX_API rox_add_flag(const char *name, bool default_value) {
     assert(name);
     RoxVariant *flag = variant_create_flag_with_default(default_value);
-    if (_check_setup_called()) {
-        rox_core_add_flag(rox->core, flag, name);
-    }
+    Rox *rox = _rox_get_or_create();
+    rox_core_add_flag(rox->core, flag, name);
     return flag;
 }
 
 RoxVariant *ROX_API rox_add_variant(const char *name, const char *default_value, List *options) {
     assert(name);
     RoxVariant *variant = variant_create(default_value, options);
-    if (_check_setup_called()) {
-        rox_core_add_flag(rox->core, variant, name);
-    }
+    Rox *rox = _rox_get_or_create();
+    rox_core_add_flag(rox->core, variant, name);
     return variant;
 }
 
@@ -122,9 +150,21 @@ char *ROX_API rox_variant_get_value_or_default(RoxVariant *variant) {
     return variant_get_value_or_default(variant, NULL);
 }
 
+char *ROX_API rox_variant_get_value_or_default_ctx(RoxVariant *variant, RoxContext *context) {
+    assert(variant);
+    assert(context);
+    return variant_get_value_or_default(variant, context);
+}
+
 char *ROX_API rox_variant_get_value_or_null(RoxVariant *variant) {
     assert(variant);
     return variant_get_value_or_null(variant, NULL);
+}
+
+char *ROX_API rox_variant_get_value_or_null_ctx(RoxVariant *variant, RoxContext *context) {
+    assert(variant);
+    assert(context);
+    return variant_get_value_or_null(variant, context);
 }
 
 bool ROX_API rox_flag_is_enabled(RoxVariant *variant) {
@@ -132,9 +172,21 @@ bool ROX_API rox_flag_is_enabled(RoxVariant *variant) {
     return flag_is_enabled(variant, NULL);
 }
 
+bool ROX_API rox_flag_is_enabled_ctx(RoxVariant *variant, RoxContext *context) {
+    assert(variant);
+    assert(context);
+    return flag_is_enabled(variant, context);
+}
+
 const bool *ROX_API rox_flag_is_enabled_or_null(RoxVariant *variant) {
     assert(variant);
     return flag_is_enabled_or_null(variant, NULL);
+}
+
+const bool *ROX_API rox_flag_is_enabled_or_null_ctx(RoxVariant *variant, RoxContext *context) {
+    assert(variant);
+    assert(context);
+    return flag_is_enabled_or_null(variant, context);
 }
 
 void ROX_API rox_flag_enabled_do(RoxVariant *variant, rox_flag_action action) {
@@ -143,10 +195,24 @@ void ROX_API rox_flag_enabled_do(RoxVariant *variant, rox_flag_action action) {
     flag_enabled_do(variant, NULL, action);
 }
 
+void ROX_API rox_flag_enabled_do_ctx(RoxVariant *variant, RoxContext *context, rox_flag_action action) {
+    assert(variant);
+    assert(action);
+    assert(context);
+    flag_enabled_do(variant, context, action);
+}
+
 void ROX_API rox_flag_disabled_do(RoxVariant *variant, rox_flag_action action) {
     assert(variant);
     assert(action);
     flag_disabled_do(variant, NULL, action);
+}
+
+void ROX_API rox_flag_disabled_do_ctx(RoxVariant *variant, RoxContext *context, rox_flag_action action) {
+    assert(variant);
+    assert(action);
+    assert(context);
+    flag_disabled_do(variant, context, action);
 }
 
 static void _add_custom_prop(const char *name, const CustomPropertyType *type, void *target,
@@ -154,17 +220,15 @@ static void _add_custom_prop(const char *name, const CustomPropertyType *type, v
     assert(name);
     assert(type);
     assert(generator);
-    if (_check_setup_called()) {
-        rox_core_add_custom_property(rox->core, custom_property_create(name, type, target, generator));
-    }
+    Rox *rox = _rox_get_or_create();
+    rox_core_add_custom_property(rox->core, custom_property_create(name, type, target, generator));
 }
 
 static void _add_custom_prop_value(const char *name, const CustomPropertyType *type, RoxDynamicValue *value) {
     assert(name);
     assert(value);
-    if (_check_setup_called()) {
-        rox_core_add_custom_property(rox->core, custom_property_create_using_value(name, type, value));
-    }
+    Rox *rox = _rox_get_or_create();
+    rox_core_add_custom_property(rox->core, custom_property_create_using_value(name, type, value));
 }
 
 void ROX_API rox_set_custom_string_property(const char *name, const char *value) {
@@ -239,23 +303,22 @@ void ROX_API rox_set_custom_computed_semver_property(
 }
 
 void ROX_API rox_shutdown() {
-    assert(rox);
-    if (!_check_setup_called()) {
+    if (!_rox) {
         return;
     }
-    rox_core_free(rox->core);
-    if (rox->global_context) {
-        rox_context_free(rox->global_context);
+    rox_core_free(_rox->core);
+    if (_rox->global_context) {
+        rox_context_free(_rox->global_context);
     }
-    if (rox->sdk_settings) {
-        sdk_settings_free(rox->sdk_settings);
+    if (_rox->sdk_settings) {
+        sdk_settings_free(_rox->sdk_settings);
     }
-    if (rox->device_properties) {
-        device_properties_free(rox->device_properties);
+    if (_rox->device_properties) {
+        device_properties_free(_rox->device_properties);
     }
-    if (rox->options) {
-        rox_options_free(rox->options);
+    if (_rox->options) {
+        rox_options_free(_rox->options);
     }
-    free(rox);
-    rox = NULL;
+    free(_rox);
+    _rox = NULL;
 }

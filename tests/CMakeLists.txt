@@ -19,3 +19,5 @@ set(LIBS_CXX ${LIBS_CXX} libroxtest)
 
 rox_add_tests(".c" "${LIBS_C}")
 rox_add_tests(".cpp" "${LIBS_CXX}")
+
+set_tests_properties(test_server PROPERTIES ENVIRONMENT ROLLOUT_MODE=QA)

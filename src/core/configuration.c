@@ -46,6 +46,21 @@ void ROX_INTERNAL configuration_free(Configuration *configuration) {
 // ConfigurationFetchResult
 //
 
+const char *ROX_INTERNAL configuration_source_to_str(ConfigurationSource source) {
+    assert(source);
+    switch (source) {
+        case CONFIGURATION_SOURCE_API:
+            return "API";
+        case CONFIGURATION_SOURCE_CDN:
+            return "CDN";
+        case CONFIGURATION_SOURCE_ROXY:
+            return "ROXY";
+        case CONFIGURATION_SOURCE_URL:
+            return "URL";
+    }
+    return "UNKNOWN";
+}
+
 ConfigurationFetchResult *ROX_INTERNAL configuration_fetch_result_create(cJSON *data, ConfigurationSource source) {
     assert(data);
     assert(source);

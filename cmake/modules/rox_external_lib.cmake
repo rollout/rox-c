@@ -66,9 +66,11 @@ macro(_rox_init_third_party_lib_vars)
     endif ()
 
     list(LENGTH LIB_TRY_FIND LIB_TRY_FIND_LEN)
-    list(SUBLIST LIB_TRY_FIND 1 -1 LIB_TRY_FIND_TARGET_NAMES)
     if (LIB_TRY_FIND_LEN GREATER 0)
         list(GET LIB_TRY_FIND 0 LIB_TRY_FIND_PACKAGE_NAME)
+        if (LIB_TRY_FIND_LEN GREATER 1)
+            list(SUBLIST LIB_TRY_FIND 1 -1 LIB_TRY_FIND_TARGET_NAMES)
+        endif()
     endif ()
 
     if (NOT LIB_TARGETS AND NOT LIB_TRY_FIND_LIBRARIES AND NOT LIB_TRY_FIND_TARGET_NAMES)
@@ -173,9 +175,9 @@ macro(_rox_init_third_party_lib_vars)
         message("LIB_TRY_FIND_INCLUDE_DIR = ${LIB_TRY_FIND_INCLUDE_DIR}")
         message("LIB_TRY_FIND_LIBRARIES = ${LIB_TRY_FIND_LIBRARIES}")
         message("LIB_TRY_FIND_LINK = ${LIB_TRY_FIND_LINK}")
-        message("LIB_TRY_FIND_LIBRARIES = ${LIB_TRY_FIND_LIBRARIES}")
         message("LIB_FILE_LOCATIONS = ${LIB_FILE_LOCATIONS}")
         message("LIB_DEPENDENCIES = ${LIB_DEPENDENCIES}")
+        message("LIB_REQUIRED = ${LIB_REQUIRED}")
     endif ()
 
 endmacro()
@@ -433,6 +435,8 @@ macro(_rox_link_third_party_lib)
 
         endforeach ()
     endif ()
+
+    # TODO: copy everything from the lib's bin dir into the project dir?
 
 endmacro()
 

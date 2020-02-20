@@ -778,7 +778,7 @@ _parser_operator_semver_cmp(Parser *parser, CoreStack *stack, RoxContext *contex
     char *s1 = rox_stack_get_string(item1);
     char *s2 = rox_stack_get_string(item2);
     semver_t v1, v2;
-    if (semver_parse_version(s1, &v1) != 0 || semver_parse_version(s2, &v2) != 0) {
+    if (semver_parse(s1, &v1) != 0 || semver_parse(s2, &v2) != 0) {
         rox_stack_push_boolean(stack, false);
         return -1;
     }
@@ -952,20 +952,23 @@ EvaluationResult *ROX_INTERNAL parser_evaluate_expression(Parser *parser, const 
     List *tokens = tokenized_expression_get_tokens(expression, parser->operators_map);
     list_reverse(tokens);
 
-    LIST_FOREACH(token, tokens, {
-        ParserNode *node = token;
+    ListIter i;
+    list_iter_init(&i, tokens);
+    ParserNode *node;
+    while (list_iter_next(&i, (void **) &node) != CC_ITER_END) {
         if (node->type == NodeTypeRand) {
             rox_stack_push_dynamic_value(stack, rox_dynamic_value_create_copy(node->value));
         } else if (node->type == NodeTypeRator) {
             assert(rox_dynamic_value_is_string(node->value));
             ParserOperator *op;
-            if (hashtable_get(parser->operators_map, rox_dynamic_value_get_string(node->value), (void **) &op) == CC_OK) {
+            if (hashtable_get(parser->operators_map, rox_dynamic_value_get_string(node->value), (void **) &op) ==
+                CC_OK) {
                 op->operation(op->target, parser, stack, context);
             }
         } else {
             result = _create_result_from_stack_item(NULL);
         }
-    })
+    }
 
     if (!result) {
         item = rox_stack_pop(stack);
