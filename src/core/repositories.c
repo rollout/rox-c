@@ -155,13 +155,13 @@ FlagRepository *ROX_INTERNAL flag_repository_create() {
 
 void ROX_INTERNAL flag_repository_add_flag(
         FlagRepository *repository,
-        Variant *variant,
+        RoxVariant *variant,
         const char *name) {
     assert(repository);
     assert(variant);
     assert(name);
     assert(!str_is_empty(name));
-    char *variant_name = variant->name;
+    const char *variant_name = variant_get_name(variant);
     if (str_is_empty(variant_name)) {
         variant_set_name(variant, name);
     }
@@ -173,7 +173,7 @@ void ROX_INTERNAL flag_repository_add_flag(
     })
 }
 
-Variant *ROX_INTERNAL flag_repository_get_flag(
+RoxVariant *ROX_INTERNAL flag_repository_get_flag(
         FlagRepository *repository,
         const char *name) {
     assert(repository);

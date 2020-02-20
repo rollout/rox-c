@@ -31,20 +31,20 @@ void ROX_INTERNAL sdk_settings_free(SdkSettings *sdk_settings) {
 // RoxOptions
 //
 
-struct ROX_INTERNAL RoxOptions {
+struct ROX_API RoxOptions {
     char *version;
     char *dev_mod_key;
     char *roxy_url;
     int fetch_interval;
     void *impression_handler_target;
-    impression_handler impression_handler;
+    rox_impression_handler impression_handler;
     void *configuration_fetched_target;
-    configuration_fetched_handler configuration_fetched_handler;
+    rox_configuration_fetched_handler configuration_fetched_handler;
     void *dynamic_properties_rule_target;
-    dynamic_properties_rule dynamic_properties_rule;
+    rox_dynamic_properties_rule dynamic_properties_rule;
 };
 
-RoxOptions *ROX_INTERNAL rox_options_create() {
+RoxOptions *ROX_API rox_options_create() {
     RoxOptions *options = calloc(1, sizeof(RoxOptions));
     options->dev_mod_key = mem_copy_str("stam");
     options->version = mem_copy_str("0.0");
@@ -52,26 +52,26 @@ RoxOptions *ROX_INTERNAL rox_options_create() {
     return options;
 }
 
-void ROX_INTERNAL rox_options_set_dev_mode_key(RoxOptions *options, const char *key) {
+void ROX_API rox_options_set_dev_mode_key(RoxOptions *options, const char *key) {
     assert(options);
     assert(key);
     free(options->dev_mod_key);
     options->dev_mod_key = mem_copy_str(key);
 }
 
-void ROX_INTERNAL rox_options_set_version(RoxOptions *options, const char *version) {
+void ROX_API rox_options_set_version(RoxOptions *options, const char *version) {
     assert(options);
     assert(version);
     free(options->version);
     options->version = mem_copy_str(version);
 }
 
-void ROX_INTERNAL rox_options_set_fetch_interval(RoxOptions *options, int fetch_interval) {
+void ROX_API rox_options_set_fetch_interval(RoxOptions *options, int fetch_interval) {
     assert(options);
     options->fetch_interval = fetch_interval < 30 ? 30 : fetch_interval;
 }
 
-void ROX_INTERNAL rox_options_set_roxy_url(RoxOptions *options, const char *roxy_url) {
+void ROX_API rox_options_set_roxy_url(RoxOptions *options, const char *roxy_url) {
     assert(options);
     assert(roxy_url);
     if (options->roxy_url) {
@@ -80,30 +80,30 @@ void ROX_INTERNAL rox_options_set_roxy_url(RoxOptions *options, const char *roxy
     options->roxy_url = mem_copy_str(roxy_url);
 }
 
-void ROX_INTERNAL rox_options_set_impression_handler(
+void ROX_API rox_options_set_impression_handler(
         RoxOptions *options,
         void *target,
-        impression_handler handler) {
+        rox_impression_handler handler) {
     assert(options);
     assert(handler);
     options->impression_handler_target = target;
     options->impression_handler = handler;
 }
 
-void ROX_INTERNAL rox_options_set_configuration_fetched_handler(
+void ROX_API rox_options_set_configuration_fetched_handler(
         RoxOptions *options,
         void *target,
-        configuration_fetched_handler handler) {
+        rox_configuration_fetched_handler handler) {
     assert(options);
     assert(handler);
     options->configuration_fetched_target = target;
     options->configuration_fetched_handler = handler;
 }
 
-void ROX_INTERNAL rox_options_set_dynamic_properties_rule(
+void ROX_API rox_options_set_dynamic_properties_rule(
         RoxOptions *options,
         void *target,
-        dynamic_properties_rule rule) {
+        rox_dynamic_properties_rule rule) {
     assert(options);
     assert(rule);
     options->dynamic_properties_rule_target = target;
@@ -130,7 +130,7 @@ const char *ROX_INTERNAL rox_options_get_roxy_url(RoxOptions *options) {
     return options->roxy_url;
 }
 
-impression_handler ROX_INTERNAL rox_options_get_impression_handler(RoxOptions *options) {
+rox_impression_handler ROX_INTERNAL rox_options_get_impression_handler(RoxOptions *options) {
     assert(options);
     return options->impression_handler;
 }
@@ -140,7 +140,7 @@ void *ROX_INTERNAL rox_options_get_impression_handler_target(RoxOptions *options
     return options->impression_handler_target;
 }
 
-configuration_fetched_handler ROX_INTERNAL rox_options_get_configuration_fetched_handler(RoxOptions *options) {
+rox_configuration_fetched_handler ROX_INTERNAL rox_options_get_configuration_fetched_handler(RoxOptions *options) {
     assert(options);
     return options->configuration_fetched_handler;
 }
@@ -150,7 +150,7 @@ void *ROX_INTERNAL rox_options_get_configuration_fetched_handler_target(RoxOptio
     return options->configuration_fetched_target;
 }
 
-dynamic_properties_rule ROX_INTERNAL rox_options_get_dynamic_properties_rule(RoxOptions *options) {
+rox_dynamic_properties_rule ROX_INTERNAL rox_options_get_dynamic_properties_rule(RoxOptions *options) {
     assert(options);
     return options->dynamic_properties_rule;
 }
@@ -274,41 +274,41 @@ void ROX_INTERNAL device_properties_free(DeviceProperties *properties) {
 }
 
 //
-// DynamicApi
+// RoxDynamicApi
 //
 
-struct ROX_INTERNAL DynamicApi {
+struct ROX_API RoxDynamicApi {
     FlagRepository *flag_repository;
     EntitiesProvider *entities_provider;
 };
 
-DynamicApi *ROX_INTERNAL dynamic_api_create(
+RoxDynamicApi *ROX_INTERNAL dynamic_api_create(
         FlagRepository *flag_repository,
         EntitiesProvider *entities_provider) {
     assert(flag_repository);
     assert(entities_provider);
-    DynamicApi *api = calloc(1, sizeof(DynamicApi));
+    RoxDynamicApi *api = calloc(1, sizeof(RoxDynamicApi));
     api->flag_repository = flag_repository;
     api->entities_provider = entities_provider;
     return api;
 }
 
 bool ROX_INTERNAL dynamic_api_is_enabled(
-        DynamicApi *api,
+        RoxDynamicApi *api,
         const char *name,
         bool default_value,
-        Context *context) {
+        RoxContext *context) {
     assert(api);
     assert(name);
 
-    Variant *variant = flag_repository_get_flag(api->flag_repository, name);
+    RoxVariant *variant = flag_repository_get_flag(api->flag_repository, name);
     if (!variant) {
         variant = entities_provider_create_flag(api->entities_provider, default_value);
         flag_repository_add_flag(api->flag_repository, variant, name);
     }
 
-    Variant *flag = variant;
-    if (!flag || !flag->is_flag) {
+    RoxVariant *flag = variant;
+    if (!flag || !variant_is_flag(flag)) {
         return default_value;
     }
 
@@ -316,24 +316,17 @@ bool ROX_INTERNAL dynamic_api_is_enabled(
     return is_enabled ? *is_enabled : default_value;
 }
 
-/**
- * @param api Not <code>NULL</code>.
- * @param name Not <code>NULL</code>.
- * @param default_value May be <code>NULL</code>.
- * @param context May be <code>NULL</code>.
- * @param options May be <code>NULL</code>.
- */
-char *ROX_INTERNAL dynamic_api_get_value(
-        DynamicApi *api,
+char *ROX_API rox_dynamic_api_get_value(
+        RoxDynamicApi *api,
         const char *name,
         char *default_value,
         List *options,
-        Context *context) {
+        RoxContext *context) {
 
     assert(api);
     assert(name);
 
-    Variant *variant = flag_repository_get_flag(api->flag_repository, name);
+    RoxVariant *variant = flag_repository_get_flag(api->flag_repository, name);
     if (!variant) {
         variant = entities_provider_create_variant(api->entities_provider, default_value, options);
         flag_repository_add_flag(api->flag_repository, variant, name);
@@ -347,7 +340,7 @@ char *ROX_INTERNAL dynamic_api_get_value(
              : NULL;
 }
 
-void ROX_INTERNAL dynamic_api_free(DynamicApi *api) {
+void ROX_API rox_dynamic_api_free(RoxDynamicApi *api) {
     assert(api);
     free(api);
 }

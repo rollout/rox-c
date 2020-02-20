@@ -161,7 +161,7 @@ static bool _core_check_throttle_interval(RoxCore *core, bool is_source_pushing)
     return true;
 }
 
-static void _core_configuration_fetch(RoxCore *core, bool is_source_pushing) {
+void ROX_INTERNAL rox_core_fetch(RoxCore *core, bool is_source_pushing) {
     if (!core->configuration_fetcher) {
         return;
     }
@@ -209,7 +209,7 @@ static void _core_configuration_fetch(RoxCore *core, bool is_source_pushing) {
 static void _core_x_configuration_fetch_func(void *target) {
     assert(target);
     RoxCore *core = (RoxCore *) target;
-    _core_configuration_fetch(core, true);
+    rox_core_fetch(core, true);
 }
 
 bool ROX_INTERNAL rox_core_setup(
@@ -300,7 +300,7 @@ bool ROX_INTERNAL rox_core_setup(
     }
 
     if (rox_options) {
-        configuration_fetched_handler handler = rox_options_get_configuration_fetched_handler(rox_options);
+        rox_configuration_fetched_handler handler = rox_options_get_configuration_fetched_handler(rox_options);
         if (handler) {
             configuration_fetched_invoker_register_handler(
                     core->configuration_fetched_invoker,
@@ -321,11 +321,11 @@ bool ROX_INTERNAL rox_core_setup(
             core->experiment_repository,
             core->impression_invoker);
 
-    _core_configuration_fetch(core, false);
+    rox_core_fetch(core, false);
 
     if (rox_options) {
 
-        impression_handler handler = rox_options_get_impression_handler(rox_options);
+        rox_impression_handler handler = rox_options_get_impression_handler(rox_options);
         if (handler) {
             impression_invoker_register(core->impression_invoker, handler,
                                         rox_options_get_impression_handler_target(rox_options));
@@ -336,7 +336,7 @@ bool ROX_INTERNAL rox_core_setup(
             core->periodic_task = _periodic_task_create(fetch_interval, core, &_core_x_configuration_fetch_func);
         }
 
-        dynamic_properties_rule rule = rox_options_get_dynamic_properties_rule(rox_options);
+        rox_dynamic_properties_rule rule = rox_options_get_dynamic_properties_rule(rox_options);
         if (rule) {
             dynamic_properties_set_rule(
                     core->dynamic_properties,
@@ -352,18 +352,18 @@ bool ROX_INTERNAL rox_core_setup(
     return true;
 }
 
-void ROX_INTERNAL rox_core_set_context(RoxCore *core, Context *context) {
+void ROX_INTERNAL rox_core_set_context(RoxCore *core, RoxContext *context) {
     assert(core);
     assert(context);
     HashTable *flags = flag_repository_get_all_flags(core->flag_repository);
     TableEntry *entry;
     HASHTABLE_FOREACH(entry, flags, {
-        Variant *flag = (Variant *) entry->value;
+        RoxVariant *flag = (RoxVariant *) entry->value;
         variant_set_context(flag, context);
     })
 }
 
-void ROX_INTERNAL rox_core_add_flag(RoxCore *core, Variant *flag, const char *name) {
+void ROX_INTERNAL rox_core_add_flag(RoxCore *core, RoxVariant *flag, const char *name) {
     assert(core);
     assert(flag);
     assert(name);
@@ -386,7 +386,7 @@ void ROX_INTERNAL rox_core_add_custom_property_if_not_exists(RoxCore *core, Cust
     custom_property_repository_add_custom_property_if_not_exists(core->custom_property_repository, property);
 }
 
-DynamicApi *ROX_INTERNAL rox_core_create_dynamic_api(RoxCore *core, EntitiesProvider *entities_provider) {
+RoxDynamicApi *ROX_INTERNAL rox_core_create_dynamic_api(RoxCore *core, EntitiesProvider *entities_provider) {
     assert(core);
     assert(entities_provider);
     return dynamic_api_create(core->flag_repository, entities_provider);

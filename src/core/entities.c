@@ -7,11 +7,23 @@
 #include "util.h"
 
 //
-// Variant
+// RoxVariant
 //
 
-Variant *ROX_INTERNAL variant_create(const char *default_value, List *options) {
-    Variant *variant = calloc(1, sizeof(Variant));
+struct ROX_API RoxVariant {
+    char *default_value;
+    List *options;
+    char *condition;
+    Parser *parser;
+    RoxContext *global_context;
+    ImpressionInvoker *impression_invoker;
+    ExperimentModel *experiment;
+    char *name;
+    bool is_flag;
+};
+
+RoxVariant *ROX_INTERNAL variant_create(const char *default_value, List *options) {
+    RoxVariant *variant = calloc(1, sizeof(RoxVariant));
     variant->default_value = default_value ? mem_copy_str(default_value) : NULL;
     variant->options = options;
     if (!variant->options) {
@@ -23,7 +35,47 @@ Variant *ROX_INTERNAL variant_create(const char *default_value, List *options) {
     return variant;
 }
 
-static void _variant_reset_evaluation_context(Variant *variant) {
+bool ROX_INTERNAL variant_is_flag(RoxVariant *variant) {
+    assert(variant);
+    return variant->is_flag;
+}
+
+const char *ROX_INTERNAL variant_get_name(RoxVariant *variant) {
+    assert(variant);
+    return variant->name;
+}
+
+const char *ROX_INTERNAL variant_get_default_value(RoxVariant *variant) {
+    assert(variant);
+    return variant->default_value;
+}
+
+const char *ROX_INTERNAL variant_get_condition(RoxVariant *variant) {
+    assert(variant);
+    return variant->condition;
+}
+
+ExperimentModel *ROX_INTERNAL variant_get_experiment(RoxVariant *variant) {
+    assert(variant);
+    return variant->experiment;
+}
+
+Parser *ROX_INTERNAL variant_get_parser(RoxVariant *variant) {
+    assert(variant);
+    return variant->parser;
+}
+
+ImpressionInvoker *ROX_INTERNAL variant_get_impression_invoker(RoxVariant *variant) {
+    assert(variant);
+    return variant->impression_invoker;
+}
+
+List *ROX_INTERNAL variant_get_options(RoxVariant *variant) {
+    assert(variant);
+    return variant->options;
+}
+
+static void _variant_reset_evaluation_context(RoxVariant *variant) {
     assert(variant);
     if (variant->condition) {
         free(variant->condition);
@@ -41,7 +93,7 @@ static void _variant_reset_evaluation_context(Variant *variant) {
 }
 
 void ROX_INTERNAL variant_set_for_evaluation(
-        Variant *variant,
+        RoxVariant *variant,
         Parser *parser,
         ExperimentModel *experiment,
         ImpressionInvoker *impression_invoker) {
@@ -58,29 +110,29 @@ void ROX_INTERNAL variant_set_for_evaluation(
     variant->impression_invoker = impression_invoker;
 }
 
-void ROX_INTERNAL variant_set_context(Variant *variant, Context *context) {
+void ROX_INTERNAL variant_set_context(RoxVariant *variant, RoxContext *context) {
     assert(variant);
     assert(context);
     variant->global_context = context;
 }
 
-void ROX_INTERNAL variant_set_name(Variant *variant, const char *name) {
+void ROX_INTERNAL variant_set_name(RoxVariant *variant, const char *name) {
     assert(variant);
     assert(name);
     variant->name = mem_copy_str(name);
 }
 
-void ROX_INTERNAL variant_set_condition(Variant *variant, const char *condition) {
+void ROX_INTERNAL variant_set_condition(RoxVariant *variant, const char *condition) {
     assert(variant);
     assert(condition);
     variant->condition = mem_copy_str(condition);
 }
 
-static char *_variant_get_value(Variant *variant, Context *context, char *default_value) {
+static char *_variant_get_value(RoxVariant *variant, RoxContext *context, char *default_value) {
     assert(variant);
     bool value_set = false;
     char *return_value = NULL;
-    Context *merged_context = context_create_merged(variant->global_context, context);
+    RoxContext *merged_context = rox_context_create_merged(variant->global_context, context);
     if (variant->parser && !str_is_empty(variant->condition)) {
         EvaluationResult *evaluation_result = parser_evaluate_expression(
                 variant->parser,
@@ -99,7 +151,7 @@ static char *_variant_get_value(Variant *variant, Context *context, char *defaul
         return_value = mem_copy_str(default_value);
     }
     if (variant->impression_invoker) {
-        ReportingValue *reporting_value = reporting_value_create(variant->name, return_value);
+        RoxReportingValue *reporting_value = reporting_value_create(variant->name, return_value);
         impression_invoker_invoke(
                 variant->impression_invoker,
                 reporting_value,
@@ -107,25 +159,25 @@ static char *_variant_get_value(Variant *variant, Context *context, char *defaul
                 merged_context);
         reporting_value_free(reporting_value);
     }
-    context_free(merged_context);
+    rox_context_free(merged_context);
     return return_value;
 }
 
-char *ROX_INTERNAL variant_get_value_or_default(Variant *variant, Context *context) {
+char *ROX_INTERNAL variant_get_value_or_default(RoxVariant *variant, RoxContext *context) {
     assert(variant);
     return _variant_get_value(variant, context, variant->default_value);
 }
 
-char *ROX_INTERNAL variant_get_value_or_null(Variant *variant, Context *context) {
+char *ROX_INTERNAL variant_get_value_or_null(RoxVariant *variant, RoxContext *context) {
     assert(variant);
     return _variant_get_value(variant, context, NULL);
 }
 
-void ROX_INTERNAL variant_free(Variant *variant) {
+void ROX_INTERNAL variant_free(RoxVariant *variant) {
     assert(variant);
     _variant_reset_evaluation_context(variant);
     if (variant->global_context) {
-        context_free(variant->global_context);
+        rox_context_free(variant->global_context);
     }
     if (variant->name) {
         free(variant->name);
@@ -149,18 +201,18 @@ const char *ROX_INTERNAL FLAG_FALSE_VALUE = "false";
 const bool FLAG_TRUE_VALUE_BOOL = true;
 const bool FLAG_FALSE_VALUE_BOOL = false;
 
-Variant *ROX_INTERNAL variant_create_flag() {
+RoxVariant *ROX_INTERNAL variant_create_flag() {
     return variant_create_flag_with_default(false);
 }
 
-Variant *ROX_INTERNAL variant_create_flag_with_default(bool default_value) {
-    Variant *flag = variant_create(default_value ? FLAG_TRUE_VALUE : FLAG_FALSE_VALUE,
-                                   ROX_LIST(ROX_COPY(FLAG_FALSE_VALUE), ROX_COPY(FLAG_TRUE_VALUE)));
+RoxVariant *ROX_INTERNAL variant_create_flag_with_default(bool default_value) {
+    RoxVariant *flag = variant_create(default_value ? FLAG_TRUE_VALUE : FLAG_FALSE_VALUE,
+                                      ROX_LIST(ROX_COPY(FLAG_FALSE_VALUE), ROX_COPY(FLAG_TRUE_VALUE)));
     flag->is_flag = true;
     return flag;
 }
 
-bool ROX_INTERNAL flag_is_enabled(Variant *variant, Context *context) {
+bool ROX_INTERNAL flag_is_enabled(RoxVariant *variant, RoxContext *context) {
     assert(variant);
     char *value = variant_get_value_or_default(variant, context);
     bool result = str_equals(value, FLAG_TRUE_VALUE);
@@ -168,7 +220,7 @@ bool ROX_INTERNAL flag_is_enabled(Variant *variant, Context *context) {
     return result;
 }
 
-const bool *ROX_INTERNAL flag_is_enabled_or_null(Variant *variant, Context *context) {
+const bool *ROX_INTERNAL flag_is_enabled_or_null(RoxVariant *variant, RoxContext *context) {
     assert(variant);
     char *value = variant_get_value_or_null(variant, context);
     if (!value) {
@@ -181,7 +233,7 @@ const bool *ROX_INTERNAL flag_is_enabled_or_null(Variant *variant, Context *cont
     return result;
 }
 
-void ROX_INTERNAL flag_enabled_do(Variant *variant, Context *context, flag_action action) {
+void ROX_INTERNAL flag_enabled_do(RoxVariant *variant, RoxContext *context, rox_flag_action action) {
     assert(variant);
     assert(action);
     if (flag_is_enabled(variant, context)) {
@@ -189,7 +241,7 @@ void ROX_INTERNAL flag_enabled_do(Variant *variant, Context *context, flag_actio
     }
 }
 
-void ROX_INTERNAL flag_disabled_do(Variant *variant, Context *context, flag_action action) {
+void ROX_INTERNAL flag_disabled_do(RoxVariant *variant, RoxContext *context, rox_flag_action action) {
     assert(variant);
     assert(action);
     if (!flag_is_enabled(variant, context)) {
@@ -208,7 +260,7 @@ struct ROX_INTERNAL FlagSetter {
     ImpressionInvoker *impression_invoker;
 };
 
-void ROX_INTERNAL _flag_setter_repository_callback(void *target, Variant *variant) {
+void ROX_INTERNAL _flag_setter_repository_callback(void *target, RoxVariant *variant) {
     assert(target);
     assert(variant);
     FlagSetter *flag_setter = (FlagSetter *) target;
@@ -246,7 +298,7 @@ void ROX_INTERNAL flag_setter_set_experiments(FlagSetter *flag_setter) {
         list_iter_init(&flag_iter, model->flags);
         char *flag_name;
         while (list_iter_next(&flag_iter, (void **) &flag_name) != CC_ITER_END) {
-            Variant *flag = flag_repository_get_flag(flag_setter->flag_repository, flag_name);
+            RoxVariant *flag = flag_repository_get_flag(flag_setter->flag_repository, flag_name);
             if (flag) {
                 variant_set_for_evaluation(flag, flag_setter->parser, exp, flag_setter->impression_invoker);
                 hashset_add(flags_with_condition, flag_name);
@@ -257,7 +309,7 @@ void ROX_INTERNAL flag_setter_set_experiments(FlagSetter *flag_setter) {
     HashTable *all_flags = flag_repository_get_all_flags(flag_setter->flag_repository);
     TableEntry *entry;
     HASHTABLE_FOREACH(entry, all_flags, {
-        Variant *flag = entry->value;
+        RoxVariant *flag = entry->value;
         if (!hashset_contains(flags_with_condition, flag->name)) {
             variant_set_for_evaluation(flag, flag_setter->parser, NULL, flag_setter->impression_invoker);
         }
@@ -281,12 +333,12 @@ EntitiesProvider *ROX_INTERNAL entities_provider_create() {
     return calloc(1, sizeof(EntitiesProvider));
 }
 
-Variant *ROX_INTERNAL entities_provider_create_flag(EntitiesProvider *provider, bool default_value) {
+RoxVariant *ROX_INTERNAL entities_provider_create_flag(EntitiesProvider *provider, bool default_value) {
     assert(provider);
     return variant_create_flag_with_default(default_value);
 }
 
-Variant *ROX_INTERNAL entities_provider_create_variant(
+RoxVariant *ROX_INTERNAL entities_provider_create_variant(
         EntitiesProvider *provider,
         const char *defaultValue,
         List *options) {

@@ -31,6 +31,7 @@ set(ROX_SRC
         device.c
         dynamic.c
         roxapi.c
+        server.c
         util.c)
 
 add_library(libroxc ${ROX_SRC})

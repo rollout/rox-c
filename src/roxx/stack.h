@@ -46,7 +46,7 @@ void ROX_INTERNAL rox_stack_push_list(CoreStack *stack, List *value);
 
 void ROX_INTERNAL rox_stack_push_map(CoreStack *stack, HashTable *value);
 
-void ROX_INTERNAL rox_stack_push_dynamic_value(CoreStack *stack, DynamicValue* value);
+void ROX_INTERNAL rox_stack_push_dynamic_value(CoreStack *stack, RoxDynamicValue* value);
 
 void ROX_INTERNAL rox_stack_push_null(CoreStack *stack);
 
@@ -101,4 +101,4 @@ List *ROX_INTERNAL rox_stack_get_list(StackItem *item);
 
 HashTable *ROX_INTERNAL rox_stack_get_map(StackItem *item);
 
-DynamicValue *ROX_INTERNAL rox_stack_get_value(StackItem *item);
+RoxDynamicValue *ROX_INTERNAL rox_stack_get_value(StackItem *item);

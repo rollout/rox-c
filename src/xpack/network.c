@@ -116,18 +116,20 @@ static char *_state_sender_serialize_feature_flags(StateSender *sender) {
     HashTable *flags = flag_repository_get_all_flags(sender->flag_repository);
     List *keys = _state_sender_get_sorted_keys(flags);
     LIST_FOREACH(key, keys, {
-        Variant *flag;
+        RoxVariant *flag;
         if (hashtable_get(flags, key, (void **) &flag) == CC_OK) {
             cJSON *options_arr = cJSON_CreateArray();
             ListIter list_iter;
-            list_iter_init(&list_iter, flag->options);
+            list_iter_init(&list_iter, variant_get_options(flag));
             char *option;
             while (list_iter_next(&list_iter, (void **) &option) != CC_ITER_END) {
                 cJSON_AddItemToArray(options_arr, ROX_JSON_STRING(option));
             }
+            const char *default_value = variant_get_default_value(flag);
+            const char *variant_name = variant_get_name(flag);
             cJSON_AddItemToArray(arr, ROX_JSON_OBJECT(
-                    "name", ROX_JSON_STRING(flag->name),
-                    "defaultValue", ROX_JSON_STRING(flag->default_value),
+                    "name", variant_name ? ROX_JSON_STRING(variant_name) : ROX_JSON_NULL,
+                    "defaultValue", default_value ? ROX_JSON_STRING(default_value) : ROX_JSON_NULL,
                     "options", options_arr
             ));
         }
@@ -319,7 +321,7 @@ static void _state_sender_custom_property_handler(void *target, CustomProperty *
     state_sender_send_debounce(sender);
 }
 
-static void _state_sender_flag_added_callback(void *target, Variant *variant) {
+static void _state_sender_flag_added_callback(void *target, RoxVariant *variant) {
     assert(target);
     assert(variant);
     StateSender *sender = (StateSender *) target;

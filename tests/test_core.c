@@ -34,6 +34,7 @@ static CoreTestContext *_core_test_context_create(const char *api_key, const cha
 
 static void _core_test_context_free(CoreTestContext *ctx) {
     assert(ctx);
+    rox_core_free(ctx->core);
     if (ctx->sdk_settings->api_key) {
         free(ctx->sdk_settings->api_key);
     }
@@ -43,7 +44,6 @@ static void _core_test_context_free(CoreTestContext *ctx) {
     free(ctx->sdk_settings);
     device_properties_free(ctx->device_properties);
     rox_options_free(ctx->rox_options);
-    rox_core_free(ctx->core);
     logging_test_fixture_free(ctx->logging);
     free(ctx);
 }

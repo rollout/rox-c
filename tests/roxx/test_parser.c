@@ -20,28 +20,28 @@ START_TEST (test_simple_tokenization) {
     ParserNode *node;
     list_get_at(tokens, 0, (void **) &node);
     ck_assert_int_eq(node_get_type(node), NodeTypeRator);
-    ck_assert(dynamic_value_is_string(node_get_value(node)));
-    ck_assert_str_eq("eq", dynamic_value_get_string(node_get_value(node)));
+    ck_assert(rox_dynamic_value_is_string(node_get_value(node)));
+    ck_assert_str_eq("eq", rox_dynamic_value_get_string(node_get_value(node)));
 
     list_get_at(tokens, 1, (void **) &node);
     ck_assert_int_eq(node_get_type(node), NodeTypeRand);
-    ck_assert(dynamic_value_is_boolean(node_get_value(node)));
-    ck_assert(!dynamic_value_get_boolean(node_get_value(node)));
+    ck_assert(rox_dynamic_value_is_boolean(node_get_value(node)));
+    ck_assert(!rox_dynamic_value_get_boolean(node_get_value(node)));
 
     list_get_at(tokens, 2, (void **) &node);
     ck_assert_int_eq(node_get_type(node), NodeTypeRator);
-    ck_assert(dynamic_value_is_string(node_get_value(node)));
-    ck_assert_str_eq("lt", dynamic_value_get_string(node_get_value(node)));
+    ck_assert(rox_dynamic_value_is_string(node_get_value(node)));
+    ck_assert_str_eq("lt", rox_dynamic_value_get_string(node_get_value(node)));
 
     list_get_at(tokens, 3, (void **) &node);
     ck_assert_int_eq(node_get_type(node), NodeTypeRand);
-    ck_assert(dynamic_value_is_double(node_get_value(node)));
-    ck_assert_double_eq(dynamic_value_get_double(node_get_value(node)), -123.0);
+    ck_assert(rox_dynamic_value_is_double(node_get_value(node)));
+    ck_assert_double_eq(rox_dynamic_value_get_double(node_get_value(node)), -123.0);
 
     list_get_at(tokens, 4, (void **) &node);
     ck_assert_int_eq(node_get_type(node), NodeTypeRand);
-    ck_assert(dynamic_value_is_string(node_get_value(node)));
-    ck_assert_str_eq(dynamic_value_get_string(node_get_value(node)), "123");
+    ck_assert(rox_dynamic_value_is_string(node_get_value(node)));
+    ck_assert_str_eq(rox_dynamic_value_get_string(node_get_value(node)), "123");
 
     list_destroy_cb(tokens, (void (*)(void *)) node_free);
 }

@@ -92,7 +92,7 @@ void ROX_INTERNAL experiment_repository_set_experiments(
 /**
  * @param repository Not <code>NULL</code>.
  * @param flag_name Not <code>NULL</code>.
- * @return Experiment model or NULL if not found.
+ * @return RoxExperiment model or NULL if not found.
  */
 ExperimentModel *ROX_INTERNAL experiment_repository_get_experiment_by_flag(
         ExperimentRepository *repository,
@@ -129,7 +129,7 @@ FlagRepository *ROX_INTERNAL flag_repository_create();
  */
 void ROX_INTERNAL flag_repository_add_flag(
         FlagRepository *repository,
-        Variant *variant,
+        RoxVariant *variant,
         const char *name);
 
 /**
@@ -137,18 +137,18 @@ void ROX_INTERNAL flag_repository_add_flag(
  * @param name Not <code>NULL</code>.
  * @return May be <code>NULL</code>.
  */
-Variant *ROX_INTERNAL flag_repository_get_flag(
+RoxVariant *ROX_INTERNAL flag_repository_get_flag(
         FlagRepository *repository,
         const char *name);
 
 /**
  * The returned object is maintained by the repository, you must not call <code>hashtable_destroy</code> on it.
  * @param repository Not <code>NULL</code>.
- * @return Hash table with flag names as keys and <code>Variant *</code> as values. Not <code>NULL</code>.
+ * @return Hash table with flag names as keys and <code>RoxVariant *</code> as values. Not <code>NULL</code>.
  */
 HashTable *ROX_INTERNAL flag_repository_get_all_flags(FlagRepository *repository);
 
-typedef ROX_INTERNAL void (*flag_added_callback)(void *target, Variant *variant);
+typedef ROX_INTERNAL void (*flag_added_callback)(void *target, RoxVariant *variant);
 
 /**
  * @param repository Not <code>NULL</code>.

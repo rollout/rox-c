@@ -7,7 +7,7 @@ struct ROX_INTERNAL ImpressionInvoker {
 
 typedef struct ROX_INTERNAL ImpressionHandler {
     void *target;
-    impression_handler handler;
+    rox_impression_handler handler;
 } ImpressionHandler;
 
 ImpressionInvoker *impression_invoker_create() {
@@ -19,7 +19,7 @@ ImpressionInvoker *impression_invoker_create() {
 void ROX_INTERNAL impression_invoker_register(
         ImpressionInvoker *impression_invoker,
         void *target,
-        impression_handler handler) {
+        rox_impression_handler handler) {
     assert(impression_invoker);
     assert(handler);
     ImpressionHandler *h = calloc(1, sizeof(ImpressionHandler));
@@ -30,11 +30,11 @@ void ROX_INTERNAL impression_invoker_register(
 
 void ROX_INTERNAL impression_invoker_invoke(
         ImpressionInvoker *impression_invoker,
-        ReportingValue *value,
+        RoxReportingValue *value,
         ExperimentModel *experiment,
-        Context *context) {
+        RoxContext *context) {
     assert(impression_invoker);
-    Experiment *exp = experiment ? experiment_create(experiment) : NULL;
+    RoxExperiment *exp = experiment ? experiment_create(experiment) : NULL;
     LIST_FOREACH(h, impression_invoker->handlers, {
         ImpressionHandler *handler = (ImpressionHandler *) h;
         handler->handler(handler->target, value, exp, context);

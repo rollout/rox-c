@@ -35,72 +35,6 @@ void ROX_INTERNAL sdk_settings_free(SdkSettings *sdk_settings);
 // RoxOptions
 //
 
-typedef struct ROX_INTERNAL RoxOptions RoxOptions;
-
-RoxOptions *ROX_INTERNAL rox_options_create();
-
-/**
- * The caller is responsible for freeing the passed <code>key</code> value after use.
- *
- * @param options Not <code>NULL</code>.
- * @param key Not <code>NULL</code>. Value is copied internally.
- */
-void ROX_INTERNAL rox_options_set_dev_mode_key(RoxOptions *options, const char *key);
-
-/**
- * The caller is responsible for freeing the passed <code>version</code> value after use.
- *
- * @param options Not <code>NULL</code>.
- * @param version Not <code>NULL</code>. Value is copied internally.
- */
-void ROX_INTERNAL rox_options_set_version(RoxOptions *options, const char *version);
-
-/**
- * @param options Not <code>NULL</code>.
- * @param fetch_interval Interval in seconds. Should be not less than 30. Otherwise, 30 will be used.
- */
-void ROX_INTERNAL rox_options_set_fetch_interval(RoxOptions *options, int fetch_interval);
-
-/**
- * The caller is responsible for freeing the passed <code>roxy_url</code> value after use.
- *
- * @param options Not <code>NULL</code>.
- * @param roxy_url Not <code>NULL</code>. Value is copied internally.
- */
-void ROX_INTERNAL rox_options_set_roxy_url(
-        RoxOptions *options,
-        const char *roxy_url);
-
-/**
- * @param options Not <code>NULL</code>.
- * @param target May be <code>NULL</code>.
- * @param handler Not <code>NULL</code>.
- */
-void ROX_INTERNAL rox_options_set_impression_handler(
-        RoxOptions *options,
-        void *target,
-        impression_handler handler);
-
-/**
- * @param options Not <code>NULL</code>.
- * @param target May be <code>NULL</code>.
- * @param handler Not <code>NULL</code>.
- */
-void ROX_INTERNAL rox_options_set_configuration_fetched_handler(
-        RoxOptions *options,
-        void *target,
-        configuration_fetched_handler handler);
-
-/**
- * @param options Not <code>NULL</code>.
- * @param target May be <code>NULL</code>.
- * @param rule Not <code>NULL</code>.
- */
-void ROX_INTERNAL rox_options_set_dynamic_properties_rule(
-        RoxOptions *options,
-        void *target,
-        dynamic_properties_rule rule);
-
 /**
  * @param options Not <code>NULL</code>.
  * @return Not <code>NULL</code>.
@@ -129,7 +63,7 @@ const char *ROX_INTERNAL rox_options_get_roxy_url(RoxOptions *options);
  * @param options Not <code>NULL</code>.
  * @return May be <code>NULL</code>.
  */
-impression_handler ROX_INTERNAL rox_options_get_impression_handler(RoxOptions *options);
+rox_impression_handler ROX_INTERNAL rox_options_get_impression_handler(RoxOptions *options);
 
 /**
  * @param options Not <code>NULL</code>.
@@ -141,7 +75,7 @@ void *ROX_INTERNAL rox_options_get_impression_handler_target(RoxOptions *options
  * @param options Not <code>NULL</code>.
  * @return May be <code>NULL</code>.
  */
-configuration_fetched_handler ROX_INTERNAL rox_options_get_configuration_fetched_handler(RoxOptions *options);
+rox_configuration_fetched_handler ROX_INTERNAL rox_options_get_configuration_fetched_handler(RoxOptions *options);
 
 /**
  * @param options Not <code>NULL</code>.
@@ -153,7 +87,7 @@ void *ROX_INTERNAL rox_options_get_configuration_fetched_handler_target(RoxOptio
  * @param options Not <code>NULL</code>.
  * @return May be <code>NULL</code>.
  */
-dynamic_properties_rule ROX_INTERNAL rox_options_get_dynamic_properties_rule(RoxOptions *options);
+rox_dynamic_properties_rule ROX_INTERNAL rox_options_get_dynamic_properties_rule(RoxOptions *options);
 
 /**
  * @param options Not <code>NULL</code>.
@@ -238,17 +172,15 @@ const char *ROX_INTERNAL device_properties_get_rollout_key(DeviceProperties *pro
 void ROX_INTERNAL device_properties_free(DeviceProperties *properties);
 
 //
-// DynamicApi
+// RoxDynamicApi
 //
-
-typedef struct ROX_INTERNAL DynamicApi DynamicApi;
 
 /**
  * @param flag_repository Not <code>NULL</code>.
  * @param entities_provider Not <code>NULL</code>.
  * @return Not <code>NULL</code>.
  */
-DynamicApi *ROX_INTERNAL dynamic_api_create(
+RoxDynamicApi *ROX_INTERNAL dynamic_api_create(
         FlagRepository *flag_repository,
         EntitiesProvider *entities_provider);
 
@@ -258,31 +190,10 @@ DynamicApi *ROX_INTERNAL dynamic_api_create(
  * @param context May be <code>NULL</code>.
  */
 bool ROX_INTERNAL dynamic_api_is_enabled(
-        DynamicApi *api,
+        RoxDynamicApi *api,
         const char *name,
         bool default_value,
-        Context *context);
-
-/**
- * The returned value, if not <code>NULL</code>, must be freed after use by the caller.
- *
- * @param api Not <code>NULL</code>.
- * @param name Not <code>NULL</code>.
- * @param default_value May be <code>NULL</code>.
- * @param context May be <code>NULL</code>.
- * @param options May be <code>NULL</code>.
- */
-char *ROX_INTERNAL dynamic_api_get_value(
-        DynamicApi *api,
-        const char *name,
-        char *default_value,
-        List *options,
-        Context *context);
-
-/**
- * @param api Not <code>NULL</code>.
- */
-void ROX_INTERNAL dynamic_api_free(DynamicApi *api);
+        RoxContext *context);
 
 //
 // InternalFlags

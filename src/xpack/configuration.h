@@ -34,4 +34,4 @@ void ROX_INTERNAL x_configuration_fetched_invoker_free(XConfigurationFetchedInvo
  * @param target Not <code>NULL</code>. Supposed to be a pointer to <code>XConfigurationFetchedInvoker*</code>.
  * @param args Not <code>NULL</code>.
  */
-void ROX_INTERNAL x_configuration_fetched_handler(void *target, ConfigurationFetchedArgs *args);
+void ROX_INTERNAL x_configuration_fetched_handler(void *target, RoxConfigurationFetchedArgs *args);

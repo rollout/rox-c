@@ -28,9 +28,9 @@ XImpressionInvoker *ROX_INTERNAL x_impression_invoker_create(
 
 void ROX_INTERNAL x_impression_handler(
         void *target,
-        ReportingValue *value,
-        Experiment *experiment,
-        Context *context) {
+        RoxReportingValue *value,
+        RoxExperiment *experiment,
+        RoxContext *context) {
 
     assert(target);
 
@@ -48,9 +48,9 @@ void ROX_INTERNAL x_impression_handler(
         }
         const char *distinct_id = "(null_distinct_id";
         if (prop) {
-            DynamicValue *prop_value = custom_property_get_value(prop, context);
-            if (dynamic_value_is_string(prop_value)) {
-                char *str = dynamic_value_get_string(prop_value);
+            RoxDynamicValue *prop_value = custom_property_get_value(prop, context);
+            if (rox_dynamic_value_is_string(prop_value)) {
+                char *str = rox_dynamic_value_get_string(prop_value);
                 if (str) {
                     distinct_id = str;
                 }

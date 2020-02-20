@@ -34,6 +34,6 @@ void ROX_INTERNAL x_impression_invoker_free(XImpressionInvoker *invoker);
  */
 void ROX_INTERNAL x_impression_handler(
         void *target,
-        ReportingValue *value,
-        Experiment *experiment,
-        Context *context);
+        RoxReportingValue *value,
+        RoxExperiment *experiment,
+        RoxContext *context);

@@ -131,7 +131,7 @@ static void _state_sender_test_context_add_string_property(
     custom_property_repository_add_custom_property(
             ctx->cp_repo, custom_property_create_using_value(name,
                                                              &ROX_CUSTOM_PROPERTY_TYPE_STRING,
-                                                             dynamic_value_create_string_copy(
+                                                             rox_dynamic_value_create_string_copy(
                                                                      value)));
 }
 
@@ -140,7 +140,7 @@ static void _state_sender_test_context_add_double_property(
     custom_property_repository_add_custom_property(
             ctx->cp_repo, custom_property_create_using_value(name,
                                                              &ROX_CUSTOM_PROPERTY_TYPE_DOUBLE,
-                                                             dynamic_value_create_double(
+                                                             rox_dynamic_value_create_double(
                                                                      value)));
 }
 

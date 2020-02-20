@@ -65,7 +65,7 @@ static void _start_or_stop_push_updates_listener(XConfigurationFetchedInvoker *i
 
 #undef X_CONF_FETCH_NOTIFICATIONS_PATH_BUFFER_SIZE
 
-void ROX_INTERNAL x_configuration_fetched_handler(void *target, ConfigurationFetchedArgs *args) {
+void ROX_INTERNAL x_configuration_fetched_handler(void *target, RoxConfigurationFetchedArgs *args) {
     assert(target);
     assert(args);
     if (args->fetcher_status != ErrorFetchedFailed) {

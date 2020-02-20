@@ -4,12 +4,12 @@
 #include "models.h"
 
 //
-// Experiment
+// RoxExperiment
 //
 
-Experiment *ROX_INTERNAL experiment_create(ExperimentModel *model) {
+RoxExperiment *ROX_INTERNAL experiment_create(ExperimentModel *model) {
     assert(model);
-    Experiment *experiment = calloc(1, sizeof(Experiment));
+    RoxExperiment *experiment = calloc(1, sizeof(RoxExperiment));
     experiment->identifier = model->id;
     experiment->name = model->name;
     experiment->archived = model->archived;
@@ -18,23 +18,23 @@ Experiment *ROX_INTERNAL experiment_create(ExperimentModel *model) {
     return experiment;
 }
 
-void ROX_INTERNAL experiment_free(Experiment *experiment) {
+void ROX_INTERNAL experiment_free(RoxExperiment *experiment) {
     assert(experiment);
     free(experiment);
 }
 
 //
-// ReportingValue
+// RoxReportingValue
 //
 
-ReportingValue *ROX_INTERNAL reporting_value_create(const char *name, const char *value) {
-    ReportingValue *reporting_value = calloc(1, sizeof(ReportingValue));
+RoxReportingValue *ROX_INTERNAL reporting_value_create(const char *name, const char *value) {
+    RoxReportingValue *reporting_value = calloc(1, sizeof(RoxReportingValue));
     reporting_value->name = name;
     reporting_value->value = value;
     return reporting_value;
 }
 
-void ROX_INTERNAL reporting_value_free(ReportingValue *reporting_value) {
+void ROX_INTERNAL reporting_value_free(RoxReportingValue *reporting_value) {
     assert(reporting_value);
     free(reporting_value);
 }

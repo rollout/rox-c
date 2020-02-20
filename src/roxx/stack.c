@@ -17,7 +17,7 @@ struct ROX_INTERNAL CoreStack {
 };
 
 struct ROX_INTERNAL StackItem {
-    DynamicValue *value;
+    RoxDynamicValue *value;
     StackItem *next;
 };
 
@@ -30,7 +30,7 @@ void ROX_INTERNAL rox_stack_free(CoreStack *stack) {
     StackItem *item = stack->first;
     while (item) {
         StackItem *next = item->next;
-        dynamic_value_free(item->value);
+        rox_dynamic_value_free(item->value);
         free(item);
         item = next;
     }
@@ -43,7 +43,7 @@ bool ROX_INTERNAL rox_stack_is_empty(CoreStack *stack) {
     return !stack->current;
 }
 
-StackItem *ROX_INTERNAL _create_stack_item(DynamicValue *value) {
+StackItem *ROX_INTERNAL _create_stack_item(RoxDynamicValue *value) {
     // calloc sets all bytes to zeroes, so pointers must be NULLed by default.
     StackItem *item = (StackItem *) calloc(1, sizeof(StackItem));
     item->value = value;
@@ -62,17 +62,17 @@ void ROX_INTERNAL _stack_push(CoreStack *stack, StackItem *item) {
 
 void ROX_INTERNAL rox_stack_push_int(CoreStack *stack, int value) {
     assert(stack);
-    rox_stack_push_dynamic_value(stack, dynamic_value_create_int(value));
+    rox_stack_push_dynamic_value(stack, rox_dynamic_value_create_int(value));
 }
 
 void ROX_INTERNAL rox_stack_push_double(CoreStack *stack, double value) {
     assert(stack);
-    rox_stack_push_dynamic_value(stack, dynamic_value_create_double(value));
+    rox_stack_push_dynamic_value(stack, rox_dynamic_value_create_double(value));
 }
 
 void ROX_INTERNAL rox_stack_push_boolean(CoreStack *stack, bool value) {
     assert(stack);
-    rox_stack_push_dynamic_value(stack, dynamic_value_create_boolean(value));
+    rox_stack_push_dynamic_value(stack, rox_dynamic_value_create_boolean(value));
 }
 
 void ROX_INTERNAL rox_stack_push_string_copy(CoreStack *stack, const char *value) {
@@ -84,22 +84,22 @@ void ROX_INTERNAL rox_stack_push_string_copy(CoreStack *stack, const char *value
 void ROX_INTERNAL rox_stack_push_string_ptr(CoreStack *stack, char *value) {
     assert(stack);
     assert(value);
-    rox_stack_push_dynamic_value(stack, dynamic_value_create_string_ptr(value));
+    rox_stack_push_dynamic_value(stack, rox_dynamic_value_create_string_ptr(value));
 }
 
 void ROX_INTERNAL rox_stack_push_list(CoreStack *stack, List *value) {
     assert(stack);
     assert(value);
-    rox_stack_push_dynamic_value(stack, dynamic_value_create_list(value));
+    rox_stack_push_dynamic_value(stack, rox_dynamic_value_create_list(value));
 }
 
 void ROX_INTERNAL rox_stack_push_map(CoreStack *stack, HashTable *value) {
     assert(stack);
     assert(value);
-    rox_stack_push_dynamic_value(stack, dynamic_value_create_map(value));
+    rox_stack_push_dynamic_value(stack, rox_dynamic_value_create_map(value));
 }
 
-void ROX_INTERNAL rox_stack_push_dynamic_value(CoreStack *stack, DynamicValue *value) {
+void ROX_INTERNAL rox_stack_push_dynamic_value(CoreStack *stack, RoxDynamicValue *value) {
     assert(stack);
     assert(value);
     _stack_push(stack, _create_stack_item(value));
@@ -107,18 +107,18 @@ void ROX_INTERNAL rox_stack_push_dynamic_value(CoreStack *stack, DynamicValue *v
 
 void ROX_INTERNAL rox_stack_push_null(CoreStack *stack) {
     assert(stack);
-    rox_stack_push_dynamic_value(stack, dynamic_value_create_null());
+    rox_stack_push_dynamic_value(stack, rox_dynamic_value_create_null());
 }
 
 void ROX_INTERNAL rox_stack_push_undefined(CoreStack *stack) {
     assert(stack);
-    rox_stack_push_dynamic_value(stack, dynamic_value_create_undefined());
+    rox_stack_push_dynamic_value(stack, rox_dynamic_value_create_undefined());
 }
 
 void ROX_INTERNAL rox_stack_push_item_copy(CoreStack *stack, StackItem *item) {
     assert(stack);
     assert(item);
-    rox_stack_push_dynamic_value(stack, dynamic_value_create_copy(item->value));
+    rox_stack_push_dynamic_value(stack, rox_dynamic_value_create_copy(item->value));
 }
 
 StackItem *ROX_INTERNAL rox_stack_pop(struct CoreStack *stack) {
@@ -137,75 +137,75 @@ StackItem *ROX_INTERNAL rox_stack_peek(CoreStack *stack) {
 
 bool ROX_INTERNAL rox_stack_is_numeric(StackItem *item) {
     assert(item);
-    return dynamic_value_is_int(item->value) ||
-           dynamic_value_is_double(item->value);
+    return rox_dynamic_value_is_int(item->value) ||
+            rox_dynamic_value_is_double(item->value);
 }
 
 bool ROX_INTERNAL rox_stack_is_boolean(StackItem *item) {
     assert(item);
-    return dynamic_value_is_boolean(item->value);
+    return rox_dynamic_value_is_boolean(item->value);
 }
 
 bool ROX_INTERNAL rox_stack_is_string(StackItem *item) {
     assert(item);
-    return dynamic_value_is_string(item->value);
+    return rox_dynamic_value_is_string(item->value);
 }
 
 bool ROX_INTERNAL rox_stack_is_list(StackItem *item) {
     assert(item);
-    return dynamic_value_is_list(item->value);
+    return rox_dynamic_value_is_list(item->value);
 }
 
 bool ROX_INTERNAL rox_stack_is_map(StackItem *item) {
     assert(item);
-    return dynamic_value_is_map(item->value);
+    return rox_dynamic_value_is_map(item->value);
 }
 
 bool ROX_INTERNAL rox_stack_is_undefined(StackItem *item) {
     assert(item);
-    return dynamic_value_is_undefined(item->value);
+    return rox_dynamic_value_is_undefined(item->value);
 }
 
 bool ROX_INTERNAL rox_stack_is_null(StackItem *item) {
     assert(item);
-    return dynamic_value_is_null(item->value);
+    return rox_dynamic_value_is_null(item->value);
 }
 
 int ROX_INTERNAL rox_stack_get_int(StackItem *item) {
     assert(item);
-    return dynamic_value_is_int(item->value)
-           ? dynamic_value_get_int(item->value)
-           : (int) dynamic_value_get_double(item->value);
+    return rox_dynamic_value_is_int(item->value)
+           ? rox_dynamic_value_get_int(item->value)
+           : (int) rox_dynamic_value_get_double(item->value);
 }
 
 double ROX_INTERNAL rox_stack_get_double(StackItem *item) {
     assert(item);
-    return dynamic_value_is_double(item->value)
-           ? dynamic_value_get_double(item->value)
-           : (double) dynamic_value_get_int(item->value);
+    return rox_dynamic_value_is_double(item->value)
+           ? rox_dynamic_value_get_double(item->value)
+           : (double) rox_dynamic_value_get_int(item->value);
 }
 
 bool ROX_INTERNAL rox_stack_get_boolean(StackItem *item) {
     assert(item);
-    return dynamic_value_get_boolean(item->value);
+    return rox_dynamic_value_get_boolean(item->value);
 }
 
 char *ROX_INTERNAL rox_stack_get_string(StackItem *item) {
     assert(item);
-    return dynamic_value_get_string(item->value);
+    return rox_dynamic_value_get_string(item->value);
 }
 
 List *ROX_INTERNAL rox_stack_get_list(StackItem *item) {
     assert(item);
-    return dynamic_value_get_list(item->value);
+    return rox_dynamic_value_get_list(item->value);
 }
 
 HashTable *ROX_INTERNAL rox_stack_get_map(StackItem *item) {
     assert(item);
-    return dynamic_value_get_map(item->value);
+    return rox_dynamic_value_get_map(item->value);
 }
 
-DynamicValue *ROX_INTERNAL rox_stack_get_value(StackItem *item) {
+RoxDynamicValue *ROX_INTERNAL rox_stack_get_value(StackItem *item) {
     assert(item);
     return item->value;
 }

@@ -22,16 +22,21 @@ bool ROX_INTERNAL rox_core_setup(
 
 /**
  * @param core Not <code>NULL</code>.
+ */
+void ROX_INTERNAL rox_core_fetch(RoxCore *core, bool is_source_pushing);
+
+/**
+ * @param core Not <code>NULL</code>.
  * @param context Not <code>NULL</code>.
  */
-void ROX_INTERNAL rox_core_set_context(RoxCore *core, Context *context);
+void ROX_INTERNAL rox_core_set_context(RoxCore *core, RoxContext *context);
 
 /**
  * @param core Not <code>NULL</code>.
  * @param flag Not <code>NULL</code>.
  * @param name Not <code>NULL</code>. Flag name <em>including namespace prefix</em>.
  */
-void ROX_INTERNAL rox_core_add_flag(RoxCore *core, Variant *flag, const char *name);
+void ROX_INTERNAL rox_core_add_flag(RoxCore *core, RoxVariant *flag, const char *name);
 
 /**
  * @param core Not <code>NULL</code>.
@@ -46,13 +51,13 @@ void ROX_INTERNAL rox_core_add_custom_property(RoxCore *core, CustomProperty *pr
 void ROX_INTERNAL rox_core_add_custom_property_if_not_exists(RoxCore *core, CustomProperty *property);
 
 /**
- * Note the returned pointer must be freed by the caller via invoking <code>dynamic_api_free</code>.
+ * Note the returned pointer must be freed by the caller via invoking <code>rox_dynamic_api_free</code>.
  *
  * @param core Not <code>NULL</code>.
  * @param entities_provider Not <code>NULL</code>.
  * @return Not <code>NULL</code>.
  */
-DynamicApi *ROX_INTERNAL rox_core_create_dynamic_api(RoxCore *core, EntitiesProvider *entities_provider);
+RoxDynamicApi *ROX_INTERNAL rox_core_create_dynamic_api(RoxCore *core, EntitiesProvider *entities_provider);
 
 /**
  * @param core Not <code>NULL</code>.

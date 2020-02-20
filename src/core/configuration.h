@@ -69,47 +69,23 @@ ConfigurationFetchResult *ROX_INTERNAL configuration_fetch_result_create(cJSON *
 void ROX_INTERNAL configuration_fetch_result_free(ConfigurationFetchResult *result);
 
 //
-// ConfigurationFetchedArgs
+// RoxConfigurationFetchedArgs
 //
-
-typedef enum ROX_INTERNAL FetchStatus {
-    AppliedFromEmbedded = 1,
-    AppliedFromLocalStorage,
-    AppliedFromNetwork,
-    ErrorFetchedFailed
-} FetchStatus;
-
-typedef enum ROX_INTERNAL FetcherError {
-    CorruptedJson = 1,
-    EmptyJson,
-    SignatureVerificationError,
-    NetworkError,
-    MismatchAppKey,
-    UnknownError,
-    NoError
-} FetcherError;
-
-typedef struct ROX_INTERNAL ConfigurationFetchedArgs {
-    FetchStatus fetcher_status;
-    const char *creation_date;
-    bool has_changes;
-    FetcherError error_details;
-} ConfigurationFetchedArgs;
 
 /**
  * @param creation_date Not <code>null</code>. The caller holds an ownership.
  * @return Not <code>NULL</code>
  */
-ConfigurationFetchedArgs *ROX_INTERNAL configuration_fetched_args_create(
-        FetchStatus fetcher_status,
+RoxConfigurationFetchedArgs *ROX_INTERNAL configuration_fetched_args_create(
+        RoxFetchStatus fetcher_status,
         const char *creation_date,
         bool has_changes);
 
-ConfigurationFetchedArgs *ROX_INTERNAL configuration_fetched_args_create_error(FetcherError error_details);
+RoxConfigurationFetchedArgs *ROX_INTERNAL configuration_fetched_args_create_error(RoxFetcherError error_details);
 
-ConfigurationFetchedArgs *ROX_INTERNAL configuration_fetched_args_copy(ConfigurationFetchedArgs *args);
+RoxConfigurationFetchedArgs *ROX_INTERNAL configuration_fetched_args_copy(RoxConfigurationFetchedArgs *args);
 
-void ROX_INTERNAL configuration_fetched_args_free(ConfigurationFetchedArgs *args);
+void ROX_INTERNAL configuration_fetched_args_free(RoxConfigurationFetchedArgs *args);
 
 //
 // ConfigurationFetchedInvoker
@@ -127,7 +103,7 @@ ConfigurationFetchedInvoker *ROX_INTERNAL configuration_fetched_invoker_create()
  */
 void ROX_INTERNAL configuration_fetched_invoker_invoke(
         ConfigurationFetchedInvoker *invoker,
-        FetchStatus fetcher_status,
+        RoxFetchStatus fetcher_status,
         const char *creation_date,
         bool has_changes);
 
@@ -136,9 +112,7 @@ void ROX_INTERNAL configuration_fetched_invoker_invoke(
  */
 void ROX_INTERNAL configuration_fetched_invoker_invoke_error(
         ConfigurationFetchedInvoker *invoker,
-        FetcherError fetcher_error);
-
-typedef void ROX_INTERNAL (*configuration_fetched_handler)(void *target, ConfigurationFetchedArgs *args);
+        RoxFetcherError fetcher_error);
 
 /**
  * @param invoker Not <code>NULL</code>.
@@ -148,7 +122,7 @@ typedef void ROX_INTERNAL (*configuration_fetched_handler)(void *target, Configu
 void ROX_INTERNAL configuration_fetched_invoker_register_handler(
         ConfigurationFetchedInvoker *invoker,
         void *target,
-        configuration_fetched_handler handler);
+        rox_configuration_fetched_handler handler);
 
 //
 // ConfigurationParser

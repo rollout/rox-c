@@ -24,7 +24,7 @@ typedef struct ROX_INTERNAL RequestTestContext {
 } RequestTestContext;
 
 
-static void _test_configuration_fetched_handler(void *target, ConfigurationFetchedArgs *args) {
+static void _test_configuration_fetched_handler(void *target, RoxConfigurationFetchedArgs *args) {
     assert(target);
     assert(args);
     RequestTestContext *ctx = (RequestTestContext *) target;

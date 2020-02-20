@@ -235,7 +235,7 @@ void ROX_INTERNAL rox_hash_table_free_with_keys_and_values_cb(
 
 #define ROX_JSON_BOOL cJSON_CreateBool()
 
-#define ROX_JSON_NULL cJSON_CreateNull(value)
+#define ROX_JSON_NULL cJSON_CreateNull()
 
 #define ROX_LIST(...) rox_list_create(NULL, __VA_ARGS__, NULL)
 

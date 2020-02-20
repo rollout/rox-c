@@ -48,10 +48,10 @@ typedef struct ConfigurationTestContext {
     ConfigurationFetchResult *result;
     ConfigurationParser *parser;
     bool configuration_fetched;
-    FetcherError fetcher_error;
+    RoxFetcherError fetcher_error;
 } ConfigurationTestContext;
 
-static void _test_configuration_fetched_handler(void *target, ConfigurationFetchedArgs *args) {
+static void _test_configuration_fetched_handler(void *target, RoxConfigurationFetchedArgs *args) {
     assert(target);
     ConfigurationTestContext *test_context = (ConfigurationTestContext *) target;
     test_context->configuration_fetched = true;

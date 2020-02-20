@@ -144,7 +144,7 @@ void ROX_INTERNAL result_free(EvaluationResult *result) {
 
 struct ROX_INTERNAL ParserNode {
     NodeType type;
-    DynamicValue *value;
+    RoxDynamicValue *value;
 };
 
 NodeType ROX_INTERNAL node_get_type(ParserNode *node) {
@@ -152,7 +152,7 @@ NodeType ROX_INTERNAL node_get_type(ParserNode *node) {
     return node->type;
 }
 
-DynamicValue *ROX_INTERNAL node_get_value(ParserNode *node) {
+RoxDynamicValue *ROX_INTERNAL node_get_value(ParserNode *node) {
     assert(node);
     return node->value;
 }
@@ -166,7 +166,7 @@ ParserNode *ROX_INTERNAL _node_create_empty(NodeType type) {
 ParserNode *ROX_INTERNAL node_create_str_ptr(NodeType type, char *str) {
     assert(str);
     ParserNode *node = _node_create_empty(type);
-    node->value = dynamic_value_create_string_ptr(str);
+    node->value = rox_dynamic_value_create_string_ptr(str);
     return node;
 }
 
@@ -177,7 +177,7 @@ ParserNode *ROX_INTERNAL node_create_str_copy(NodeType type, const char *str) {
 
 ParserNode *ROX_INTERNAL node_create_double_ptr(NodeType type, double *value) {
     ParserNode *node = _node_create_empty(type);
-    node->value = dynamic_value_create_double_ptr(value);
+    node->value = rox_dynamic_value_create_double_ptr(value);
     return node;
 }
 
@@ -187,39 +187,39 @@ ParserNode *ROX_INTERNAL node_create_double(NodeType type, double value) {
 
 ParserNode *ROX_INTERNAL node_create_bool(NodeType type, bool value) {
     ParserNode *node = _node_create_empty(type);
-    node->value = dynamic_value_create_boolean(value);
+    node->value = rox_dynamic_value_create_boolean(value);
     return node;
 }
 
 ParserNode *ROX_INTERNAL node_create_list(NodeType type, List *value) {
     assert(value);
     ParserNode *node = _node_create_empty(type);
-    node->value = dynamic_value_create_list(value);
+    node->value = rox_dynamic_value_create_list(value);
     return node;
 }
 
 ParserNode *ROX_INTERNAL node_create_map(NodeType type, HashTable *value) {
     assert(value);
     ParserNode *node = _node_create_empty(type);
-    node->value = dynamic_value_create_map(value);
+    node->value = rox_dynamic_value_create_map(value);
     return node;
 }
 
 ParserNode *ROX_INTERNAL node_create_null(NodeType type) {
     ParserNode *node = _node_create_empty(type);
-    node->value = dynamic_value_create_null();
+    node->value = rox_dynamic_value_create_null();
     return node;
 }
 
 ParserNode *ROX_INTERNAL node_create_undefined(NodeType type) {
     ParserNode *node = _node_create_empty(type);
-    node->value = dynamic_value_create_undefined();
+    node->value = rox_dynamic_value_create_undefined();
     return node;
 }
 
 void ROX_INTERNAL node_free(ParserNode *node) {
     assert(node);
-    dynamic_value_free(node->value);
+    rox_dynamic_value_free(node->value);
     free(node);
 }
 
@@ -396,7 +396,7 @@ void ROX_INTERNAL _tokenized_expression_push_node(TokenizedExpression *expr, Par
     assert(node);
     assert(node_list);
     if (expr->dict_accumulator && !expr->dict_key) {
-        expr->dict_key = dynamic_value_get_string(node->value);
+        expr->dict_key = rox_dynamic_value_get_string(node->value);
     } else if (expr->dict_accumulator && expr->dict_key) {
         if (!hashtable_contains_key(expr->dict_accumulator, expr->dict_key)) {
             hashtable_add(expr->dict_accumulator,
@@ -573,14 +573,14 @@ int _parser_compare_stack_items(StackItem *item, StackItem *item2) {
     return ret_value;
 }
 
-void ROX_INTERNAL _parser_operator_is_undefined(void *target, Parser *parser, CoreStack *stack, Context *context) {
+void ROX_INTERNAL _parser_operator_is_undefined(void *target, Parser *parser, CoreStack *stack, RoxContext *context) {
     assert(parser);
     assert(stack);
     StackItem *item = rox_stack_pop(stack);
     rox_stack_push_boolean(stack, item && rox_stack_is_undefined(item));
 }
 
-void ROX_INTERNAL _parser_operator_now(void *target, Parser *parser, CoreStack *stack, Context *context) {
+void ROX_INTERNAL _parser_operator_now(void *target, Parser *parser, CoreStack *stack, RoxContext *context) {
     assert(parser);
     assert(stack);
     double time = current_time_millis();
@@ -596,7 +596,7 @@ bool ROX_INTERNAL _rox_stack_pop_boolean(CoreStack *stack) {
     return false;
 }
 
-void ROX_INTERNAL _parser_operator_and(void *target, Parser *parser, CoreStack *stack, Context *context) {
+void ROX_INTERNAL _parser_operator_and(void *target, Parser *parser, CoreStack *stack, RoxContext *context) {
     assert(parser);
     assert(stack);
     bool b1 = _rox_stack_pop_boolean(stack);
@@ -604,7 +604,7 @@ void ROX_INTERNAL _parser_operator_and(void *target, Parser *parser, CoreStack *
     rox_stack_push_boolean(stack, b1 && b2);
 }
 
-void ROX_INTERNAL _parser_operator_or(void *target, Parser *parser, CoreStack *stack, Context *context) {
+void ROX_INTERNAL _parser_operator_or(void *target, Parser *parser, CoreStack *stack, RoxContext *context) {
     assert(parser);
     assert(stack);
     bool b1 = _rox_stack_pop_boolean(stack);
@@ -612,7 +612,7 @@ void ROX_INTERNAL _parser_operator_or(void *target, Parser *parser, CoreStack *s
     rox_stack_push_boolean(stack, b1 || b2);
 }
 
-void ROX_INTERNAL _parser_operator_ne(void *target, Parser *parser, CoreStack *stack, Context *context) {
+void ROX_INTERNAL _parser_operator_ne(void *target, Parser *parser, CoreStack *stack, RoxContext *context) {
     assert(parser);
     assert(stack);
     StackItem *item1 = rox_stack_pop(stack);
@@ -621,7 +621,7 @@ void ROX_INTERNAL _parser_operator_ne(void *target, Parser *parser, CoreStack *s
     rox_stack_push_boolean(stack, !equal);
 }
 
-void ROX_INTERNAL _parser_operator_eq(void *target, Parser *parser, CoreStack *stack, Context *context) {
+void ROX_INTERNAL _parser_operator_eq(void *target, Parser *parser, CoreStack *stack, RoxContext *context) {
     assert(parser);
     assert(stack);
     StackItem *item1 = rox_stack_pop(stack);
@@ -630,13 +630,13 @@ void ROX_INTERNAL _parser_operator_eq(void *target, Parser *parser, CoreStack *s
     rox_stack_push_boolean(stack, equal);
 }
 
-void ROX_INTERNAL _parser_operator_not(void *target, Parser *parser, CoreStack *stack, Context *context) {
+void ROX_INTERNAL _parser_operator_not(void *target, Parser *parser, CoreStack *stack, RoxContext *context) {
     assert(parser);
     assert(stack);
     rox_stack_push_boolean(stack, !_rox_stack_pop_boolean(stack));
 }
 
-void ROX_INTERNAL _parser_operator_if_then(void *target, Parser *parser, CoreStack *stack, Context *context) {
+void ROX_INTERNAL _parser_operator_if_then(void *target, Parser *parser, CoreStack *stack, RoxContext *context) {
     assert(parser);
     assert(stack);
     bool b = _rox_stack_pop_boolean(stack);
@@ -645,7 +645,7 @@ void ROX_INTERNAL _parser_operator_if_then(void *target, Parser *parser, CoreSta
     rox_stack_push_item_copy(stack, b ? trueExpression : falseExpression);
 }
 
-void ROX_INTERNAL _parser_operator_in_array(void *target, Parser *parser, CoreStack *stack, Context *context) {
+void ROX_INTERNAL _parser_operator_in_array(void *target, Parser *parser, CoreStack *stack, RoxContext *context) {
     assert(parser);
     assert(stack);
     StackItem *op1 = rox_stack_pop(stack);
@@ -655,10 +655,10 @@ void ROX_INTERNAL _parser_operator_in_array(void *target, Parser *parser, CoreSt
         return;
     }
     List *list = rox_stack_get_list(op2);
-    DynamicValue *v1 = rox_stack_get_value(op1);
+    RoxDynamicValue *v1 = rox_stack_get_value(op1);
     LIST_FOREACH(item, list, {
-        DynamicValue *v2 = (DynamicValue *) item;
-        if (dynamic_value_equals(v1, v2)) {
+        RoxDynamicValue *v2 = (RoxDynamicValue *) item;
+        if (rox_dynamic_value_equals(v1, v2)) {
             rox_stack_push_boolean(stack, true);
             return;
         }
@@ -666,7 +666,7 @@ void ROX_INTERNAL _parser_operator_in_array(void *target, Parser *parser, CoreSt
     rox_stack_push_boolean(stack, false);
 }
 
-void ROX_INTERNAL _parser_operator_md5(void *target, Parser *parser, CoreStack *stack, Context *context) {
+void ROX_INTERNAL _parser_operator_md5(void *target, Parser *parser, CoreStack *stack, RoxContext *context) {
     assert(parser);
     assert(stack);
     StackItem *item = rox_stack_pop(stack);
@@ -678,7 +678,7 @@ void ROX_INTERNAL _parser_operator_md5(void *target, Parser *parser, CoreStack *
     rox_stack_push_string_ptr(stack, mem_md5_str(s));
 }
 
-void ROX_INTERNAL _parser_operator_concat(void *target, Parser *parser, CoreStack *stack, Context *context) {
+void ROX_INTERNAL _parser_operator_concat(void *target, Parser *parser, CoreStack *stack, RoxContext *context) {
     assert(parser);
     assert(stack);
     StackItem *i1 = rox_stack_pop(stack);
@@ -692,7 +692,7 @@ void ROX_INTERNAL _parser_operator_concat(void *target, Parser *parser, CoreStac
     rox_stack_push_string_ptr(stack, mem_str_concat(s1, s2));
 }
 
-void ROX_INTERNAL _parser_operator_b64d(void *target, Parser *parser, CoreStack *stack, Context *context) {
+void ROX_INTERNAL _parser_operator_b64d(void *target, Parser *parser, CoreStack *stack, RoxContext *context) {
     assert(parser);
     assert(stack);
     StackItem *item = rox_stack_pop(stack);
@@ -707,7 +707,7 @@ void ROX_INTERNAL _parser_operator_b64d(void *target, Parser *parser, CoreStack 
 typedef bool (*parser_comparison_op)(double d1, double d2);
 
 void ROX_INTERNAL
-_parser_operator_cmp_dbl(Parser *parser, CoreStack *stack, Context *context, parser_comparison_op cmp) {
+_parser_operator_cmp_dbl(Parser *parser, CoreStack *stack, RoxContext *context, parser_comparison_op cmp) {
     assert(parser);
     assert(stack);
     StackItem *op1 = rox_stack_pop(stack);
@@ -739,25 +739,25 @@ bool _parser_cmp_dbl_gte(double d1, double d2) {
     return _parser_cmp_dbl_gt(d1, d2) || (fabs(d1 - d2) < DBL_EPSILON);
 }
 
-void ROX_INTERNAL _parser_operator_lt(void *target, Parser *parser, CoreStack *stack, Context *context) {
+void ROX_INTERNAL _parser_operator_lt(void *target, Parser *parser, CoreStack *stack, RoxContext *context) {
     assert(parser);
     assert(stack);
     _parser_operator_cmp_dbl(parser, stack, context, &_parser_cmp_dbl_lt);
 }
 
-void ROX_INTERNAL _parser_operator_lte(void *target, Parser *parser, CoreStack *stack, Context *context) {
+void ROX_INTERNAL _parser_operator_lte(void *target, Parser *parser, CoreStack *stack, RoxContext *context) {
     assert(parser);
     assert(stack);
     _parser_operator_cmp_dbl(parser, stack, context, &_parser_cmp_dbl_lte);
 }
 
-void ROX_INTERNAL _parser_operator_gt(void *target, Parser *parser, CoreStack *stack, Context *context) {
+void ROX_INTERNAL _parser_operator_gt(void *target, Parser *parser, CoreStack *stack, RoxContext *context) {
     assert(parser);
     assert(stack);
     _parser_operator_cmp_dbl(parser, stack, context, &_parser_cmp_dbl_gt);
 }
 
-void ROX_INTERNAL _parser_operator_gte(void *target, Parser *parser, CoreStack *stack, Context *context) {
+void ROX_INTERNAL _parser_operator_gte(void *target, Parser *parser, CoreStack *stack, RoxContext *context) {
     assert(parser);
     assert(stack);
     _parser_operator_cmp_dbl(parser, stack, context, &_parser_cmp_dbl_gte);
@@ -766,7 +766,7 @@ void ROX_INTERNAL _parser_operator_gte(void *target, Parser *parser, CoreStack *
 typedef int (*_parser_cmp_semver)(semver_t x, semver_t y);
 
 int ROX_INTERNAL
-_parser_operator_semver_cmp(Parser *parser, CoreStack *stack, Context *context, _parser_cmp_semver cmp) {
+_parser_operator_semver_cmp(Parser *parser, CoreStack *stack, RoxContext *context, _parser_cmp_semver cmp) {
     assert(parser);
     assert(stack);
     StackItem *item1 = rox_stack_pop(stack);
@@ -787,43 +787,43 @@ _parser_operator_semver_cmp(Parser *parser, CoreStack *stack, Context *context, 
     return 0;
 }
 
-void ROX_INTERNAL _parser_operator_semver_ne(void *target, Parser *parser, CoreStack *stack, Context *context) {
+void ROX_INTERNAL _parser_operator_semver_ne(void *target, Parser *parser, CoreStack *stack, RoxContext *context) {
     assert(parser);
     assert(stack);
     _parser_operator_semver_cmp(parser, stack, context, &semver_neq);
 }
 
-void ROX_INTERNAL _parser_operator_semver_eq(void *target, Parser *parser, CoreStack *stack, Context *context) {
+void ROX_INTERNAL _parser_operator_semver_eq(void *target, Parser *parser, CoreStack *stack, RoxContext *context) {
     assert(parser);
     assert(stack);
     _parser_operator_semver_cmp(parser, stack, context, &semver_eq);
 }
 
-void ROX_INTERNAL _parser_operator_semver_lt(void *target, Parser *parser, CoreStack *stack, Context *context) {
+void ROX_INTERNAL _parser_operator_semver_lt(void *target, Parser *parser, CoreStack *stack, RoxContext *context) {
     assert(parser);
     assert(stack);
     _parser_operator_semver_cmp(parser, stack, context, &semver_lt);
 }
 
-void ROX_INTERNAL _parser_operator_semver_lte(void *target, Parser *parser, CoreStack *stack, Context *context) {
+void ROX_INTERNAL _parser_operator_semver_lte(void *target, Parser *parser, CoreStack *stack, RoxContext *context) {
     assert(parser);
     assert(stack);
     _parser_operator_semver_cmp(parser, stack, context, &semver_lte);
 }
 
-void ROX_INTERNAL _parser_operator_semver_gt(void *target, Parser *parser, CoreStack *stack, Context *context) {
+void ROX_INTERNAL _parser_operator_semver_gt(void *target, Parser *parser, CoreStack *stack, RoxContext *context) {
     assert(parser);
     assert(stack);
     _parser_operator_semver_cmp(parser, stack, context, &semver_gt);
 }
 
-void ROX_INTERNAL _parser_operator_semver_gte(void *target, Parser *parser, CoreStack *stack, Context *context) {
+void ROX_INTERNAL _parser_operator_semver_gte(void *target, Parser *parser, CoreStack *stack, RoxContext *context) {
     assert(parser);
     assert(stack);
     _parser_operator_semver_cmp(parser, stack, context, &semver_gte);
 }
 
-void ROX_INTERNAL _parser_operator_match(void *target, Parser *parser, CoreStack *stack, Context *context) {
+void ROX_INTERNAL _parser_operator_match(void *target, Parser *parser, CoreStack *stack, RoxContext *context) {
     assert(parser);
     assert(stack);
     StackItem *op1 = rox_stack_pop(stack);
@@ -942,7 +942,7 @@ void ROX_INTERNAL parser_add_operator(Parser *parser, const char *name, void *ta
     hashtable_add(parser->operators_map, (void *) mem_copy_str(name), operator);
 }
 
-EvaluationResult *ROX_INTERNAL parser_evaluate_expression(Parser *parser, const char *expression, Context *context) {
+EvaluationResult *ROX_INTERNAL parser_evaluate_expression(Parser *parser, const char *expression, RoxContext *context) {
     assert(parser);
     assert(expression);
 
@@ -955,11 +955,11 @@ EvaluationResult *ROX_INTERNAL parser_evaluate_expression(Parser *parser, const 
     LIST_FOREACH(token, tokens, {
         ParserNode *node = token;
         if (node->type == NodeTypeRand) {
-            rox_stack_push_dynamic_value(stack, dynamic_value_create_copy(node->value));
+            rox_stack_push_dynamic_value(stack, rox_dynamic_value_create_copy(node->value));
         } else if (node->type == NodeTypeRator) {
-            assert(dynamic_value_is_string(node->value));
+            assert(rox_dynamic_value_is_string(node->value));
             ParserOperator *op;
-            if (hashtable_get(parser->operators_map, dynamic_value_get_string(node->value), (void **) &op) == CC_OK) {
+            if (hashtable_get(parser->operators_map, rox_dynamic_value_get_string(node->value), (void **) &op) == CC_OK) {
                 op->operation(op->target, parser, stack, context);
             }
         } else {

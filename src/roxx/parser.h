@@ -9,7 +9,7 @@ typedef struct ROX_INTERNAL Parser Parser;
 
 typedef struct ROX_INTERNAL EvaluationResult EvaluationResult;
 
-typedef ROX_INTERNAL void (*parser_operation)(void *target, Parser *parser, CoreStack *stack, Context *context);
+typedef ROX_INTERNAL void (*parser_operation)(void *target, Parser *parser, CoreStack *stack, RoxContext *context);
 
 typedef ROX_INTERNAL void (*parser_disposal_handler)(void *target, Parser *parser);
 
@@ -33,7 +33,7 @@ typedef struct ROX_INTERNAL ParserNode ParserNode;
 
 NodeType ROX_INTERNAL node_get_type(ParserNode *node);
 
-DynamicValue *ROX_INTERNAL node_get_value(ParserNode *node);
+RoxDynamicValue *ROX_INTERNAL node_get_value(ParserNode *node);
 
 void ROX_INTERNAL node_free(ParserNode *node);
 
@@ -74,7 +74,7 @@ void ROX_INTERNAL parser_add_operator(Parser *parser, const char *name, void *ta
  * @param context Can be NULL.
  * @return Not NULL.
  */
-EvaluationResult *ROX_INTERNAL parser_evaluate_expression(Parser *parser, const char *expression, Context *context);
+EvaluationResult *ROX_INTERNAL parser_evaluate_expression(Parser *parser, const char *expression, RoxContext *context);
 
 //
 // Get value from evaluation result. If actual value type is different

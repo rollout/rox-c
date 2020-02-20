@@ -29,7 +29,7 @@ double ROX_INTERNAL experiment_extensions_get_bucket(const char *seed) {
     return bucket;
 }
 
-void ROX_INTERNAL _parser_operator_merge_seed(void *target, Parser *parser, CoreStack *stack, Context *context) {
+void ROX_INTERNAL _parser_operator_merge_seed(void *target, Parser *parser, CoreStack *stack, RoxContext *context) {
     assert(parser);
     assert(stack);
     StackItem *item1 = rox_stack_pop(stack);
@@ -40,7 +40,7 @@ void ROX_INTERNAL _parser_operator_merge_seed(void *target, Parser *parser, Core
     rox_stack_push_string_ptr(stack, merged);
 }
 
-void ROX_INTERNAL _parser_operator_is_in_percentage(void *target, Parser *parser, CoreStack *stack, Context *context) {
+void ROX_INTERNAL _parser_operator_is_in_percentage(void *target, Parser *parser, CoreStack *stack, RoxContext *context) {
     assert(parser);
     assert(stack);
     StackItem *item1 = rox_stack_pop(stack);
@@ -53,7 +53,7 @@ void ROX_INTERNAL _parser_operator_is_in_percentage(void *target, Parser *parser
 }
 
 void ROX_INTERNAL
-_parser_operator_is_in_percentage_range(void *target, Parser *parser, CoreStack *stack, Context *context) {
+_parser_operator_is_in_percentage_range(void *target, Parser *parser, CoreStack *stack, RoxContext *context) {
     assert(parser);
     assert(stack);
     StackItem *item1 = rox_stack_pop(stack);
@@ -67,7 +67,7 @@ _parser_operator_is_in_percentage_range(void *target, Parser *parser, CoreStack 
     rox_stack_push_boolean(stack, is_in_percentage);
 }
 
-void ROX_INTERNAL _parser_operator_flag_value(void *target, Parser *parser, CoreStack *stack, Context *context) {
+void ROX_INTERNAL _parser_operator_flag_value(void *target, Parser *parser, CoreStack *stack, RoxContext *context) {
     assert(parser);
     assert(stack);
     ExperimentExtensionsContext *extensions = (ExperimentExtensionsContext *) target;
@@ -75,7 +75,7 @@ void ROX_INTERNAL _parser_operator_flag_value(void *target, Parser *parser, Core
     char *feature_flag_identifier = rox_stack_get_string(item);
     bool value_set = false;
     char *result = NULL;
-    Variant *variant = flag_repository_get_flag(extensions->flags_repository, feature_flag_identifier);
+    RoxVariant *variant = flag_repository_get_flag(extensions->flags_repository, feature_flag_identifier);
     if (variant) {
         result = variant_get_value_or_default(variant, context);
         value_set = true;
@@ -99,7 +99,7 @@ void ROX_INTERNAL _parser_operator_flag_value(void *target, Parser *parser, Core
 }
 
 void ROX_INTERNAL
-_parser_operator_is_in_target_group(void *target, Parser *parser, CoreStack *stack, Context *context) {
+_parser_operator_is_in_target_group(void *target, Parser *parser, CoreStack *stack, RoxContext *context) {
     assert(parser);
     assert(stack);
     ExperimentExtensionsContext *extensions = (ExperimentExtensionsContext *) target;
@@ -146,7 +146,7 @@ typedef struct ROX_INTERNAL PropertiesExtensionsContext {
     DynamicProperties *dynamic_properties;
 } PropertiesExtensionsContext;
 
-void ROX_INTERNAL _parser_operator_property(void *target, Parser *parser, CoreStack *stack, Context *context) {
+void ROX_INTERNAL _parser_operator_property(void *target, Parser *parser, CoreStack *stack, RoxContext *context) {
     assert(parser);
     assert(stack);
 
@@ -158,31 +158,31 @@ void ROX_INTERNAL _parser_operator_property(void *target, Parser *parser, CoreSt
             extensions->custom_property_repository, prop_name);
 
     if (!property) {
-        DynamicValue *value = dynamic_properties_invoke(extensions->dynamic_properties, prop_name, context);
+        RoxDynamicValue *value = dynamic_properties_invoke(extensions->dynamic_properties, prop_name, context);
         if (value) {
-            if (dynamic_value_is_string(value) ||
-                dynamic_value_is_boolean(value) ||
-                dynamic_value_is_double(value) ||
-                dynamic_value_is_int(value)) {
-                if (dynamic_value_is_int(value)) {
-                    rox_stack_push_double(stack, dynamic_value_get_int(value)); // convert int to double
-                    dynamic_value_free(value);
+            if (rox_dynamic_value_is_string(value) ||
+                rox_dynamic_value_is_boolean(value) ||
+                rox_dynamic_value_is_double(value) ||
+                rox_dynamic_value_is_int(value)) {
+                if (rox_dynamic_value_is_int(value)) {
+                    rox_stack_push_double(stack, rox_dynamic_value_get_int(value)); // convert int to double
+                    rox_dynamic_value_free(value);
                 } else {
                     rox_stack_push_dynamic_value(stack, value);
                 }
                 return;
             } else {
-                dynamic_value_free(value);
+                rox_dynamic_value_free(value);
             }
         }
         rox_stack_push_undefined(stack);
         return;
     }
 
-    DynamicValue *value = custom_property_get_value(property, context);
+    RoxDynamicValue *value = custom_property_get_value(property, context);
     if (value) {
-        if (dynamic_value_is_null(value)) {
-            dynamic_value_free(value);
+        if (rox_dynamic_value_is_null(value)) {
+            rox_dynamic_value_free(value);
         } else {
             rox_stack_push_dynamic_value(stack, value);
             return;

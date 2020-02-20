@@ -2,14 +2,19 @@
 #include "context.h"
 #include "util.h"
 
-struct ROX_INTERNAL Context {
+struct ROX_API RoxContext {
     HashTable *map;
-    bool key_value_ownership_delegated;
+    void *target;
+    rox_context_get_value_func get_value;
+    rox_context_free_target_func fee_target;
 };
 
-DynamicValue *ROX_INTERNAL context_get(Context *context, const char *key) {
+RoxDynamicValue *ROX_API rox_context_get(RoxContext *context, const char *key) {
     assert(context);
     assert(key);
+    if (context->get_value) {
+        return context->get_value(context->target, key);
+    }
     void *ptr;
     if (hashtable_get(context->map, (void *) key, &ptr) == CC_OK) {
         return ptr;
@@ -17,49 +22,70 @@ DynamicValue *ROX_INTERNAL context_get(Context *context, const char *key) {
     return NULL;
 }
 
-void ROX_INTERNAL context_copy_data(Context *context, HashTable *map) {
-    assert(context);
-    assert(map);
-    TableEntry *entry;
-    HASHTABLE_FOREACH(entry, map, {
-        hashtable_add(context->map, entry->key, entry->value);
-    })
-}
-
-Context *ROX_INTERNAL context_create_empty() {
-    Context *context = calloc(1, sizeof(Context));
+RoxContext *ROX_API rox_context_create_empty() {
+    RoxContext *context = calloc(1, sizeof(RoxContext));
     hashtable_new(&context->map);
     return context;
 }
 
-Context *ROX_INTERNAL context_create_from_map(HashTable *map) {
+RoxContext *ROX_API rox_context_create_from_map(HashTable *map) {
     assert(map);
-    Context *context = calloc(1, sizeof(Context));
+    RoxContext *context = calloc(1, sizeof(RoxContext));
     context->map = map;
     return context;
 }
 
-Context *ROX_INTERNAL context_create_merged(Context *global_context, Context *local_context) {
-    Context *context = context_create_empty();
-    if (global_context) {
-        context_copy_data(context, global_context->map);
-        global_context->key_value_ownership_delegated = true;
+typedef struct MergedContext {
+    RoxContext *global_context;
+    RoxContext *local_context;
+} MergedContext;
+
+static RoxDynamicValue *_merged_context_get_value(void *target, const char *key) {
+    assert(target);
+    assert(key);
+    MergedContext *merged = (MergedContext *) target;
+    if (merged->local_context) {
+        RoxDynamicValue *value = rox_context_get(merged->local_context, key);
+        if (value) {
+            return value;
+        }
     }
-    if (local_context) {
-        context_copy_data(context, local_context->map);
-        local_context->key_value_ownership_delegated = true;
+    if (merged->global_context) {
+        RoxDynamicValue *value = rox_context_get(merged->global_context, key);
+        if (value) {
+            return value;
+        }
     }
+    return NULL;
+}
+
+RoxContext *ROX_API rox_context_create_merged(RoxContext *global_context, RoxContext *local_context) {
+    MergedContext *merged = calloc(1, sizeof(MergedContext));
+    merged->global_context = global_context;
+    merged->local_context = local_context;
+    RoxContextConfig config = {merged, &_merged_context_get_value, (rox_context_free_target_func) &free};
+    return rox_context_create_custom(&config);
+}
+
+RoxContext *ROX_API rox_context_create_custom(RoxContextConfig *config) {
+    assert(config);
+    RoxContext *context = calloc(1, sizeof(RoxContext));
+    context->target = config->target;
+    context->get_value = config->get_value_func;
+    context->fee_target = config->fee_target_func;
     return context;
 }
 
-void ROX_INTERNAL context_free(Context *context) {
+void ROX_API rox_context_free(RoxContext *context) {
     assert(context);
-    if (!context->key_value_ownership_delegated) {
+    if (context->map) {
         rox_hash_table_free_with_keys_and_values_cb(
-                context->map, &free,
-                (void (*)(void *)) &dynamic_value_free);
-    } else {
-        hashtable_destroy(context->map);
+                context->map,
+                &free,
+                (void (*)(void *)) &rox_dynamic_value_free);
+    }
+    if (context->target && context->fee_target) {
+        context->fee_target(context->target);
     }
     free(context);
 }

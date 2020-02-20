@@ -64,16 +64,16 @@ void ROX_INTERNAL configuration_fetch_result_free(ConfigurationFetchResult *resu
 }
 
 //
-// ConfigurationFetchedArgs
+// RoxConfigurationFetchedArgs
 //
 
-ConfigurationFetchedArgs *ROX_INTERNAL configuration_fetched_args_create(
-        FetchStatus fetcher_status,
+RoxConfigurationFetchedArgs *ROX_INTERNAL configuration_fetched_args_create(
+        RoxFetchStatus fetcher_status,
         const char *creation_date,
         bool has_changes) {
     assert(fetcher_status);
     assert(creation_date);
-    ConfigurationFetchedArgs *args = calloc(1, sizeof(ConfigurationFetchedArgs));
+    RoxConfigurationFetchedArgs *args = calloc(1, sizeof(RoxConfigurationFetchedArgs));
     args->fetcher_status = fetcher_status;
     args->creation_date = creation_date;
     args->has_changes = has_changes;
@@ -81,17 +81,17 @@ ConfigurationFetchedArgs *ROX_INTERNAL configuration_fetched_args_create(
     return args;
 }
 
-ConfigurationFetchedArgs *ROX_INTERNAL configuration_fetched_args_create_error(FetcherError error_details) {
+RoxConfigurationFetchedArgs *ROX_INTERNAL configuration_fetched_args_create_error(RoxFetcherError error_details) {
     assert(error_details);
-    ConfigurationFetchedArgs *args = calloc(1, sizeof(ConfigurationFetchedArgs));
+    RoxConfigurationFetchedArgs *args = calloc(1, sizeof(RoxConfigurationFetchedArgs));
     args->fetcher_status = ErrorFetchedFailed;
     args->error_details = error_details;
     return args;
 }
 
-ConfigurationFetchedArgs *ROX_INTERNAL configuration_fetched_args_copy(ConfigurationFetchedArgs *args) {
+RoxConfigurationFetchedArgs *ROX_INTERNAL configuration_fetched_args_copy(RoxConfigurationFetchedArgs *args) {
     assert(args);
-    ConfigurationFetchedArgs *copy = calloc(1, sizeof(ConfigurationFetchedArgs));
+    RoxConfigurationFetchedArgs *copy = calloc(1, sizeof(RoxConfigurationFetchedArgs));
     copy->fetcher_status = args->fetcher_status;
     copy->creation_date = args->creation_date;
     copy->has_changes = args->has_changes;
@@ -99,7 +99,7 @@ ConfigurationFetchedArgs *ROX_INTERNAL configuration_fetched_args_copy(Configura
     return copy;
 }
 
-void ROX_INTERNAL configuration_fetched_args_free(ConfigurationFetchedArgs *args) {
+void ROX_INTERNAL configuration_fetched_args_free(RoxConfigurationFetchedArgs *args) {
     assert(args);
     free(args);
 }
@@ -110,7 +110,7 @@ void ROX_INTERNAL configuration_fetched_args_free(ConfigurationFetchedArgs *args
 
 struct ROX_INTERNAL ConfigurationFetchedInvoker {
     void *target;
-    configuration_fetched_handler handler;
+    rox_configuration_fetched_handler handler;
 };
 
 ConfigurationFetchedInvoker *ROX_INTERNAL configuration_fetched_invoker_create() {
@@ -120,7 +120,7 @@ ConfigurationFetchedInvoker *ROX_INTERNAL configuration_fetched_invoker_create()
 
 void ROX_INTERNAL configuration_fetched_invoker_invoke(
         ConfigurationFetchedInvoker *invoker,
-        FetchStatus fetcher_status,
+        RoxFetchStatus fetcher_status,
         const char *creation_date,
         bool has_changes) {
     assert(invoker);
@@ -129,20 +129,20 @@ void ROX_INTERNAL configuration_fetched_invoker_invoke(
     if (!invoker->handler) {
         return;
     }
-    ConfigurationFetchedArgs *args = configuration_fetched_args_create(fetcher_status, creation_date, has_changes);
+    RoxConfigurationFetchedArgs *args = configuration_fetched_args_create(fetcher_status, creation_date, has_changes);
     invoker->handler(invoker->target, args);
     configuration_fetched_args_free(args);
 }
 
 void ROX_INTERNAL configuration_fetched_invoker_invoke_error(
         ConfigurationFetchedInvoker *invoker,
-        FetcherError fetcher_error) {
+        RoxFetcherError fetcher_error) {
     assert(invoker);
     assert(fetcher_error);
     if (!invoker->handler) {
         return;
     }
-    ConfigurationFetchedArgs *args = configuration_fetched_args_create_error(fetcher_error);
+    RoxConfigurationFetchedArgs *args = configuration_fetched_args_create_error(fetcher_error);
     invoker->handler(invoker->target, args);
     configuration_fetched_args_free(args);
 }
@@ -150,7 +150,7 @@ void ROX_INTERNAL configuration_fetched_invoker_invoke_error(
 void ROX_INTERNAL configuration_fetched_invoker_register_handler(
         ConfigurationFetchedInvoker *invoker,
         void *target,
-        configuration_fetched_handler handler) {
+        rox_configuration_fetched_handler handler) {
     assert(invoker);
     assert(handler);
     invoker->target = target;

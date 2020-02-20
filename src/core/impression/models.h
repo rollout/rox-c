@@ -4,16 +4,8 @@
 #include "core/configuration/models.h"
 
 //
-// Experiment
+// RoxExperiment
 //
-
-typedef struct ROX_INTERNAL Experiment {
-    char *name;
-    char *identifier;
-    bool archived;
-    HashSet *labels;
-    char *stickiness_property;
-} Experiment;
 
 /**
  * The data is NOT copied internally, instead it copies the pointers.
@@ -25,28 +17,23 @@ typedef struct ROX_INTERNAL Experiment {
  * @param model Not <code>NULL</code>.
  * @return Not <code>NULL</code>.
  */
-Experiment *ROX_INTERNAL experiment_create(ExperimentModel *model);
+RoxExperiment *ROX_INTERNAL experiment_create(ExperimentModel *model);
 
 /**
  * @param experiment Not <code>NULL</code>.
  */
-void ROX_INTERNAL experiment_free(Experiment *experiment);
+void ROX_INTERNAL experiment_free(RoxExperiment *experiment);
 
 //
-// ReportingValue
+// RoxReportingValue
 //
-
-typedef struct ROX_INTERNAL ReportingValue {
-    const char *name;
-    const char *value;
-} ReportingValue;
 
 /**
  * @param name May be <code>NULL</code>.
  * @param value May be <code>NULL</code>.
  * @return Not <code>NULL</code>.
  */
-ReportingValue *ROX_INTERNAL reporting_value_create(const char *name, const char *value);
+RoxReportingValue *ROX_INTERNAL reporting_value_create(const char *name, const char *value);
 
-void ROX_INTERNAL reporting_value_free(ReportingValue *reporting_value);
+void ROX_INTERNAL reporting_value_free(RoxReportingValue *reporting_value);
 

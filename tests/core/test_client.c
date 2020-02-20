@@ -17,7 +17,7 @@ START_TEST (test_is_enabled) {
     ExperimentRepository *exp_repo = experiment_repository_create();
     FlagSetter *flag_setter = flag_setter_create(flag_repo, parser, exp_repo, NULL);
     EntitiesProvider *entities_provider = entities_provider_create();
-    DynamicApi *api = dynamic_api_create(flag_repo, entities_provider);
+    RoxDynamicApi *api = dynamic_api_create(flag_repo, entities_provider);
 
     ck_assert(dynamic_api_is_enabled(api, "default.newFlag", true, NULL));
     ck_assert(flag_is_enabled(flag_repository_get_flag(flag_repo, "default.newFlag"), NULL));
@@ -32,7 +32,7 @@ START_TEST (test_is_enabled) {
 
     ck_assert(dynamic_api_is_enabled(api, "default.newFlag", false, NULL));
 
-    dynamic_api_free(api);
+    rox_dynamic_api_free(api);
     entities_provider_free(entities_provider);
     flag_setter_free(flag_setter);
     flag_repository_free(flag_repo);
@@ -48,7 +48,7 @@ START_TEST (test_is_enabled_after_setup) {
     ExperimentRepository *exp_repo = experiment_repository_create();
     FlagSetter *flag_setter = flag_setter_create(flag_repo, parser, exp_repo, NULL);
     EntitiesProvider *entities_provider = entities_provider_create();
-    DynamicApi *api = dynamic_api_create(flag_repo, entities_provider);
+    RoxDynamicApi *api = dynamic_api_create(flag_repo, entities_provider);
 
     experiment_repository_set_experiments(exp_repo, ROX_LIST(
             experiment_model_create("1", "default.newFlag", "and(true, true)", false,
@@ -58,7 +58,7 @@ START_TEST (test_is_enabled_after_setup) {
 
     ck_assert(dynamic_api_is_enabled(api, "default.newFlag", false, NULL));
 
-    dynamic_api_free(api);
+    rox_dynamic_api_free(api);
     entities_provider_free(entities_provider);
     flag_setter_free(flag_setter);
     flag_repository_free(flag_repo);
@@ -74,15 +74,15 @@ START_TEST (test_get_value) {
     ExperimentRepository *exp_repo = experiment_repository_create();
     FlagSetter *flag_setter = flag_setter_create(flag_repo, parser, exp_repo, NULL);
     EntitiesProvider *entities_provider = entities_provider_create();
-    DynamicApi *api = dynamic_api_create(flag_repo, entities_provider);
+    RoxDynamicApi *api = dynamic_api_create(flag_repo, entities_provider);
 
     List *options = ROX_LIST_COPY_STR("A", "B", "C");
-    rox_check_and_free(dynamic_api_get_value(api, "default.newVariant", "A", options, NULL), "A");
+    rox_check_and_free(rox_dynamic_api_get_value(api, "default.newVariant", "A", options, NULL), "A");
 
-    Variant *flag = flag_repository_get_flag(flag_repo, "default.newVariant");
+    RoxVariant *flag = flag_repository_get_flag(flag_repo, "default.newVariant");
     rox_check_and_free(variant_get_value_or_default(flag, NULL), "A");
 
-    rox_check_and_free(dynamic_api_get_value(api, "default.newVariant", "B", options, NULL), "B");
+    rox_check_and_free(rox_dynamic_api_get_value(api, "default.newVariant", "B", options, NULL), "B");
     ck_assert_int_eq(1, hashtable_size(flag_repository_get_all_flags(flag_repo)));
 
     experiment_repository_set_experiments(exp_repo, ROX_LIST(
@@ -91,9 +91,9 @@ START_TEST (test_get_value) {
     ));
     flag_setter_set_experiments(flag_setter);
 
-    rox_check_and_free(dynamic_api_get_value(api, "default.newVariant", "A", options, NULL), "B");
+    rox_check_and_free(rox_dynamic_api_get_value(api, "default.newVariant", "A", options, NULL), "B");
 
-    dynamic_api_free(api);
+    rox_dynamic_api_free(api);
     entities_provider_free(entities_provider);
     flag_setter_free(flag_setter);
     flag_repository_free(flag_repo);

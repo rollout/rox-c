@@ -22,16 +22,16 @@ typedef struct ROX_INTERNAL ConfigurationFetchedInvokerTestContext {
 
 static void _check_conf_fetched_args(
         ConfigurationFetchedInvokerTestContext *ctx,
-        FetchStatus status,
+        RoxFetchStatus status,
         const char *date,
         bool has_changes,
-        FetcherError error) {
+        RoxFetcherError error) {
 
     assert(ctx);
 
     ck_assert_int_eq(1, list_size(ctx->args));
 
-    ConfigurationFetchedArgs *args;
+    RoxConfigurationFetchedArgs *args;
     ck_assert_int_eq(list_get_first(ctx->args, (void **) &args), CC_OK);
     ck_assert_int_eq(status, args->fetcher_status);
     ck_assert_int_eq(has_changes, args->has_changes);
@@ -50,7 +50,7 @@ static void _test_configuration_fetch_func(void *target) {
     ++ctx->times_fetch_invoked;
 }
 
-static void _test_configuration_fetched_handler(void *target, ConfigurationFetchedArgs *args) {
+static void _test_configuration_fetched_handler(void *target, RoxConfigurationFetchedArgs *args) {
     assert(target);
     assert(args);
     ConfigurationFetchedInvokerTestContext *ctx = (ConfigurationFetchedInvokerTestContext *) target;
@@ -94,19 +94,19 @@ START_TEST (test_configuration_invoker_with_no_subscriber_no_exception) {
 END_TEST
 
 START_TEST (test_configuration_fetched_args_constructor) {
-    FetchStatus status = AppliedFromEmbedded;
+    RoxFetchStatus status = AppliedFromEmbedded;
     const char *time = "2012-04-23T18:25:43.511Z";
     bool has_changes = true;
 
-    ConfigurationFetchedArgs *args = configuration_fetched_args_create(status, time, has_changes);
+    RoxConfigurationFetchedArgs *args = configuration_fetched_args_create(status, time, has_changes);
 
     ck_assert_int_eq(status, args->fetcher_status);
     ck_assert_str_eq(time, args->creation_date);
     ck_assert_int_eq(has_changes, args->has_changes);
     ck_assert_int_eq(NoError, args->error_details);
 
-    FetcherError error = SignatureVerificationError;
-    ConfigurationFetchedArgs *args2 = configuration_fetched_args_create_error(error);
+    RoxFetcherError error = SignatureVerificationError;
+    RoxConfigurationFetchedArgs *args2 = configuration_fetched_args_create_error(error);
 
     ck_assert_int_eq(ErrorFetchedFailed, args2->fetcher_status);
     ck_assert_ptr_null(args2->creation_date);
@@ -127,7 +127,7 @@ START_TEST (test_configuration_invoker_invoke_with_error) {
 END_TEST
 
 START_TEST (test_configuration_invoker_invoke_ok) {
-    FetchStatus status = AppliedFromEmbedded;
+    RoxFetchStatus status = AppliedFromEmbedded;
     const char *time = "2012-04-23T18:25:43.511Z";
     bool has_changes = true;
     ConfigurationFetchedInvokerTestContext *ctx = _configuration_fetched_invoker_test_context_create();
