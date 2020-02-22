@@ -303,7 +303,12 @@ macro(_rox_build_third_party_lib)
 
         endif ()
 
-        _rox_try_find_third_party_lib()
+        if (LIB_TRY_FIND_IN_INSTALL_DIR_SET)
+            if (LIB_VERBOSE)
+                message("Library ${LIB_NAME} is supposed to be built locally; setting ${LIB_TRY_FIND_IN_INSTALL_DIR_SET} to ${LIB_INSTALL_DIR}")
+            endif ()
+            set(${LIB_TRY_FIND_IN_INSTALL_DIR_SET} ${LIB_INSTALL_DIR} PARENT_SCOPE)
+        endif ()
 
     endif ()
 
