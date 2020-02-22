@@ -2,6 +2,7 @@ rox_external_lib(pcre2 STATIC
         # looking for preinstalled pcre2
         TRY_FIND PCRE2 PCRE2::PCRE2
         TRY_FIND_IN_INSTALL_DIR
+        TRY_FIND_DEFINITIONS PCRE2_CODE_UNIT_WIDTH=8 PCRE2_STATIC
         # otherwise build from sources
         VERSION 10.34
         URL https://ftp.pcre.org/pub/pcre/pcre2-<LIB_VERSION>.tar.gz
