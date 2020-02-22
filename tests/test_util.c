@@ -222,9 +222,9 @@ START_TEST (test_json_serialization) {
             "int", ROX_JSON_INT(1099),
             "double", ROX_JSON_DOUBLE(1099.99));
     char *json_string = ROX_JSON_SERIALIZE(json);
-    cJSON_Delete(json);
     ck_assert_str_eq("{\"string\":\"test\",\"int\":1099,\"double\":1099.99}", json_string);
     free(json_string);
+    cJSON_Delete(json);
 }
 
 START_TEST (test_string_in_list) {

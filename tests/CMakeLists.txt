@@ -8,6 +8,7 @@ set(LIBS_C ${LIBS} libroxc)
 set(LIBS_CXX ${LIBS} libroxcpp)
 
 include(rox_add_tests)
+include(rox_copy_shared_libs)
 include_directories(. ../src)
 
 set(ROX_TEST_SRC fixtures.c)
@@ -21,3 +22,4 @@ rox_add_tests(".c" "${LIBS_C}")
 rox_add_tests(".cpp" "${LIBS_CXX}")
 
 set_tests_properties(test_server PROPERTIES ENVIRONMENT ROLLOUT_MODE=QA)
+rox_copy_shared_libs(libroxtest ${CMAKE_BINARY_DIR}/tests)

@@ -123,15 +123,18 @@ static char *_request_build_url_with_params(Request *request, const char *url, H
     List *kv_pairs;
     list_new(&kv_pairs);
     CURL *curl = _request_get_handle(request);
+
+    HashTableIter i;
+    hashtable_iter_init(&i, params);
     TableEntry *entry;
-    HASHTABLE_FOREACH(entry, params, {
+    while (hashtable_iter_next(&i, &entry) != CC_ITER_END) {
         char *key = curl_easy_escape(curl, entry->key, 0);
         char *value = curl_easy_escape(curl, entry->value, 0);
         char *pair = mem_str_format("%s=%s", key, value);
-        free(key);
-        free(value);
+        curl_free(key);
+        curl_free(value);
         list_add(kv_pairs, pair);
-    })
+    }
     char *query_part = mem_str_join("&", kv_pairs);
     list_destroy_cb(kv_pairs, &free);
     char *result = mem_str_format("%s?%s", url, query_part);
@@ -194,7 +197,7 @@ static HttpResponseMessage *_request_send_post_json(void *target, Request *reque
 
     struct curl_slist *headers = curl_slist_append(NULL, "Content-Type: application/json");
 
-    char *json_str = cJSON_Print(json);
+    char *json_str = ROX_JSON_SERIALIZE(json);
     HttpResponseMessage *message = response_message_create(0, NULL);
     RequestCurlContext context = {request, message};
     CURL *curl = _request_get_handle(request);

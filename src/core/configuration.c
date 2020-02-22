@@ -316,7 +316,7 @@ static List *_configuration_parser_parse_experiments(ConfigurationParser *parser
             for (int j = 0, k = cJSON_GetArraySize(labels_json); j < k; ++j) {
                 cJSON *label_json = cJSON_GetArrayItem(labels_json, j);
                 if (label_json && !str_is_empty(label_json->valuestring)) {
-                    hashset_add(labels, label_json->valuestring);
+                    hashset_add(labels, mem_copy_str(label_json->valuestring));
                 }
             }
         }
@@ -329,7 +329,7 @@ static List *_configuration_parser_parse_experiments(ConfigurationParser *parser
                 if (flag_json) {
                     cJSON *flag_name_json = cJSON_GetObjectItem(flag_json, "name");
                     if (flag_name_json && !str_is_empty(flag_name_json->valuestring)) {
-                        list_add(flags, flag_name_json->valuestring);
+                        list_add(flags, mem_copy_str(flag_name_json->valuestring));
                     }
                 }
             }

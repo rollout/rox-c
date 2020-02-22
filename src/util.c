@@ -717,3 +717,13 @@ rox_hash_table_free_with_keys_and_values_cb(HashTable *map, void (*f_key)(void *
     })
     hashtable_destroy(map);
 }
+
+#define ROX_JSON_PRINT_BUFFER_SIZE 10240
+
+char *ROX_INTERNAL rox_json_print(cJSON *json, unsigned int flags) {
+    char buffer[ROX_JSON_PRINT_BUFFER_SIZE];
+    cJSON_PrintPreallocated(json, buffer, ROX_JSON_PRINT_BUFFER_SIZE, (flags & ROX_JSON_PRINT_FORMATTED) != 0);
+    return mem_copy_str(buffer);
+}
+
+#undef ROX_JSON_PRINT_BUFFER_SIZE

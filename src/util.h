@@ -217,9 +217,13 @@ void ROX_INTERNAL rox_map_free_with_keys_and_values(HashTable *map);
 void ROX_INTERNAL rox_hash_table_free_with_keys_and_values_cb(
         HashTable *map, void (*f_key)(void *), void (*f_value)(void *));
 
-#define ROX_JSON_SERIALIZE(json) cJSON_PrintUnformatted(json)
+#define ROX_JSON_PRINT_FORMATTED 1u
 
-#define ROX_JSON_SERIALIZE_PRETTY(json) cJSON_Print(json)
+char *ROX_INTERNAL rox_json_print(cJSON *json, unsigned int flags);
+
+#define ROX_JSON_SERIALIZE(json) rox_json_print(json, 0)
+
+#define ROX_JSON_SERIALIZE_PRETTY(json) rox_json_print(json, ROX_JSON_PRINT_FORMATTED)
 
 #define ROX_JSON_OBJECT(...) rox_json_create_object(NULL, __VA_ARGS__, NULL)
 

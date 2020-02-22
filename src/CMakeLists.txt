@@ -36,6 +36,8 @@ set(ROX_SRC
 
 add_library(libroxc ${ROX_SRC})
 target_link_libraries(libroxc ${ROX_EXTERNAL_LIBS})
+target_compile_definitions(libroxc PUBLIC PCRE2_CODE_UNIT_WIDTH=8 PCRE2_STATIC)
 
 add_library(libroxcpp ${ROX_SRC} api.cxx)
 target_link_libraries(libroxcpp ${ROX_EXTERNAL_LIBS})
+target_compile_definitions(libroxcpp PUBLIC PCRE2_CODE_UNIT_WIDTH=8 PCRE2_STATIC)
