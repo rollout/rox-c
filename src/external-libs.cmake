@@ -21,7 +21,7 @@ rox_external_lib(cjson SHARED
         URL https://github.com/DaveGamble/cJSON.git
         HASH f790e17b6cecef030c4eda811149d238c2085fcf)
 
-rox_external_lib(openssl SHARED VERBOSE
+rox_external_lib(openssl SHARED
         # looking for preinstalled openssl
         TRY_FIND OpenSSL OpenSSL::Crypto OpenSSL::SSL
         TRY_FIND_IN_INSTALL_DIR_SET OPENSSL_ROOT_DIR
@@ -29,7 +29,7 @@ rox_external_lib(openssl SHARED VERBOSE
         VERSION 1.1.1
         URL https://github.com/openssl/openssl/archive/OpenSSL_1_1_1.tar.gz)
 
-rox_external_lib(zlib SHARED VERBOSE
+rox_external_lib(zlib SHARED
         # looking for preinstalled zlib
         TRY_FIND ZLIB ZLIB::ZLIB
         TRY_FIND_IN_INSTALL_DIR_SET ZLIB_INSTALL_DIR
