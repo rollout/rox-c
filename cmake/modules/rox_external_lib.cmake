@@ -273,7 +273,6 @@ macro(_rox_build_third_party_lib)
                     GIT_REPOSITORY ${LIB_URL}
                     GIT_TAG ${GIT_TAG}
                     SOURCE_DIR ${LIB_SOURCE_DIR}
-                    SOURCE_SUBDIR ${LIB_SUBDIR}
                     TMP_DIR ${LIB_TMP_DIR}
                     STAMP_DIR ${LIB_STAMP_DIR}
                     INSTALL_DIR ${LIB_INSTALL_DIR}
@@ -294,7 +293,6 @@ macro(_rox_build_third_party_lib)
                     URL_MD5 ${LIB_HASH}
                     DOWNLOAD_DIR ${LIB_DOWNLOAD_DIR}
                     SOURCE_DIR ${LIB_SOURCE_DIR}
-                    SOURCE_SUBDIR ${LIB_SUBDIR}
                     TMP_DIR ${LIB_TMP_DIR}
                     STAMP_DIR ${LIB_STAMP_DIR}
                     INSTALL_DIR ${LIB_INSTALL_DIR}
