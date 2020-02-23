@@ -58,8 +58,10 @@ macro(_rox_init_third_party_lib_vars)
         set(LIB_VERSION ${LIB_NAME})
     endif ()
 
-    string(REPLACE "<LIB_NAME>" ${LIB_NAME} LIB_URL ${LIB_URL})
-    string(REPLACE "<LIB_VERSION>" ${LIB_VERSION} LIB_URL ${LIB_URL})
+    if (LIB_URL)
+        string(REPLACE "<LIB_NAME>" ${LIB_NAME} LIB_URL ${LIB_URL})
+        string(REPLACE "<LIB_VERSION>" ${LIB_VERSION} LIB_URL ${LIB_URL})
+    endif ()
 
     if (NOT LIB_FILE)
         set(LIB_FILE ${LIB_NAME})
