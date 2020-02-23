@@ -1,6 +1,7 @@
 #include <assert.h>
 #include <pthread.h>
 #include <pcre2.h>
+#include <errno.h>
 #include <xpack/network.h>
 #include <xpack/security.h>
 #include "core.h"

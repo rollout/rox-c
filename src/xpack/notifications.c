@@ -2,6 +2,7 @@
 #include <curl/curl.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <errno.h>
 #include <pthread.h>
 #include "notifications.h"
 #include "util.h"

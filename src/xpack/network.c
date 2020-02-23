@@ -1,6 +1,7 @@
 #include <collectc/hashtable.h>
 #include <assert.h>
 #include <pthread.h>
+#include <errno.h>
 #include <time.h>
 #include "core/consts.h"
 #include "core/logging.h"
