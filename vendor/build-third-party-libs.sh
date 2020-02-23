@@ -1,4 +1,4 @@
-﻿#!/bin/bash
+#!/bin/sh
 
 rm -fr build
 mkdir build
@@ -6,3 +6,4 @@ mkdir build
 cd build
 cmake ..
 make
+
