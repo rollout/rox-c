@@ -63,8 +63,16 @@ macro(_rox_init_third_party_lib_vars)
         string(REPLACE "<LIB_VERSION>" ${LIB_VERSION} LIB_URL ${LIB_URL})
     endif ()
 
+    if (LIB_SHARED)
+        set(LIB_FILE_PREFIX ${CMAKE_SHARED_LIBRARY_PREFIX})
+        set(LIB_FILE_SUFFIX ${CMAKE_SHARED_LIBRARY_SUFFIX})
+    else ()
+        set(LIB_FILE_PREFIX ${CMAKE_STATIC_LIBRARY_PREFIX})
+        set(LIB_FILE_SUFFIX ${CMAKE_STATIC_LIBRARY_SUFFIX})
+    endif ()
+
     if (NOT LIB_FILE)
-        set(LIB_FILE ${LIB_NAME})
+        set(LIB_FILE ${LIB_FILE_PREFIX}${LIB_NAME}${LIB_FILE_SUFFIX})
     endif ()
 
     if (LIB_TRY_FIND_IN_INSTALL_DIR_SET AND NOT LIB_TRY_FIND_IN_INSTALL_DIR)
