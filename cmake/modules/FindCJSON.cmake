@@ -5,7 +5,7 @@
 # CJSON_LIBRARIES   - List of libraries when using cJSON.
 # CJSON_FOUND   - True if cJSON found.
 # Look for the header file.
-FIND_PATH(CJSON_INCLUDE_DIR cjson/cjson.h)
+FIND_PATH(CJSON_INCLUDE_DIR cjson/cJSON.h)
 # Look for the library.
 if (CJSON_STATIC)
     FIND_LIBRARY(CJSON_LIBRARY NAMES libcjson)
