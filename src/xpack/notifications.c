@@ -249,7 +249,7 @@ static void _event_source_reader_update_state(EventSourceReader *reader, const c
                 break;
 
             default:
-            case ReadError:
+            case ReadError:;
                 char *line = mem_str_substring_n(ptr, bytes_read, 0, bytes_read);
                 ROX_WARN("failed to parse line '%s': error at pos %d", line, i);
                 free(line);
@@ -288,7 +288,8 @@ static void *_event_source_reader_thread_func(void *ptr) {
     curl_easy_setopt(reader->curl, CURLOPT_WRITEDATA, reader);
     curl_easy_setopt(reader->curl, CURLOPT_HEADERFUNCTION, &_event_source_reader_header_callback);
     curl_easy_setopt(reader->curl, CURLOPT_HEADERDATA, reader);
-    curl_easy_setopt(reader->curl, CURLOPT_SSL_VERIFYPEER, !reader->skip_ssl_cert_verification); // FIXME: use system CA/root certs
+    curl_easy_setopt(reader->curl, CURLOPT_SSL_VERIFYPEER,
+                     !reader->skip_ssl_cert_verification); // FIXME: use system CA/root certs
 
     struct curl_slist *headers = NULL;
 
@@ -344,8 +345,8 @@ static EventSourceReader *_event_source_reader_create(
     reader->url = mem_copy_str(url);
     reader->target = target;
     reader->on_message = on_message;
-    reader->thread_mutex = (pthread_mutex_t)PTHREAD_MUTEX_INITIALIZER;
-    reader->thread_cond = (pthread_cond_t)PTHREAD_COND_INITIALIZER;
+    reader->thread_mutex = (pthread_mutex_t) PTHREAD_MUTEX_INITIALIZER;
+    reader->thread_cond = (pthread_cond_t) PTHREAD_COND_INITIALIZER;
     reader->reconnect_timeout_millis = reconnect_timeout_millis;
     return reader;
 }
