@@ -31,8 +31,8 @@ Debouncer *ROX_INTERNAL debouncer_create(int interval_millis, void *target, debo
     debouncer->target = target;
     debouncer->func = func;
     debouncer->cancel_until = current_time_millis();
-    debouncer->thread_mutex = PTHREAD_MUTEX_INITIALIZER;
-    debouncer->thread_cond = PTHREAD_COND_INITIALIZER;
+    debouncer->thread_mutex = (pthread_mutex_t)PTHREAD_MUTEX_INITIALIZER;
+    debouncer->thread_cond = (pthread_cond_t)PTHREAD_COND_INITIALIZER;
     return debouncer;
 }
 

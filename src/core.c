@@ -56,8 +56,8 @@ static PeriodicTask *_periodic_task_create(int seconds, void *target, periodic_t
     task->period_seconds = seconds;
     task->target = target;
     task->func = func;
-    task->thread_mutex = PTHREAD_MUTEX_INITIALIZER;
-    task->thread_cond = PTHREAD_COND_INITIALIZER;
+    task->thread_mutex = (pthread_mutex_t)PTHREAD_MUTEX_INITIALIZER;
+    task->thread_cond = (pthread_cond_t)PTHREAD_COND_INITIALIZER;
     task->thread_started = (pthread_create(
             &task->thread, NULL, _periodic_task_thread_func, (void *) task) == 0);
     return task;

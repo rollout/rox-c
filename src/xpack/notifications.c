@@ -343,8 +343,8 @@ static EventSourceReader *_event_source_reader_create(
     reader->url = mem_copy_str(url);
     reader->target = target;
     reader->on_message = on_message;
-    reader->thread_mutex = PTHREAD_MUTEX_INITIALIZER;
-    reader->thread_cond = PTHREAD_COND_INITIALIZER;
+    reader->thread_mutex = (pthread_mutex_t)PTHREAD_MUTEX_INITIALIZER;
+    reader->thread_cond = (pthread_cond_t)PTHREAD_COND_INITIALIZER;
     reader->reconnect_timeout_millis = reconnect_timeout_millis;
     return reader;
 }
