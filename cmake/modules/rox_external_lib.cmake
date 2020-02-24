@@ -400,6 +400,8 @@ endmacro()
 
 macro(_rox_link_third_party_lib)
 
+    set(LIB_ADDED_TO_LIST No)
+
     # Link with target created by find_package
     if (LIB_TRY_FIND_TARGET_NAMES)
         foreach (LIB_TRY_FIND_TARGET_NAME IN LISTS LIB_TRY_FIND_TARGET_NAMES)
@@ -417,6 +419,7 @@ macro(_rox_link_third_party_lib)
                     set_target_properties(${LIB_TRY_FIND_TARGET_NAME} PROPERTIES INTERFACE_COMPILE_DEFINITIONS "${LIB_TRY_FIND_DEFINITIONS}")
                 endif ()
                 list(APPEND ROX_EXTERNAL_LIBS ${LIB_TRY_FIND_TARGET_NAME})
+                set(LIB_ADDED_TO_LIST Yes)
             else ()
                 if (LIB_TRY_FIND_LIBRARIES AND NOT "${${LIB_TRY_FIND_LIBRARIES}}" STREQUAL "")
                     if (LIB_VERBOSE)
@@ -425,6 +428,8 @@ macro(_rox_link_third_party_lib)
                     add_library(${LIB_TRY_FIND_TARGET_NAME} UNKNOWN IMPORTED)
                     set_target_properties(${LIB_TRY_FIND_TARGET_NAME} PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "${LIB_TRY_FIND_INCLUDE_DIR}")
                     set_property(TARGET ${LIB_TRY_FIND_TARGET_NAME} APPEND PROPERTY IMPORTED_LOCATION "${LIB_TRY_FIND_LIBRARIES}")
+                    list(APPEND ROX_EXTERNAL_LIBS ${LIB_TRY_FIND_TARGET_NAME})
+                    set(LIB_ADDED_TO_LIST Yes)
                 else ()
                     if (LIB_VERBOSE)
                         message("Target ${LIB_TRY_FIND_TARGET_NAME} NOT found. Trying to use the built one.")
@@ -440,7 +445,7 @@ macro(_rox_link_third_party_lib)
     endif ()
 
     # link with library found by find-package directly
-    if (${LIB_TRY_FIND_LIBRARIES})
+    if (NOT "${${LIB_TRY_FIND_LIBRARIES}}" STREQUAL "" AND NOT "${LIB_ADDED_TO_LIST}" STREQUAL "Yes")
         list(APPEND ROX_EXTERNAL_LIBS ${${LIB_TRY_FIND_LIBRARIES}})
     endif ()
 
