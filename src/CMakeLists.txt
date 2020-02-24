@@ -35,6 +35,10 @@ set(ROX_SRC
         util.c
         api.cxx)
 
-add_library(rollout ${ROX_SRC})
-target_link_libraries(rollout ${ROX_EXTERNAL_LIBS})
+set(LIBS ${ROX_EXTERNAL_LIBS} roxvendorlib)
 
+add_library(rollout_static STATIC ${ROX_SRC})
+target_link_libraries(rollout_static ${LIBS})
+
+add_library(rollout SHARED ${ROX_SRC})
+target_link_libraries(rollout ${LIBS})
