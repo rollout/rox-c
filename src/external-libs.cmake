@@ -58,6 +58,7 @@ endif ()
 rox_external_lib(curl SHARED
         # looking for preinstalled curl
         TRY_FIND CURL CURL::libcurl
+        TRY_FIND_LIBRARIES CURL_LIBRARIES
         TRY_FIND_IN_INSTALL_DIR
         # TODO: check curl has zlib and openssl extensions and can work with HTTPS + gzip transfer encoding
         # building from sources
