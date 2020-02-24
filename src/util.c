@@ -136,7 +136,7 @@ double *ROX_INTERNAL mem_str_to_double(const char *str) {
 
 char *ROX_INTERNAL mem_int_to_str(int value) {
     char buffer[ROX_MEM_INT_TO_STR_BUFFER_SIZE];
-    itoa(value, buffer, 10);
+    snprintf(buffer, ROX_MEM_INT_TO_STR_BUFFER_SIZE, "%d", value);
     return mem_copy_str(buffer);
 }
 
