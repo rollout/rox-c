@@ -47,7 +47,7 @@ char *ROX_INTERNAL mem_copy_str(const char *ptr) {
     assert(ptr);
     size_t length = strlen(ptr);
     char *copy = malloc((length + 1) * sizeof(char));
-    strncpy_s(copy, length + 1, ptr, length + 1);
+    strncpy(copy, ptr, length + 1);
     return copy;
 }
 
@@ -282,7 +282,7 @@ size_t ROX_INTERNAL str_copy_value_to_buffer(char *buffer, size_t buffer_size, c
     assert(value);
     size_t len = strlen(value);
     assert(len < buffer_size);
-    strncpy_s(buffer, buffer_size, value, len);
+    strncpy(buffer, value, len + 1);
     return len;
 }
 
@@ -513,12 +513,12 @@ char *ROX_INTERNAL mem_str_join(const char *separator, List *strings) {
         char *str = (char *) item;
         int len = strlen(str);
         if (len > 0) {
-            strncpy_s(dest, len + 1, str, len);
+            strncpy(dest, str, len);
             dest += len;
         }
         if (--count > 0) {
             if (separator_len > 0) {
-                strncpy_s(dest, separator_len + 1, separator, separator_len);
+                strncpy(dest, separator, separator_len);
                 dest += separator_len;
             }
         }

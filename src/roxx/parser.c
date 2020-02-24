@@ -457,7 +457,7 @@ List *ROX_INTERNAL tokenized_expression_get_tokens(const char *expression, HashT
     prev_token[token_len] = token[token_len] = '\0';
 
     while (tokenizer_has_more_tokens(tokenizer)) {
-        strncpy_s(prev_token, ROX_TOKEN_BUFFER_SIZE, token, token_len);
+        strncpy(prev_token, token, token_len + 1);
         prev_token_len = token_len;
 
         tokenizer_next_token_with_delim(tokenizer, delimiters_to_use, token, &token_len);
