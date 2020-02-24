@@ -136,7 +136,7 @@ double *ROX_INTERNAL mem_str_to_double(const char *str) {
 
 char *ROX_INTERNAL mem_int_to_str(int value) {
     char buffer[ROX_MEM_INT_TO_STR_BUFFER_SIZE];
-    _itoa_s(value, buffer, ROX_MEM_INT_TO_STR_BUFFER_SIZE, 10);
+    itoa(value, buffer, 10);
     return mem_copy_str(buffer);
 }
 
@@ -404,7 +404,7 @@ struct timespec ROX_INTERNAL get_future_timespec(int ms) {
 
 size_t ROX_INTERNAL rox_file_read_b(const char *file_path, unsigned char *buffer, size_t buffer_size) {
     FILE *fp;
-    if ((fopen_s(&fp, file_path, "rb")) != 0 || !fp) {
+    if (!(fp = (fopen(file_path, "rb")))) {
         return -1;
     }
     if (fseek(fp, 0, SEEK_END)) {
