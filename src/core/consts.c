@@ -24,8 +24,6 @@ size_t ROX_INTERNAL rox_env_get_internal_path(char *buffer, size_t buffer_size) 
     return str_copy_value_to_buffer(buffer, buffer_size, "device/request_configuration");
 }
 
-#define ROX_ENV_VAL_BUFFER_SIZE 1024
-
 size_t ROX_INTERNAL _rox_env_return_value_using_mode_env(
         char *buffer,
         int buffer_size,
@@ -35,9 +33,8 @@ size_t ROX_INTERNAL _rox_env_return_value_using_mode_env(
 
     assert(buffer);
     assert(buffer_size > 0);
-    char value[ROX_ENV_VAL_BUFFER_SIZE];
-    size_t len;
-    if (getenv_s(&len, value, ROX_ENV_VAL_BUFFER_SIZE, ROX_ENV_MODE_KEY) == 0 && len > 0) {
+    const char *value;
+    if (value = getenv(ROX_ENV_MODE_KEY)) {
         if (str_equals(value, ROX_ENV_MODE_QA)) {
             return str_copy_value_to_buffer(buffer, buffer_size, qa_mode_value);
         } else if (str_equals(value, ROX_ENV_MODE_LOCAL)) {
@@ -46,8 +43,6 @@ size_t ROX_INTERNAL _rox_env_return_value_using_mode_env(
     }
     return str_copy_value_to_buffer(buffer, buffer_size, prod_mode_value);
 }
-
-#undef ROX_ENV_VAL_BUFFER_SIZE
 
 size_t ROX_INTERNAL rox_env_get_cdn_path(char *buffer, size_t buffer_size) {
     assert(buffer);

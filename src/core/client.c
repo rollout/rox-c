@@ -181,8 +181,6 @@ struct ROX_INTERNAL DeviceProperties {
     char *env;
 };
 
-#define ROX_ENV_VAL_BUFFER_SIZE 1024
-
 DeviceProperties *ROX_INTERNAL device_properties_create_from_map(
         SdkSettings *sdk_settings,
         RoxOptions *rox_options,
@@ -197,9 +195,8 @@ DeviceProperties *ROX_INTERNAL device_properties_create_from_map(
     properties->rox_options = rox_options;
     properties->map = map;
 
-    char value[ROX_ENV_VAL_BUFFER_SIZE];
-    size_t len;
-    if (getenv_s(&len, value, ROX_ENV_VAL_BUFFER_SIZE, ROX_ENV_MODE_KEY) != 0 && len > 0) {
+    const char *value;
+    if (value = getenv(ROX_ENV_MODE_KEY)) {
         if (str_equals(value, ROX_ENV_MODE_QA)) {
             properties->env = mem_copy_str(ROX_ENV_MODE_QA);
         }
@@ -215,8 +212,6 @@ DeviceProperties *ROX_INTERNAL device_properties_create_from_map(
 
     return properties;
 }
-
-#undef ROX_ENV_VAL_BUFFER_SIZE
 
 DeviceProperties *ROX_INTERNAL device_properties_create(
         SdkSettings *sdk_settings,
