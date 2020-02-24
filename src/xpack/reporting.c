@@ -168,7 +168,7 @@ void ROX_INTERNAL x_error_reporter_report(
     }
 
     char message[ROX_X_ERROR_REPORTER_MESSAGE_BUFFER_SIZE];
-    vsprintf_s(message, ROX_X_ERROR_REPORTER_MESSAGE_BUFFER_SIZE, fmt, args);
+    vsnprintf(message, ROX_X_ERROR_REPORTER_MESSAGE_BUFFER_SIZE, fmt, args);
     rox_log_error(file, line, "Error report: %s", message);
 
     cJSON *json = x_error_reporter_create_payload(x_reporter, message, file, line);

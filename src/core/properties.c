@@ -114,7 +114,7 @@ CustomProperty *ROX_INTERNAL device_property_create(
     assert(type);
     assert(generator);
     char buffer[ROX_DEVICE_PROPERTY_NAME_BUFFER_SIZE];
-    sprintf_s(buffer, ROX_DEVICE_PROPERTY_NAME_BUFFER_SIZE, "rox.%s", suffix);
+    snprintf(buffer, ROX_DEVICE_PROPERTY_NAME_BUFFER_SIZE, "rox.%s", suffix);
     return custom_property_create(buffer, type, target, generator);
 }
 
@@ -123,7 +123,7 @@ CustomProperty *ROX_INTERNAL device_property_create_using_value(
         const CustomPropertyType *type,
         RoxDynamicValue *value) {
     char buffer[ROX_DEVICE_PROPERTY_NAME_BUFFER_SIZE];
-    sprintf_s(buffer, ROX_DEVICE_PROPERTY_NAME_BUFFER_SIZE, "rox.%s", suffix);
+    snprintf(buffer, ROX_DEVICE_PROPERTY_NAME_BUFFER_SIZE, "rox.%s", suffix);
     return custom_property_create_using_value(buffer, type, value);
 }
 

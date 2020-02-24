@@ -25,7 +25,7 @@ void ROX_INTERNAL _error_reporter_report_dummy(
     assert(fmt);
 
     char buffer[ROX_ERROR_REPORT_MESSAGE_BUFFER_LENGTH];
-    vsprintf_s(buffer, ROX_ERROR_REPORT_MESSAGE_BUFFER_LENGTH, fmt, args);
+    vsnprintf(buffer, ROX_ERROR_REPORT_MESSAGE_BUFFER_LENGTH, fmt, args);
     ROX_DEBUG("Dummy error report at %s:%d: %s", file, line, buffer);
 }
 

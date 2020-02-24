@@ -146,7 +146,7 @@ char *ROX_INTERNAL mem_int_to_str(int value) {
 
 char *ROX_INTERNAL mem_double_to_str(double value) {
     char buffer[MEM_DOUBLE_TO_STR_BUFFER_SIZE];
-    int len = sprintf_s(buffer, MEM_DOUBLE_TO_STR_BUFFER_SIZE, "%f", value);
+    int len = snprintf(buffer, MEM_DOUBLE_TO_STR_BUFFER_SIZE, "%f", value);
     // trim trailing zeroes
     for (int i = len - 1; i > 0; --i) {
         if (buffer[i] == '0' || buffer[i] == '.') {
@@ -289,7 +289,7 @@ size_t ROX_INTERNAL str_copy_value_to_buffer(char *buffer, size_t buffer_size, c
 char *ROX_INTERNAL str_format_b(char *buffer, size_t buffer_size, const char *fmt, ...) {
     va_list args;
             va_start(args, fmt);
-    vsprintf_s(buffer, buffer_size, fmt, args);
+    vsnprintf(buffer, buffer_size, fmt, args);
             va_end(args);
     return buffer;
 }
@@ -329,7 +329,7 @@ char *ROX_INTERNAL mem_str_concat(const char *s1, const char *s2) {
     assert(s2);
     size_t len = strlen(s1) + strlen(s2) + 1;
     char *buffer = calloc(len, sizeof(char));
-    sprintf_s(buffer, len, "%s%s", s1, s2);
+    snprintf(buffer, len, "%s%s", s1, s2);
     return buffer;
 }
 
@@ -340,7 +340,7 @@ char *ROX_INTERNAL mem_str_format(const char *fmt, ...) {
     char buffer[ROX_MEM_STR_FORMAT_BUFFER_SIZE];
     va_list args;
             va_start(args, fmt);
-    vsprintf_s(buffer, ROX_MEM_STR_FORMAT_BUFFER_SIZE, fmt, args);
+    vsnprintf(buffer, ROX_MEM_STR_FORMAT_BUFFER_SIZE, fmt, args);
             va_end(args);
     return mem_copy_str(buffer);
 }
