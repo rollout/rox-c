@@ -494,7 +494,7 @@ void ROX_INTERNAL rox_core_free(RoxCore *core) {
         configuration_fetch_result_free(core->last_configuration);
     }
 
-    if (core->fetch_lock) {
+    if (core->initialized) {
         pthread_mutex_destroy(&core->fetch_lock);
     }
 
