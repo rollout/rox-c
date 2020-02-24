@@ -3,23 +3,22 @@ include(external-libs.cmake)
 
 enable_testing()
 
-set(LIBS ${ROX_EXTERNAL_LIBS} roxvendorlib)
-set(LIBS_C ${LIBS} libroxc)
-set(LIBS_CXX ${LIBS} libroxcpp)
+list(APPEND LIBS ${ROX_EXTERNAL_LIBS})
+list(APPEND LIBS roxvendorlib)
+list(APPEND LIBS rollout)
 
 include(rox_add_tests)
 include(rox_copy_shared_libs)
 include_directories(. ../src)
 
 set(ROX_TEST_SRC fixtures.c)
-add_library(libroxtest ${ROX_TEST_SRC})
-target_link_libraries(libroxtest ${LIBS})
+add_library(roxtest ${ROX_TEST_SRC})
+target_link_libraries(roxtest ${LIBS})
 
-set(LIBS_C ${LIBS_C} libroxtest)
-set(LIBS_CXX ${LIBS_CXX} libroxtest)
+list(APPEND LIBS roxtest)
 
-rox_add_tests(".c" "${LIBS_C}")
-rox_add_tests(".cpp" "${LIBS_CXX}")
+rox_add_tests(".c" "${LIBS}")
+rox_add_tests(".cpp" "${LIBS}")
 
 set_tests_properties(test_server PROPERTIES ENVIRONMENT ROLLOUT_MODE=QA)
-rox_copy_shared_libs(libroxtest ${CMAKE_BINARY_DIR}/tests)
+rox_copy_shared_libs(roxtest ${CMAKE_BINARY_DIR}/tests)

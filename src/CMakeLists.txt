@@ -32,10 +32,9 @@ set(ROX_SRC
         dynamic.c
         roxapi.c
         server.c
-        util.c)
+        util.c
+        api.cxx)
 
-add_library(libroxc ${ROX_SRC})
-target_link_libraries(libroxc ${ROX_EXTERNAL_LIBS})
+add_library(rollout ${ROX_SRC})
+target_link_libraries(rollout ${ROX_EXTERNAL_LIBS})
 
-add_library(libroxcpp ${ROX_SRC} api.cxx)
-target_link_libraries(libroxcpp ${ROX_EXTERNAL_LIBS})
