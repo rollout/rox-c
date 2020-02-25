@@ -1,12 +1,13 @@
-rox_external_lib(pcre2 STATIC
+rox_external_lib(pcre2 SHARED
         # looking for preinstalled pcre2
         TRY_FIND PCRE2 PCRE2::PCRE2
         TRY_FIND_IN_INSTALL_DIR
-        TRY_FIND_DEFINITIONS PCRE2_CODE_UNIT_WIDTH=8 PCRE2_STATIC
+        TRY_FIND_DEFINITIONS PCRE2_CODE_UNIT_WIDTH=8
         # otherwise build from sources
         VERSION 10.34
         URL https://ftp.pcre.org/pub/pcre/pcre2-<LIB_VERSION>.tar.gz
-        HASH E3E15CCA49557A9C07A21DDE2DA05EA5)
+        HASH E3E15CCA49557A9C07A21DDE2DA05EA5
+        CMAKE_ARGS BUILD_SHARED_LIBS=1)
 
 rox_external_lib(collectc STATIC
         URL https://github.com/srdja/Collections-C.git

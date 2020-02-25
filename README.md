@@ -12,7 +12,7 @@ TBD
 
 https://cmake.org/download/
 
-MIN version tested is TBD.
+MIN version is 3.9.
 
 ### Third party libs
 
