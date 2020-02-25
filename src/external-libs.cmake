@@ -9,10 +9,11 @@ rox_external_lib(pcre2 SHARED
         HASH E3E15CCA49557A9C07A21DDE2DA05EA5
         CMAKE_ARGS BUILD_SHARED_LIBS=ON)
 
-rox_external_lib(collectc STATIC
+rox_external_lib(collectc SHARED
         URL https://github.com/srdja/Collections-C.git
         HASH 584e113e123ac30fe78b3e92d70f6c40a066960d
-        SUBDIR src)
+        SUBDIR src
+        PATCH git apply ${ROX_THIRD_PARTY_LIBS_CUSTOM_CONFIG_LOCATION}/collectc.patch)
 
 rox_external_lib(cjson SHARED
         # looking for preinstalled components
