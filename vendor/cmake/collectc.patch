@@ -1,0 +1,13 @@
+diff --git a/src/CMakeLists.txt b/src/CMakeLists.txt
+index aaf7205..740ebe6 100644
+--- a/src/CMakeLists.txt
++++ b/src/CMakeLists.txt
+@@ -10,7 +10,7 @@ add_library(${PROJECT_NAME}_static STATIC ${source_files})
+ include_directories("./include")
+ 
+ set_target_properties(${PROJECT_NAME} PROPERTIES PUBLIC_HEADER "${header_files}")
+-set_target_properties(${PROJECT_NAME}_static PROPERTIES OUTPUT_NAME ${PROJECT_NAME})
++#set_target_properties(${PROJECT_NAME}_static PROPERTIES OUTPUT_NAME ${PROJECT_NAME})
+ 
+ target_link_libraries(${PROJECT_NAME})
+ 
