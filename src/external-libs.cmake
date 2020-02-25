@@ -5,9 +5,9 @@ rox_external_lib(pcre2 SHARED
         TRY_FIND_DEFINITIONS PCRE2_CODE_UNIT_WIDTH=8
         # otherwise build from sources
         VERSION 10.34
-        URL https://ftp.pcre.org/pub/pcre/pcre2-<LIB_VERSION>.tar.gz
+        URL https://sourceforge.net/projects/pcre/files/pcre2/10.34/pcre2-<LIB_VERSION>.tar.gz/download
         HASH E3E15CCA49557A9C07A21DDE2DA05EA5
-        CMAKE_ARGS BUILD_SHARED_LIBS=1)
+        CMAKE_ARGS BUILD_SHARED_LIBS=ON)
 
 rox_external_lib(collectc STATIC
         URL https://github.com/srdja/Collections-C.git
