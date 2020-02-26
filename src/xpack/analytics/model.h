@@ -1,6 +1,6 @@
 #pragma once
 
-#include "roxapi.h"
+#include "rollout.h"
 #include "util.h"
 
 typedef struct ROX_INTERNAL AnalyticsEvent {

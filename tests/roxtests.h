@@ -3,7 +3,7 @@
 #include <stdarg.h>
 #include <check.h>
 #include <core/properties.h>
-#include "roxapi.h"
+#include "rollout.h"
 
 Suite *ROX_INTERNAL _rox_create_test_suite(char *name, ...) {
     va_list args;

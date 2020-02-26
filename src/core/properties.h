@@ -1,7 +1,7 @@
 #pragma once
 
 #include <cjson/cJSON.h>
-#include "roxapi.h"
+#include "rollout.h"
 #include "context.h"
 #include "dynamic.h"
 

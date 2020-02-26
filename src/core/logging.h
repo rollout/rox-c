@@ -1,7 +1,7 @@
 #pragma once
 
 #include <stdlib.h>
-#include "roxapi.h"
+#include "rollout.h"
 
 void ROX_INTERNAL rox_log_debug(const char *file_name, int line, const char *fmt, ...);
 

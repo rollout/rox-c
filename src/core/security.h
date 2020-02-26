@@ -1,7 +1,7 @@
 #pragma once
 
 #include <stdbool.h>
-#include "roxapi.h"
+#include "rollout.h"
 
 //
 // SignatureVerifier

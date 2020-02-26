@@ -4,7 +4,7 @@
 #include <collectc/list.h>
 #include <collectc/hashtable.h>
 #include <dynamic.h>
-#include "roxapi.h"
+#include "rollout.h"
 
 typedef struct ROX_INTERNAL CoreStack CoreStack;
 typedef struct ROX_INTERNAL StackItem StackItem;

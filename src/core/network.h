@@ -2,7 +2,7 @@
 
 #include <collectc/hashtable.h>
 #include <cjson/cJSON.h>
-#include "roxapi.h"
+#include "rollout.h"
 #include "properties.h"
 #include "client.h"
 #include "configuration.h"

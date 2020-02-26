@@ -1,7 +1,7 @@
 #pragma once
 
 #include <stdarg.h>
-#include "roxapi.h"
+#include "rollout.h"
 
 typedef struct ROX_INTERNAL ErrorReporter ErrorReporter;
 

@@ -6,7 +6,7 @@
 #include <collectc/hashtable.h>
 #include <stdbool.h>
 #include <time.h>
-#include "roxapi.h"
+#include "rollout.h"
 
 //
 // Utility functions.

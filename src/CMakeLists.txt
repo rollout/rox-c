@@ -34,7 +34,7 @@ set(ROX_SRC
         core.c
         device.c
         dynamic.c
-        roxapi.c
+        rollout.c
         server.c
         util.c
         api.cxx)
@@ -44,6 +44,6 @@ target_link_libraries(rollout_static ${ROX_EXTERNAL_LIBS})
 
 add_library(rollout SHARED ${ROX_SRC})
 target_link_libraries(rollout ${ROX_EXTERNAL_LIBS})
-set_target_properties(rollout PROPERTIES PUBLIC_HEADER "../include/roxapi.h")
+set_target_properties(rollout PROPERTIES PUBLIC_HEADER "../include/rollout.h")
 
 # TODO: install section
