@@ -14,9 +14,3 @@ include(rox_external_lib)
 
 include(../src/external-libs.cmake)
 include(../tests/external-libs.cmake)
-
-include_directories(include)
-
-add_subdirectory(include)
-add_subdirectory(src)
-add_subdirectory(tests)

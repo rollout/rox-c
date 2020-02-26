@@ -4,7 +4,6 @@ include(external-libs.cmake)
 enable_testing()
 
 list(APPEND LIBS ${ROX_EXTERNAL_LIBS})
-list(APPEND LIBS roxvendorlib)
 list(APPEND LIBS rollout_static)
 
 include(rox_add_tests)

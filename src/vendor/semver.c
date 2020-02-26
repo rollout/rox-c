@@ -8,7 +8,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "semver.h"
+#include "vendor/semver.h"
 
 #define SLICE_SIZE   50
 #define DELIMITER    "."

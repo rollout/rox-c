@@ -12,7 +12,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include "strrep.h"
+#include "vendor/strrep.h"
 
 int main(int argc, char **argv) {
     fprintf(stderr, "Test 1... ");

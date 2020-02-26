@@ -9,9 +9,9 @@
 #include <ctype.h>
 
 #include "util.h"
-#include "base64.h"
-#include "strrep.h"
-#include "md5.h"
+#include "vendor/base64.h"
+#include "vendor/strrep.h"
+#include "vendor/md5.h"
 #include "os.h"
 #include "core/logging.h"
 
@@ -319,9 +319,10 @@ char *ROX_INTERNAL mem_str_replace(const char *str, const char *search, const ch
     assert(search);
     assert(rep);
     char *replaced = strrep(str, search, rep);
-    return replaced == str // Pointer to the same string, not modified
-           ? mem_copy_str(str)
-           : replaced;
+    char *result = replaced == str // Pointer to the same string, not modified
+                   ? mem_copy_str(str)
+                   : mem_copy_str(replaced);
+    return result;
 }
 
 char *ROX_INTERNAL mem_str_concat(const char *s1, const char *s2) {

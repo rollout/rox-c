@@ -11,7 +11,7 @@
 #include "util.h"
 #include "parser.h"
 #include "stack.h"
-#include "semver.h"
+#include "vendor/semver.h"
 #include "core/logging.h"
 
 //

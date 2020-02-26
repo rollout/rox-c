@@ -27,6 +27,10 @@ set(ROX_SRC
         xpack/notifications.c
         xpack/reporting.c
         xpack/security.c
+        vendor/base64.c
+        vendor/md5.c
+        vendor/semver.c
+        vendor/strrep.c
         core.c
         device.c
         dynamic.c
@@ -35,10 +39,11 @@ set(ROX_SRC
         util.c
         api.cxx)
 
-set(LIBS ${ROX_EXTERNAL_LIBS} roxvendorlib)
-
 add_library(rollout_static STATIC ${ROX_SRC})
-target_link_libraries(rollout_static ${LIBS})
+target_link_libraries(rollout_static ${ROX_EXTERNAL_LIBS})
 
 add_library(rollout SHARED ${ROX_SRC})
-target_link_libraries(rollout ${LIBS})
+target_link_libraries(rollout ${ROX_EXTERNAL_LIBS})
+set_target_properties(rollout PROPERTIES PUBLIC_HEADER "../include/roxapi.h")
+
+# TODO: install section
