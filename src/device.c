@@ -1,4 +1,6 @@
 #include "os.h"
+#include "util.h"
+#include "core/logging.h"
 
 #ifdef ROX_WINDOWS
 
@@ -19,6 +21,7 @@
 #include "util.h"
 
 #define UUID_STRING_LENGTH 36
+#define ROX_MACHINE_ID_BUFFER_LENGTH 128
 
 static const char *ROX_DEVICE_ID = NULL;
 
@@ -26,7 +29,12 @@ static char *get_device_id() {
 #ifdef ROX_FREE_BSD
     // TODO: implement!
 #elif defined(ROX_LINUX)
-    // TODO: implement!
+    char buffer[ROX_MACHINE_ID_BUFFER_LENGTH];
+    if (rox_file_read_b("/var/lib/dbus/machine-id", (unsigned char*)buffer, ROX_MACHINE_ID_BUFFER_LENGTH) == -1) {
+        ROX_ERROR("Failed to read file /var/lib/dbus/machine-id");
+        return NULL;
+    }
+    return mem_copy_str(buffer);
 #elif defined(ROX_APPLE)
     // TODO: implement!
 #elif defined(ROX_WINDOWS)
@@ -44,6 +52,8 @@ static char *get_device_id() {
 #endif
     return NULL;
 }
+
+#undef ROX_MACHINE_ID_BUFFER_LENGTH
 
 const char *ROX_INTERNAL rox_globally_unique_device_id() {
     if (!ROX_DEVICE_ID) {
