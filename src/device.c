@@ -22,7 +22,7 @@
 static const char *ROX_DEVICE_ID = NULL;
 
 static char *get_device_id() {
-#ifdef ROX_FREE_BSD
+#if defined(ROX_FREE_BSD)
     char buffer[ROX_MACHINE_ID_BUFFER_LENGTH];
     if (rox_file_read_b("/etc/hostid", (unsigned char*)buffer, ROX_MACHINE_ID_BUFFER_LENGTH) == -1) {
         ROX_ERROR("Failed to read /etc/hostid");
@@ -37,7 +37,25 @@ static char *get_device_id() {
     }
     return mem_copy_str(buffer);
 #elif defined(ROX_APPLE)
-    // TODO: implement!
+    io_registry_entry_t registry_entry = IORegistryEntryFromPath(kIOMasterPortDefault, "IOService:/");
+    if (!registry_entry) {
+        ROX_ERROR("IORegistryEntryFromPath failed");
+        return NULL;
+    }
+    CFStringRef uuid_ref = (CFStringRef)IORegistryEntryCreateCFProperty(registry_entry, CFSTR(kIOPlatformUUIDKey), kCFAllocatorDefault, 0);
+    IOObjectRelease(registry_entry);
+    if (!uuid_ref) {
+        ROX_ERROR("IORegistryEntryCreateCFProperty failed");
+        return NULL;
+    }
+    char buffer[ROX_MACHINE_ID_BUFFER_LENGTH];
+    if (!CFStringGetCString(uuid_ref, buffer, ROX_MACHINE_ID_BUFFER_LENGTH, kCFStringEncodingASCII)) {
+        ROX_ERROR("CFStringGetCString failed");
+        CFRelease(uuid_ref);
+        return NULL;
+    }
+    CFRelease(uuid_ref);
+    return mem_copy_str(buffer);
 #elif defined(ROX_WINDOWS)
     HKEY key = NULL;
     if (RegOpenKeyEx(HKEY_LOCAL_MACHINE, "SOFTWARE\\Microsoft\\Cryptography", 0,
