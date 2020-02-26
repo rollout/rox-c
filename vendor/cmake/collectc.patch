@@ -1,5 +1,5 @@
 diff --git a/src/CMakeLists.txt b/src/CMakeLists.txt
-index aaf7205..740ebe6 100644
+index aaf7205..5f90322 100644
 --- a/src/CMakeLists.txt
 +++ b/src/CMakeLists.txt
 @@ -10,7 +10,7 @@ add_library(${PROJECT_NAME}_static STATIC ${source_files})
@@ -11,3 +11,15 @@ index aaf7205..740ebe6 100644
  
  target_link_libraries(${PROJECT_NAME})
  
+@@ -24,8 +24,11 @@ if(PKG_CONFIG_FOUND)
+     DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/pkgconfig")
+ endif()
+ 
++set_property(TARGET ${PROJECT_NAME} PROPERTY C_VISIBILITY_PRESET visible)
++
+ install(TARGETS ${PROJECT_NAME} ${PROJECT_NAME}_static
+   ARCHIVE DESTINATION lib
+   LIBRARY DESTINATION lib
++  RUNTIME DESTINATION bin
+   PUBLIC_HEADER DESTINATION include/${PROJECT_NAME}
+   )
