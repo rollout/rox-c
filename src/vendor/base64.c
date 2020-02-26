@@ -4,7 +4,7 @@
 
 #include <stdint.h>
 
-#include "vendor/base64.h"
+#include "base64.h"
 
 #define WHITESPACE 64
 #define EQUALS     65

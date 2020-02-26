@@ -20,6 +20,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
+#include "strrep.h"
 
 /*
  * This file includes a main() function so that the file can be
