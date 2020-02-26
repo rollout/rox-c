@@ -45,5 +45,6 @@ target_link_libraries(rollout_static ${ROX_EXTERNAL_LIBS})
 add_library(rollout SHARED ${ROX_SRC})
 target_link_libraries(rollout ${ROX_EXTERNAL_LIBS})
 set_target_properties(rollout PROPERTIES PUBLIC_HEADER "../include/rollout.h")
+set_target_properties(rollout PROPERTIES C_VISIBILITY_PRESET hidden)
 
 # TODO: install section
