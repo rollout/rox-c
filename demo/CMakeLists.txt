@@ -6,5 +6,5 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/cmake)
 
 find_package(ROLLOUT REQUIRED)
 
-add_library(rollout_basic_demo basic.c)
+add_executable(rollout_basic_demo basic.c)
 target_link_libraries(rollout_basic_demo ROLLOUT::SDK)
