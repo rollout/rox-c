@@ -74,7 +74,7 @@ static char *get_device_id() {
 
 #undef ROX_MACHINE_ID_BUFFER_LENGTH
 
-const char *ROX_INTERNAL rox_globally_unique_device_id() {
+ROX_INTERNAL const char *rox_globally_unique_device_id() {
     if (!ROX_DEVICE_ID) {
         ROX_DEVICE_ID = get_device_id();
     }

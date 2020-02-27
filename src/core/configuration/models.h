@@ -9,7 +9,7 @@
 // ExperimentModel
 //
 
-typedef struct ROX_INTERNAL ExperimentModel {
+typedef struct ExperimentModel {
     char *id;
     char *name;
     char *condition;
@@ -31,7 +31,7 @@ typedef struct ROX_INTERNAL ExperimentModel {
  * @param labels Set of strings. Can be NULL. If passed, ownership of this object is delegated to the experiment model.
  * @param stickiness_property Can be <code>NULL</code>. If provided, the value will be copied internally. The caller holds an ownership on the passed pointer.
  */
-ExperimentModel *ROX_INTERNAL experiment_model_create(
+ROX_INTERNAL ExperimentModel *experiment_model_create(
         const char *id,
         const char *name,
         const char *condition,
@@ -44,18 +44,18 @@ ExperimentModel *ROX_INTERNAL experiment_model_create(
  * @param model Not <code>NULL</code>.
  * @return Not <code>NULL</code>. Deep copy of the given <code>model</code>.
  */
-ExperimentModel *ROX_INTERNAL experiment_model_copy(ExperimentModel *model);
+ROX_INTERNAL ExperimentModel *experiment_model_copy(ExperimentModel *model);
 
 /**
  * @param model Not <code>NULL</code>.
  */
-void ROX_INTERNAL experiment_model_free(ExperimentModel *model);
+ROX_INTERNAL void experiment_model_free(ExperimentModel *model);
 
 //
 // TargetGroupModel
 //
 
-typedef struct ROX_INTERNAL TargetGroupModel {
+typedef struct TargetGroupModel {
     char *id;
     char *condition;
 } TargetGroupModel;
@@ -67,7 +67,7 @@ typedef struct ROX_INTERNAL TargetGroupModel {
  * @param id Not <code>NULL</code>. Will be copied internally. The caller holds an ownership.
  * @param condition Not <code>NULL</code>. Will be copied internally. The caller holds an ownership.
  */
-TargetGroupModel *ROX_INTERNAL target_group_model_create(
+ROX_INTERNAL TargetGroupModel *target_group_model_create(
         const char *id,
         const char *condition);
 
@@ -75,9 +75,9 @@ TargetGroupModel *ROX_INTERNAL target_group_model_create(
  * @param model Not <code>NULL</code>.
  * @retun Not <code>NULL</code>. Deep copy of the given <code>model</code>.
  */
-TargetGroupModel *ROX_INTERNAL target_group_model_copy(TargetGroupModel *model);
+ROX_INTERNAL TargetGroupModel *target_group_model_copy(TargetGroupModel *model);
 
 /**
  * @param model Not <code>NULL</code>.
  */
-void ROX_INTERNAL target_group_model_free(TargetGroupModel *model);
+ROX_INTERNAL void target_group_model_free(TargetGroupModel *model);

@@ -18,7 +18,7 @@
 
 typedef void (*periodic_task_func)(void *target);
 
-typedef struct ROX_INTERNAL PeriodicTask {
+typedef struct PeriodicTask {
     pthread_t thread;
     pthread_mutex_t thread_mutex;
     pthread_cond_t thread_cond;
@@ -83,7 +83,7 @@ static void _periodic_task_free(PeriodicTask *task) {
 // Core
 //
 
-struct ROX_INTERNAL RoxCore {
+struct RoxCore {
     bool initialized;
     FlagRepository *flag_repository;
     CustomPropertyRepository *custom_property_repository;
@@ -118,7 +118,7 @@ struct ROX_INTERNAL RoxCore {
     bool stopped;
 };
 
-RoxCore *ROX_INTERNAL rox_core_create(RequestConfig *request_config) {
+ROX_INTERNAL RoxCore *rox_core_create(RequestConfig *request_config) {
 
     RoxCore *core = calloc(1, sizeof(RoxCore));
 
@@ -168,7 +168,7 @@ static bool _core_check_throttle_interval(RoxCore *core, bool is_source_pushing)
     return true;
 }
 
-void ROX_INTERNAL rox_core_fetch(RoxCore *core, bool is_source_pushing) {
+ROX_INTERNAL void rox_core_fetch(RoxCore *core, bool is_source_pushing) {
     if (!core->configuration_fetcher) {
         return;
     }
@@ -233,7 +233,7 @@ static void _core_x_configuration_fetch_func(void *target) {
     rox_core_fetch(core, true);
 }
 
-bool ROX_INTERNAL rox_core_setup(
+ROX_INTERNAL bool rox_core_setup(
         RoxCore *core,
         SdkSettings *sdk_settings,
         DeviceProperties *device_properties,
@@ -383,7 +383,7 @@ bool ROX_INTERNAL rox_core_setup(
     return true;
 }
 
-void ROX_INTERNAL rox_core_set_context(RoxCore *core, RoxContext *context) {
+ROX_INTERNAL void rox_core_set_context(RoxCore *core, RoxContext *context) {
     assert(core);
     assert(context);
     HashTable *flags = flag_repository_get_all_flags(core->flag_repository);
@@ -394,7 +394,7 @@ void ROX_INTERNAL rox_core_set_context(RoxCore *core, RoxContext *context) {
     })
 }
 
-void ROX_INTERNAL rox_core_add_flag(RoxCore *core, RoxVariant *flag, const char *name) {
+ROX_INTERNAL void rox_core_add_flag(RoxCore *core, RoxVariant *flag, const char *name) {
     assert(core);
     assert(flag);
     assert(name);
@@ -405,25 +405,25 @@ void ROX_INTERNAL rox_core_add_flag(RoxCore *core, RoxVariant *flag, const char 
     flag_repository_add_flag(core->flag_repository, flag, name);
 }
 
-void ROX_INTERNAL rox_core_add_custom_property(RoxCore *core, CustomProperty *property) {
+ROX_INTERNAL void rox_core_add_custom_property(RoxCore *core, CustomProperty *property) {
     assert(core);
     assert(property);
     custom_property_repository_add_custom_property(core->custom_property_repository, property);
 }
 
-void ROX_INTERNAL rox_core_add_custom_property_if_not_exists(RoxCore *core, CustomProperty *property) {
+ROX_INTERNAL void rox_core_add_custom_property_if_not_exists(RoxCore *core, CustomProperty *property) {
     assert(core);
     assert(property);
     custom_property_repository_add_custom_property_if_not_exists(core->custom_property_repository, property);
 }
 
-RoxDynamicApi *ROX_INTERNAL rox_core_create_dynamic_api(RoxCore *core, EntitiesProvider *entities_provider) {
+ROX_INTERNAL RoxDynamicApi *rox_core_create_dynamic_api(RoxCore *core, EntitiesProvider *entities_provider) {
     assert(core);
     assert(entities_provider);
     return dynamic_api_create(core->flag_repository, entities_provider);
 }
 
-void ROX_INTERNAL rox_core_free(RoxCore *core) {
+ROX_INTERNAL void rox_core_free(RoxCore *core) {
     assert(core);
 
     core->stopped = true;

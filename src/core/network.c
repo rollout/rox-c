@@ -12,7 +12,7 @@
 // RequestData
 //
 
-RequestData *ROX_INTERNAL request_data_create(const char *url, HashTable *params) {
+ROX_INTERNAL RequestData *request_data_create(const char *url, HashTable *params) {
     assert(url);
     RequestData *data = calloc(1, sizeof(RequestData));
     data->url = mem_copy_str(url);
@@ -20,7 +20,7 @@ RequestData *ROX_INTERNAL request_data_create(const char *url, HashTable *params
     return data;
 }
 
-void ROX_INTERNAL request_data_free(RequestData *data) {
+ROX_INTERNAL void request_data_free(RequestData *data) {
     assert(data);
     free(data->url);
     free(data);
@@ -30,13 +30,13 @@ void ROX_INTERNAL request_data_free(RequestData *data) {
 // HttpResponseMessage
 //
 
-struct ROX_INTERNAL HttpResponseMessage {
+struct HttpResponseMessage {
     int status;
     char *content;
     size_t content_len;
 };
 
-HttpResponseMessage *ROX_INTERNAL response_message_create(int status, char *data) {
+ROX_INTERNAL HttpResponseMessage *response_message_create(int status, char *data) {
     assert(status >= 0);
     HttpResponseMessage *message = calloc(1, sizeof(HttpResponseMessage));
     message->status = status;
@@ -44,17 +44,17 @@ HttpResponseMessage *ROX_INTERNAL response_message_create(int status, char *data
     return message;
 }
 
-int ROX_INTERNAL response_message_get_status(HttpResponseMessage *message) {
+ROX_INTERNAL int response_message_get_status(HttpResponseMessage *message) {
     assert(message);
     return message->status;
 }
 
-bool ROX_INTERNAL response_message_is_successful(HttpResponseMessage *message) {
+ROX_INTERNAL bool response_message_is_successful(HttpResponseMessage *message) {
     assert(message);
     return message->status >= 200 && message->status <= 299;
 }
 
-void ROX_INTERNAL response_message_free(HttpResponseMessage *message) {
+ROX_INTERNAL void response_message_free(HttpResponseMessage *message) {
     assert(message);
     if (message->content) {
         free(message->content);
@@ -62,7 +62,7 @@ void ROX_INTERNAL response_message_free(HttpResponseMessage *message) {
     free(message);
 }
 
-char *ROX_INTERNAL response_get_contents(HttpResponseMessage *message) {
+ROX_INTERNAL char *response_get_contents(HttpResponseMessage *message) {
     assert(message);
     return message->content;
 }
@@ -71,7 +71,7 @@ char *ROX_INTERNAL response_get_contents(HttpResponseMessage *message) {
 // Request
 //
 
-struct ROX_INTERNAL Request {
+struct Request {
     void *target;
     request_send_get_func send_get;
     request_send_post_func send_post;
@@ -80,7 +80,7 @@ struct ROX_INTERNAL Request {
     int request_timeout;
 };
 
-typedef struct ROX_INTERNAL RequestCurlContext {
+typedef struct RequestCurlContext {
     Request *request;
     HttpResponseMessage *message;
 } RequestCurlContext;
@@ -228,7 +228,7 @@ static HttpResponseMessage *_request_send_post(void *target, Request *request, R
     return message;
 }
 
-Request *ROX_INTERNAL request_create(RequestConfig *config) {
+ROX_INTERNAL Request *request_create(RequestConfig *config) {
     Request *request = calloc(1, sizeof(Request));
     if (config) {
         request->target = config->target;
@@ -251,26 +251,26 @@ Request *ROX_INTERNAL request_create(RequestConfig *config) {
     return request;
 }
 
-HttpResponseMessage *ROX_INTERNAL request_send_get(Request *request, RequestData *data) {
+ROX_INTERNAL HttpResponseMessage *request_send_get(Request *request, RequestData *data) {
     assert(request);
     assert(data);
     return request->send_get(request->target, request, data);
 }
 
-HttpResponseMessage *ROX_INTERNAL request_send_post(Request *request, RequestData *data) {
+ROX_INTERNAL HttpResponseMessage *request_send_post(Request *request, RequestData *data) {
     assert(request);
     assert(data);
     return request->send_post(request->target, request, data);
 }
 
-HttpResponseMessage *ROX_INTERNAL request_send_post_json(Request *request, const char *uri, cJSON *json) {
+ROX_INTERNAL HttpResponseMessage *request_send_post_json(Request *request, const char *uri, cJSON *json) {
     assert(request);
     assert(uri);
     assert(json);
     return request->send_post_json(request->target, request, uri, json);
 }
 
-void ROX_INTERNAL request_free(Request *request) {
+ROX_INTERNAL void request_free(Request *request) {
     assert(request);
     free(request);
 }
@@ -279,7 +279,7 @@ void ROX_INTERNAL request_free(Request *request) {
 // ConfigurationFetcher
 //
 
-struct ROX_INTERNAL ConfigurationFetcher {
+struct ConfigurationFetcher {
     Request *request;
     SdkSettings *sdk_settings;
     DeviceProperties *device_properties;
@@ -289,7 +289,7 @@ struct ROX_INTERNAL ConfigurationFetcher {
     char *roxy_url;
 };
 
-ConfigurationFetcher *ROX_INTERNAL configuration_fetcher_create(
+ROX_INTERNAL ConfigurationFetcher *configuration_fetcher_create(
         Request *request,
         SdkSettings *sdk_settings,
         DeviceProperties *device_properties,
@@ -312,7 +312,7 @@ ConfigurationFetcher *ROX_INTERNAL configuration_fetcher_create(
     return fetcher;
 }
 
-ConfigurationFetcher *ROX_INTERNAL configuration_fetcher_create_roxy(
+ROX_INTERNAL ConfigurationFetcher *configuration_fetcher_create_roxy(
         Request *request,
         DeviceProperties *device_properties,
         BUID *buid,
@@ -443,7 +443,7 @@ static HashTable *_configuration_fetcher_prepare_props_from_device_props(Configu
 
 #define ROX_FETCH_URL_BUFFER_SIZE 1024
 
-HttpResponseMessage *ROX_INTERNAL configuration_fetcher_fetch_from_cdn(
+ROX_INTERNAL HttpResponseMessage *configuration_fetcher_fetch_from_cdn(
         ConfigurationFetcher *fetcher,
         HashTable *properties) {
     assert(fetcher);
@@ -465,7 +465,7 @@ HttpResponseMessage *ROX_INTERNAL configuration_fetcher_fetch_from_cdn(
     return message;
 }
 
-HttpResponseMessage *ROX_INTERNAL configuration_fetcher_fetch_from_api(
+ROX_INTERNAL HttpResponseMessage *configuration_fetcher_fetch_from_api(
         ConfigurationFetcher *fetcher,
         HashTable *properties) {
     assert(fetcher);
@@ -486,7 +486,7 @@ HttpResponseMessage *ROX_INTERNAL configuration_fetcher_fetch_from_api(
 
 #undef ROX_FETCH_URL_BUFFER_SIZE
 
-ConfigurationFetchResult *ROX_INTERNAL configuration_fetcher_fetch(ConfigurationFetcher *fetcher) {
+ROX_INTERNAL ConfigurationFetchResult *configuration_fetcher_fetch(ConfigurationFetcher *fetcher) {
     assert(fetcher);
     if (fetcher->roxy_url) {
         return _configuration_fetcher_fetch_using_roxy_url(fetcher);
@@ -559,7 +559,7 @@ ConfigurationFetchResult *ROX_INTERNAL configuration_fetcher_fetch(Configuration
     return NULL;
 }
 
-void ROX_INTERNAL configuration_fetcher_free(ConfigurationFetcher *fetcher) {
+ROX_INTERNAL void configuration_fetcher_free(ConfigurationFetcher *fetcher) {
     assert(fetcher);
     if (fetcher->roxy_url) {
         free(fetcher->roxy_url);

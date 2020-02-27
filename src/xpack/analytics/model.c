@@ -1,7 +1,7 @@
 #include <assert.h>
 #include "model.h"
 
-AnalyticsEvent *ROX_INTERNAL analytics_event_create(
+ROX_INTERNAL AnalyticsEvent *analytics_event_create(
         const char *flag,
         const char *value,
         const char *distinct_id,
@@ -22,7 +22,7 @@ AnalyticsEvent *ROX_INTERNAL analytics_event_create(
     return event;
 }
 
-AnalyticsEvent *ROX_INTERNAL analytics_event_copy(AnalyticsEvent *event) {
+ROX_INTERNAL AnalyticsEvent *analytics_event_copy(AnalyticsEvent *event) {
     assert(event);
     AnalyticsEvent *copy = calloc(1, sizeof(AnalyticsEvent));
     copy->experiment_version = mem_copy_str(event->experiment_version);
@@ -35,7 +35,7 @@ AnalyticsEvent *ROX_INTERNAL analytics_event_copy(AnalyticsEvent *event) {
     return copy;
 }
 
-void ROX_INTERNAL analytics_event_free(AnalyticsEvent *event) {
+ROX_INTERNAL void analytics_event_free(AnalyticsEvent *event) {
     assert(event);
     free(event->experiment_id);
     free(event->experiment_version);

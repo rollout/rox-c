@@ -10,9 +10,9 @@
 // Debouncer
 //
 
-typedef struct ROX_INTERNAL Debouncer Debouncer;
+typedef struct Debouncer Debouncer;
 
-typedef void ROX_INTERNAL (*debouncer_func)(void *target);
+typedef void (*debouncer_func)(void *target);
 
 /**
  * @param interval_millis > 0
@@ -20,23 +20,23 @@ typedef void ROX_INTERNAL (*debouncer_func)(void *target);
  * @param func Not <code>NULL</code>.
  * @return Not <code>NULL</code>.
  */
-Debouncer *ROX_INTERNAL debouncer_create(int interval_millis, void *target, debouncer_func func);
+ROX_INTERNAL Debouncer *debouncer_create(int interval_millis, void *target, debouncer_func func);
 
 /**
  * @param debouncer Not <code>NULL</code>.
  */
-void ROX_INTERNAL debouncer_invoke(Debouncer *debouncer);
+ROX_INTERNAL void debouncer_invoke(Debouncer *debouncer);
 
 /**
  * @param debouncer Not <code>NULL</code>.
  */
-void ROX_INTERNAL debouncer_free(Debouncer *debouncer);
+ROX_INTERNAL void debouncer_free(Debouncer *debouncer);
 
 //
 // StateSender
 //
 
-typedef struct ROX_INTERNAL StateSender StateSender;
+typedef struct StateSender StateSender;
 
 /**
  * @param request Not <code>NULL</code>.
@@ -45,7 +45,7 @@ typedef struct ROX_INTERNAL StateSender StateSender;
  * @param custom_property_repository Not <code>NULL</code>.
  * @return Not <code>NULL</code>.
  */
-StateSender *ROX_INTERNAL state_sender_create(
+ROX_INTERNAL StateSender *state_sender_create(
         Request *request,
         DeviceProperties *device_properties,
         FlagRepository *flag_repository,
@@ -54,14 +54,14 @@ StateSender *ROX_INTERNAL state_sender_create(
 /**
  * @param sender Not <code>NULL</code>.
  */
-void ROX_INTERNAL state_sender_send(StateSender *sender);
+ROX_INTERNAL void state_sender_send(StateSender *sender);
 
 /**
  * @param sender Not <code>NULL</code>.
  */
-void ROX_INTERNAL state_sender_send_debounce(StateSender *sender);
+ROX_INTERNAL void state_sender_send_debounce(StateSender *sender);
 
 /**
  * @param sender Not <code>NULL</code>.
  */
-void ROX_INTERNAL state_sender_free(StateSender *sender);
+ROX_INTERNAL void state_sender_free(StateSender *sender);

@@ -12,7 +12,7 @@
 // RequestData
 //
 
-typedef struct ROX_INTERNAL RequestData {
+typedef struct RequestData {
     char *url;
     HashTable *params;
 } RequestData;
@@ -22,18 +22,18 @@ typedef struct ROX_INTERNAL RequestData {
  * @param params May be <code>NULL</code>. If passed, ownership is NOT delegated to the returned <code>RequestData</code> so the caller is responsible for freeing it.
  * @return Not <code>NULL</code>.
  */
-RequestData *ROX_INTERNAL request_data_create(const char *url, HashTable *params);
+ROX_INTERNAL RequestData *request_data_create(const char *url, HashTable *params);
 
 /**
  * @param data Not <code>NULL</code>.
  */
-void ROX_INTERNAL request_data_free(RequestData *data);
+ROX_INTERNAL void request_data_free(RequestData *data);
 
 //
 // HttpResponseMessage
 //
 
-typedef struct ROX_INTERNAL HttpResponseMessage HttpResponseMessage;
+typedef struct HttpResponseMessage HttpResponseMessage;
 
 /**
  * @param status >= 0
@@ -41,35 +41,35 @@ typedef struct ROX_INTERNAL HttpResponseMessage HttpResponseMessage;
  * <code>HttpResponseMessage</code> and the data will be destroyed when calling <code>response_message_free()</code>.
  * @return Not <code>NULL</code>.
  */
-HttpResponseMessage *ROX_INTERNAL response_message_create(int status, char *data);
+ROX_INTERNAL HttpResponseMessage *response_message_create(int status, char *data);
 
 /**
  * @param message Not <code>NULL</code>.
  */
-int ROX_INTERNAL response_message_get_status(HttpResponseMessage *message);
+ROX_INTERNAL int response_message_get_status(HttpResponseMessage *message);
 
 /**
  * @param message Not <code>NULL</code>.
  */
-bool ROX_INTERNAL response_message_is_successful(HttpResponseMessage *message);
+ROX_INTERNAL bool response_message_is_successful(HttpResponseMessage *message);
 
 /**
  * Note: the returned string must <em>NOT</em> be freed after use by the caller.
  * @param message Not <code>NULL</code>.
  * @return May be <code>NULL</code>.
  */
-char *ROX_INTERNAL response_get_contents(HttpResponseMessage *message);
+ROX_INTERNAL char *response_get_contents(HttpResponseMessage *message);
 
 /**
  * @param message Not <code>NULL</code>.
  */
-void ROX_INTERNAL response_message_free(HttpResponseMessage *message);
+ROX_INTERNAL void response_message_free(HttpResponseMessage *message);
 
 //
 // Request
 //
 
-typedef struct ROX_INTERNAL Request Request;
+typedef struct Request Request;
 
 typedef HttpResponseMessage *(*request_send_get_func)(void *target, Request *request, RequestData *data);
 
@@ -81,7 +81,7 @@ typedef HttpResponseMessage *(*request_send_post_json_func)(void *target, Reques
 /**
  * The following is needed basically for unit testing.
  */
-typedef struct ROX_INTERNAL RequestConfig {
+typedef struct RequestConfig {
     void *target;
     request_send_get_func send_get;
     request_send_post_func send_post;
@@ -93,14 +93,14 @@ typedef struct ROX_INTERNAL RequestConfig {
  * @param config May be <code>NULL</code>. Clients are responsible for freeing the memory.
  * @return Not <code>NULL</code>.
  */
-Request *ROX_INTERNAL request_create(RequestConfig *config);
+ROX_INTERNAL Request *request_create(RequestConfig *config);
 
 /**
  * @param request Not <code>NULL</code>.
  * @param data Not <code>NULL</code>.
  * @return Not <code>NULL</code>.
  */
-HttpResponseMessage *ROX_INTERNAL request_send_get(Request *request, RequestData *data);
+ROX_INTERNAL HttpResponseMessage *request_send_get(Request *request, RequestData *data);
 
 /**
  * @param request Not <code>NULL</code>.
@@ -108,25 +108,25 @@ HttpResponseMessage *ROX_INTERNAL request_send_get(Request *request, RequestData
  * @param json Not <code>NULL</code>.
  * @return Not <code>NULL</code>.
  */
-HttpResponseMessage *ROX_INTERNAL request_send_post_json(Request *request, const char *uri, cJSON *json);
+ROX_INTERNAL HttpResponseMessage *request_send_post_json(Request *request, const char *uri, cJSON *json);
 
 /**
  * @param request Not <code>NULL</code>.
  * @param data Not <code>NULL</code>.
  * @return Not <code>NULL</code>.
  */
-HttpResponseMessage *ROX_INTERNAL request_send_post(Request *request, RequestData *data);
+ROX_INTERNAL HttpResponseMessage *request_send_post(Request *request, RequestData *data);
 
 /**
  * @param request Not <code>NULL</code>.
  */
-void ROX_INTERNAL request_free(Request *request);
+ROX_INTERNAL void request_free(Request *request);
 
 //
 // ConfigurationFetcher
 //
 
-typedef struct ROX_INTERNAL ConfigurationFetcher ConfigurationFetcher;
+typedef struct ConfigurationFetcher ConfigurationFetcher;
 
 /**
  * @param request Not <code>NULL</code>.
@@ -137,7 +137,7 @@ typedef struct ROX_INTERNAL ConfigurationFetcher ConfigurationFetcher;
  * @param reporter Not <code>NULL</code>.
  * @return Not <code>NULL</code>.
  */
-ConfigurationFetcher *ROX_INTERNAL configuration_fetcher_create(
+ROX_INTERNAL ConfigurationFetcher *configuration_fetcher_create(
         Request *request,
         SdkSettings *sdk_settings,
         DeviceProperties *device_properties,
@@ -154,7 +154,7 @@ ConfigurationFetcher *ROX_INTERNAL configuration_fetcher_create(
  * @param roxy_url Not <code>NULL</code>.
  * @return Not <code>NULL</code>.
  */
-ConfigurationFetcher *ROX_INTERNAL configuration_fetcher_create_roxy(
+ROX_INTERNAL ConfigurationFetcher *configuration_fetcher_create_roxy(
         Request *request,
         DeviceProperties *device_properties,
         BUID *buid,
@@ -166,9 +166,9 @@ ConfigurationFetcher *ROX_INTERNAL configuration_fetcher_create_roxy(
  * @param fetcher Not <code>NULL</code>.
  * @return May be <code>NULL</code>.
  */
-ConfigurationFetchResult *ROX_INTERNAL configuration_fetcher_fetch(ConfigurationFetcher *fetcher);
+ROX_INTERNAL ConfigurationFetchResult *configuration_fetcher_fetch(ConfigurationFetcher *fetcher);
 
 /**
  * @param fetcher Not <code>NULL</code>.
  */
-void ROX_INTERNAL configuration_fetcher_free(ConfigurationFetcher *fetcher);
+ROX_INTERNAL void configuration_fetcher_free(ConfigurationFetcher *fetcher);

@@ -3,7 +3,7 @@
 #include "notifications.h"
 #include "core/consts.h"
 
-struct ROX_INTERNAL XConfigurationFetchedInvoker {
+struct XConfigurationFetchedInvoker {
     InternalFlags *flags;
     SdkSettings *sdk_settings;
     void *fetch_target;
@@ -11,7 +11,7 @@ struct ROX_INTERNAL XConfigurationFetchedInvoker {
     NotificationListener *push_updates_listener;
 };
 
-XConfigurationFetchedInvoker *ROX_INTERNAL x_configuration_fetched_invoker_create(
+ROX_INTERNAL XConfigurationFetchedInvoker *x_configuration_fetched_invoker_create(
         InternalFlags *flags,
         SdkSettings *sdk_settings,
         void *fetch_target,
@@ -65,7 +65,7 @@ static void _start_or_stop_push_updates_listener(XConfigurationFetchedInvoker *i
 
 #undef X_CONF_FETCH_NOTIFICATIONS_PATH_BUFFER_SIZE
 
-void ROX_INTERNAL x_configuration_fetched_handler(void *target, RoxConfigurationFetchedArgs *args) {
+ROX_INTERNAL void x_configuration_fetched_handler(void *target, RoxConfigurationFetchedArgs *args) {
     assert(target);
     assert(args);
     if (args->fetcher_status != ErrorFetchedFailed) {
@@ -73,7 +73,7 @@ void ROX_INTERNAL x_configuration_fetched_handler(void *target, RoxConfiguration
     }
 }
 
-void ROX_INTERNAL x_configuration_fetched_invoker_free(XConfigurationFetchedInvoker *invoker) {
+ROX_INTERNAL void x_configuration_fetched_invoker_free(XConfigurationFetchedInvoker *invoker) {
     assert(invoker);
     free(invoker);
 }

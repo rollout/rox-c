@@ -17,7 +17,7 @@ const AnalyticsClientConfig ANALYTICS_CLIENT_INITIAL_CONFIG = {
         NULL
 };
 
-struct ROX_INTERNAL AnalyticsClient {
+struct AnalyticsClient {
     char *write_key;
     AnalyticsClientConfig *config;
     void *target;
@@ -31,7 +31,7 @@ static void analytics_client_track_impl(void *target, AnalyticsEvent *event) {
     // TODO: implement!
 }
 
-AnalyticsClient *ROX_INTERNAL analytics_client_create(
+ROX_INTERNAL AnalyticsClient *analytics_client_create(
         const char *write_key,
         AnalyticsClientConfig *config,
         DeviceProperties *properties) {
@@ -49,13 +49,13 @@ AnalyticsClient *ROX_INTERNAL analytics_client_create(
     return client;
 }
 
-void ROX_INTERNAL analytics_client_track(AnalyticsClient *client, AnalyticsEvent *event) {
+ROX_INTERNAL void analytics_client_track(AnalyticsClient *client, AnalyticsEvent *event) {
     assert(client);
     assert(event);
     client->track(client->target, event);
 }
 
-void ROX_INTERNAL analytics_client_free(AnalyticsClient *client) {
+ROX_INTERNAL void analytics_client_free(AnalyticsClient *client) {
     assert(client);
     if (client->write_key) {
         free(client->write_key);

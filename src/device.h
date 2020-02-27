@@ -7,4 +7,4 @@
  *
  * @return Can be <code>NULL</code>.
  */
-const char *ROX_INTERNAL rox_globally_unique_device_id();
+ROX_INTERNAL const char *rox_globally_unique_device_id();

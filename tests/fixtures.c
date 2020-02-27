@@ -57,7 +57,7 @@ _test_request_send_post_json_func(void *target, Request *request, const char *ur
             : NULL);
 }
 
-RequestTestFixture *ROX_INTERNAL request_test_fixture_create() {
+ROX_INTERNAL RequestTestFixture *request_test_fixture_create() {
     RequestTestFixture *ctx = calloc(1, sizeof(RequestTestFixture));
     RequestConfig config = {ctx, _test_request_send_get_func, &_test_request_send_post_func,
                             &_test_request_send_post_json_func};
@@ -66,7 +66,7 @@ RequestTestFixture *ROX_INTERNAL request_test_fixture_create() {
     return ctx;
 }
 
-void ROX_INTERNAL request_test_fixture_free(RequestTestFixture *ctx) {
+ROX_INTERNAL void request_test_fixture_free(RequestTestFixture *ctx) {
     assert(ctx);
     if (ctx->last_get_uri) {
         free(ctx->last_get_uri);
@@ -115,7 +115,7 @@ static void _test_logging_handler(void *target, RoxLogMessage *message) {
     fflush(stream);
 }
 
-LoggingTestFixture *ROX_INTERNAL logging_test_fixture_create(RoxLogLevel log_level) {
+ROX_INTERNAL LoggingTestFixture *logging_test_fixture_create(RoxLogLevel log_level) {
     LoggingTestFixture *fixture = calloc(1, sizeof(LoggingTestFixture));
     list_new(&fixture->log_records);
     RoxLoggingConfig cfg = {log_level, fixture, &_test_logging_handler};
@@ -123,12 +123,12 @@ LoggingTestFixture *ROX_INTERNAL logging_test_fixture_create(RoxLogLevel log_lev
     return fixture;
 }
 
-void ROX_INTERNAL logging_test_fixture_free(LoggingTestFixture *fixture) {
+ROX_INTERNAL void logging_test_fixture_free(LoggingTestFixture *fixture) {
     assert(fixture);
     list_destroy_cb(fixture->log_records, (void (*)(void *)) &_log_record_free);
 }
 
-void ROX_INTERNAL logging_test_fixture_check_no_messages(LoggingTestFixture *fixture, RoxLogLevel log_level) {
+ROX_INTERNAL void logging_test_fixture_check_no_messages(LoggingTestFixture *fixture, RoxLogLevel log_level) {
     assert(fixture);
     LIST_FOREACH(item, fixture->log_records, {
         LogRecord *log_record = (LogRecord *) item;
@@ -136,12 +136,12 @@ void ROX_INTERNAL logging_test_fixture_check_no_messages(LoggingTestFixture *fix
     })
 }
 
-void ROX_INTERNAL logging_test_fixture_check_no_errors(LoggingTestFixture *fixture) {
+ROX_INTERNAL void logging_test_fixture_check_no_errors(LoggingTestFixture *fixture) {
     assert(fixture);
     logging_test_fixture_check_no_messages(fixture, RoxLogLevelError);
 }
 
-void ROX_INTERNAL logging_test_fixture_check_log_message(
+ROX_INTERNAL void logging_test_fixture_check_log_message(
         LoggingTestFixture *fixture, RoxLogLevel log_level, const char *message) {
     assert(fixture);
     LIST_FOREACH(item, fixture->log_records, {

@@ -8,7 +8,7 @@
 // Requests
 //
 
-typedef struct ROX_INTERNAL RequestTestFixture {
+typedef struct RequestTestFixture {
     int status_to_return_to_get;
     const char *data_to_return_to_get;
     int status_to_return_to_post;
@@ -27,31 +27,31 @@ typedef struct ROX_INTERNAL RequestTestFixture {
     Request *request;
 } RequestTestFixture;
 
-RequestTestFixture *ROX_INTERNAL request_test_fixture_create();
+ROX_INTERNAL RequestTestFixture *request_test_fixture_create();
 
-void ROX_INTERNAL request_test_fixture_free(RequestTestFixture *fixture);
+ROX_INTERNAL void request_test_fixture_free(RequestTestFixture *fixture);
 
 //
 // Logging
 //
 
-typedef struct ROX_INTERNAL LogRecord {
+typedef struct LogRecord {
     RoxLogLevel level;
     char *message;
 } LogRecord;
 
-typedef struct ROX_INTERNAL LoggingTestFixture {
+typedef struct LoggingTestFixture {
     List *log_records;
 } LoggingTestFixture;
 
-LoggingTestFixture *ROX_INTERNAL logging_test_fixture_create(RoxLogLevel log_level);
+ROX_INTERNAL LoggingTestFixture *logging_test_fixture_create(RoxLogLevel log_level);
 
-void ROX_INTERNAL logging_test_fixture_check_no_errors(LoggingTestFixture *fixture);
+ROX_INTERNAL void logging_test_fixture_check_no_errors(LoggingTestFixture *fixture);
 
-void ROX_INTERNAL logging_test_fixture_check_no_messages(LoggingTestFixture *fixture, RoxLogLevel log_level);
+ROX_INTERNAL void logging_test_fixture_check_no_messages(LoggingTestFixture *fixture, RoxLogLevel log_level);
 
-void ROX_INTERNAL logging_test_fixture_check_log_message(
+ROX_INTERNAL void logging_test_fixture_check_log_message(
         LoggingTestFixture *fixture, RoxLogLevel log_level, const char *message);
 
-void ROX_INTERNAL logging_test_fixture_free(LoggingTestFixture *fixture);
+ROX_INTERNAL void logging_test_fixture_free(LoggingTestFixture *fixture);
 

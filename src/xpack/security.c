@@ -12,7 +12,7 @@
 // SignatureVerifier
 //
 
-struct ROX_INTERNAL SignatureVerifier {
+struct SignatureVerifier {
     void *target;
     signature_verifier_func verify;
 };
@@ -62,13 +62,13 @@ static bool xpack_signature_verifier(
     return verified;
 }
 
-SignatureVerifier *ROX_INTERNAL signature_verifier_create(SignatureVerifierConfig *config) {
+ROX_INTERNAL SignatureVerifier *signature_verifier_create(SignatureVerifierConfig *config) {
     SignatureVerifier *verifier = calloc(1, sizeof(SignatureVerifier));
     verifier->verify = (config && config->verify_func) ? config->verify_func : &xpack_signature_verifier;
     return verifier;
 }
 
-bool ROX_INTERNAL signature_verifier_verify(
+ROX_INTERNAL bool signature_verifier_verify(
         SignatureVerifier *verifier,
         const char *data,
         const char *signature_base64) {
@@ -79,7 +79,7 @@ bool ROX_INTERNAL signature_verifier_verify(
     return verifier->verify(verifier->target, verifier, data, signature_base64);
 }
 
-void ROX_INTERNAL signature_verifier_free(SignatureVerifier *verifier) {
+ROX_INTERNAL void signature_verifier_free(SignatureVerifier *verifier) {
     assert(verifier);
     free(verifier);
 }
@@ -88,18 +88,18 @@ void ROX_INTERNAL signature_verifier_free(SignatureVerifier *verifier) {
 // APIKeyVerifier
 //
 
-typedef struct ROX_INTERNAL APIKeyVerifier {
+typedef struct APIKeyVerifier {
     SdkSettings *sdk_settings;
     api_key_verifier_func verify;
 } APIKeyVerifier;
 
-bool ROX_INTERNAL _api_key_verifier_verify(APIKeyVerifier *key_verifier, const char *api_key) {
+ROX_INTERNAL bool _api_key_verifier_verify(APIKeyVerifier *key_verifier, const char *api_key) {
     assert(key_verifier);
     assert(api_key);
     return str_equals(key_verifier->sdk_settings->api_key, api_key);
 }
 
-APIKeyVerifier *ROX_INTERNAL api_key_verifier_create(APIKeyVerifierConfig *config) {
+ROX_INTERNAL APIKeyVerifier *api_key_verifier_create(APIKeyVerifierConfig *config) {
     assert(config);
     APIKeyVerifier *verifier = calloc(1, sizeof(APIKeyVerifier));
     verifier->sdk_settings = config->sdk_settings;
@@ -107,19 +107,19 @@ APIKeyVerifier *ROX_INTERNAL api_key_verifier_create(APIKeyVerifierConfig *confi
     return verifier;
 }
 
-bool ROX_INTERNAL api_key_verifier_verify(APIKeyVerifier *verifier, const char *api_key) {
+ROX_INTERNAL bool api_key_verifier_verify(APIKeyVerifier *verifier, const char *api_key) {
     assert(verifier);
     assert(verifier->verify);
     assert(api_key);
     return verifier->verify(verifier, api_key);
 }
 
-SdkSettings *ROX_INTERNAL api_key_verifier_get_sdk_settings(APIKeyVerifier *verifier) {
+ROX_INTERNAL SdkSettings *api_key_verifier_get_sdk_settings(APIKeyVerifier *verifier) {
     assert(verifier);
     return verifier->sdk_settings;
 }
 
-void ROX_INTERNAL api_key_verifier_free(APIKeyVerifier *verifier) {
+ROX_INTERNAL void api_key_verifier_free(APIKeyVerifier *verifier) {
     assert(verifier);
     free(verifier);
 }

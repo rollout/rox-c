@@ -3,7 +3,7 @@
 #include "rollout.h"
 #include "util.h"
 
-typedef struct ROX_INTERNAL AnalyticsEvent {
+typedef struct AnalyticsEvent {
     char *flag;
     char *value;
     char *distinct_id;
@@ -20,7 +20,7 @@ typedef struct ROX_INTERNAL AnalyticsEvent {
  * @param experiment_id Not <code>NULL</code>.
  * @return Not <code>NULL</code>.
  */
-AnalyticsEvent *ROX_INTERNAL analytics_event_create(
+ROX_INTERNAL AnalyticsEvent *analytics_event_create(
         const char *flag,
         const char *value,
         const char *distinct_id,
@@ -30,9 +30,9 @@ AnalyticsEvent *ROX_INTERNAL analytics_event_create(
  * @param event Not <code>NULL</code>.
  * @return Not <code>NULL</code>.
  */
-AnalyticsEvent *ROX_INTERNAL analytics_event_copy(AnalyticsEvent *event);
+ROX_INTERNAL AnalyticsEvent *analytics_event_copy(AnalyticsEvent *event);
 
 /**
  * @param event Not <code>NULL</code>.
  */
-void ROX_INTERNAL analytics_event_free(AnalyticsEvent *event);
+ROX_INTERNAL void analytics_event_free(AnalyticsEvent *event);

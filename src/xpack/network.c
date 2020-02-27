@@ -12,7 +12,7 @@
 // Debouncer
 //
 
-struct ROX_INTERNAL Debouncer {
+struct Debouncer {
     int interval_millis;
     void *target;
     debouncer_func func;
@@ -24,7 +24,7 @@ struct ROX_INTERNAL Debouncer {
     bool stopped;
 };
 
-Debouncer *ROX_INTERNAL debouncer_create(int interval_millis, void *target, debouncer_func func) {
+ROX_INTERNAL Debouncer *debouncer_create(int interval_millis, void *target, debouncer_func func) {
     assert(interval_millis > 0);
     assert(func);
     Debouncer *debouncer = calloc(1, sizeof(Debouncer));
@@ -58,7 +58,7 @@ static void *_debouncer_thread_func(void *ptr) {
     return NULL;
 }
 
-void ROX_INTERNAL debouncer_invoke(Debouncer *debouncer) {
+ROX_INTERNAL void debouncer_invoke(Debouncer *debouncer) {
     assert(debouncer);
     if (!debouncer->thread_started) {
         debouncer->thread_started = (pthread_create(
@@ -66,7 +66,7 @@ void ROX_INTERNAL debouncer_invoke(Debouncer *debouncer) {
     }
 }
 
-void ROX_INTERNAL debouncer_free(Debouncer *debouncer) {
+ROX_INTERNAL void debouncer_free(Debouncer *debouncer) {
     assert(debouncer);
     debouncer->stopped = true;
     if (debouncer->thread_started) {
@@ -85,7 +85,7 @@ void ROX_INTERNAL debouncer_free(Debouncer *debouncer) {
 // StateSender
 //
 
-struct ROX_INTERNAL StateSender {
+struct StateSender {
     Request *request;
     DeviceProperties *device_properties;
     FlagRepository *flag_repository;
@@ -246,7 +246,7 @@ static void _state_sender_log_log_send_state_exception(ConfigurationSource sourc
     ROX_ERROR("Failed to send state. Source: %s", configuration_source_to_str(source));
 }
 
-void ROX_INTERNAL state_sender_send(StateSender *sender) {
+ROX_INTERNAL void state_sender_send(StateSender *sender) {
     assert(sender);
 
     HashTable *properties = _state_sender_prepare_props_from_device_props(sender);
@@ -312,7 +312,7 @@ void ROX_INTERNAL state_sender_send(StateSender *sender) {
     ROX_ERROR("Failed to send state. Source: %s", configuration_source_to_str(source));
 }
 
-void ROX_INTERNAL state_sender_send_debounce(StateSender *sender) {
+ROX_INTERNAL void state_sender_send_debounce(StateSender *sender) {
     assert(sender);
     debouncer_invoke(sender->state_debouncer);
 }
@@ -331,7 +331,7 @@ static void _state_sender_flag_added_callback(void *target, RoxVariant *variant)
     state_sender_send_debounce(sender);
 }
 
-StateSender *ROX_INTERNAL state_sender_create(
+ROX_INTERNAL StateSender *state_sender_create(
         Request *request,
         DeviceProperties *device_properties,
         FlagRepository *flag_repository,
@@ -370,7 +370,7 @@ StateSender *ROX_INTERNAL state_sender_create(
     return sender;
 }
 
-void ROX_INTERNAL state_sender_free(StateSender *sender) {
+ROX_INTERNAL void state_sender_free(StateSender *sender) {
     assert(sender);
     debouncer_free(sender->state_debouncer);
     list_destroy(sender->state_generators);

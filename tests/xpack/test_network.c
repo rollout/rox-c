@@ -88,7 +88,7 @@ END_TEST
 // StateSenderTests
 //
 
-typedef struct ROX_INTERNAL StateSenderTestContext {
+typedef struct StateSenderTestContext {
     RequestTestFixture *request;
     SdkSettings *sdk_settings;
     RoxOptions *rox_options;

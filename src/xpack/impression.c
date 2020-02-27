@@ -3,13 +3,13 @@
 #include "impression.h"
 #include "util.h"
 
-struct ROX_INTERNAL XImpressionInvoker {
+struct XImpressionInvoker {
     InternalFlags *flags;
     CustomPropertyRepository *custom_property_repository;
     AnalyticsClient *client;
 };
 
-XImpressionInvoker *ROX_INTERNAL x_impression_invoker_create(
+ROX_INTERNAL XImpressionInvoker *x_impression_invoker_create(
         InternalFlags *flags,
         CustomPropertyRepository *custom_property_repository,
         AnalyticsClient *client) {
@@ -26,7 +26,7 @@ XImpressionInvoker *ROX_INTERNAL x_impression_invoker_create(
 
 #define X_IMPRESSION_HANDLER_ROX_PROPERTY_BUFFER_LENGTH 1024
 
-void ROX_INTERNAL x_impression_handler(
+ROX_INTERNAL void x_impression_handler(
         void *target,
         RoxReportingValue *value,
         RoxExperiment *experiment,
@@ -68,7 +68,7 @@ void ROX_INTERNAL x_impression_handler(
 
 #undef X_IMPRESSION_HANDLER_ROX_PROPERTY_BUFFER_LENGTH
 
-void ROX_INTERNAL x_impression_invoker_free(XImpressionInvoker *invoker) {
+ROX_INTERNAL void x_impression_invoker_free(XImpressionInvoker *invoker) {
     assert(invoker);
     free(invoker);
 }

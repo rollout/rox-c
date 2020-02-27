@@ -9,7 +9,7 @@
 // CoreTests
 //
 
-typedef struct ROX_INTERNAL CoreTestContext {
+typedef struct CoreTestContext {
     SdkSettings *sdk_settings;
     DeviceProperties *device_properties;
     RoxOptions *rox_options;

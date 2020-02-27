@@ -7,7 +7,7 @@
 #include "core/client.h"
 #include "util.h"
 
-struct ROX_INTERNAL XErrorReporter {
+struct XErrorReporter {
     Request *request;
     DeviceProperties *properties;
     BUID *buid;
@@ -19,7 +19,7 @@ struct ROX_INTERNAL XErrorReporter {
  * @param buid Not <code>NULL</code>.
  * @return Not <code>NULL</code>.
  */
-XErrorReporter *ROX_INTERNAL x_error_reporter_create(
+ROX_INTERNAL XErrorReporter *x_error_reporter_create(
         Request *request,
         DeviceProperties *properties,
         BUID *buid) {
@@ -35,7 +35,7 @@ XErrorReporter *ROX_INTERNAL x_error_reporter_create(
     return reporter;
 }
 
-void ROX_INTERNAL x_error_reporter_free(XErrorReporter *reporter) {
+ROX_INTERNAL void x_error_reporter_free(XErrorReporter *reporter) {
     assert(reporter);
     free(reporter);
 }
@@ -148,7 +148,7 @@ static cJSON *x_error_reporter_create_payload(
 
 #define ROX_X_ERROR_REPORTER_MESSAGE_BUFFER_SIZE 1024
 
-void ROX_INTERNAL x_error_reporter_report(
+ROX_INTERNAL void x_error_reporter_report(
         void *target,
         ErrorReporter *reporter,
         const char *file,

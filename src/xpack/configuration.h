@@ -8,9 +8,9 @@
 // XConfigurationFetchedInvoker
 //
 
-typedef struct ROX_INTERNAL XConfigurationFetchedInvoker XConfigurationFetchedInvoker;
+typedef struct XConfigurationFetchedInvoker XConfigurationFetchedInvoker;
 
-typedef void ROX_INTERNAL (*x_configuration_fetch_func)(void *target);
+typedef void (*x_configuration_fetch_func)(void *target);
 
 /**
  * @param flags Not <code>NULL</code>.
@@ -19,7 +19,7 @@ typedef void ROX_INTERNAL (*x_configuration_fetch_func)(void *target);
  * @param fetch_func Not <code>NULL</code>.
  * @return Not <code>NULL</code>.
  */
-XConfigurationFetchedInvoker *ROX_INTERNAL x_configuration_fetched_invoker_create(
+ROX_INTERNAL XConfigurationFetchedInvoker *x_configuration_fetched_invoker_create(
         InternalFlags *flags,
         SdkSettings *sdk_settings,
         void *fetch_target,
@@ -28,10 +28,10 @@ XConfigurationFetchedInvoker *ROX_INTERNAL x_configuration_fetched_invoker_creat
 /**
  * @param invoker Not <code>NULL</code>.
  */
-void ROX_INTERNAL x_configuration_fetched_invoker_free(XConfigurationFetchedInvoker *invoker);
+ROX_INTERNAL void x_configuration_fetched_invoker_free(XConfigurationFetchedInvoker *invoker);
 
 /**
  * @param target Not <code>NULL</code>. Supposed to be a pointer to <code>XConfigurationFetchedInvoker*</code>.
  * @param args Not <code>NULL</code>.
  */
-void ROX_INTERNAL x_configuration_fetched_handler(void *target, RoxConfigurationFetchedArgs *args);
+ROX_INTERNAL void x_configuration_fetched_handler(void *target, RoxConfigurationFetchedArgs *args);

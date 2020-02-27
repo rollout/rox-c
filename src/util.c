@@ -23,7 +23,7 @@
 #include <unistd.h>
 #endif
 
-void *ROX_INTERNAL mem_copy(void *ptr, size_t bytes) {
+ROX_INTERNAL void *mem_copy(void *ptr, size_t bytes) {
     assert(ptr);
     assert(bytes >= 0);
     unsigned char *copy = malloc(bytes);
@@ -43,7 +43,7 @@ double *mem_copy_double(double value) {
     return copy;
 }
 
-char *ROX_INTERNAL mem_copy_str(const char *ptr) {
+ROX_INTERNAL char *mem_copy_str(const char *ptr) {
     assert(ptr);
     size_t length = strlen(ptr);
     char *copy = malloc((length + 1) * sizeof(char));
@@ -51,13 +51,13 @@ char *ROX_INTERNAL mem_copy_str(const char *ptr) {
     return copy;
 }
 
-bool *ROX_INTERNAL mem_copy_bool(bool value) {
+ROX_INTERNAL bool *mem_copy_bool(bool value) {
     bool *copy = malloc(sizeof(bool));
     *copy = value;
     return copy;
 }
 
-HashTable *ROX_INTERNAL mem_copy_map(HashTable *map) {
+ROX_INTERNAL HashTable *mem_copy_map(HashTable *map) {
     assert(map);
     HashTable *params;
     hashtable_new(&params);
@@ -68,14 +68,14 @@ HashTable *ROX_INTERNAL mem_copy_map(HashTable *map) {
     return params;
 }
 
-List *ROX_INTERNAL mem_copy_list(List *list) {
+ROX_INTERNAL List *mem_copy_list(List *list) {
     assert(list);
     List *copy;
     list_copy_shallow(list, &copy);
     return copy;
 }
 
-List *ROX_INTERNAL mem_deep_copy_list(List *list, void *(*copy_func)(void *)) {
+ROX_INTERNAL List *mem_deep_copy_list(List *list, void *(*copy_func)(void *)) {
     assert(list);
     assert(copy_func);
     List *copy;
@@ -83,7 +83,7 @@ List *ROX_INTERNAL mem_deep_copy_list(List *list, void *(*copy_func)(void *)) {
     return copy;
 }
 
-HashSet *ROX_INTERNAL mem_copy_set(HashSet *set) {
+ROX_INTERNAL HashSet *mem_copy_set(HashSet *set) {
     assert(set);
     HashSet *copy;
     hashset_new(&copy);
@@ -93,7 +93,7 @@ HashSet *ROX_INTERNAL mem_copy_set(HashSet *set) {
     return copy;
 }
 
-HashSet *ROX_INTERNAL mem_deep_copy_set(HashSet *set, void *(*copy_func)(void *)) {
+ROX_INTERNAL HashSet *mem_deep_copy_set(HashSet *set, void *(*copy_func)(void *)) {
     assert(set);
     HashSet *copy;
     hashset_new(&copy);
@@ -103,7 +103,7 @@ HashSet *ROX_INTERNAL mem_deep_copy_set(HashSet *set, void *(*copy_func)(void *)
     return copy;
 }
 
-HashTable *ROX_INTERNAL mem_deep_copy_str_value_map(HashTable *map) {
+ROX_INTERNAL HashTable *mem_deep_copy_str_value_map(HashTable *map) {
     assert(map);
     HashTable *copy;
     hashtable_new(&copy);
@@ -114,7 +114,7 @@ HashTable *ROX_INTERNAL mem_deep_copy_str_value_map(HashTable *map) {
     return copy;
 }
 
-int *ROX_INTERNAL mem_str_to_int(const char *str) {
+ROX_INTERNAL int *mem_str_to_int(const char *str) {
     assert(str);
     long num = strtol(str, NULL, 0);
     if (num == 0 && str[0] != '0') {
@@ -123,7 +123,7 @@ int *ROX_INTERNAL mem_str_to_int(const char *str) {
     return mem_copy_int(num);
 }
 
-double *ROX_INTERNAL mem_str_to_double(const char *str) {
+ROX_INTERNAL double *mem_str_to_double(const char *str) {
     assert(str);
     double num = strtod(str, NULL);
     if (num == 0 && str[0] != '0') {
@@ -134,7 +134,7 @@ double *ROX_INTERNAL mem_str_to_double(const char *str) {
 
 #define ROX_MEM_INT_TO_STR_BUFFER_SIZE 10
 
-char *ROX_INTERNAL mem_int_to_str(int value) {
+ROX_INTERNAL char *mem_int_to_str(int value) {
     char buffer[ROX_MEM_INT_TO_STR_BUFFER_SIZE];
     snprintf(buffer, ROX_MEM_INT_TO_STR_BUFFER_SIZE, "%d", value);
     return mem_copy_str(buffer);
@@ -144,7 +144,7 @@ char *ROX_INTERNAL mem_int_to_str(int value) {
 
 #define MEM_DOUBLE_TO_STR_BUFFER_SIZE 100
 
-char *ROX_INTERNAL mem_double_to_str(double value) {
+ROX_INTERNAL char *mem_double_to_str(double value) {
     char buffer[MEM_DOUBLE_TO_STR_BUFFER_SIZE];
     int len = snprintf(buffer, MEM_DOUBLE_TO_STR_BUFFER_SIZE, "%f", value);
     // trim trailing zeroes
@@ -160,7 +160,7 @@ char *ROX_INTERNAL mem_double_to_str(double value) {
 
 #undef MEM_DOUBLE_TO_STR_BUFFER_SIZE
 
-char *ROX_INTERNAL mem_bool_to_str(bool value,
+ROX_INTERNAL char *mem_bool_to_str(bool value,
                                    const char *true_value,
                                    const char *false_value) {
     return value
@@ -170,7 +170,7 @@ char *ROX_INTERNAL mem_bool_to_str(bool value,
 
 #define ROX_STR_MATCHES_BUFFER_SIZE 256
 
-bool ROX_INTERNAL str_matches(const char *str, const char *pattern, unsigned int options) {
+ROX_INTERNAL bool str_matches(const char *str, const char *pattern, unsigned int options) {
 
     int error_number;
     PCRE2_SIZE error_offset;
@@ -209,7 +209,7 @@ bool ROX_INTERNAL str_matches(const char *str, const char *pattern, unsigned int
 
 #undef ROX_STR_MATCHES_BUFFER_SIZE
 
-int ROX_INTERNAL str_index_of(const char *str, char c) {
+ROX_INTERNAL int str_index_of(const char *str, char c) {
     assert(str);
     char *e = strchr(str, c);
     if (!e) {
@@ -218,7 +218,7 @@ int ROX_INTERNAL str_index_of(const char *str, char c) {
     return (int) (e - str);
 }
 
-bool ROX_INTERNAL str_starts_with(const char *str, const char *prefix) {
+ROX_INTERNAL bool str_starts_with(const char *str, const char *prefix) {
     assert(str);
     assert(prefix);
     for (int i = 0, n = (int) strlen(prefix); i < n; ++i) {
@@ -229,13 +229,13 @@ bool ROX_INTERNAL str_starts_with(const char *str, const char *prefix) {
     return true;
 }
 
-bool ROX_INTERNAL str_equals(const char *str, const char *another) {
+ROX_INTERNAL bool str_equals(const char *str, const char *another) {
     assert(str);
     assert(another);
     return str == another || strcmp(str, another) == 0;
 }
 
-bool ROX_INTERNAL str_eq_n(const char *str, int start, int end, const char *another) {
+ROX_INTERNAL bool str_eq_n(const char *str, int start, int end, const char *another) {
     assert(str);
     assert(another);
     for (int i = start; i < end; ++i) {
@@ -246,11 +246,11 @@ bool ROX_INTERNAL str_eq_n(const char *str, int start, int end, const char *anot
     return true;
 }
 
-bool ROX_INTERNAL str_is_empty(const char *str) {
+ROX_INTERNAL bool str_is_empty(const char *str) {
     return !str || str_equals(str, "");
 }
 
-char *ROX_INTERNAL str_to_upper(char *str) {
+ROX_INTERNAL char *str_to_upper(char *str) {
     assert(str);
     for (int i = 0; str[i] != '\0'; ++i) {
         str[i] = (char) toupper(str[i]);
@@ -258,7 +258,7 @@ char *ROX_INTERNAL str_to_upper(char *str) {
     return str;
 }
 
-bool ROX_INTERNAL str_in_list(const char *str, List *list_of_strings) {
+ROX_INTERNAL bool str_in_list(const char *str, List *list_of_strings) {
     assert(str);
     assert(list_of_strings);
     return list_contains_value(list_of_strings,
@@ -266,7 +266,7 @@ bool ROX_INTERNAL str_in_list(const char *str, List *list_of_strings) {
                                (int (*)(const void *, const void *)) &strcmp);
 }
 
-void ROX_INTERNAL str_substring_b(const char *str, int start, int len, char *buffer) {
+ROX_INTERNAL void str_substring_b(const char *str, int start, int len, char *buffer) {
     assert(str);
     assert(start >= 0);
     assert(len >= 0);
@@ -276,7 +276,7 @@ void ROX_INTERNAL str_substring_b(const char *str, int start, int len, char *buf
     buffer[len] = '\0';
 }
 
-size_t ROX_INTERNAL str_copy_value_to_buffer(char *buffer, size_t buffer_size, const char *value) {
+ROX_INTERNAL size_t str_copy_value_to_buffer(char *buffer, size_t buffer_size, const char *value) {
     assert(buffer);
     assert(buffer_size > 0);
     assert(value);
@@ -286,7 +286,7 @@ size_t ROX_INTERNAL str_copy_value_to_buffer(char *buffer, size_t buffer_size, c
     return len;
 }
 
-char *ROX_INTERNAL str_format_b(char *buffer, size_t buffer_size, const char *fmt, ...) {
+ROX_INTERNAL char *str_format_b(char *buffer, size_t buffer_size, const char *fmt, ...) {
     va_list args;
             va_start(args, fmt);
     vsnprintf(buffer, buffer_size, fmt, args);
@@ -294,14 +294,14 @@ char *ROX_INTERNAL str_format_b(char *buffer, size_t buffer_size, const char *fm
     return buffer;
 }
 
-char *ROX_INTERNAL mem_str_substring(const char *str, int start, int len) {
+ROX_INTERNAL char *mem_str_substring(const char *str, int start, int len) {
     assert(str);
     assert(start >= 0);
     assert(len >= 0);
     return mem_str_substring_n(str, strlen(str), start, len);
 }
 
-char *ROX_INTERNAL mem_str_substring_n(const char *str, size_t str_len, int start, int len) {
+ROX_INTERNAL char *mem_str_substring_n(const char *str, size_t str_len, int start, int len) {
     assert(str);
     assert(start >= 0);
     assert(len >= 0);
@@ -314,7 +314,7 @@ char *ROX_INTERNAL mem_str_substring_n(const char *str, size_t str_len, int star
     return buffer;
 }
 
-char *ROX_INTERNAL mem_str_replace(const char *str, const char *search, const char *rep) {
+ROX_INTERNAL char *mem_str_replace(const char *str, const char *search, const char *rep) {
     assert(str);
     assert(search);
     assert(rep);
@@ -325,7 +325,7 @@ char *ROX_INTERNAL mem_str_replace(const char *str, const char *search, const ch
     return result;
 }
 
-char *ROX_INTERNAL mem_str_concat(const char *s1, const char *s2) {
+ROX_INTERNAL char *mem_str_concat(const char *s1, const char *s2) {
     assert(s1);
     assert(s2);
     size_t len = strlen(s1) + strlen(s2) + 1;
@@ -336,7 +336,7 @@ char *ROX_INTERNAL mem_str_concat(const char *s1, const char *s2) {
 
 #define ROX_MEM_STR_FORMAT_BUFFER_SIZE 2048
 
-char *ROX_INTERNAL mem_str_format(const char *fmt, ...) {
+ROX_INTERNAL char *mem_str_format(const char *fmt, ...) {
     assert(fmt);
     char buffer[ROX_MEM_STR_FORMAT_BUFFER_SIZE];
     va_list args;
@@ -348,7 +348,7 @@ char *ROX_INTERNAL mem_str_format(const char *fmt, ...) {
 
 #undef ROX_MEM_STR_FORMAT_BUFFER_SIZE
 
-char *ROX_INTERNAL mem_build_url(const char *base_uri, const char *path) {
+ROX_INTERNAL char *mem_build_url(const char *base_uri, const char *path) {
     assert(base_uri);
     assert(path);
     size_t base_uri_len = strlen(base_uri);
@@ -375,14 +375,14 @@ char *ROX_INTERNAL mem_build_url(const char *base_uri, const char *path) {
     return mem_copy_str(base_uri);
 }
 
-double ROX_INTERNAL current_time_millis() {
+ROX_INTERNAL double current_time_millis() {
     time_t t;
     time(&t);
     // TODO: get millis somehow
     return (double) (t * 1000);
 }
 
-void ROX_INTERNAL thread_sleep(int sleep_millis) {
+ROX_INTERNAL void thread_sleep(int sleep_millis) {
     assert(sleep_millis >= 0);
 #ifdef ROX_WINDOWS
     Sleep(sleep_millis);
@@ -391,7 +391,7 @@ void ROX_INTERNAL thread_sleep(int sleep_millis) {
 #endif
 }
 
-struct timespec ROX_INTERNAL get_future_timespec(int ms) {
+ROX_INTERNAL struct timespec get_future_timespec(int ms) {
     struct timespec now, due;
     timespec_get(&now, TIME_UTC);
     due.tv_sec = now.tv_sec + ms / 1000;
@@ -403,7 +403,7 @@ struct timespec ROX_INTERNAL get_future_timespec(int ms) {
     return due;
 }
 
-size_t ROX_INTERNAL rox_file_read_b(const char *file_path, unsigned char *buffer, size_t buffer_size) {
+ROX_INTERNAL size_t rox_file_read_b(const char *file_path, unsigned char *buffer, size_t buffer_size) {
     FILE *fp;
     if (!(fp = (fopen(file_path, "rb")))) {
         return -1;
@@ -436,7 +436,7 @@ size_t ROX_INTERNAL rox_file_read_b(const char *file_path, unsigned char *buffer
 // calculate the size of 'output' buffer required for a 'input' buffer of length x during Base64 encoding operation
 #define B64ENCODE_OUT_SAFESIZE(x) ((((x) + 3 - 1)/3) * 4 + 1)
 
-char *ROX_INTERNAL mem_base64_encode(const char *s) {
+ROX_INTERNAL char *mem_base64_encode(const char *s) {
     assert(s);
     size_t len = strlen(s);
     size_t size = B64ENCODE_OUT_SAFESIZE(len);
@@ -451,7 +451,7 @@ char *ROX_INTERNAL mem_base64_encode(const char *s) {
     return buffer;
 }
 
-void ROX_INTERNAL md5_str_b(const char *s, unsigned char *buffer) {
+ROX_INTERNAL void md5_str_b(const char *s, unsigned char *buffer) {
     MD5_CTX context;
     size_t len = strlen(s);
     MD5_Init(&context);
@@ -459,7 +459,7 @@ void ROX_INTERNAL md5_str_b(const char *s, unsigned char *buffer) {
     MD5_Final(buffer, &context);
 }
 
-char *ROX_INTERNAL mem_md5_str(const char *s) {
+ROX_INTERNAL char *mem_md5_str(const char *s) {
     assert(s);
     unsigned char digest[16];
     md5_str_b(s, digest);
@@ -474,7 +474,7 @@ char *ROX_INTERNAL mem_md5_str(const char *s) {
     return result;
 }
 
-unsigned char *ROX_INTERNAL mem_sha256(const char *s) {
+ROX_INTERNAL unsigned char *mem_sha256(const char *s) {
     assert(s);
     unsigned char hash[SHA256_DIGEST_LENGTH];
     SHA256_CTX sha256;
@@ -484,7 +484,7 @@ unsigned char *ROX_INTERNAL mem_sha256(const char *s) {
     return mem_copy(hash, SHA256_DIGEST_LENGTH);
 }
 
-char *ROX_INTERNAL mem_sha256_str(const char *s) {
+ROX_INTERNAL char *mem_sha256_str(const char *s) {
     assert(s);
     unsigned char *hash = mem_sha256(s);
     int i = 0;
@@ -497,7 +497,7 @@ char *ROX_INTERNAL mem_sha256_str(const char *s) {
     return result;
 }
 
-char *ROX_INTERNAL mem_str_join(const char *separator, List *strings) {
+ROX_INTERNAL char *mem_str_join(const char *separator, List *strings) {
     assert(separator);
     assert(strings);
     size_t result_len = 0;
@@ -536,7 +536,7 @@ char *ROX_INTERNAL mem_str_join(const char *separator, List *strings) {
  * @param s The BASE64-ed string to decode.
  * @return Size if the resulting decoded data in bytes.
  */
-size_t ROX_INTERNAL base64_decode_b(const char *s, unsigned char *buffer) {
+ROX_INTERNAL size_t base64_decode_b(const char *s, unsigned char *buffer) {
     assert(s);
     assert(buffer);
     size_t len = strlen(s);
@@ -552,7 +552,7 @@ size_t ROX_INTERNAL base64_decode_b(const char *s, unsigned char *buffer) {
 // calculate the size of 'output' buffer required for a 'input' buffer of length x during Base64 decoding operation
 #define B64DECODE_OUT_SAFESIZE(x) (((x)*3)/4)
 
-unsigned char *ROX_INTERNAL mem_base64_decode(const char *s, size_t *result_length) {
+ROX_INTERNAL unsigned char *mem_base64_decode(const char *s, size_t *result_length) {
     assert(s);
     size_t len = strlen(s);
     size_t size = B64DECODE_OUT_SAFESIZE(len) + 1;
@@ -571,7 +571,7 @@ unsigned char *ROX_INTERNAL mem_base64_decode(const char *s, size_t *result_leng
     }
 }
 
-char *ROX_INTERNAL mem_base64_decode_str(const char *s) {
+ROX_INTERNAL char *mem_base64_decode_str(const char *s) {
     assert(s);
     size_t size = B64DECODE_OUT_SAFESIZE(strlen(s)) + 1;
     unsigned char *buffer = malloc(size);
@@ -582,7 +582,7 @@ char *ROX_INTERNAL mem_base64_decode_str(const char *s) {
     return buffer;
 }
 
-cJSON *ROX_INTERNAL rox_json_create_object(void *skip, ...) {
+ROX_INTERNAL cJSON * rox_json_create_object(void *skip, ...) {
     va_list args;
             va_start(args, skip);
 
@@ -598,7 +598,7 @@ cJSON *ROX_INTERNAL rox_json_create_object(void *skip, ...) {
     return json;
 }
 
-cJSON *ROX_INTERNAL rox_json_create_array(void *skip, ...) {
+ROX_INTERNAL cJSON * rox_json_create_array(void *skip, ...) {
     va_list args;
             va_start(args, skip);
 
@@ -612,7 +612,7 @@ cJSON *ROX_INTERNAL rox_json_create_array(void *skip, ...) {
     return arr;
 }
 
-List *ROX_INTERNAL rox_list_create(void *skip, ...) {
+ROX_INTERNAL List *rox_list_create(void *skip, ...) {
     va_list args;
             va_start(args, skip);
 
@@ -627,7 +627,7 @@ List *ROX_INTERNAL rox_list_create(void *skip, ...) {
     return list;
 }
 
-List *ROX_INTERNAL rox_list_create_str(void *skip, ...) {
+ROX_INTERNAL List *rox_list_create_str(void *skip, ...) {
     va_list args;
             va_start(args, skip);
 
@@ -642,7 +642,7 @@ List *ROX_INTERNAL rox_list_create_str(void *skip, ...) {
     return list;
 }
 
-bool ROX_INTERNAL list_equals(List *one, List *another, bool (*cmp)(void *v1, void *v2)) {
+ROX_INTERNAL bool list_equals(List *one, List *another, bool (*cmp)(void *v1, void *v2)) {
     assert(one);
     assert(another);
     if (list_size(one) != list_size(another)) {
@@ -660,13 +660,13 @@ bool ROX_INTERNAL list_equals(List *one, List *another, bool (*cmp)(void *v1, vo
     return true;
 }
 
-bool ROX_INTERNAL str_list_equals(List *one, List *another) {
+ROX_INTERNAL bool str_list_equals(List *one, List *another) {
     assert(one);
     assert(another);
     return list_equals(one, another, (bool (*)(void *, void *)) &str_equals);
 }
 
-HashSet *ROX_INTERNAL rox_set_create(void *skip, ...) {
+ROX_INTERNAL HashSet *rox_set_create(void *skip, ...) {
     va_list args;
             va_start(args, skip);
 
@@ -697,17 +697,17 @@ HashTable *rox_map_create(void *skip, ...) {
     return map;
 }
 
-void ROX_INTERNAL rox_map_free_with_values(HashTable *map) {
+ROX_INTERNAL void rox_map_free_with_values(HashTable *map) {
     assert(map);
     rox_map_free_with_values_cb(map, &free);
 }
 
-void ROX_INTERNAL rox_map_free_with_keys_and_values(HashTable *map) {
+ROX_INTERNAL void rox_map_free_with_keys_and_values(HashTable *map) {
     assert(map);
     rox_hash_table_free_with_keys_and_values_cb(map, &free, &free);
 }
 
-void ROX_INTERNAL rox_map_free_with_values_cb(HashTable *map, void (*f)(void *)) {
+ROX_INTERNAL void rox_map_free_with_values_cb(HashTable *map, void (*f)(void *)) {
     assert(map);
     TableEntry *entry;
     HASHTABLE_FOREACH(entry, map, {
@@ -716,7 +716,7 @@ void ROX_INTERNAL rox_map_free_with_values_cb(HashTable *map, void (*f)(void *))
     hashtable_destroy(map);
 }
 
-void ROX_INTERNAL
+ROX_INTERNAL void
 rox_hash_table_free_with_keys_and_values_cb(HashTable *map, void (*f_key)(void *), void (*f_value)(void *)) {
     assert(map);
     TableEntry *entry;
@@ -731,7 +731,7 @@ rox_hash_table_free_with_keys_and_values_cb(HashTable *map, void (*f_key)(void *
 
 #define ROX_JSON_PRINT_BUFFER_SIZE 10240
 
-char *ROX_INTERNAL rox_json_print(cJSON *json, unsigned int flags) {
+ROX_INTERNAL char *rox_json_print(cJSON *json, unsigned int flags) {
     char buffer[ROX_JSON_PRINT_BUFFER_SIZE];
     cJSON_PrintPreallocated(json, buffer, ROX_JSON_PRINT_BUFFER_SIZE, (flags & ROX_JSON_PRINT_FORMATTED) != 0);
     return mem_copy_str(buffer);

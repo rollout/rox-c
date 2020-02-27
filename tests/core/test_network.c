@@ -12,7 +12,7 @@
 // Test Fixtures
 //
 
-typedef struct ROX_INTERNAL RequestTestContext {
+typedef struct RequestTestContext {
     ConfigurationFetchedInvoker *invoker;
     ErrorReporter *reporter;
     SdkSettings *sdk_settings;

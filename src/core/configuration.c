@@ -10,7 +10,7 @@
 // Configuration
 //
 
-Configuration *ROX_INTERNAL configuration_create(
+ROX_INTERNAL Configuration *configuration_create(
         List *experiments,
         List *target_groups,
         const char *signature_date) {
@@ -24,7 +24,7 @@ Configuration *ROX_INTERNAL configuration_create(
     return configuration;
 }
 
-bool ROX_INTERNAL configuration_equals(Configuration *c1, Configuration *c2) {
+ROX_INTERNAL bool configuration_equals(Configuration *c1, Configuration *c2) {
     assert(c1);
     assert(c2);
     if (!str_equals(c1->signature_date, c2->signature_date)) {
@@ -34,7 +34,7 @@ bool ROX_INTERNAL configuration_equals(Configuration *c1, Configuration *c2) {
            str_list_equals(c1->target_groups, c2->target_groups);
 }
 
-void ROX_INTERNAL configuration_free(Configuration *configuration) {
+ROX_INTERNAL void configuration_free(Configuration *configuration) {
     assert(configuration);
     free(configuration->signature_date);
     list_destroy_cb(configuration->experiments, (void (*)(void *)) &experiment_model_free);
@@ -46,7 +46,7 @@ void ROX_INTERNAL configuration_free(Configuration *configuration) {
 // ConfigurationFetchResult
 //
 
-const char *ROX_INTERNAL configuration_source_to_str(ConfigurationSource source) {
+ROX_INTERNAL const char *configuration_source_to_str(ConfigurationSource source) {
     assert(source);
     switch (source) {
         case CONFIGURATION_SOURCE_API:
@@ -61,7 +61,7 @@ const char *ROX_INTERNAL configuration_source_to_str(ConfigurationSource source)
     return "UNKNOWN";
 }
 
-ConfigurationFetchResult *ROX_INTERNAL configuration_fetch_result_create(cJSON *data, ConfigurationSource source) {
+ROX_INTERNAL ConfigurationFetchResult *configuration_fetch_result_create(cJSON *data, ConfigurationSource source) {
     assert(data);
     assert(source);
     ConfigurationFetchResult *result = calloc(1, sizeof(ConfigurationFetchResult));
@@ -70,7 +70,7 @@ ConfigurationFetchResult *ROX_INTERNAL configuration_fetch_result_create(cJSON *
     return result;
 }
 
-void ROX_INTERNAL configuration_fetch_result_free(ConfigurationFetchResult *result) {
+ROX_INTERNAL void configuration_fetch_result_free(ConfigurationFetchResult *result) {
     assert(result);
     if (result->parsed_data) {
         cJSON_Delete(result->parsed_data);
@@ -82,7 +82,7 @@ void ROX_INTERNAL configuration_fetch_result_free(ConfigurationFetchResult *resu
 // RoxConfigurationFetchedArgs
 //
 
-RoxConfigurationFetchedArgs *ROX_INTERNAL configuration_fetched_args_create(
+ROX_INTERNAL RoxConfigurationFetchedArgs *configuration_fetched_args_create(
         RoxFetchStatus fetcher_status,
         const char *creation_date,
         bool has_changes) {
@@ -96,7 +96,7 @@ RoxConfigurationFetchedArgs *ROX_INTERNAL configuration_fetched_args_create(
     return args;
 }
 
-RoxConfigurationFetchedArgs *ROX_INTERNAL configuration_fetched_args_create_error(RoxFetcherError error_details) {
+ROX_INTERNAL RoxConfigurationFetchedArgs *configuration_fetched_args_create_error(RoxFetcherError error_details) {
     assert(error_details);
     RoxConfigurationFetchedArgs *args = calloc(1, sizeof(RoxConfigurationFetchedArgs));
     args->fetcher_status = ErrorFetchedFailed;
@@ -104,7 +104,7 @@ RoxConfigurationFetchedArgs *ROX_INTERNAL configuration_fetched_args_create_erro
     return args;
 }
 
-RoxConfigurationFetchedArgs *ROX_INTERNAL configuration_fetched_args_copy(RoxConfigurationFetchedArgs *args) {
+ROX_INTERNAL RoxConfigurationFetchedArgs *configuration_fetched_args_copy(RoxConfigurationFetchedArgs *args) {
     assert(args);
     RoxConfigurationFetchedArgs *copy = calloc(1, sizeof(RoxConfigurationFetchedArgs));
     copy->fetcher_status = args->fetcher_status;
@@ -114,7 +114,7 @@ RoxConfigurationFetchedArgs *ROX_INTERNAL configuration_fetched_args_copy(RoxCon
     return copy;
 }
 
-void ROX_INTERNAL configuration_fetched_args_free(RoxConfigurationFetchedArgs *args) {
+ROX_INTERNAL void configuration_fetched_args_free(RoxConfigurationFetchedArgs *args) {
     assert(args);
     free(args);
 }
@@ -123,17 +123,17 @@ void ROX_INTERNAL configuration_fetched_args_free(RoxConfigurationFetchedArgs *a
 // ConfigurationFetchedInvoker
 //
 
-struct ROX_INTERNAL ConfigurationFetchedInvoker {
+struct ConfigurationFetchedInvoker {
     void *target;
     rox_configuration_fetched_handler handler;
 };
 
-ConfigurationFetchedInvoker *ROX_INTERNAL configuration_fetched_invoker_create() {
+ROX_INTERNAL ConfigurationFetchedInvoker *configuration_fetched_invoker_create() {
     ConfigurationFetchedInvoker *invoker = calloc(1, sizeof(ConfigurationFetchedInvoker));
     return invoker;
 }
 
-void ROX_INTERNAL configuration_fetched_invoker_invoke(
+ROX_INTERNAL void configuration_fetched_invoker_invoke(
         ConfigurationFetchedInvoker *invoker,
         RoxFetchStatus fetcher_status,
         const char *creation_date,
@@ -149,7 +149,7 @@ void ROX_INTERNAL configuration_fetched_invoker_invoke(
     configuration_fetched_args_free(args);
 }
 
-void ROX_INTERNAL configuration_fetched_invoker_invoke_error(
+ROX_INTERNAL void configuration_fetched_invoker_invoke_error(
         ConfigurationFetchedInvoker *invoker,
         RoxFetcherError fetcher_error) {
     assert(invoker);
@@ -162,7 +162,7 @@ void ROX_INTERNAL configuration_fetched_invoker_invoke_error(
     configuration_fetched_args_free(args);
 }
 
-void ROX_INTERNAL configuration_fetched_invoker_register_handler(
+ROX_INTERNAL void configuration_fetched_invoker_register_handler(
         ConfigurationFetchedInvoker *invoker,
         void *target,
         rox_configuration_fetched_handler handler) {
@@ -172,7 +172,7 @@ void ROX_INTERNAL configuration_fetched_invoker_register_handler(
     invoker->handler = handler;
 }
 
-void ROX_INTERNAL configuration_fetched_invoker_free(ConfigurationFetchedInvoker *invoker) {
+ROX_INTERNAL void configuration_fetched_invoker_free(ConfigurationFetchedInvoker *invoker) {
     assert(invoker);
     free(invoker);
 }
@@ -181,14 +181,14 @@ void ROX_INTERNAL configuration_fetched_invoker_free(ConfigurationFetchedInvoker
 // ConfigurationParser
 //
 
-struct ROX_INTERNAL ConfigurationParser {
+struct ConfigurationParser {
     SignatureVerifier *signature_verifier;
     ErrorReporter *error_reporter;
     APIKeyVerifier *api_key_verifier;
     ConfigurationFetchedInvoker *configuration_fetched_invoker;
 };
 
-ConfigurationParser *ROX_INTERNAL configuration_parser_create(
+ROX_INTERNAL ConfigurationParser *configuration_parser_create(
         SignatureVerifier *signature_verifier,
         ErrorReporter *error_reporter,
         APIKeyVerifier *api_key_verifier,
@@ -384,7 +384,7 @@ static List *_configuration_parser_parse_target_groups(ConfigurationParser *pars
     return result;
 }
 
-Configuration *ROX_INTERNAL configuration_parser_parse(
+ROX_INTERNAL Configuration *configuration_parser_parse(
         ConfigurationParser *parser,
         ConfigurationFetchResult *fetch_result) {
 
@@ -446,7 +446,7 @@ Configuration *ROX_INTERNAL configuration_parser_parse(
             signature_date_json->valuestring);
 }
 
-void ROX_INTERNAL configuration_parser_free(ConfigurationParser *parser) {
+ROX_INTERNAL void configuration_parser_free(ConfigurationParser *parser) {
     assert(parser);
     free(parser);
 }

@@ -6,7 +6,7 @@
 // Event
 //
 
-typedef struct ROX_INTERNAL NotificationListenerEvent {
+typedef struct NotificationListenerEvent {
     const char *event_name;
     const char *data;
 } NotificationListenerEvent;
@@ -16,23 +16,23 @@ typedef struct ROX_INTERNAL NotificationListenerEvent {
  * @param data May be <code>NULL</code>.
  * @return Not <code>NULL</code>.
  */
-NotificationListenerEvent *ROX_INTERNAL notification_listener_event_create(
+ROX_INTERNAL NotificationListenerEvent *notification_listener_event_create(
         const char *event_name,
         const char *data);
 
-NotificationListenerEvent *ROX_INTERNAL notification_listener_event_copy(NotificationListenerEvent *event);
+ROX_INTERNAL NotificationListenerEvent *notification_listener_event_copy(NotificationListenerEvent *event);
 
-void ROX_INTERNAL notification_listener_event_free(NotificationListenerEvent *event);
+ROX_INTERNAL void notification_listener_event_free(NotificationListenerEvent *event);
 
 //
 // NotificationListener
 //
 
-typedef struct ROX_INTERNAL NotificationListener NotificationListener;
+typedef struct NotificationListener NotificationListener;
 
-typedef void ROX_INTERNAL (*notification_listener_event_handler)(void *target, NotificationListenerEvent *event);
+typedef void (*notification_listener_event_handler)(void *target, NotificationListenerEvent *event);
 
-typedef struct ROX_INTERNAL NotificationListenerConfig {
+typedef struct NotificationListenerConfig {
     const char *listen_url;
     const char *app_key;
     bool testing;
@@ -44,7 +44,7 @@ typedef struct ROX_INTERNAL NotificationListenerConfig {
  * @param config Not <code>NULL</code>. String values will be copied internally.
  * @return Not <code>NULL</code>.
  */
-NotificationListener *ROX_INTERNAL notification_listener_create(NotificationListenerConfig *config);
+ROX_INTERNAL NotificationListener *notification_listener_create(NotificationListenerConfig *config);
 
 /**
  * @param listener Not <code>NULL</code>.
@@ -52,7 +52,7 @@ NotificationListener *ROX_INTERNAL notification_listener_create(NotificationList
  * @param target May be <code>NULL</code>.
  * @param handler Not <code>NULL</code>.
  */
-void ROX_INTERNAL notification_listener_on(
+ROX_INTERNAL void notification_listener_on(
         NotificationListener *listener,
         const char *event_name,
         void *target,
@@ -66,19 +66,19 @@ void ROX_INTERNAL notification_listener_on(
  * @param listener Not <code>NULL</code>.
  * @param input Not <code>NULL</code>.
  */
-void ROX_INTERNAL notification_listener_test(NotificationListener *listener, const char *input);
+ROX_INTERNAL void notification_listener_test(NotificationListener *listener, const char *input);
 
 /**
  * @param listener Not <code>NULL</code>.
  */
-void ROX_INTERNAL notification_listener_start(NotificationListener *listener);
+ROX_INTERNAL void notification_listener_start(NotificationListener *listener);
 
 /**
  * @param listener Not <code>NULL</code>.
  */
-void ROX_INTERNAL notification_listener_stop(NotificationListener *listener);
+ROX_INTERNAL void notification_listener_stop(NotificationListener *listener);
 
 /**
  * @param listener Not <code>NULL</code>.
  */
-void ROX_INTERNAL notification_listener_free(NotificationListener *listener);
+ROX_INTERNAL void notification_listener_free(NotificationListener *listener);

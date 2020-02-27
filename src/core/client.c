@@ -11,7 +11,7 @@
 // SdkSettings
 //
 
-SdkSettings *ROX_INTERNAL sdk_settings_create(const char *api_key, const char *dev_mode_secret) {
+ROX_INTERNAL SdkSettings *sdk_settings_create(const char *api_key, const char *dev_mode_secret) {
     assert(api_key);
     assert(dev_mode_secret);
     SdkSettings *settings = calloc(1, sizeof(SdkSettings));
@@ -20,7 +20,7 @@ SdkSettings *ROX_INTERNAL sdk_settings_create(const char *api_key, const char *d
     return settings;
 }
 
-void ROX_INTERNAL sdk_settings_free(SdkSettings *sdk_settings) {
+ROX_INTERNAL void sdk_settings_free(SdkSettings *sdk_settings) {
     assert(sdk_settings);
     free(sdk_settings->api_key);
     free(sdk_settings->dev_mode_secret);
@@ -31,7 +31,7 @@ void ROX_INTERNAL sdk_settings_free(SdkSettings *sdk_settings) {
 // RoxOptions
 //
 
-struct ROX_API RoxOptions {
+struct RoxOptions {
     char *version;
     char *dev_mod_key;
     char *roxy_url;
@@ -44,7 +44,7 @@ struct ROX_API RoxOptions {
     rox_dynamic_properties_rule dynamic_properties_rule;
 };
 
-RoxOptions *ROX_API rox_options_create() {
+ROX_API RoxOptions *rox_options_create() {
     RoxOptions *options = calloc(1, sizeof(RoxOptions));
     options->dev_mod_key = mem_copy_str("stam");
     options->version = mem_copy_str("0.0");
@@ -52,26 +52,26 @@ RoxOptions *ROX_API rox_options_create() {
     return options;
 }
 
-void ROX_API rox_options_set_dev_mode_key(RoxOptions *options, const char *key) {
+ROX_API void rox_options_set_dev_mode_key(RoxOptions *options, const char *key) {
     assert(options);
     assert(key);
     free(options->dev_mod_key);
     options->dev_mod_key = mem_copy_str(key);
 }
 
-void ROX_API rox_options_set_version(RoxOptions *options, const char *version) {
+ROX_API void rox_options_set_version(RoxOptions *options, const char *version) {
     assert(options);
     assert(version);
     free(options->version);
     options->version = mem_copy_str(version);
 }
 
-void ROX_API rox_options_set_fetch_interval(RoxOptions *options, int fetch_interval) {
+ROX_API void rox_options_set_fetch_interval(RoxOptions *options, int fetch_interval) {
     assert(options);
     options->fetch_interval = fetch_interval < 30 ? 30 : fetch_interval;
 }
 
-void ROX_API rox_options_set_roxy_url(RoxOptions *options, const char *roxy_url) {
+ROX_API void rox_options_set_roxy_url(RoxOptions *options, const char *roxy_url) {
     assert(options);
     assert(roxy_url);
     if (options->roxy_url) {
@@ -80,7 +80,7 @@ void ROX_API rox_options_set_roxy_url(RoxOptions *options, const char *roxy_url)
     options->roxy_url = mem_copy_str(roxy_url);
 }
 
-void ROX_API rox_options_set_impression_handler(
+ROX_API void rox_options_set_impression_handler(
         RoxOptions *options,
         void *target,
         rox_impression_handler handler) {
@@ -90,7 +90,7 @@ void ROX_API rox_options_set_impression_handler(
     options->impression_handler = handler;
 }
 
-void ROX_API rox_options_set_configuration_fetched_handler(
+ROX_API void rox_options_set_configuration_fetched_handler(
         RoxOptions *options,
         void *target,
         rox_configuration_fetched_handler handler) {
@@ -100,7 +100,7 @@ void ROX_API rox_options_set_configuration_fetched_handler(
     options->configuration_fetched_handler = handler;
 }
 
-void ROX_API rox_options_set_dynamic_properties_rule(
+ROX_API void rox_options_set_dynamic_properties_rule(
         RoxOptions *options,
         void *target,
         rox_dynamic_properties_rule rule) {
@@ -110,57 +110,57 @@ void ROX_API rox_options_set_dynamic_properties_rule(
     options->dynamic_properties_rule = rule;
 }
 
-char *ROX_INTERNAL rox_options_get_dev_mode_key(RoxOptions *options) {
+ROX_INTERNAL char *rox_options_get_dev_mode_key(RoxOptions *options) {
     assert(options);
     return options->dev_mod_key;
 }
 
-char *ROX_INTERNAL rox_options_get_version(RoxOptions *options) {
+ROX_INTERNAL char *rox_options_get_version(RoxOptions *options) {
     assert(options);
     return options->version;
 }
 
-int ROX_INTERNAL rox_options_get_fetch_interval(RoxOptions *options) {
+ROX_INTERNAL int rox_options_get_fetch_interval(RoxOptions *options) {
     assert(options);
     return options->fetch_interval;
 }
 
-const char *ROX_INTERNAL rox_options_get_roxy_url(RoxOptions *options) {
+ROX_INTERNAL const char *rox_options_get_roxy_url(RoxOptions *options) {
     assert(options);
     return options->roxy_url;
 }
 
-rox_impression_handler ROX_INTERNAL rox_options_get_impression_handler(RoxOptions *options) {
+ROX_INTERNAL rox_impression_handler rox_options_get_impression_handler(RoxOptions *options) {
     assert(options);
     return options->impression_handler;
 }
 
-void *ROX_INTERNAL rox_options_get_impression_handler_target(RoxOptions *options) {
+ROX_INTERNAL void *rox_options_get_impression_handler_target(RoxOptions *options) {
     assert(options);
     return options->impression_handler_target;
 }
 
-rox_configuration_fetched_handler ROX_INTERNAL rox_options_get_configuration_fetched_handler(RoxOptions *options) {
+ROX_INTERNAL rox_configuration_fetched_handler rox_options_get_configuration_fetched_handler(RoxOptions *options) {
     assert(options);
     return options->configuration_fetched_handler;
 }
 
-void *ROX_INTERNAL rox_options_get_configuration_fetched_handler_target(RoxOptions *options) {
+ROX_INTERNAL void *rox_options_get_configuration_fetched_handler_target(RoxOptions *options) {
     assert(options);
     return options->configuration_fetched_target;
 }
 
-rox_dynamic_properties_rule ROX_INTERNAL rox_options_get_dynamic_properties_rule(RoxOptions *options) {
+ROX_INTERNAL rox_dynamic_properties_rule rox_options_get_dynamic_properties_rule(RoxOptions *options) {
     assert(options);
     return options->dynamic_properties_rule;
 }
 
-void *ROX_INTERNAL rox_options_get_dynamic_properties_rule_target(RoxOptions *options) {
+ROX_INTERNAL void *rox_options_get_dynamic_properties_rule_target(RoxOptions *options) {
     assert(options);
     return options->dynamic_properties_rule_target;
 }
 
-void ROX_INTERNAL rox_options_free(RoxOptions *options) {
+ROX_INTERNAL void rox_options_free(RoxOptions *options) {
     assert(options);
     free(options->dev_mod_key);
     free(options->version);
@@ -173,7 +173,7 @@ void ROX_INTERNAL rox_options_free(RoxOptions *options) {
 // DeviceProperties
 //
 
-struct ROX_INTERNAL DeviceProperties {
+struct DeviceProperties {
     SdkSettings *sdk_settings;
     RoxOptions *rox_options;
     HashTable *map;
@@ -181,7 +181,7 @@ struct ROX_INTERNAL DeviceProperties {
     char *env;
 };
 
-DeviceProperties *ROX_INTERNAL device_properties_create_from_map(
+ROX_INTERNAL DeviceProperties *device_properties_create_from_map(
         SdkSettings *sdk_settings,
         RoxOptions *rox_options,
         HashTable *map) {
@@ -213,7 +213,7 @@ DeviceProperties *ROX_INTERNAL device_properties_create_from_map(
     return properties;
 }
 
-DeviceProperties *ROX_INTERNAL device_properties_create(
+ROX_INTERNAL DeviceProperties *device_properties_create(
         SdkSettings *sdk_settings,
         RoxOptions *rox_options) {
     assert(sdk_settings);
@@ -236,32 +236,32 @@ DeviceProperties *ROX_INTERNAL device_properties_create(
     return device_properties_create_from_map(sdk_settings, rox_options, map);
 }
 
-HashTable *ROX_INTERNAL device_properties_get_all_properties(DeviceProperties *properties) {
+ROX_INTERNAL HashTable *device_properties_get_all_properties(DeviceProperties *properties) {
     assert(properties);
     return properties->map;
 }
 
-const char *ROX_INTERNAL device_properties_get_rollout_environment(DeviceProperties *properties) {
+ROX_INTERNAL const char *device_properties_get_rollout_environment(DeviceProperties *properties) {
     assert(properties);
     return properties->env;
 }
 
-const char *ROX_INTERNAL device_properties_get_lib_version(DeviceProperties *properties) {
+ROX_INTERNAL const char *device_properties_get_lib_version(DeviceProperties *properties) {
     assert(properties);
     return ROX_LIB_VERSION;
 }
 
-const char *ROX_INTERNAL device_properties_get_distinct_id(DeviceProperties *properties) {
+ROX_INTERNAL const char *device_properties_get_distinct_id(DeviceProperties *properties) {
     assert(properties);
     return properties->distinct_id;
 }
 
-const char *ROX_INTERNAL device_properties_get_rollout_key(DeviceProperties *properties) {
+ROX_INTERNAL const char *device_properties_get_rollout_key(DeviceProperties *properties) {
     assert(properties);
     return properties->sdk_settings->api_key;
 }
 
-void ROX_INTERNAL device_properties_free(DeviceProperties *properties) {
+ROX_INTERNAL void device_properties_free(DeviceProperties *properties) {
     assert(properties);
     free(properties->env);
     rox_map_free_with_values(properties->map);
@@ -272,12 +272,12 @@ void ROX_INTERNAL device_properties_free(DeviceProperties *properties) {
 // RoxDynamicApi
 //
 
-struct ROX_API RoxDynamicApi {
+struct RoxDynamicApi {
     FlagRepository *flag_repository;
     EntitiesProvider *entities_provider;
 };
 
-RoxDynamicApi *ROX_INTERNAL dynamic_api_create(
+ROX_INTERNAL RoxDynamicApi *dynamic_api_create(
         FlagRepository *flag_repository,
         EntitiesProvider *entities_provider) {
     assert(flag_repository);
@@ -288,7 +288,7 @@ RoxDynamicApi *ROX_INTERNAL dynamic_api_create(
     return api;
 }
 
-bool ROX_INTERNAL dynamic_api_is_enabled(
+ROX_INTERNAL bool dynamic_api_is_enabled(
         RoxDynamicApi *api,
         const char *name,
         bool default_value,
@@ -311,7 +311,7 @@ bool ROX_INTERNAL dynamic_api_is_enabled(
     return is_enabled ? *is_enabled : default_value;
 }
 
-char *ROX_API rox_dynamic_api_get_value(
+ROX_API char *rox_dynamic_api_get_value(
         RoxDynamicApi *api,
         const char *name,
         char *default_value,
@@ -335,7 +335,7 @@ char *ROX_API rox_dynamic_api_get_value(
              : NULL;
 }
 
-void ROX_API rox_dynamic_api_free(RoxDynamicApi *api) {
+ROX_API void rox_dynamic_api_free(RoxDynamicApi *api) {
     assert(api);
     free(api);
 }
@@ -344,12 +344,12 @@ void ROX_API rox_dynamic_api_free(RoxDynamicApi *api) {
 // InternalFlags
 //
 
-struct ROX_INTERNAL InternalFlags {
+struct InternalFlags {
     ExperimentRepository *experiment_repository;
     Parser *parser;
 };
 
-InternalFlags *ROX_INTERNAL internal_flags_create(
+ROX_INTERNAL InternalFlags *internal_flags_create(
         ExperimentRepository *experiment_repository,
         Parser *parser) {
     assert(experiment_repository);
@@ -361,7 +361,7 @@ InternalFlags *ROX_INTERNAL internal_flags_create(
     return flags;
 }
 
-bool ROX_INTERNAL internal_flags_is_enabled(InternalFlags *flags, const char *flag_name) {
+ROX_INTERNAL bool internal_flags_is_enabled(InternalFlags *flags, const char *flag_name) {
     assert(flags);
     assert(flag_name);
     ExperimentModel *internal_experiment = experiment_repository_get_experiment_by_flag(
@@ -376,7 +376,7 @@ bool ROX_INTERNAL internal_flags_is_enabled(InternalFlags *flags, const char *fl
     return enabled;
 }
 
-int *ROX_INTERNAL internal_flags_get_int_value(InternalFlags *flags, const char *flag_name) {
+ROX_INTERNAL int *internal_flags_get_int_value(InternalFlags *flags, const char *flag_name) {
     assert(flags);
     assert(flag_name);
     ExperimentModel *internal_experiment = experiment_repository_get_experiment_by_flag(
@@ -395,7 +395,7 @@ int *ROX_INTERNAL internal_flags_get_int_value(InternalFlags *flags, const char 
     return mem_copy_int(int_value);
 }
 
-void ROX_INTERNAL internal_flags_free(InternalFlags *flags) {
+ROX_INTERNAL void internal_flags_free(InternalFlags *flags) {
     assert(flags);
     free(flags);
 }
@@ -404,7 +404,7 @@ void ROX_INTERNAL internal_flags_free(InternalFlags *flags) {
 // MD5Generator
 //
 
-char *ROX_INTERNAL md5_generator_generate(HashTable *properties, List *generator_list, List *extra_values) {
+ROX_INTERNAL char *md5_generator_generate(HashTable *properties, List *generator_list, List *extra_values) {
     assert(properties);
     assert(generator_list);
 
@@ -437,26 +437,26 @@ char *ROX_INTERNAL md5_generator_generate(HashTable *properties, List *generator
 // BUID
 //
 
-struct ROX_INTERNAL BUID {
+struct BUID {
     DeviceProperties *device_properties;
     char *buid;
 };
 
-BUID *ROX_INTERNAL buid_create(DeviceProperties *device_properties) {
+ROX_INTERNAL BUID *buid_create(DeviceProperties *device_properties) {
     assert(device_properties);
     BUID *buid = calloc(1, sizeof(BUID));
     buid->device_properties = device_properties;
     return buid;
 }
 
-BUID *ROX_INTERNAL buid_create_dummy(const char *value) {
+ROX_INTERNAL BUID *buid_create_dummy(const char *value) {
     assert(value);
     BUID *buid = calloc(1, sizeof(BUID));
     buid->buid = mem_copy_str(value);
     return buid;
 }
 
-char *ROX_INTERNAL buid_get_value(BUID *buid) {
+ROX_INTERNAL char *buid_get_value(BUID *buid) {
     assert(buid);
 
     if (buid->buid) {
@@ -477,7 +477,7 @@ char *ROX_INTERNAL buid_get_value(BUID *buid) {
     return buid->buid;
 }
 
-void ROX_INTERNAL buid_free(BUID *buid) {
+ROX_INTERNAL void buid_free(BUID *buid) {
     assert(buid);
     if (buid->buid) {
         free(buid->buid);

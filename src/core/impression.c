@@ -1,11 +1,11 @@
 #include <assert.h>
 #include "impression.h"
 
-struct ROX_INTERNAL ImpressionInvoker {
+struct ImpressionInvoker {
     List *handlers;
 };
 
-typedef struct ROX_INTERNAL ImpressionHandler {
+typedef struct ImpressionHandler {
     void *target;
     rox_impression_handler handler;
 } ImpressionHandler;
@@ -16,7 +16,7 @@ ImpressionInvoker *impression_invoker_create() {
     return invoker;
 }
 
-void ROX_INTERNAL impression_invoker_register(
+ROX_INTERNAL void impression_invoker_register(
         ImpressionInvoker *impression_invoker,
         void *target,
         rox_impression_handler handler) {
@@ -28,7 +28,7 @@ void ROX_INTERNAL impression_invoker_register(
     list_add(impression_invoker->handlers, h);
 }
 
-void ROX_INTERNAL impression_invoker_invoke(
+ROX_INTERNAL void impression_invoker_invoke(
         ImpressionInvoker *impression_invoker,
         RoxReportingValue *value,
         ExperimentModel *experiment,
@@ -44,7 +44,7 @@ void ROX_INTERNAL impression_invoker_invoke(
     }
 }
 
-void ROX_INTERNAL impression_invoker_free(ImpressionInvoker *impression_invoker) {
+ROX_INTERNAL void impression_invoker_free(ImpressionInvoker *impression_invoker) {
     assert(impression_invoker);
     list_destroy_cb(impression_invoker->handlers, &free);
     free(impression_invoker);

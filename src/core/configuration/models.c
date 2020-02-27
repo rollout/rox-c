@@ -6,7 +6,7 @@
 // ExperimentModel
 //
 
-ExperimentModel *ROX_INTERNAL experiment_model_create(
+ROX_INTERNAL ExperimentModel *experiment_model_create(
         const char *id,
         const char *name,
         const char *condition,
@@ -32,7 +32,7 @@ ExperimentModel *ROX_INTERNAL experiment_model_create(
     return model;
 }
 
-ExperimentModel *ROX_INTERNAL experiment_model_copy(ExperimentModel *model) {
+ROX_INTERNAL ExperimentModel *experiment_model_copy(ExperimentModel *model) {
     assert(model);
     return experiment_model_create(model->id,
                                    model->name,
@@ -43,7 +43,7 @@ ExperimentModel *ROX_INTERNAL experiment_model_copy(ExperimentModel *model) {
                                    model->stickiness_property);
 }
 
-void ROX_INTERNAL experiment_model_free(ExperimentModel *model) {
+ROX_INTERNAL void experiment_model_free(ExperimentModel *model) {
     assert(model);
     free(model->id);
     free(model->name);
@@ -69,7 +69,7 @@ void ROX_INTERNAL experiment_model_free(ExperimentModel *model) {
 // TargetGroupModel
 //
 
-TargetGroupModel *ROX_INTERNAL target_group_model_create(
+ROX_INTERNAL TargetGroupModel *target_group_model_create(
         const char *id,
         const char *condition) {
     assert(id);
@@ -80,12 +80,12 @@ TargetGroupModel *ROX_INTERNAL target_group_model_create(
     return model;
 }
 
-TargetGroupModel *ROX_INTERNAL target_group_model_copy(TargetGroupModel *model) {
+ROX_INTERNAL TargetGroupModel *target_group_model_copy(TargetGroupModel *model) {
     assert(model);
     return target_group_model_create(model->id, model->condition);
 }
 
-void ROX_INTERNAL target_group_model_free(TargetGroupModel *model) {
+ROX_INTERNAL void target_group_model_free(TargetGroupModel *model) {
     assert(model);
     free(model->id);
     free(model->condition);

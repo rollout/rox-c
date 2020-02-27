@@ -4,7 +4,7 @@
 #include "core/repositories.h"
 #include "core/properties.h"
 
-double ROX_INTERNAL experiment_extensions_get_bucket(const char *seed);
+ROX_INTERNAL double experiment_extensions_get_bucket(const char *seed);
 
 /**
  * @param parser Not <code>NULL</code>.
@@ -12,7 +12,7 @@ double ROX_INTERNAL experiment_extensions_get_bucket(const char *seed);
  * @param flags_repository Not <code>NULL</code>.
  * @param experiment_repository Not <code>NULL</code>.
  */
-void ROX_INTERNAL parser_add_experiments_extensions(
+ROX_INTERNAL void parser_add_experiments_extensions(
         Parser *parser,
         TargetGroupRepository *target_groups_repository,
         FlagRepository *flags_repository,
@@ -23,7 +23,7 @@ void ROX_INTERNAL parser_add_experiments_extensions(
  * @param custom_property_repository Not <code>NULL</code>.
  * @param dynamic_properties Not <code>NULL</code>.
  */
-void ROX_INTERNAL parser_add_properties_extensions(
+ROX_INTERNAL void parser_add_properties_extensions(
         Parser *parser,
         CustomPropertyRepository *custom_property_repository,
         DynamicProperties *dynamic_properties);

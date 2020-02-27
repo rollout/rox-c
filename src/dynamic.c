@@ -8,7 +8,7 @@
 // Handle
 //
 
-struct ROX_API RoxDynamicValue {
+struct RoxDynamicValue {
     int *int_value;
     double *double_value;
     char *str_value;
@@ -28,70 +28,70 @@ static RoxDynamicValue *_create_value() {
     return (RoxDynamicValue *) calloc(1, sizeof(RoxDynamicValue));
 }
 
-RoxDynamicValue *ROX_API rox_dynamic_value_create_int(int value) {
+ROX_API RoxDynamicValue *rox_dynamic_value_create_int(int value) {
     RoxDynamicValue *dynamic_value = _create_value();
     dynamic_value->int_value = mem_copy_int(value);
     return dynamic_value;
 }
 
-RoxDynamicValue *ROX_API rox_dynamic_value_create_double(double value) {
+ROX_API RoxDynamicValue *rox_dynamic_value_create_double(double value) {
     RoxDynamicValue *dynamic_value = _create_value();
     dynamic_value->double_value = mem_copy_double(value);
     return dynamic_value;
 }
 
-RoxDynamicValue *ROX_API rox_dynamic_value_create_double_ptr(double *value) {
+ROX_API RoxDynamicValue *rox_dynamic_value_create_double_ptr(double *value) {
     RoxDynamicValue *dynamic_value = _create_value();
     dynamic_value->double_value = value;
     return dynamic_value;
 }
 
-RoxDynamicValue *ROX_API rox_dynamic_value_create_boolean(bool value) {
+ROX_API RoxDynamicValue *rox_dynamic_value_create_boolean(bool value) {
     RoxDynamicValue *dynamic_value = _create_value();
     dynamic_value->is_true = value;
     dynamic_value->is_false = !value;
     return dynamic_value;
 }
 
-RoxDynamicValue *ROX_API rox_dynamic_value_create_string_copy(const char *value) {
+ROX_API RoxDynamicValue *rox_dynamic_value_create_string_copy(const char *value) {
     assert(value);
     return rox_dynamic_value_create_string_ptr(mem_copy_str(value));
 }
 
-RoxDynamicValue *ROX_API rox_dynamic_value_create_string_ptr(char *value) {
+ROX_API RoxDynamicValue *rox_dynamic_value_create_string_ptr(char *value) {
     assert(value);
     RoxDynamicValue *dynamic_value = _create_value();
     dynamic_value->str_value = value;
     return dynamic_value;
 }
 
-RoxDynamicValue *ROX_API rox_dynamic_value_create_list(List *value) {
+ROX_API RoxDynamicValue *rox_dynamic_value_create_list(List *value) {
     assert(value);
     RoxDynamicValue *dynamic_value = _create_value();
     dynamic_value->list_value = value;
     return dynamic_value;
 }
 
-RoxDynamicValue *ROX_API rox_dynamic_value_create_map(HashTable *value) {
+ROX_API RoxDynamicValue *rox_dynamic_value_create_map(HashTable *value) {
     assert(value);
     RoxDynamicValue *dynamic_value = _create_value();
     dynamic_value->map_value = value;
     return dynamic_value;
 }
 
-RoxDynamicValue *ROX_API rox_dynamic_value_create_null() {
+ROX_API RoxDynamicValue *rox_dynamic_value_create_null() {
     RoxDynamicValue *dynamic_value = _create_value();
     dynamic_value->is_null = true;
     return dynamic_value;
 }
 
-RoxDynamicValue *ROX_API rox_dynamic_value_create_undefined() {
+ROX_API RoxDynamicValue *rox_dynamic_value_create_undefined() {
     RoxDynamicValue *dynamic_value = _create_value();
     dynamic_value->is_undefined = true;
     return dynamic_value;
 }
 
-RoxDynamicValue *ROX_API rox_dynamic_value_create_copy(RoxDynamicValue *value) {
+ROX_API RoxDynamicValue *rox_dynamic_value_create_copy(RoxDynamicValue *value) {
     assert(value);
     RoxDynamicValue *copy = _create_value();
     if (value->int_value) {
@@ -130,42 +130,42 @@ RoxDynamicValue *ROX_API rox_dynamic_value_create_copy(RoxDynamicValue *value) {
 // Check methods
 //
 
-bool ROX_API rox_dynamic_value_is_int(RoxDynamicValue *value) {
+ROX_API bool rox_dynamic_value_is_int(RoxDynamicValue *value) {
     assert(value);
     return value->int_value != NULL;
 }
 
-bool ROX_API rox_dynamic_value_is_double(RoxDynamicValue *value) {
+ROX_API bool rox_dynamic_value_is_double(RoxDynamicValue *value) {
     assert(value);
     return value->double_value != NULL;
 }
 
-bool ROX_API rox_dynamic_value_is_boolean(RoxDynamicValue *value) {
+ROX_API bool rox_dynamic_value_is_boolean(RoxDynamicValue *value) {
     assert(value);
     return value->is_true || value->is_false;
 }
 
-bool ROX_API rox_dynamic_value_is_string(RoxDynamicValue *value) {
+ROX_API bool rox_dynamic_value_is_string(RoxDynamicValue *value) {
     assert(value);
     return value->str_value != NULL;
 }
 
-bool ROX_API rox_dynamic_value_is_list(RoxDynamicValue *value) {
+ROX_API bool rox_dynamic_value_is_list(RoxDynamicValue *value) {
     assert(value);
     return value->list_value != NULL;
 }
 
-bool ROX_API rox_dynamic_value_is_map(RoxDynamicValue *value) {
+ROX_API bool rox_dynamic_value_is_map(RoxDynamicValue *value) {
     assert(value);
     return value->map_value != NULL;
 }
 
-bool ROX_API rox_dynamic_value_is_undefined(RoxDynamicValue *value) {
+ROX_API bool rox_dynamic_value_is_undefined(RoxDynamicValue *value) {
     assert(value);
     return value->is_undefined;
 }
 
-bool ROX_API rox_dynamic_value_is_null(RoxDynamicValue *value) {
+ROX_API bool rox_dynamic_value_is_null(RoxDynamicValue *value) {
     assert(value);
     return value->is_null;
 }
@@ -174,37 +174,37 @@ bool ROX_API rox_dynamic_value_is_null(RoxDynamicValue *value) {
 // Getters
 //
 
-int ROX_API rox_dynamic_value_get_int(RoxDynamicValue *value) {
+ROX_API int rox_dynamic_value_get_int(RoxDynamicValue *value) {
     assert(value);
     assert(value->int_value);
     return *value->int_value;
 }
 
-double ROX_API rox_dynamic_value_get_double(RoxDynamicValue *value) {
+ROX_API double rox_dynamic_value_get_double(RoxDynamicValue *value) {
     assert(value);
     assert(value->double_value);
     return *value->double_value;
 }
 
-bool ROX_API rox_dynamic_value_get_boolean(RoxDynamicValue *value) {
+ROX_API bool rox_dynamic_value_get_boolean(RoxDynamicValue *value) {
     assert(value);
     assert(value->is_true || value->is_false);
     return value->is_true;
 }
 
-char *ROX_API rox_dynamic_value_get_string(RoxDynamicValue *value) {
+ROX_API char *rox_dynamic_value_get_string(RoxDynamicValue *value) {
     assert(value);
     assert(value->str_value);
     return value->str_value;
 }
 
-List *ROX_API rox_dynamic_value_get_list(RoxDynamicValue *value) {
+ROX_API List *rox_dynamic_value_get_list(RoxDynamicValue *value) {
     assert(value);
     assert(value->list_value);
     return value->list_value;
 }
 
-HashTable *ROX_API rox_dynamic_value_get_map(RoxDynamicValue *value) {
+ROX_API HashTable *rox_dynamic_value_get_map(RoxDynamicValue *value) {
     assert(value);
     assert(value->map_value);
     return value->map_value;
@@ -214,7 +214,7 @@ HashTable *ROX_API rox_dynamic_value_get_map(RoxDynamicValue *value) {
 // Other
 //
 
-bool ROX_API rox_dynamic_value_equals(RoxDynamicValue *v1, RoxDynamicValue *v2) {
+ROX_API bool rox_dynamic_value_equals(RoxDynamicValue *v1, RoxDynamicValue *v2) {
     assert(v1);
     assert(v2);
     if (v1->is_null) {
@@ -245,7 +245,7 @@ bool ROX_API rox_dynamic_value_equals(RoxDynamicValue *v1, RoxDynamicValue *v2) 
 // Destructor
 //
 
-RoxDynamicValue *ROX_API rox_dynamic_value_free(RoxDynamicValue *value) {
+ROX_API RoxDynamicValue *rox_dynamic_value_free(RoxDynamicValue *value) {
     assert(value);
     if (value->int_value) {
         free(value->int_value);

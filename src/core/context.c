@@ -2,14 +2,14 @@
 #include "context.h"
 #include "util.h"
 
-struct ROX_API RoxContext {
+struct RoxContext {
     HashTable *map;
     void *target;
     rox_context_get_value_func get_value;
     rox_context_free_target_func fee_target;
 };
 
-RoxDynamicValue *ROX_API rox_context_get(RoxContext *context, const char *key) {
+ROX_API RoxDynamicValue *rox_context_get(RoxContext *context, const char *key) {
     assert(context);
     assert(key);
     if (context->get_value) {
@@ -22,13 +22,13 @@ RoxDynamicValue *ROX_API rox_context_get(RoxContext *context, const char *key) {
     return NULL;
 }
 
-RoxContext *ROX_API rox_context_create_empty() {
+ROX_API RoxContext *rox_context_create_empty() {
     RoxContext *context = calloc(1, sizeof(RoxContext));
     hashtable_new(&context->map);
     return context;
 }
 
-RoxContext *ROX_API rox_context_create_from_map(HashTable *map) {
+ROX_API RoxContext *rox_context_create_from_map(HashTable *map) {
     assert(map);
     RoxContext *context = calloc(1, sizeof(RoxContext));
     context->map = map;
@@ -59,7 +59,7 @@ static RoxDynamicValue *_merged_context_get_value(void *target, const char *key)
     return NULL;
 }
 
-RoxContext *ROX_API rox_context_create_merged(RoxContext *global_context, RoxContext *local_context) {
+ROX_API RoxContext *rox_context_create_merged(RoxContext *global_context, RoxContext *local_context) {
     MergedContext *merged = calloc(1, sizeof(MergedContext));
     merged->global_context = global_context;
     merged->local_context = local_context;
@@ -67,7 +67,7 @@ RoxContext *ROX_API rox_context_create_merged(RoxContext *global_context, RoxCon
     return rox_context_create_custom(&config);
 }
 
-RoxContext *ROX_API rox_context_create_custom(RoxContextConfig *config) {
+ROX_API RoxContext *rox_context_create_custom(RoxContextConfig *config) {
     assert(config);
     RoxContext *context = calloc(1, sizeof(RoxContext));
     context->target = config->target;
@@ -76,7 +76,7 @@ RoxContext *ROX_API rox_context_create_custom(RoxContextConfig *config) {
     return context;
 }
 
-void ROX_API rox_context_free(RoxContext *context) {
+ROX_API void rox_context_free(RoxContext *context) {
     assert(context);
     if (context->map) {
         rox_hash_table_free_with_keys_and_values_cb(

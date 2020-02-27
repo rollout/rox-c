@@ -11,7 +11,7 @@
 // Configuration
 //
 
-typedef struct ROX_INTERNAL Configuration {
+typedef struct Configuration {
     char *signature_date;
     List *experiments;
     List *target_groups;
@@ -25,7 +25,7 @@ typedef struct ROX_INTERNAL Configuration {
  * @param signature_date Not <code>NULL</code>. Will be copied internally. The caller holds an ownership of the given string.
  * @return Not <code>NULL</code>.
  */
-Configuration *ROX_INTERNAL configuration_create(
+ROX_INTERNAL Configuration *configuration_create(
         List *experiments,
         List *target_groups,
         const char *signature_date);
@@ -34,27 +34,27 @@ Configuration *ROX_INTERNAL configuration_create(
  * @param c1 Not <code>NULL</code>.
  * @param c2 Not <code>NULL</code>.
  */
-bool ROX_INTERNAL configuration_equals(Configuration *c1, Configuration *c2);
+ROX_INTERNAL bool configuration_equals(Configuration *c1, Configuration *c2);
 
 /**
  * param configuration Not <code>NULL</code>.
  */
-void ROX_INTERNAL configuration_free(Configuration *configuration);
+ROX_INTERNAL void configuration_free(Configuration *configuration);
 
 //
 // ConfigurationFetchResult
 //
 
-typedef enum ROX_INTERNAL ConfigurationSource {
+typedef enum ConfigurationSource {
     CONFIGURATION_SOURCE_CDN = 1,
     CONFIGURATION_SOURCE_API,
     CONFIGURATION_SOURCE_ROXY,
     CONFIGURATION_SOURCE_URL
 } ConfigurationSource;
 
-const char *ROX_INTERNAL configuration_source_to_str(ConfigurationSource source);
+ROX_INTERNAL const char *configuration_source_to_str(ConfigurationSource source);
 
-typedef struct ROX_INTERNAL ConfigurationFetchResult {
+typedef struct ConfigurationFetchResult {
     ConfigurationSource source;
     cJSON *parsed_data;
 } ConfigurationFetchResult;
@@ -63,12 +63,12 @@ typedef struct ROX_INTERNAL ConfigurationFetchResult {
  * @param data Not <code>NULL</code>. The caller is responsible for freeing the given pointer.
  * @return Not <code>NULL</code>.
  */
-ConfigurationFetchResult *ROX_INTERNAL configuration_fetch_result_create(cJSON *data, ConfigurationSource source);
+ROX_INTERNAL ConfigurationFetchResult *configuration_fetch_result_create(cJSON *data, ConfigurationSource source);
 
 /**
  * @param result Not <code>NULL</code>.
  */
-void ROX_INTERNAL configuration_fetch_result_free(ConfigurationFetchResult *result);
+ROX_INTERNAL void configuration_fetch_result_free(ConfigurationFetchResult *result);
 
 //
 // RoxConfigurationFetchedArgs
@@ -78,32 +78,32 @@ void ROX_INTERNAL configuration_fetch_result_free(ConfigurationFetchResult *resu
  * @param creation_date Not <code>null</code>. The caller holds an ownership.
  * @return Not <code>NULL</code>
  */
-RoxConfigurationFetchedArgs *ROX_INTERNAL configuration_fetched_args_create(
+ROX_INTERNAL RoxConfigurationFetchedArgs *configuration_fetched_args_create(
         RoxFetchStatus fetcher_status,
         const char *creation_date,
         bool has_changes);
 
-RoxConfigurationFetchedArgs *ROX_INTERNAL configuration_fetched_args_create_error(RoxFetcherError error_details);
+ROX_INTERNAL RoxConfigurationFetchedArgs *configuration_fetched_args_create_error(RoxFetcherError error_details);
 
-RoxConfigurationFetchedArgs *ROX_INTERNAL configuration_fetched_args_copy(RoxConfigurationFetchedArgs *args);
+ROX_INTERNAL RoxConfigurationFetchedArgs *configuration_fetched_args_copy(RoxConfigurationFetchedArgs *args);
 
-void ROX_INTERNAL configuration_fetched_args_free(RoxConfigurationFetchedArgs *args);
+ROX_INTERNAL void configuration_fetched_args_free(RoxConfigurationFetchedArgs *args);
 
 //
 // ConfigurationFetchedInvoker
 //
 
-typedef struct ROX_INTERNAL ConfigurationFetchedInvoker ConfigurationFetchedInvoker;
+typedef struct ConfigurationFetchedInvoker ConfigurationFetchedInvoker;
 
-void ROX_INTERNAL configuration_fetched_invoker_free(ConfigurationFetchedInvoker *invoker);
+ROX_INTERNAL void configuration_fetched_invoker_free(ConfigurationFetchedInvoker *invoker);
 
-ConfigurationFetchedInvoker *ROX_INTERNAL configuration_fetched_invoker_create();
+ROX_INTERNAL ConfigurationFetchedInvoker *configuration_fetched_invoker_create();
 
 /**
  * @param invoker Not <code>NULL</code>.
  * @param creation_date Unix timestamp with millis.
  */
-void ROX_INTERNAL configuration_fetched_invoker_invoke(
+ROX_INTERNAL void configuration_fetched_invoker_invoke(
         ConfigurationFetchedInvoker *invoker,
         RoxFetchStatus fetcher_status,
         const char *creation_date,
@@ -112,7 +112,7 @@ void ROX_INTERNAL configuration_fetched_invoker_invoke(
 /**
  * @param invoker Not <code>NULL</code>.
  */
-void ROX_INTERNAL configuration_fetched_invoker_invoke_error(
+ROX_INTERNAL void configuration_fetched_invoker_invoke_error(
         ConfigurationFetchedInvoker *invoker,
         RoxFetcherError fetcher_error);
 
@@ -121,7 +121,7 @@ void ROX_INTERNAL configuration_fetched_invoker_invoke_error(
  * @param target May be <code>NULL</code>.
  * @param handler Not <code>NULL</code>.
  */
-void ROX_INTERNAL configuration_fetched_invoker_register_handler(
+ROX_INTERNAL void configuration_fetched_invoker_register_handler(
         ConfigurationFetchedInvoker *invoker,
         void *target,
         rox_configuration_fetched_handler handler);
@@ -130,7 +130,7 @@ void ROX_INTERNAL configuration_fetched_invoker_register_handler(
 // ConfigurationParser
 //
 
-typedef struct ROX_INTERNAL ConfigurationParser ConfigurationParser;
+typedef struct ConfigurationParser ConfigurationParser;
 
 /**
  * @param signature_verifier Not <code>NULL</code>. The caller holds the ownership on this object.
@@ -139,7 +139,7 @@ typedef struct ROX_INTERNAL ConfigurationParser ConfigurationParser;
  * @param configuration_fetched_invoker Not <code>NULL</code>. The caller holds the ownership on this object.
  * @return Not <code>NULL</code>.
  */
-ConfigurationParser *ROX_INTERNAL configuration_parser_create(
+ROX_INTERNAL ConfigurationParser *configuration_parser_create(
         SignatureVerifier *signature_verifier,
         ErrorReporter *error_reporter,
         APIKeyVerifier *api_key_verifier,
@@ -150,11 +150,11 @@ ConfigurationParser *ROX_INTERNAL configuration_parser_create(
  * @param fetch_result Not <code>NULL</code>.
  * @return May be <code>NULL</code>.
  */
-Configuration *ROX_INTERNAL  configuration_parser_parse(
+ROX_INTERNAL Configuration * configuration_parser_parse(
         ConfigurationParser *parser,
         ConfigurationFetchResult *fetch_result);
 
 /**
  * @param parser Not <code>NULL</code>.
  */
-void ROX_INTERNAL configuration_parser_free(ConfigurationParser *parser);
+ROX_INTERNAL void configuration_parser_free(ConfigurationParser *parser);

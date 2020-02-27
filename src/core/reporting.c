@@ -4,14 +4,14 @@
 #include "reporting.h"
 #include "core/logging.h"
 
-struct ROX_INTERNAL ErrorReporter {
+struct ErrorReporter {
     void *target;
     error_reporting_func report;
 };
 
 #define ROX_ERROR_REPORT_MESSAGE_BUFFER_LENGTH 1024
 
-void ROX_INTERNAL _error_reporter_report_dummy(
+ROX_INTERNAL void _error_reporter_report_dummy(
         void *target,
         ErrorReporter *reporter,
         const char *file,
@@ -31,14 +31,14 @@ void ROX_INTERNAL _error_reporter_report_dummy(
 
 #undef ROX_ERROR_REPORT_MESSAGE_BUFFER_LENGTH
 
-ErrorReporter *ROX_INTERNAL error_reporter_create(ErrorReporterConfig *config) {
+ROX_INTERNAL ErrorReporter *error_reporter_create(ErrorReporterConfig *config) {
     ErrorReporter *reporter = calloc(1, sizeof(ErrorReporter));
     reporter->target = config && config->target ? config->target : NULL;
     reporter->report = config && config->reporting_func ? config->reporting_func : &_error_reporter_report_dummy;
     return reporter;
 }
 
-void ROX_INTERNAL error_reporter_report(
+ROX_INTERNAL void error_reporter_report(
         ErrorReporter *reporter,
         const char *file,
         int line,
@@ -55,7 +55,7 @@ void ROX_INTERNAL error_reporter_report(
             va_end(args);
 }
 
-void ROX_INTERNAL error_reporter_free(ErrorReporter *reporter) {
+ROX_INTERNAL void error_reporter_free(ErrorReporter *reporter) {
     assert(reporter);
     free(reporter);
 }

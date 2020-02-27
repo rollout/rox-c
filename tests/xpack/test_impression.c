@@ -5,7 +5,7 @@
 #include "xpack/impression.h"
 #include "core/consts.h"
 
-typedef struct ROX_INTERNAL ImpressionValues {
+typedef struct ImpressionValues {
     const char *reporting_value_name;
     const char *reporting_value;
     const char *experiment_id;
@@ -72,7 +72,7 @@ static void _impression_values_free(ImpressionValues *values) {
     free(values);
 }
 
-typedef struct ROX_INTERNAL ImpressionInvocationTestContext {
+typedef struct ImpressionInvocationTestContext {
     ExperimentRepository *experiment_repository;
     Parser *parser;
     InternalFlags *flags;

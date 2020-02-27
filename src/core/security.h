@@ -7,15 +7,15 @@
 // SignatureVerifier
 //
 
-typedef struct ROX_INTERNAL SignatureVerifier SignatureVerifier;
+typedef struct SignatureVerifier SignatureVerifier;
 
-typedef bool ROX_INTERNAL (*signature_verifier_func)(
+typedef bool (*signature_verifier_func)(
         void* target,
         SignatureVerifier *verifier,
         const char *data,
         const char *signature_base64);
 
-typedef struct ROX_INTERNAL SignatureVerifierConfig {
+typedef struct SignatureVerifierConfig {
     void* target;
     signature_verifier_func verify_func;
 } SignatureVerifierConfig;
@@ -24,14 +24,14 @@ typedef struct ROX_INTERNAL SignatureVerifierConfig {
  * @param config May be <code>NULL</code>.
  * @return Not <code>NULL</code>.
  */
-SignatureVerifier *ROX_INTERNAL signature_verifier_create(SignatureVerifierConfig *config);
+ROX_INTERNAL SignatureVerifier *signature_verifier_create(SignatureVerifierConfig *config);
 
 /**
  * @param verifier Not <code>NULL</code>.
  * @param data Not <code>NULL</code>.
  * @param signature_base64 Not <code>NULL</code>.
  */
-bool ROX_INTERNAL signature_verifier_verify(
+ROX_INTERNAL bool signature_verifier_verify(
         SignatureVerifier *verifier,
         const char *data,
         const char *signature_base64);
@@ -39,21 +39,21 @@ bool ROX_INTERNAL signature_verifier_verify(
 /**
  * @param verifier Not <code>NULL</code>.
  */
-void ROX_INTERNAL signature_verifier_free(SignatureVerifier *verifier);
+ROX_INTERNAL void signature_verifier_free(SignatureVerifier *verifier);
 
 //
 // APIKeyVerifier
 //
 
-typedef struct ROX_INTERNAL APIKeyVerifier APIKeyVerifier;
+typedef struct APIKeyVerifier APIKeyVerifier;
 
 /**
  * @param verifier Not <code>NULL</code>.
  * @param api_key Not <code>NULL</code>.
  */
-bool ROX_INTERNAL api_key_verifier_verify(APIKeyVerifier *verifier, const char *api_key);
+ROX_INTERNAL bool api_key_verifier_verify(APIKeyVerifier *verifier, const char *api_key);
 
 /**
  * @param verifier Not <code>NULL</code>.
  */
-void ROX_INTERNAL api_key_verifier_free(APIKeyVerifier *verifier);
+ROX_INTERNAL void api_key_verifier_free(APIKeyVerifier *verifier);

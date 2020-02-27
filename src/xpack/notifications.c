@@ -12,7 +12,7 @@
 // DisconnectEventArgs
 //
 
-typedef struct ROX_INTERNAL DisconnectEventArgs {
+typedef struct DisconnectEventArgs {
     int reconnect_delay;
 } DisconnectEventArgs;
 
@@ -20,7 +20,7 @@ typedef struct ROX_INTERNAL DisconnectEventArgs {
 // EventSourceMessageEventArgs
 //
 
-typedef struct ROX_INTERNAL EventSourceMessageEventArgs {
+typedef struct EventSourceMessageEventArgs {
     const char *id;
     const char *event;
     const char *message;
@@ -32,7 +32,7 @@ typedef struct ROX_INTERNAL EventSourceMessageEventArgs {
 
 typedef void (*event_source_reader_on_message_func)(void *target, EventSourceMessageEventArgs *args);
 
-typedef struct ROX_INTERNAL EventSourceReader {
+typedef struct EventSourceReader {
     char *url;
     void *target;
     event_source_reader_on_message_func on_message;
@@ -46,7 +46,7 @@ typedef struct ROX_INTERNAL EventSourceReader {
     bool skip_ssl_cert_verification;
 } EventSourceReader;
 
-void ROX_INTERNAL _event_source_reader_stop(EventSourceReader *reader) {
+ROX_INTERNAL void _event_source_reader_stop(EventSourceReader *reader) {
     assert(reader);
     if (reader->reading) {
         reader->reading = false;
@@ -91,7 +91,7 @@ static void _event_source_reader_fire_event(
     free(args);
 }
 
-typedef enum ROX_INTERNAL EventSourceReaderState {
+typedef enum EventSourceReaderState {
     InitialState = 0,
     ReadingFieldName,
     ReadingSpaceAfterFieldName,
@@ -99,7 +99,7 @@ typedef enum ROX_INTERNAL EventSourceReaderState {
     ReadError
 } EventSourceReaderState;
 
-typedef struct ROX_INTERNAL EventSourceReaderFsm {
+typedef struct EventSourceReaderFsm {
     EventSourceReaderState state;
     char *event;
     char *message;
@@ -351,7 +351,7 @@ static EventSourceReader *_event_source_reader_create(
     return reader;
 }
 
-void ROX_INTERNAL _event_source_reader_free(EventSourceReader *reader) {
+ROX_INTERNAL void _event_source_reader_free(EventSourceReader *reader) {
     assert(reader);
     _event_source_reader_stop(reader);
     free(reader->url);
@@ -362,7 +362,7 @@ void ROX_INTERNAL _event_source_reader_free(EventSourceReader *reader) {
 // Event
 //
 
-NotificationListenerEvent *ROX_INTERNAL notification_listener_event_create(const char *event_name, const char *data) {
+ROX_INTERNAL NotificationListenerEvent *notification_listener_event_create(const char *event_name, const char *data) {
     assert(event_name);
     NotificationListenerEvent *event = calloc(1, sizeof(NotificationListenerEvent));
     event->event_name = event_name;
@@ -370,7 +370,7 @@ NotificationListenerEvent *ROX_INTERNAL notification_listener_event_create(const
     return event;
 }
 
-NotificationListenerEvent *ROX_INTERNAL notification_listener_event_copy(NotificationListenerEvent *event) {
+ROX_INTERNAL NotificationListenerEvent *notification_listener_event_copy(NotificationListenerEvent *event) {
     assert(event);
     NotificationListenerEvent *copy = calloc(1, sizeof(NotificationListenerEvent));
     copy->event_name = mem_copy_str(event->event_name);
@@ -378,7 +378,7 @@ NotificationListenerEvent *ROX_INTERNAL notification_listener_event_copy(Notific
     return copy;
 }
 
-void ROX_INTERNAL notification_listener_event_free(NotificationListenerEvent *event) {
+ROX_INTERNAL void notification_listener_event_free(NotificationListenerEvent *event) {
     assert(event);
     free(event);
 }
@@ -392,7 +392,7 @@ typedef struct NotificationListenerEventHandler {
     notification_listener_event_handler handler;
 } NotificationListenerEventHandler;
 
-struct ROX_INTERNAL NotificationListener {
+struct NotificationListener {
     char *listen_url;
     char *app_key;
     HashTable *handlers; // char* => List* of NotificationListenerEventHandler
@@ -423,7 +423,7 @@ static void _notification_listener_message_received(void *target, EventSourceMes
 
 #define DEFAULT_RECONNECT_TIMEOUT_SECONDS 3
 
-NotificationListener *ROX_INTERNAL notification_listener_create(NotificationListenerConfig *config) {
+ROX_INTERNAL NotificationListener *notification_listener_create(NotificationListenerConfig *config) {
     assert(config);
     assert(config->listen_url);
     assert(config->app_key);
@@ -449,7 +449,7 @@ NotificationListener *ROX_INTERNAL notification_listener_create(NotificationList
 
 #undef DEFAULT_RECONNECT_TIMEOUT_SECONDS
 
-void ROX_INTERNAL notification_listener_on(
+ROX_INTERNAL void notification_listener_on(
         NotificationListener *listener,
         const char *event_name,
         void *target,
@@ -479,7 +479,7 @@ void ROX_INTERNAL notification_listener_on(
     }
 }
 
-void ROX_INTERNAL notification_listener_test(NotificationListener *listener, const char *input) {
+ROX_INTERNAL void notification_listener_test(NotificationListener *listener, const char *input) {
     assert(listener);
     assert(input);
     assert(listener->testing);
@@ -487,7 +487,7 @@ void ROX_INTERNAL notification_listener_test(NotificationListener *listener, con
     _event_source_reader_write_callback((char *) input, 1, strlen(input), listener->reader);
 }
 
-void ROX_INTERNAL notification_listener_start(NotificationListener *listener) {
+ROX_INTERNAL void notification_listener_start(NotificationListener *listener) {
     assert(listener);
     if (listener->testing || listener->reader) {
         return;
@@ -500,7 +500,7 @@ void ROX_INTERNAL notification_listener_start(NotificationListener *listener) {
     free(url);
 }
 
-void ROX_INTERNAL notification_listener_stop(NotificationListener *listener) {
+ROX_INTERNAL void notification_listener_stop(NotificationListener *listener) {
     assert(listener);
     if (!listener->testing && listener->reader) {
         if (listener->reader->reading) {
@@ -511,7 +511,7 @@ void ROX_INTERNAL notification_listener_stop(NotificationListener *listener) {
     }
 }
 
-void ROX_INTERNAL notification_listener_free(NotificationListener *listener) {
+ROX_INTERNAL void notification_listener_free(NotificationListener *listener) {
     assert(listener);
     free(listener->listen_url);
     free(listener->app_key);

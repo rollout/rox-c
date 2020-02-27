@@ -26,7 +26,7 @@ static void *ROX_LOGGING_TARGET = NULL;
 static rox_logging_handler ROX_LOGGING_HANDLER = &_default_logging_handler;
 static RoxLogLevel ROX_MIN_LOGGING_LEVEL = RoxLogLevelError;
 
-void ROX_API rox_logging_init(RoxLoggingConfig *config) {
+ROX_API void rox_logging_init(RoxLoggingConfig *config) {
     assert(config);
     ROX_LOGGING_TARGET = config->target;
     ROX_LOGGING_HANDLER = config->handler ? config->handler : &_default_logging_handler;
@@ -67,7 +67,7 @@ static void _rox_handle_log_message(
 
 #undef ROX_LOG_MESSAGE_BUFFER_SIZE
 
-void ROX_INTERNAL rox_log_debug(const char *file_name, int line, const char *fmt, ...) {
+ROX_INTERNAL void rox_log_debug(const char *file_name, int line, const char *fmt, ...) {
     assert(fmt);
     if (ROX_MIN_LOGGING_LEVEL > RoxLogLevelDebug) {
         return;
@@ -78,7 +78,7 @@ void ROX_INTERNAL rox_log_debug(const char *file_name, int line, const char *fmt
             va_end(args);
 }
 
-void ROX_INTERNAL rox_log_warning(const char *file_name, int line, const char *fmt, ...) {
+ROX_INTERNAL void rox_log_warning(const char *file_name, int line, const char *fmt, ...) {
     assert(fmt);
     if (ROX_MIN_LOGGING_LEVEL > RoxLogLevelWarning) {
         return;
@@ -89,7 +89,7 @@ void ROX_INTERNAL rox_log_warning(const char *file_name, int line, const char *f
             va_end(args);
 }
 
-void ROX_INTERNAL rox_log_error(const char *file_name, int line, const char *fmt, ...) {
+ROX_INTERNAL void rox_log_error(const char *file_name, int line, const char *fmt, ...) {
     assert(fmt);
     if (ROX_MIN_LOGGING_LEVEL > RoxLogLevelError) {
         return;

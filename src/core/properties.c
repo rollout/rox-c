@@ -8,17 +8,17 @@
 // CustomPropertyType
 //
 
-const CustomPropertyType ROX_INTERNAL ROX_CUSTOM_PROPERTY_TYPE_STRING = {"string", "String"};
-const CustomPropertyType ROX_INTERNAL ROX_CUSTOM_PROPERTY_TYPE_BOOL = {"bool", "Boolean"};
-const CustomPropertyType ROX_INTERNAL ROX_CUSTOM_PROPERTY_TYPE_INT = {"int", "Number"};
-const CustomPropertyType ROX_INTERNAL ROX_CUSTOM_PROPERTY_TYPE_DOUBLE = {"double", "Number"};
-const CustomPropertyType ROX_INTERNAL ROX_CUSTOM_PROPERTY_TYPE_SEMVER = {"semver", "Semver"};
+ROX_INTERNAL const CustomPropertyType ROX_CUSTOM_PROPERTY_TYPE_STRING = {"string", "String"};
+ROX_INTERNAL const CustomPropertyType ROX_CUSTOM_PROPERTY_TYPE_BOOL = {"bool", "Boolean"};
+ROX_INTERNAL const CustomPropertyType ROX_CUSTOM_PROPERTY_TYPE_INT = {"int", "Number"};
+ROX_INTERNAL const CustomPropertyType ROX_CUSTOM_PROPERTY_TYPE_DOUBLE = {"double", "Number"};
+ROX_INTERNAL const CustomPropertyType ROX_CUSTOM_PROPERTY_TYPE_SEMVER = {"semver", "Semver"};
 
 //
 // CustomProperty
 //
 
-struct ROX_INTERNAL CustomProperty {
+struct CustomProperty {
     char *name;
     const CustomPropertyType *type;
     RoxDynamicValue *value;
@@ -26,7 +26,7 @@ struct ROX_INTERNAL CustomProperty {
     rox_custom_property_value_generator value_generator;
 };
 
-CustomProperty *ROX_INTERNAL custom_property_create_no_value(
+ROX_INTERNAL CustomProperty *custom_property_create_no_value(
         const char *name,
         const CustomPropertyType *type) {
     assert(name);
@@ -37,7 +37,7 @@ CustomProperty *ROX_INTERNAL custom_property_create_no_value(
     return p;
 }
 
-CustomProperty *ROX_INTERNAL custom_property_create(
+ROX_INTERNAL CustomProperty *custom_property_create(
         const char *name,
         const CustomPropertyType *type,
         void *target,
@@ -51,7 +51,7 @@ CustomProperty *ROX_INTERNAL custom_property_create(
     return p;
 }
 
-CustomProperty *ROX_INTERNAL custom_property_create_using_value(
+ROX_INTERNAL CustomProperty *custom_property_create_using_value(
         const char *name,
         const CustomPropertyType *type,
         RoxDynamicValue *value) {
@@ -63,17 +63,17 @@ CustomProperty *ROX_INTERNAL custom_property_create_using_value(
     return p;
 }
 
-char *ROX_INTERNAL custom_property_get_name(CustomProperty *property) {
+ROX_INTERNAL char *custom_property_get_name(CustomProperty *property) {
     assert(property);
     return property->name;
 }
 
-const CustomPropertyType *ROX_INTERNAL custom_property_get_type(CustomProperty *property) {
+ROX_INTERNAL const CustomPropertyType *custom_property_get_type(CustomProperty *property) {
     assert(property);
     return property->type;
 }
 
-RoxDynamicValue *ROX_INTERNAL custom_property_get_value(CustomProperty *property, RoxContext *context) {
+ROX_INTERNAL RoxDynamicValue *custom_property_get_value(CustomProperty *property, RoxContext *context) {
     assert(property);
     if (property->value_generator) {
         return property->value_generator(property->target, context);
@@ -84,7 +84,7 @@ RoxDynamicValue *ROX_INTERNAL custom_property_get_value(CustomProperty *property
     return NULL;
 }
 
-cJSON *ROX_INTERNAL custom_property_to_json(CustomProperty *property) {
+ROX_INTERNAL cJSON * custom_property_to_json(CustomProperty *property) {
     assert(property);
     return ROX_JSON_OBJECT(
             "name", ROX_JSON_STRING(property->name),
@@ -92,7 +92,7 @@ cJSON *ROX_INTERNAL custom_property_to_json(CustomProperty *property) {
             "externalType", ROX_JSON_STRING(property->type->external_type));
 }
 
-void ROX_INTERNAL custom_property_free(CustomProperty *property) {
+ROX_INTERNAL void custom_property_free(CustomProperty *property) {
     assert(property);
     free(property->name);
     free(property);
@@ -104,7 +104,7 @@ void ROX_INTERNAL custom_property_free(CustomProperty *property) {
 
 #define ROX_DEVICE_PROPERTY_NAME_BUFFER_SIZE 256
 
-CustomProperty *ROX_INTERNAL device_property_create(
+ROX_INTERNAL CustomProperty *device_property_create(
         const char *suffix,
         const CustomPropertyType *type,
         void *target,
@@ -118,7 +118,7 @@ CustomProperty *ROX_INTERNAL device_property_create(
     return custom_property_create(buffer, type, target, generator);
 }
 
-CustomProperty *ROX_INTERNAL device_property_create_using_value(
+ROX_INTERNAL CustomProperty *device_property_create_using_value(
         const char *suffix,
         const CustomPropertyType *type,
         RoxDynamicValue *value) {
@@ -145,7 +145,7 @@ ROX_INTERNAL default_dynamic_properties_rule(const char *prop_name, void *target
     return NULL;
 }
 
-struct ROX_INTERNAL DynamicProperties {
+struct DynamicProperties {
     void *target;
     rox_dynamic_properties_rule rule;
 };
@@ -156,7 +156,7 @@ DynamicProperties *dynamic_properties_create() {
     return properties;
 }
 
-void ROX_INTERNAL dynamic_properties_set_rule(
+ROX_INTERNAL void dynamic_properties_set_rule(
         DynamicProperties *properties,
         void *target,
         rox_dynamic_properties_rule rule) {
@@ -166,7 +166,7 @@ void ROX_INTERNAL dynamic_properties_set_rule(
     properties->rule = rule;
 }
 
-RoxDynamicValue *ROX_INTERNAL dynamic_properties_invoke(
+ROX_INTERNAL RoxDynamicValue *dynamic_properties_invoke(
         DynamicProperties *properties,
         const char *prop_name,
         RoxContext *context) {

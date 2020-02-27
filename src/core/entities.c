@@ -10,7 +10,7 @@
 // RoxVariant
 //
 
-struct ROX_API RoxVariant {
+struct RoxVariant {
     char *default_value;
     List *options;
     char *condition;
@@ -22,7 +22,7 @@ struct ROX_API RoxVariant {
     bool is_flag;
 };
 
-RoxVariant *ROX_INTERNAL variant_create(const char *default_value, List *options) {
+ROX_INTERNAL RoxVariant *variant_create(const char *default_value, List *options) {
     RoxVariant *variant = calloc(1, sizeof(RoxVariant));
     variant->default_value = default_value ? mem_copy_str(default_value) : NULL;
     variant->options = options;
@@ -35,42 +35,42 @@ RoxVariant *ROX_INTERNAL variant_create(const char *default_value, List *options
     return variant;
 }
 
-bool ROX_INTERNAL variant_is_flag(RoxVariant *variant) {
+ROX_INTERNAL bool variant_is_flag(RoxVariant *variant) {
     assert(variant);
     return variant->is_flag;
 }
 
-const char *ROX_INTERNAL variant_get_name(RoxVariant *variant) {
+ROX_INTERNAL const char *variant_get_name(RoxVariant *variant) {
     assert(variant);
     return variant->name;
 }
 
-const char *ROX_INTERNAL variant_get_default_value(RoxVariant *variant) {
+ROX_INTERNAL const char *variant_get_default_value(RoxVariant *variant) {
     assert(variant);
     return variant->default_value;
 }
 
-const char *ROX_INTERNAL variant_get_condition(RoxVariant *variant) {
+ROX_INTERNAL const char *variant_get_condition(RoxVariant *variant) {
     assert(variant);
     return variant->condition;
 }
 
-ExperimentModel *ROX_INTERNAL variant_get_experiment(RoxVariant *variant) {
+ROX_INTERNAL ExperimentModel *variant_get_experiment(RoxVariant *variant) {
     assert(variant);
     return variant->experiment;
 }
 
-Parser *ROX_INTERNAL variant_get_parser(RoxVariant *variant) {
+ROX_INTERNAL Parser *variant_get_parser(RoxVariant *variant) {
     assert(variant);
     return variant->parser;
 }
 
-ImpressionInvoker *ROX_INTERNAL variant_get_impression_invoker(RoxVariant *variant) {
+ROX_INTERNAL ImpressionInvoker *variant_get_impression_invoker(RoxVariant *variant) {
     assert(variant);
     return variant->impression_invoker;
 }
 
-List *ROX_INTERNAL variant_get_options(RoxVariant *variant) {
+ROX_INTERNAL List *variant_get_options(RoxVariant *variant) {
     assert(variant);
     return variant->options;
 }
@@ -92,7 +92,7 @@ static void _variant_reset_evaluation_context(RoxVariant *variant) {
     }
 }
 
-void ROX_INTERNAL variant_set_for_evaluation(
+ROX_INTERNAL void variant_set_for_evaluation(
         RoxVariant *variant,
         Parser *parser,
         ExperimentModel *experiment,
@@ -110,19 +110,19 @@ void ROX_INTERNAL variant_set_for_evaluation(
     variant->impression_invoker = impression_invoker;
 }
 
-void ROX_INTERNAL variant_set_context(RoxVariant *variant, RoxContext *context) {
+ROX_INTERNAL void variant_set_context(RoxVariant *variant, RoxContext *context) {
     assert(variant);
     assert(context);
     variant->global_context = context;
 }
 
-void ROX_INTERNAL variant_set_name(RoxVariant *variant, const char *name) {
+ROX_INTERNAL void variant_set_name(RoxVariant *variant, const char *name) {
     assert(variant);
     assert(name);
     variant->name = mem_copy_str(name);
 }
 
-void ROX_INTERNAL variant_set_condition(RoxVariant *variant, const char *condition) {
+ROX_INTERNAL void variant_set_condition(RoxVariant *variant, const char *condition) {
     assert(variant);
     assert(condition);
     variant->condition = mem_copy_str(condition);
@@ -163,17 +163,17 @@ static char *_variant_get_value(RoxVariant *variant, RoxContext *context, char *
     return return_value;
 }
 
-char *ROX_INTERNAL variant_get_value_or_default(RoxVariant *variant, RoxContext *context) {
+ROX_INTERNAL char *variant_get_value_or_default(RoxVariant *variant, RoxContext *context) {
     assert(variant);
     return _variant_get_value(variant, context, variant->default_value);
 }
 
-char *ROX_INTERNAL variant_get_value_or_null(RoxVariant *variant, RoxContext *context) {
+ROX_INTERNAL char *variant_get_value_or_null(RoxVariant *variant, RoxContext *context) {
     assert(variant);
     return _variant_get_value(variant, context, NULL);
 }
 
-void ROX_INTERNAL variant_free(RoxVariant *variant) {
+ROX_INTERNAL void variant_free(RoxVariant *variant) {
     assert(variant);
     _variant_reset_evaluation_context(variant);
     if (variant->global_context) {
@@ -195,24 +195,24 @@ void ROX_INTERNAL variant_free(RoxVariant *variant) {
 // Flag
 //
 
-const char *ROX_INTERNAL FLAG_TRUE_VALUE = "true";
-const char *ROX_INTERNAL FLAG_FALSE_VALUE = "false";
+ROX_INTERNAL const char *FLAG_TRUE_VALUE = "true";
+ROX_INTERNAL const char *FLAG_FALSE_VALUE = "false";
 
 const bool FLAG_TRUE_VALUE_BOOL = true;
 const bool FLAG_FALSE_VALUE_BOOL = false;
 
-RoxVariant *ROX_INTERNAL variant_create_flag() {
+ROX_INTERNAL RoxVariant *variant_create_flag() {
     return variant_create_flag_with_default(false);
 }
 
-RoxVariant *ROX_INTERNAL variant_create_flag_with_default(bool default_value) {
+ROX_INTERNAL RoxVariant *variant_create_flag_with_default(bool default_value) {
     RoxVariant *flag = variant_create(default_value ? FLAG_TRUE_VALUE : FLAG_FALSE_VALUE,
                                       ROX_LIST(ROX_COPY(FLAG_FALSE_VALUE), ROX_COPY(FLAG_TRUE_VALUE)));
     flag->is_flag = true;
     return flag;
 }
 
-bool ROX_INTERNAL flag_is_enabled(RoxVariant *variant, RoxContext *context) {
+ROX_INTERNAL bool flag_is_enabled(RoxVariant *variant, RoxContext *context) {
     assert(variant);
     char *value = variant_get_value_or_default(variant, context);
     bool result = str_equals(value, FLAG_TRUE_VALUE);
@@ -220,7 +220,7 @@ bool ROX_INTERNAL flag_is_enabled(RoxVariant *variant, RoxContext *context) {
     return result;
 }
 
-const bool *ROX_INTERNAL flag_is_enabled_or_null(RoxVariant *variant, RoxContext *context) {
+ROX_INTERNAL const bool *flag_is_enabled_or_null(RoxVariant *variant, RoxContext *context) {
     assert(variant);
     char *value = variant_get_value_or_null(variant, context);
     if (!value) {
@@ -233,7 +233,7 @@ const bool *ROX_INTERNAL flag_is_enabled_or_null(RoxVariant *variant, RoxContext
     return result;
 }
 
-void ROX_INTERNAL flag_enabled_do(RoxVariant *variant, RoxContext *context, rox_flag_action action) {
+ROX_INTERNAL void flag_enabled_do(RoxVariant *variant, RoxContext *context, rox_flag_action action) {
     assert(variant);
     assert(action);
     if (flag_is_enabled(variant, context)) {
@@ -241,7 +241,7 @@ void ROX_INTERNAL flag_enabled_do(RoxVariant *variant, RoxContext *context, rox_
     }
 }
 
-void ROX_INTERNAL flag_disabled_do(RoxVariant *variant, RoxContext *context, rox_flag_action action) {
+ROX_INTERNAL void flag_disabled_do(RoxVariant *variant, RoxContext *context, rox_flag_action action) {
     assert(variant);
     assert(action);
     if (!flag_is_enabled(variant, context)) {
@@ -253,14 +253,14 @@ void ROX_INTERNAL flag_disabled_do(RoxVariant *variant, RoxContext *context, rox
 // FlagSetter
 //
 
-struct ROX_INTERNAL FlagSetter {
+struct FlagSetter {
     FlagRepository *flag_repository;
     Parser *parser;
     ExperimentRepository *experiment_repository;
     ImpressionInvoker *impression_invoker;
 };
 
-void ROX_INTERNAL _flag_setter_repository_callback(void *target, RoxVariant *variant) {
+ROX_INTERNAL void _flag_setter_repository_callback(void *target, RoxVariant *variant) {
     assert(target);
     assert(variant);
     FlagSetter *flag_setter = (FlagSetter *) target;
@@ -269,7 +269,7 @@ void ROX_INTERNAL _flag_setter_repository_callback(void *target, RoxVariant *var
     variant_set_for_evaluation(variant, flag_setter->parser, exp, flag_setter->impression_invoker);
 }
 
-FlagSetter *ROX_INTERNAL flag_setter_create(
+ROX_INTERNAL FlagSetter *flag_setter_create(
         FlagRepository *flag_repository,
         Parser *parser,
         ExperimentRepository *experiment_repository,
@@ -285,7 +285,7 @@ FlagSetter *ROX_INTERNAL flag_setter_create(
     return flag_setter;
 }
 
-void ROX_INTERNAL flag_setter_set_experiments(FlagSetter *flag_setter) {
+ROX_INTERNAL void flag_setter_set_experiments(FlagSetter *flag_setter) {
     assert(flag_setter);
 
     HashSet *flags_with_condition;
@@ -316,7 +316,7 @@ void ROX_INTERNAL flag_setter_set_experiments(FlagSetter *flag_setter) {
     })
 }
 
-void ROX_INTERNAL flag_setter_free(FlagSetter *flag_setter) {
+ROX_INTERNAL void flag_setter_free(FlagSetter *flag_setter) {
     assert(flag_setter);
     free(flag_setter);
 }
@@ -325,20 +325,20 @@ void ROX_INTERNAL flag_setter_free(FlagSetter *flag_setter) {
 // EntitiesProvider
 //
 
-struct ROX_INTERNAL EntitiesProvider {
+struct EntitiesProvider {
     int stub; // so that it has at least one member
 };
 
-EntitiesProvider *ROX_INTERNAL entities_provider_create() {
+ROX_INTERNAL EntitiesProvider *entities_provider_create() {
     return calloc(1, sizeof(EntitiesProvider));
 }
 
-RoxVariant *ROX_INTERNAL entities_provider_create_flag(EntitiesProvider *provider, bool default_value) {
+ROX_INTERNAL RoxVariant *entities_provider_create_flag(EntitiesProvider *provider, bool default_value) {
     assert(provider);
     return variant_create_flag_with_default(default_value);
 }
 
-RoxVariant *ROX_INTERNAL entities_provider_create_variant(
+ROX_INTERNAL RoxVariant *entities_provider_create_variant(
         EntitiesProvider *provider,
         const char *defaultValue,
         List *options) {
@@ -346,7 +346,7 @@ RoxVariant *ROX_INTERNAL entities_provider_create_variant(
     return variant_create(defaultValue, options);
 }
 
-void ROX_INTERNAL entities_provider_free(EntitiesProvider *provider) {
+ROX_INTERNAL void entities_provider_free(EntitiesProvider *provider) {
     assert(provider);
     free(provider);
 }

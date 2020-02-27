@@ -50,14 +50,14 @@ extern "C"
 // Logging
 //
 
-typedef enum ROX_API RoxLogLevel {
+typedef enum RoxLogLevel {
     RoxLogLevelDebug = 1,
     RoxLogLevelWarning,
     RoxLogLevelError,
     RoxLogLevelNone
 } RoxLogLevel;
 
-typedef struct ROX_API RoxLogMessage {
+typedef struct RoxLogMessage {
     const char *file;
     int line;
     RoxLogLevel level;
@@ -65,28 +65,28 @@ typedef struct ROX_API RoxLogMessage {
     const char *message;
 } RoxLogMessage;
 
-typedef void ROX_API (*rox_logging_handler)(void *target, RoxLogMessage *message);
+typedef void (*rox_logging_handler)(void *target, RoxLogMessage *message);
 
-typedef struct ROX_API RoxLoggingConfig {
+typedef struct RoxLoggingConfig {
     RoxLogLevel min_level;
     void *target;
     rox_logging_handler handler;
 } RoxLoggingConfig;
 
-void ROX_API rox_logging_init(RoxLoggingConfig *config);
+ROX_API void rox_logging_init(RoxLoggingConfig *config);
 
 //
 // RoxReportingValue
 //
 
-typedef struct ROX_API RoxReportingValue {
+typedef struct RoxReportingValue {
     const char *name;
     const char *value;
 } RoxReportingValue;
 
 // RoxExperiment
 
-typedef struct ROX_API RoxExperiment {
+typedef struct RoxExperiment {
     char *name;
     char *identifier;
     bool archived;
@@ -98,26 +98,26 @@ typedef struct ROX_API RoxExperiment {
 // DynamicValue
 //
 
-typedef struct ROX_API RoxDynamicValue RoxDynamicValue;
+typedef struct RoxDynamicValue RoxDynamicValue;
 
-RoxDynamicValue *ROX_API rox_dynamic_value_create_int(int value);
+ROX_API RoxDynamicValue *rox_dynamic_value_create_int(int value);
 
-RoxDynamicValue *ROX_API rox_dynamic_value_create_double(double value);
+ROX_API RoxDynamicValue *rox_dynamic_value_create_double(double value);
 
-RoxDynamicValue *ROX_API rox_dynamic_value_create_double_ptr(double *value);
+ROX_API RoxDynamicValue *rox_dynamic_value_create_double_ptr(double *value);
 
-RoxDynamicValue *ROX_API rox_dynamic_value_create_boolean(bool value);
+ROX_API RoxDynamicValue *rox_dynamic_value_create_boolean(bool value);
 
 /**
  * Note: the given string will be copied internally.
  * The caller is responsible for freeing it after use.
  */
-RoxDynamicValue *ROX_API rox_dynamic_value_create_string_copy(const char *value);
+ROX_API RoxDynamicValue *rox_dynamic_value_create_string_copy(const char *value);
 
 /**
  * Note: the given string will be destroyed in <code>dynamic_value_free()</code>.
  */
-RoxDynamicValue *ROX_API rox_dynamic_value_create_string_ptr(char *value);
+ROX_API RoxDynamicValue *rox_dynamic_value_create_string_ptr(char *value);
 
 /**
  * Note: the ownership of the list is delegated to the dynamic value
@@ -125,7 +125,7 @@ RoxDynamicValue *ROX_API rox_dynamic_value_create_string_ptr(char *value);
  *
  * @param value List of <code>RoxDynamicValue*</code>
  */
-RoxDynamicValue *ROX_API rox_dynamic_value_create_list(List *value);
+ROX_API RoxDynamicValue *rox_dynamic_value_create_list(List *value);
 
 /**
  * Note: the ownership of the map is delegated to the dynamic value
@@ -134,60 +134,60 @@ RoxDynamicValue *ROX_API rox_dynamic_value_create_list(List *value);
  *
  * @param value Keys are <code>char *</code>s and values are <code>RoxDynamicValue*</code>s.
  */
-RoxDynamicValue *ROX_API rox_dynamic_value_create_map(HashTable *value);
+ROX_API RoxDynamicValue *rox_dynamic_value_create_map(HashTable *value);
 
-RoxDynamicValue *ROX_API rox_dynamic_value_create_null();
+ROX_API RoxDynamicValue *rox_dynamic_value_create_null();
 
-RoxDynamicValue *ROX_API rox_dynamic_value_create_undefined();
+ROX_API RoxDynamicValue *rox_dynamic_value_create_undefined();
 
-RoxDynamicValue *ROX_API rox_dynamic_value_create_copy(RoxDynamicValue *value);
+ROX_API RoxDynamicValue *rox_dynamic_value_create_copy(RoxDynamicValue *value);
 
-bool ROX_API rox_dynamic_value_is_int(RoxDynamicValue *value);
+ROX_API bool rox_dynamic_value_is_int(RoxDynamicValue *value);
 
-bool ROX_API rox_dynamic_value_is_double(RoxDynamicValue *value);
+ROX_API bool rox_dynamic_value_is_double(RoxDynamicValue *value);
 
-bool ROX_API rox_dynamic_value_is_boolean(RoxDynamicValue *value);
+ROX_API bool rox_dynamic_value_is_boolean(RoxDynamicValue *value);
 
-bool ROX_API rox_dynamic_value_is_string(RoxDynamicValue *value);
+ROX_API bool rox_dynamic_value_is_string(RoxDynamicValue *value);
 
-bool ROX_API rox_dynamic_value_is_list(RoxDynamicValue *value);
+ROX_API bool rox_dynamic_value_is_list(RoxDynamicValue *value);
 
-bool ROX_API rox_dynamic_value_is_map(RoxDynamicValue *value);
+ROX_API bool rox_dynamic_value_is_map(RoxDynamicValue *value);
 
-bool ROX_API rox_dynamic_value_is_undefined(RoxDynamicValue *value);
+ROX_API bool rox_dynamic_value_is_undefined(RoxDynamicValue *value);
 
-bool ROX_API rox_dynamic_value_is_null(RoxDynamicValue *value);
+ROX_API bool rox_dynamic_value_is_null(RoxDynamicValue *value);
 
-int ROX_API rox_dynamic_value_get_int(RoxDynamicValue *value);
+ROX_API int rox_dynamic_value_get_int(RoxDynamicValue *value);
 
-double ROX_API rox_dynamic_value_get_double(RoxDynamicValue *value);
+ROX_API double rox_dynamic_value_get_double(RoxDynamicValue *value);
 
-bool ROX_API rox_dynamic_value_get_boolean(RoxDynamicValue *value);
+ROX_API bool rox_dynamic_value_get_boolean(RoxDynamicValue *value);
 
-char *ROX_API rox_dynamic_value_get_string(RoxDynamicValue *value);
+ROX_API char *rox_dynamic_value_get_string(RoxDynamicValue *value);
 
-List *ROX_API rox_dynamic_value_get_list(RoxDynamicValue *value);
+ROX_API List *rox_dynamic_value_get_list(RoxDynamicValue *value);
 
-HashTable *ROX_API rox_dynamic_value_get_map(RoxDynamicValue *value);
+ROX_API HashTable *rox_dynamic_value_get_map(RoxDynamicValue *value);
 
-bool ROX_API rox_dynamic_value_equals(RoxDynamicValue *v1, RoxDynamicValue *v2);
+ROX_API bool rox_dynamic_value_equals(RoxDynamicValue *v1, RoxDynamicValue *v2);
 
-RoxDynamicValue *ROX_API rox_dynamic_value_free(RoxDynamicValue *value);
+ROX_API RoxDynamicValue *rox_dynamic_value_free(RoxDynamicValue *value);
 
 //
 // Context
 //
 
-typedef struct ROX_API RoxContext RoxContext;
+typedef struct RoxContext RoxContext;
 
-typedef RoxDynamicValue *ROX_API (*rox_context_get_value_func)(void *target, const char *key);
+typedef RoxDynamicValue *(*rox_context_get_value_func)(void *target, const char *key);
 
-typedef void *ROX_API (*rox_context_free_target_func)(void *target);
+typedef void *(*rox_context_free_target_func)(void *target);
 
 /**
  * @return Not <code>NULL</code>.
  */
-RoxContext *ROX_API rox_context_create_empty();
+ROX_API RoxContext *rox_context_create_empty();
 
 /**
  * Creates context from the given hashtable. The ownership on the given hash table,
@@ -197,7 +197,7 @@ RoxContext *ROX_API rox_context_create_empty();
  * @param map Not <code>NULL</code>. Keys are strings, values are <code>RoxDynamicValue *</code>.
  * @return Not <code>NULL</code>.
  */
-RoxContext *ROX_API rox_context_create_from_map(HashTable *map);
+ROX_API RoxContext *rox_context_create_from_map(HashTable *map);
 
 /**
  * The called holds the ownership on the given contexts. They will <em>NOT</em> be freed when
@@ -207,9 +207,9 @@ RoxContext *ROX_API rox_context_create_from_map(HashTable *map);
  * @param local_context May be <code>NULL</code>.
  * @return Not <code>NULL</code>.
  */
-RoxContext *ROX_API rox_context_create_merged(RoxContext *global_context, RoxContext *local_context);
+ROX_API RoxContext *rox_context_create_merged(RoxContext *global_context, RoxContext *local_context);
 
-typedef struct ROX_API RoxContextConfig {
+typedef struct RoxContextConfig {
     void *target;
     rox_context_get_value_func get_value_func;
     rox_context_free_target_func fee_target_func;
@@ -218,19 +218,19 @@ typedef struct ROX_API RoxContextConfig {
 /**
  * @param config Not <code>NULL</code>.
  */
-RoxContext *ROX_API rox_context_create_custom(RoxContextConfig *config);
+ROX_API RoxContext *rox_context_create_custom(RoxContextConfig *config);
 
 /**
  * @param context Not <code>NULL</code>.
  */
-void ROX_API rox_context_free(RoxContext *context);
+ROX_API void rox_context_free(RoxContext *context);
 
 /**
  * @param context Not <code>NULL</code>.
  * @param key Not <code>NULL</code>.
  * @return May be <code>NULL</code>.
  */
-RoxDynamicValue *ROX_API rox_context_get(RoxContext *context, const char *key);
+ROX_API RoxDynamicValue *rox_context_get(RoxContext *context, const char *key);
 
 /**
  * Note the reporting <code>value</code> may be freed right after call,
@@ -242,7 +242,7 @@ RoxDynamicValue *ROX_API rox_context_get(RoxContext *context, const char *key);
  * @param experiment Can be <code>NULL</code>.
  * @param context Can be <code>NULL</code>.
  */
-typedef void ROX_API (*rox_impression_handler)(
+typedef void (*rox_impression_handler)(
         void *target,
         RoxReportingValue *value,
         RoxExperiment *experiment,
@@ -252,14 +252,14 @@ typedef void ROX_API (*rox_impression_handler)(
 // ConfigurationFetchedArgs
 //
 
-typedef enum ROX_API RoxFetchStatus {
+typedef enum RoxFetchStatus {
     AppliedFromEmbedded = 1,
     AppliedFromLocalStorage,
     AppliedFromNetwork,
     ErrorFetchedFailed
 } RoxFetchStatus;
 
-typedef enum ROX_API RoxFetcherError {
+typedef enum RoxFetcherError {
     CorruptedJson = 1,
     EmptyJson,
     SignatureVerificationError,
@@ -269,14 +269,14 @@ typedef enum ROX_API RoxFetcherError {
     NoError
 } RoxFetcherError;
 
-typedef struct ROX_API RoxConfigurationFetchedArgs {
+typedef struct RoxConfigurationFetchedArgs {
     RoxFetchStatus fetcher_status;
     const char *creation_date;
     bool has_changes;
     RoxFetcherError error_details;
 } RoxConfigurationFetchedArgs;
 
-typedef void ROX_API (*rox_configuration_fetched_handler)(void *target, RoxConfigurationFetchedArgs *args);
+typedef void (*rox_configuration_fetched_handler)(void *target, RoxConfigurationFetchedArgs *args);
 
 //
 // DynamicPropertiesRule
@@ -286,7 +286,7 @@ typedef void ROX_API (*rox_configuration_fetched_handler)(void *target, RoxConfi
  * Note the returned value, if not <code>NULL</code>, must be freed by the caller
  * by invoking <code>dynamic_value_free()</code>
  */
-typedef ROX_API RoxDynamicValue *(*rox_dynamic_properties_rule)(
+typedef RoxDynamicValue *(*rox_dynamic_properties_rule)(
         const char *prop_name,
         void *target,
         RoxContext *context);
@@ -295,9 +295,9 @@ typedef ROX_API RoxDynamicValue *(*rox_dynamic_properties_rule)(
 // Options
 //
 
-typedef struct ROX_API RoxOptions RoxOptions;
+typedef struct RoxOptions RoxOptions;
 
-RoxOptions *ROX_API rox_options_create();
+ROX_API RoxOptions *rox_options_create();
 
 /**
  * The caller is responsible for freeing the passed <code>key</code> value after use.
@@ -305,7 +305,7 @@ RoxOptions *ROX_API rox_options_create();
  * @param options Not <code>NULL</code>.
  * @param key Not <code>NULL</code>. Value is copied internally.
  */
-void ROX_API rox_options_set_dev_mode_key(RoxOptions *options, const char *key);
+ROX_API void rox_options_set_dev_mode_key(RoxOptions *options, const char *key);
 
 /**
  * The caller is responsible for freeing the passed <code>version</code> value after use.
@@ -313,13 +313,13 @@ void ROX_API rox_options_set_dev_mode_key(RoxOptions *options, const char *key);
  * @param options Not <code>NULL</code>.
  * @param version Not <code>NULL</code>. Value is copied internally.
  */
-void ROX_API rox_options_set_version(RoxOptions *options, const char *version);
+ROX_API void rox_options_set_version(RoxOptions *options, const char *version);
 
 /**
  * @param options Not <code>NULL</code>.
  * @param fetch_interval Interval in seconds. Should be not less than 30. Otherwise, 30 will be used.
  */
-void ROX_API rox_options_set_fetch_interval(RoxOptions *options, int fetch_interval);
+ROX_API void rox_options_set_fetch_interval(RoxOptions *options, int fetch_interval);
 
 /**
  * The caller is responsible for freeing the passed <code>roxy_url</code> value after use.
@@ -327,7 +327,7 @@ void ROX_API rox_options_set_fetch_interval(RoxOptions *options, int fetch_inter
  * @param options Not <code>NULL</code>.
  * @param roxy_url Not <code>NULL</code>. Value is copied internally.
  */
-void ROX_API rox_options_set_roxy_url(
+ROX_API void rox_options_set_roxy_url(
         RoxOptions *options,
         const char *roxy_url);
 
@@ -336,7 +336,7 @@ void ROX_API rox_options_set_roxy_url(
  * @param target May be <code>NULL</code>.
  * @param handler Not <code>NULL</code>.
  */
-void ROX_API rox_options_set_impression_handler(
+ROX_API void rox_options_set_impression_handler(
         RoxOptions *options,
         void *target,
         rox_impression_handler handler);
@@ -346,7 +346,7 @@ void ROX_API rox_options_set_impression_handler(
  * @param target May be <code>NULL</code>.
  * @param handler Not <code>NULL</code>.
  */
-void ROX_API rox_options_set_configuration_fetched_handler(
+ROX_API void rox_options_set_configuration_fetched_handler(
         RoxOptions *options,
         void *target,
         rox_configuration_fetched_handler handler);
@@ -356,7 +356,7 @@ void ROX_API rox_options_set_configuration_fetched_handler(
  * @param target May be <code>NULL</code>.
  * @param rule Not <code>NULL</code>.
  */
-void ROX_API rox_options_set_dynamic_properties_rule(
+ROX_API void rox_options_set_dynamic_properties_rule(
         RoxOptions *options,
         void *target,
         rox_dynamic_properties_rule rule);
@@ -371,22 +371,22 @@ void ROX_API rox_options_set_dynamic_properties_rule(
  * @param api_key Not <code>NULL</code>.
  * @param options May be <code>NULL</code>. If passed, the ownership is delegated to ROX.
  */
-void ROX_API rox_setup(const char *api_key, RoxOptions *options);
+ROX_API void rox_setup(const char *api_key, RoxOptions *options);
 
 /**
  * @param context Not <code>NULL</code>. The ownership is delegated to ROX.
  */
-void ROX_API rox_set_context(RoxContext *context);
+ROX_API void rox_set_context(RoxContext *context);
 
-void ROX_API rox_fetch();
+ROX_API void rox_fetch();
 
-typedef struct ROX_API RoxVariant RoxVariant;
+typedef struct RoxVariant RoxVariant;
 
 /**
  * @param name Not <code>NULL</code>. Flag name <em>including namespace prefix</em>. Value is copied internally.
  * @return Not <code>NULL</code>. Memory is managed by ROX.
  */
-RoxVariant *ROX_API rox_add_flag(const char *name, bool default_value);
+ROX_API RoxVariant *rox_add_flag(const char *name, bool default_value);
 
 /**
  * @param name Not <code>NULL</code>. Flag name <em>including namespace prefix</em>. Value is copied internally.
@@ -394,7 +394,7 @@ RoxVariant *ROX_API rox_add_flag(const char *name, bool default_value);
  * @param options May be <code>NULL</code>. If passed, ownership is delegated to ROX.
  * @return Not <code>NULL</code>. Memory is managed by ROX.
  */
-RoxVariant *ROX_API rox_add_variant(const char *name, const char *default_value, List *options);
+ROX_API RoxVariant *rox_add_variant(const char *name, const char *default_value, List *options);
 
 /**
  * The returned value must be freed after use by the caller, if not <code>NULL</code>.
@@ -402,7 +402,7 @@ RoxVariant *ROX_API rox_add_variant(const char *name, const char *default_value,
  * @param variant Not <code>NULL</code>.
  * @return Current value or <code>default_value</code> passed to <code>create_variant()</code>, if the value is not defined.
  */
-char *ROX_API rox_variant_get_value_or_default(RoxVariant *variant);
+ROX_API char *rox_variant_get_value_or_default(RoxVariant *variant);
 
 /**
  * The returned value must be freed after use by the caller, if not <code>NULL</code>.
@@ -411,7 +411,7 @@ char *ROX_API rox_variant_get_value_or_default(RoxVariant *variant);
  * @param context Not <code>NULL</code>.
  * @return Current value or <code>default_value</code> passed to <code>create_variant()</code>, if the value is not defined.
  */
-char *ROX_API rox_variant_get_value_or_default_ctx(RoxVariant *variant, RoxContext *context);
+ROX_API char *rox_variant_get_value_or_default_ctx(RoxVariant *variant, RoxContext *context);
 
 /**
  * The returned value must be freed after use by the caller, if not <code>NULL</code>.
@@ -419,7 +419,7 @@ char *ROX_API rox_variant_get_value_or_default_ctx(RoxVariant *variant, RoxConte
  * @param variant Not <code>NULL</code>.
  * @return Current value or <code>NULL</code>, if the value is not defined.
  */
-char *ROX_API rox_variant_get_value_or_null(RoxVariant *variant);
+ROX_API char *rox_variant_get_value_or_null(RoxVariant *variant);
 
 /**
  * The returned value must be freed after use by the caller, if not <code>NULL</code>.
@@ -428,18 +428,18 @@ char *ROX_API rox_variant_get_value_or_null(RoxVariant *variant);
  * @param context Not <code>NULL</code>.
  * @return Current value or <code>NULL</code>, if the value is not defined.
  */
-char *ROX_API rox_variant_get_value_or_null_ctx(RoxVariant *variant, RoxContext *context);
+ROX_API char *rox_variant_get_value_or_null_ctx(RoxVariant *variant, RoxContext *context);
 
 /**
  * @param variant Not <code>NULL</code>.
  */
-bool ROX_API rox_flag_is_enabled(RoxVariant *variant);
+ROX_API bool rox_flag_is_enabled(RoxVariant *variant);
 
 /**
  * @param variant Not <code>NULL</code>.
  * @param context Not <code>NULL</code>.
  */
-bool ROX_API rox_flag_is_enabled_ctx(RoxVariant *variant, RoxContext *context);
+ROX_API bool rox_flag_is_enabled_ctx(RoxVariant *variant, RoxContext *context);
 
 /**
  * Note the returned pointer must <em>NOT</em> be freed.
@@ -447,7 +447,7 @@ bool ROX_API rox_flag_is_enabled_ctx(RoxVariant *variant, RoxContext *context);
  * @param variant Not <code>NULL</code>.
  * @return <code>true</code> or <code>false</code> or <code>NULL</code>.
  */
-const bool *ROX_API rox_flag_is_enabled_or_null(RoxVariant *variant);
+ROX_API const bool *rox_flag_is_enabled_or_null(RoxVariant *variant);
 
 /**
  * Note the returned pointer must <em>NOT</em> be freed.
@@ -456,50 +456,50 @@ const bool *ROX_API rox_flag_is_enabled_or_null(RoxVariant *variant);
  * @param context Not <code>NULL</code>.
  * @return <code>true</code> or <code>false</code> or <code>NULL</code>.
  */
-const bool *ROX_API rox_flag_is_enabled_or_null_ctx(RoxVariant *variant, RoxContext *context);
+ROX_API const bool *rox_flag_is_enabled_or_null_ctx(RoxVariant *variant, RoxContext *context);
 
-typedef ROX_API void (*rox_flag_action)();
-
-/**
- * @param variant Not <code>NULL</code>.
- * @param action Not <code>NULL</code>.
- */
-void ROX_API rox_flag_enabled_do(RoxVariant *variant, rox_flag_action action);
-
-/**
- * @param variant Not <code>NULL</code>.
- * @param context Not <code>NULL</code>.
- * @param action Not <code>NULL</code>.
- */
-void ROX_API rox_flag_enabled_do_ctx(RoxVariant *variant, RoxContext *context, rox_flag_action action);
+typedef void (*rox_flag_action)();
 
 /**
  * @param variant Not <code>NULL</code>.
  * @param action Not <code>NULL</code>.
  */
-void ROX_API rox_flag_disabled_do(RoxVariant *variant, rox_flag_action action);
+ROX_API void rox_flag_enabled_do(RoxVariant *variant, rox_flag_action action);
 
 /**
  * @param variant Not <code>NULL</code>.
  * @param context Not <code>NULL</code>.
  * @param action Not <code>NULL</code>.
  */
-void ROX_API rox_flag_disabled_do_ctx(RoxVariant *variant, RoxContext *context, rox_flag_action action);
+ROX_API void rox_flag_enabled_do_ctx(RoxVariant *variant, RoxContext *context, rox_flag_action action);
 
-typedef ROX_API RoxDynamicValue *(*rox_custom_property_value_generator)(void *target, RoxContext *context);
+/**
+ * @param variant Not <code>NULL</code>.
+ * @param action Not <code>NULL</code>.
+ */
+ROX_API void rox_flag_disabled_do(RoxVariant *variant, rox_flag_action action);
+
+/**
+ * @param variant Not <code>NULL</code>.
+ * @param context Not <code>NULL</code>.
+ * @param action Not <code>NULL</code>.
+ */
+ROX_API void rox_flag_disabled_do_ctx(RoxVariant *variant, RoxContext *context, rox_flag_action action);
+
+typedef RoxDynamicValue *(*rox_custom_property_value_generator)(void *target, RoxContext *context);
 
 /**
  * @param name Not <code>NULL</code>. Value is copied internally.
  * @param value Not <code>NULL</code>. Value is copied internally.
  */
-void ROX_API rox_set_custom_string_property(const char *name, const char *value);
+ROX_API void rox_set_custom_string_property(const char *name, const char *value);
 
 /**
  * @param name Not <code>NULL</code>. Value is copied internally.
  * @param target May be <code>NULL</code>.
  * @param generator Not <code>NULL</code>.
  */
-void ROX_API rox_set_custom_computed_string_property(
+ROX_API void rox_set_custom_computed_string_property(
         const char *name,
         void *target,
         rox_custom_property_value_generator generator);
@@ -507,14 +507,14 @@ void ROX_API rox_set_custom_computed_string_property(
 /**
  * @param name Not <code>NULL</code>. Value is copied internally.
  */
-void ROX_API rox_set_custom_boolean_property(const char *name, bool value);
+ROX_API void rox_set_custom_boolean_property(const char *name, bool value);
 
 /**
  * @param name Not <code>NULL</code>. Value is copied internally.
  * @param target May be <code>NULL</code>.
  * @param generator Not <code>NULL</code>.
  */
-void ROX_API rox_set_custom_computed_boolean_property(
+ROX_API void rox_set_custom_computed_boolean_property(
         const char *name,
         void *target,
         rox_custom_property_value_generator generator);
@@ -522,14 +522,14 @@ void ROX_API rox_set_custom_computed_boolean_property(
 /**
  * @param name Not <code>NULL</code>. Value is copied internally.
  */
-void ROX_API rox_set_custom_double_property(const char *name, double value);
+ROX_API void rox_set_custom_double_property(const char *name, double value);
 
 /**
  * @param name Not <code>NULL</code>. Value is copied internally.
  * @param target May be <code>NULL</code>.
  * @param generator Not <code>NULL</code>.
  */
-void ROX_API rox_set_custom_computed_double_property(
+ROX_API void rox_set_custom_computed_double_property(
         const char *name,
         void *target,
         rox_custom_property_value_generator generator);
@@ -537,14 +537,14 @@ void ROX_API rox_set_custom_computed_double_property(
 /**
  * @param name Not <code>NULL</code>. Value is copied internally.
  */
-void ROX_API rox_set_custom_integer_property(const char *name, int value);
+ROX_API void rox_set_custom_integer_property(const char *name, int value);
 
 /**
  * @param name Not <code>NULL</code>. Value is copied internally.
  * @param target May be <code>NULL</code>.
  * @param generator Not <code>NULL</code>.
  */
-void ROX_API rox_set_custom_computed_integer_property(
+ROX_API void rox_set_custom_computed_integer_property(
         const char *name,
         void *target,
         rox_custom_property_value_generator generator);
@@ -553,14 +553,14 @@ void ROX_API rox_set_custom_computed_integer_property(
  * @param name Not <code>NULL</code>. Value is copied internally.
  * @param value Not <code>NULL</code>. Value is copied internally.
  */
-void ROX_API rox_set_custom_semver_property(const char *name, const char *value);
+ROX_API void rox_set_custom_semver_property(const char *name, const char *value);
 
 /**
  * @param name Not <code>NULL</code>. Value is copied internally.
  * @param target May be <code>NULL</code>.
  * @param generator Not <code>NULL</code>.
  */
-void ROX_API rox_set_custom_computed_semver_property(
+ROX_API void rox_set_custom_computed_semver_property(
         const char *name,
         void *target,
         rox_custom_property_value_generator generator);
@@ -569,7 +569,7 @@ void ROX_API rox_set_custom_computed_semver_property(
 // DynamicApi
 //
 
-typedef struct ROX_API RoxDynamicApi RoxDynamicApi;
+typedef struct RoxDynamicApi RoxDynamicApi;
 
 /**
  * The returned value, if not <code>NULL</code>, must be freed after use by the caller.
@@ -580,7 +580,7 @@ typedef struct ROX_API RoxDynamicApi RoxDynamicApi;
  * @param context May be <code>NULL</code>.
  * @param options May be <code>NULL</code>.
  */
-char *ROX_API rox_dynamic_api_get_value(
+ROX_API char *rox_dynamic_api_get_value(
         RoxDynamicApi *api,
         const char *name,
         char *default_value,
@@ -590,20 +590,20 @@ char *ROX_API rox_dynamic_api_get_value(
 /**
  * @param api Not <code>NULL</code>.
  */
-void ROX_API rox_dynamic_api_free(RoxDynamicApi *api);
+ROX_API void rox_dynamic_api_free(RoxDynamicApi *api);
 
 /**
  * Note the returned pointer must be freed after use by calling <code>rox_dynamic_api_free</code>.
  *
  * @return Not <code>NULL</code>.
  */
-RoxDynamicApi *ROX_API rox_dynamic_api();
+ROX_API RoxDynamicApi *rox_dynamic_api();
 
 /**
  * Should be called to free all the rox memory. After this,
  * no <code>rox_xxx</code> method can be called anymore.
  */
-void ROX_API rox_shutdown();
+ROX_API void rox_shutdown();
 
 #ifdef __cplusplus
 } // extern "C"

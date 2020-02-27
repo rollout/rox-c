@@ -8,7 +8,7 @@
 // CustomPropertyRepository
 //
 
-struct ROX_INTERNAL CustomPropertyRepository {
+struct CustomPropertyRepository {
     HashTable *custom_properties;
     void *target;
     custom_property_handler handler;
@@ -20,7 +20,7 @@ CustomPropertyRepository *custom_property_repository_create() {
     return repository;
 }
 
-void ROX_INTERNAL custom_property_repository_add_custom_property(
+ROX_INTERNAL void custom_property_repository_add_custom_property(
         CustomPropertyRepository *repository,
         CustomProperty *property) {
     assert(repository);
@@ -36,7 +36,7 @@ void ROX_INTERNAL custom_property_repository_add_custom_property(
     }
 }
 
-bool ROX_INTERNAL custom_property_repository_add_custom_property_if_not_exists(
+ROX_INTERNAL bool custom_property_repository_add_custom_property_if_not_exists(
         CustomPropertyRepository *repository,
         CustomProperty *property) {
     assert(repository);
@@ -52,7 +52,7 @@ bool ROX_INTERNAL custom_property_repository_add_custom_property_if_not_exists(
     return false;
 }
 
-CustomProperty *ROX_INTERNAL custom_property_repository_get_custom_property(
+ROX_INTERNAL CustomProperty *custom_property_repository_get_custom_property(
         CustomPropertyRepository *repository,
         const char *property_name) {
     assert(repository);
@@ -62,12 +62,12 @@ CustomProperty *ROX_INTERNAL custom_property_repository_get_custom_property(
            ? ptr : NULL;
 }
 
-HashTable *ROX_INTERNAL custom_property_repository_get_all_custom_properties(CustomPropertyRepository *repository) {
+ROX_INTERNAL HashTable *custom_property_repository_get_all_custom_properties(CustomPropertyRepository *repository) {
     assert(repository);
     return repository->custom_properties;
 }
 
-void ROX_INTERNAL custom_property_repository_set_handler(
+ROX_INTERNAL void custom_property_repository_set_handler(
         CustomPropertyRepository *repository,
         void *target,
         custom_property_handler handler) {
@@ -88,17 +88,17 @@ void custom_property_repository_free(CustomPropertyRepository *repository) {
 // ExperimentRepository
 //
 
-struct ROX_INTERNAL ExperimentRepository {
+struct ExperimentRepository {
     List *experiments;
 };
 
-ExperimentRepository *ROX_INTERNAL experiment_repository_create() {
+ROX_INTERNAL ExperimentRepository *experiment_repository_create() {
     ExperimentRepository *repository = calloc(1, sizeof(ExperimentRepository));
     list_new(&repository->experiments);
     return repository;
 }
 
-void ROX_INTERNAL experiment_repository_set_experiments(
+ROX_INTERNAL void experiment_repository_set_experiments(
         ExperimentRepository *repository,
         List *experiments) {
     assert(repository);
@@ -107,7 +107,7 @@ void ROX_INTERNAL experiment_repository_set_experiments(
     repository->experiments = experiments;
 }
 
-ExperimentModel *ROX_INTERNAL experiment_repository_get_experiment_by_flag(
+ROX_INTERNAL ExperimentModel *experiment_repository_get_experiment_by_flag(
         ExperimentRepository *repository,
         const char *flag_name) {
     assert(repository);
@@ -124,12 +124,12 @@ ExperimentModel *ROX_INTERNAL experiment_repository_get_experiment_by_flag(
     return NULL;
 }
 
-List *ROX_INTERNAL experiment_repository_get_all_experiments(ExperimentRepository *repository) {
+ROX_INTERNAL List *experiment_repository_get_all_experiments(ExperimentRepository *repository) {
     assert(repository);
     return repository->experiments;
 }
 
-void ROX_INTERNAL experiment_repository_free(ExperimentRepository *repository) {
+ROX_INTERNAL void experiment_repository_free(ExperimentRepository *repository) {
     assert(repository);
     list_destroy_cb(repository->experiments, (void (*)(void *)) &experiment_model_free);
     free(repository);
@@ -139,24 +139,24 @@ void ROX_INTERNAL experiment_repository_free(ExperimentRepository *repository) {
 // FlagRepository
 //
 
-typedef struct ROX_INTERNAL FlagAddedCallback {
+typedef struct FlagAddedCallback {
     void *target;
     flag_added_callback callback;
 } FlagAddedCallback;
 
-struct ROX_INTERNAL FlagRepository {
+struct FlagRepository {
     HashTable *variants;
     List *callbacks;
 };
 
-FlagRepository *ROX_INTERNAL flag_repository_create() {
+ROX_INTERNAL FlagRepository *flag_repository_create() {
     FlagRepository *repository = calloc(1, sizeof(FlagRepository));
     hashtable_new(&repository->variants);
     list_new(&repository->callbacks);
     return repository;
 };
 
-void ROX_INTERNAL flag_repository_add_flag(
+ROX_INTERNAL void flag_repository_add_flag(
         FlagRepository *repository,
         RoxVariant *variant,
         const char *name) {
@@ -176,7 +176,7 @@ void ROX_INTERNAL flag_repository_add_flag(
     })
 }
 
-RoxVariant *ROX_INTERNAL flag_repository_get_flag(
+ROX_INTERNAL RoxVariant *flag_repository_get_flag(
         FlagRepository *repository,
         const char *name) {
     assert(repository);
@@ -189,12 +189,12 @@ RoxVariant *ROX_INTERNAL flag_repository_get_flag(
     return NULL;
 }
 
-HashTable *ROX_INTERNAL flag_repository_get_all_flags(FlagRepository *repository) {
+ROX_INTERNAL HashTable *flag_repository_get_all_flags(FlagRepository *repository) {
     assert(repository);
     return repository->variants;
 }
 
-void ROX_INTERNAL flag_repository_add_flag_added_callback(
+ROX_INTERNAL void flag_repository_add_flag_added_callback(
         FlagRepository *repository,
         void *target,
         flag_added_callback callback) {
@@ -206,7 +206,7 @@ void ROX_INTERNAL flag_repository_add_flag_added_callback(
     list_add(repository->callbacks, item);
 }
 
-void ROX_INTERNAL flag_repository_free(FlagRepository *repository) {
+ROX_INTERNAL void flag_repository_free(FlagRepository *repository) {
     assert(repository);
     list_destroy_cb(repository->callbacks, &free);
     rox_map_free_with_values_cb(repository->variants,
@@ -218,17 +218,17 @@ void ROX_INTERNAL flag_repository_free(FlagRepository *repository) {
 // TargetGroupRepository
 //
 
-struct ROX_INTERNAL TargetGroupRepository {
+struct TargetGroupRepository {
     List *target_groups;
 };
 
-TargetGroupRepository *ROX_INTERNAL target_group_repository_create() {
+ROX_INTERNAL TargetGroupRepository *target_group_repository_create() {
     TargetGroupRepository *repository = calloc(1, sizeof(TargetGroupRepository));
     list_new(&repository->target_groups);
     return repository;
 }
 
-void ROX_INTERNAL target_group_repository_set_target_groups(
+ROX_INTERNAL void target_group_repository_set_target_groups(
         TargetGroupRepository *repository,
         List *target_groups) {
     assert(repository);
@@ -237,7 +237,7 @@ void ROX_INTERNAL target_group_repository_set_target_groups(
     repository->target_groups = target_groups;
 }
 
-TargetGroupModel *ROX_INTERNAL target_group_repository_get_target_group(
+ROX_INTERNAL TargetGroupModel *target_group_repository_get_target_group(
         TargetGroupRepository *repository,
         const char *id) {
     assert(repository);
@@ -255,7 +255,7 @@ TargetGroupModel *ROX_INTERNAL target_group_repository_get_target_group(
     return model;
 }
 
-void ROX_INTERNAL target_group_repository_free(TargetGroupRepository *repository) {
+ROX_INTERNAL void target_group_repository_free(TargetGroupRepository *repository) {
     assert(repository);
     list_destroy_cb(repository->target_groups, (void (*)(void *)) &target_group_model_free);
     free(repository);

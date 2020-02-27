@@ -23,7 +23,7 @@ START_TEST (test_sse_shutting_down_gracefully) {
 
 END_TEST
 
-typedef struct ROX_INTERNAL ListenerEventTestContext {
+typedef struct ListenerEventTestContext {
     NotificationListenerConfig *config;
     NotificationListener *listener;
     List *events;

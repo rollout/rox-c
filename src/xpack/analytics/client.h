@@ -10,7 +10,7 @@
 
 typedef void (*analytics_client_track_func)(void *target, AnalyticsEvent *event);
 
-typedef struct ROX_INTERNAL AnalyticsClientConfig {
+typedef struct AnalyticsClientConfig {
     char *host;
     char *proxy;
     int max_queue_size;
@@ -28,7 +28,7 @@ extern const AnalyticsClientConfig ANALYTICS_CLIENT_INITIAL_CONFIG;
 // Client
 //
 
-typedef struct ROX_INTERNAL AnalyticsClient AnalyticsClient;
+typedef struct AnalyticsClient AnalyticsClient;
 
 /**
  * @param write_key Not <code>NULL</code>. Value is copied internally.
@@ -36,11 +36,11 @@ typedef struct ROX_INTERNAL AnalyticsClient AnalyticsClient;
  * @param properties Not <code>NULL</code>.
  * @return Not <code>NULL</code>.
  */
-AnalyticsClient *ROX_INTERNAL analytics_client_create(
+ROX_INTERNAL AnalyticsClient *analytics_client_create(
         const char *write_key,
         AnalyticsClientConfig *config,
         DeviceProperties *properties);
 
-void ROX_INTERNAL analytics_client_track(AnalyticsClient *client, AnalyticsEvent *event);
+ROX_INTERNAL void analytics_client_track(AnalyticsClient *client, AnalyticsEvent *event);
 
-void ROX_INTERNAL analytics_client_free(AnalyticsClient *client);
+ROX_INTERNAL void analytics_client_free(AnalyticsClient *client);

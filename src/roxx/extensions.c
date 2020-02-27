@@ -4,19 +4,19 @@
 #include "extensions.h"
 #include "util.h"
 
-typedef struct ROX_INTERNAL ExperimentExtensionsContext {
+typedef struct ExperimentExtensionsContext {
     TargetGroupRepository *target_groups_repository;
     FlagRepository *flags_repository;
     ExperimentRepository *experiment_repository;
 } ExperimentExtensionsContext;
 
-void ROX_INTERNAL _parser_extensions_disposal_handler(void *target, Parser *parser) {
+ROX_INTERNAL void _parser_extensions_disposal_handler(void *target, Parser *parser) {
     assert(target);
     assert(parser);
     free(target);
 }
 
-double ROX_INTERNAL experiment_extensions_get_bucket(const char *seed) {
+ROX_INTERNAL double experiment_extensions_get_bucket(const char *seed) {
     assert(seed);
     unsigned char bytes[16];
     md5_str_b(seed, bytes);
@@ -29,7 +29,7 @@ double ROX_INTERNAL experiment_extensions_get_bucket(const char *seed) {
     return bucket;
 }
 
-void ROX_INTERNAL _parser_operator_merge_seed(void *target, Parser *parser, CoreStack *stack, RoxContext *context) {
+ROX_INTERNAL void _parser_operator_merge_seed(void *target, Parser *parser, CoreStack *stack, RoxContext *context) {
     assert(parser);
     assert(stack);
     StackItem *item1 = rox_stack_pop(stack);
@@ -40,7 +40,7 @@ void ROX_INTERNAL _parser_operator_merge_seed(void *target, Parser *parser, Core
     rox_stack_push_string_ptr(stack, merged);
 }
 
-void ROX_INTERNAL _parser_operator_is_in_percentage(void *target, Parser *parser, CoreStack *stack, RoxContext *context) {
+ROX_INTERNAL void _parser_operator_is_in_percentage(void *target, Parser *parser, CoreStack *stack, RoxContext *context) {
     assert(parser);
     assert(stack);
     StackItem *item1 = rox_stack_pop(stack);
@@ -52,7 +52,7 @@ void ROX_INTERNAL _parser_operator_is_in_percentage(void *target, Parser *parser
     rox_stack_push_boolean(stack, is_in_percentage);
 }
 
-void ROX_INTERNAL
+ROX_INTERNAL void
 _parser_operator_is_in_percentage_range(void *target, Parser *parser, CoreStack *stack, RoxContext *context) {
     assert(parser);
     assert(stack);
@@ -67,7 +67,7 @@ _parser_operator_is_in_percentage_range(void *target, Parser *parser, CoreStack 
     rox_stack_push_boolean(stack, is_in_percentage);
 }
 
-void ROX_INTERNAL _parser_operator_flag_value(void *target, Parser *parser, CoreStack *stack, RoxContext *context) {
+ROX_INTERNAL void _parser_operator_flag_value(void *target, Parser *parser, CoreStack *stack, RoxContext *context) {
     assert(parser);
     assert(stack);
     ExperimentExtensionsContext *extensions = (ExperimentExtensionsContext *) target;
@@ -98,7 +98,7 @@ void ROX_INTERNAL _parser_operator_flag_value(void *target, Parser *parser, Core
     rox_stack_push_string_ptr(stack, result);
 }
 
-void ROX_INTERNAL
+ROX_INTERNAL void
 _parser_operator_is_in_target_group(void *target, Parser *parser, CoreStack *stack, RoxContext *context) {
     assert(parser);
     assert(stack);
@@ -116,7 +116,7 @@ _parser_operator_is_in_target_group(void *target, Parser *parser, CoreStack *sta
     rox_stack_push_boolean(stack, bool_result ? *bool_result : false);
 }
 
-void ROX_INTERNAL parser_add_experiments_extensions(
+ROX_INTERNAL void parser_add_experiments_extensions(
         Parser *parser,
         TargetGroupRepository *target_groups_repository,
         FlagRepository *flags_repository,
@@ -141,12 +141,12 @@ void ROX_INTERNAL parser_add_experiments_extensions(
     parser_add_operator(parser, "isInTargetGroup", context, &_parser_operator_is_in_target_group);
 }
 
-typedef struct ROX_INTERNAL PropertiesExtensionsContext {
+typedef struct PropertiesExtensionsContext {
     CustomPropertyRepository *custom_property_repository;
     DynamicProperties *dynamic_properties;
 } PropertiesExtensionsContext;
 
-void ROX_INTERNAL _parser_operator_property(void *target, Parser *parser, CoreStack *stack, RoxContext *context) {
+ROX_INTERNAL void _parser_operator_property(void *target, Parser *parser, CoreStack *stack, RoxContext *context) {
     assert(parser);
     assert(stack);
 
@@ -192,7 +192,7 @@ void ROX_INTERNAL _parser_operator_property(void *target, Parser *parser, CoreSt
     rox_stack_push_undefined(stack);
 }
 
-void ROX_INTERNAL parser_add_properties_extensions(
+ROX_INTERNAL void parser_add_properties_extensions(
         Parser *parser,
         CustomPropertyRepository *custom_property_repository,
         DynamicProperties *dynamic_properties) {

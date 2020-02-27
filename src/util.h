@@ -18,51 +18,51 @@
 // to be pre-allocated and passed as the (usually last) argument.
 //
 
-void *ROX_INTERNAL mem_copy(void *ptr, size_t bytes);
+ROX_INTERNAL void *mem_copy(void *ptr, size_t bytes);
 
-int *ROX_INTERNAL mem_copy_int(int value);
+ROX_INTERNAL int *mem_copy_int(int value);
 
-double *ROX_INTERNAL mem_copy_double(double value);
+ROX_INTERNAL double *mem_copy_double(double value);
 
-char *ROX_INTERNAL mem_copy_str(const char *ptr);
+ROX_INTERNAL char *mem_copy_str(const char *ptr);
 
-bool *ROX_INTERNAL mem_copy_bool(bool value);
+ROX_INTERNAL bool *mem_copy_bool(bool value);
 
-HashTable *ROX_INTERNAL mem_copy_map(HashTable *map);
+ROX_INTERNAL HashTable *mem_copy_map(HashTable *map);
 
-List *ROX_INTERNAL mem_copy_list(List *list);
+ROX_INTERNAL List *mem_copy_list(List *list);
 
-List *ROX_INTERNAL mem_deep_copy_list(List *list, void *(*copy_func)(void *));
+ROX_INTERNAL List *mem_deep_copy_list(List *list, void *(*copy_func)(void *));
 
-HashSet *ROX_INTERNAL mem_copy_set(HashSet *set);
+ROX_INTERNAL HashSet *mem_copy_set(HashSet *set);
 
-HashSet *ROX_INTERNAL mem_deep_copy_set(HashSet *set, void *(*copy_func)(void *));
+ROX_INTERNAL HashSet *mem_deep_copy_set(HashSet *set, void *(*copy_func)(void *));
 
-HashTable *ROX_INTERNAL mem_deep_copy_str_value_map(HashTable *map);
+ROX_INTERNAL HashTable *mem_deep_copy_str_value_map(HashTable *map);
 
-int *ROX_INTERNAL mem_str_to_int(const char *str);
+ROX_INTERNAL int *mem_str_to_int(const char *str);
 
-double *ROX_INTERNAL mem_str_to_double(const char *str);
+ROX_INTERNAL double *mem_str_to_double(const char *str);
 
-char *ROX_INTERNAL mem_int_to_str(int value);
+ROX_INTERNAL char *mem_int_to_str(int value);
 
-char *ROX_INTERNAL mem_double_to_str(double value);
+ROX_INTERNAL char *mem_double_to_str(double value);
 
-char *ROX_INTERNAL mem_bool_to_str(bool value,
+ROX_INTERNAL char *mem_bool_to_str(bool value,
                                    const char *true_value,
                                    const char *false_value);
 
-bool ROX_INTERNAL str_matches(const char *str, const char *pattern, unsigned int options);
+ROX_INTERNAL bool str_matches(const char *str, const char *pattern, unsigned int options);
 
-int ROX_INTERNAL str_index_of(const char *str, char c);
+ROX_INTERNAL int str_index_of(const char *str, char c);
 
-bool ROX_INTERNAL str_starts_with(const char *str, const char *prefix);
+ROX_INTERNAL bool str_starts_with(const char *str, const char *prefix);
 
-bool ROX_INTERNAL str_equals(const char *str, const char *another);
+ROX_INTERNAL bool str_equals(const char *str, const char *another);
 
-bool ROX_INTERNAL str_eq_n(const char *str, int start, int end, const char *another);
+ROX_INTERNAL bool str_eq_n(const char *str, int start, int end, const char *another);
 
-bool ROX_INTERNAL str_is_empty(const char *str);
+ROX_INTERNAL bool str_is_empty(const char *str);
 
 /**
  * Note the passed <code>str</code> is modified in-place, without creating new strings.
@@ -70,15 +70,15 @@ bool ROX_INTERNAL str_is_empty(const char *str);
  * @param str Not <code>NULL</code>.
  * @return <code>str</code> itself, no new string is created.
  */
-char *ROX_INTERNAL str_to_upper(char *str);
+ROX_INTERNAL char *str_to_upper(char *str);
 
-bool ROX_INTERNAL str_in_list(const char *str, List *list_of_strings);
+ROX_INTERNAL bool str_in_list(const char *str, List *list_of_strings);
 
-void ROX_INTERNAL str_substring_b(const char *str, int start, int len, char *buffer);
+ROX_INTERNAL void str_substring_b(const char *str, int start, int len, char *buffer);
 
-size_t ROX_INTERNAL str_copy_value_to_buffer(char *buffer, size_t buffer_size, const char *value);
+ROX_INTERNAL size_t str_copy_value_to_buffer(char *buffer, size_t buffer_size, const char *value);
 
-char *ROX_INTERNAL str_format_b(char *buffer, size_t buffer_size, const char *fmt, ...);
+ROX_INTERNAL char *str_format_b(char *buffer, size_t buffer_size, const char *fmt, ...);
 
 /**
  * NOTE: THE RETURNED STR MUST BE FREED AFTER USE
@@ -87,7 +87,7 @@ char *ROX_INTERNAL str_format_b(char *buffer, size_t buffer_size, const char *fm
  * @param len Length of the returned substring.
  * @return Pointer to the NEWLY CREATED string which is a substring of the given string or NULL in case where start offset or length is out of bounds.
  */
-char *ROX_INTERNAL mem_str_substring(const char *str, int start, int len);
+ROX_INTERNAL char *mem_str_substring(const char *str, int start, int len);
 
 /**
  * NOTE: THE RETURNED STR MUST BE FREED AFTER USE
@@ -97,7 +97,7 @@ char *ROX_INTERNAL mem_str_substring(const char *str, int start, int len);
  * @param len Length of the returned substring.
  * @return Pointer to the NEWLY CREATED string which is a substring of the given string or NULL in case where start offset or length is out of bounds.
  */
-char *ROX_INTERNAL mem_str_substring_n(const char *str, size_t str_len, int start, int len);
+ROX_INTERNAL char *mem_str_substring_n(const char *str, size_t str_len, int start, int len);
 
 /**
  * NOTE: THE RETURNED STR MUST BE FREED AFTER USE
@@ -106,7 +106,7 @@ char *ROX_INTERNAL mem_str_substring_n(const char *str, size_t str_len, int star
  * @param rep The replacement.
  * @return Pointer to the NEWLY CREATED string in which all occurrences of <code>search</code> are replaced with <code>rep</code>.
  */
-char *ROX_INTERNAL mem_str_replace(const char *str, const char *search, const char *rep);
+ROX_INTERNAL char *mem_str_replace(const char *str, const char *search, const char *rep);
 
 /**
  * NOTE: THE RETURNED STR MUST BE FREED AFTER USE
@@ -114,58 +114,58 @@ char *ROX_INTERNAL mem_str_replace(const char *str, const char *search, const ch
  * @param s2 The right part. MUST NOT BE NULL.
  * @return Pointer to the NEWLY CREATED string which is a concatenation of the given two strings.
  */
-char *ROX_INTERNAL mem_str_concat(const char *s1, const char *s2);
+ROX_INTERNAL char *mem_str_concat(const char *s1, const char *s2);
 
 /**
  * NOTE: THE RETURNED STR MUST BE FREED AFTER USE
  * @param fmt Format string. MUST NOT BE NULL.
  * @return Pointer to the NEWLY CREATED string which is a formatted string.
  */
-char *ROX_INTERNAL mem_str_format(const char *fmt, ...);
+ROX_INTERNAL char *mem_str_format(const char *fmt, ...);
 
 /**
  * NOTE: THE RETURNED STR MUST BE FREED AFTER USE
  * @return Pointer to the NEWLY CREATED string which is a formatted string.
  */
-char *ROX_INTERNAL mem_build_url(const char *base_uri, const char *path);
+ROX_INTERNAL char *mem_build_url(const char *base_uri, const char *path);
 
 /**
  * NOTE: THE RETURNED STR MUST BE FREED AFTER USE
  * @param s The string to encode.
  * @return Pointer to the NEWLY CREATED string which is a base64-encoded version of the given string.
  */
-char *ROX_INTERNAL mem_base64_encode(const char *s);
+ROX_INTERNAL char *mem_base64_encode(const char *s);
 
 /**
  * @param s The BASE64-ed string to decode.
  * @return Size if the resulting decoded data in bytes.
  */
-size_t ROX_INTERNAL base64_decode_b(const char *s, unsigned char *buffer);
+ROX_INTERNAL size_t base64_decode_b(const char *s, unsigned char *buffer);
 
 /**
  * NOTE: THE RETURNED STR MUST BE FREED AFTER USE
  * @param s The BASE64-ed string to decode.
  * @return Pointer to the NEWLY CREATED string which is a base64-decoded version of the given string.
  */
-char *ROX_INTERNAL mem_base64_decode_str(const char *s);
+ROX_INTERNAL char *mem_base64_decode_str(const char *s);
 
 /**
  * NOTE: THE RETURNED STR MUST BE FREED AFTER USE
  * @param s The input string. Not <code>NULL</code>.
  * @param buffer Buffer to output result to. Must not be <code>NULL</code>. Must be of length 16 (at least).
  */
-void ROX_INTERNAL md5_str_b(const char *s, unsigned char *buffer);
+ROX_INTERNAL void md5_str_b(const char *s, unsigned char *buffer);
 
 /**
  * NOTE: THE RETURNED STR MUST BE FREED AFTER USE
  * @param s The input string. Not <code>NULL</code>.
  * @return Pointer to the NEWLY CREATED string which is a binary md5 hash of the given string.
  */
-char *ROX_INTERNAL mem_md5_str(const char *s);
+ROX_INTERNAL char *mem_md5_str(const char *s);
 
-unsigned char *ROX_INTERNAL mem_sha256(const char *s);
+ROX_INTERNAL unsigned char *mem_sha256(const char *s);
 
-char *ROX_INTERNAL mem_sha256_str(const char *s);
+ROX_INTERNAL char *mem_sha256_str(const char *s);
 
 /**
  * NOTE: THE RETURNED STR MUST BE FREED AFTER USE
@@ -173,16 +173,16 @@ char *ROX_INTERNAL mem_sha256_str(const char *s);
  * @param strings List of <code>char *</code>. Not <code>NULL</code>.
  * @return Not <code>NULL</code>.
  */
-char *ROX_INTERNAL mem_str_join(const char *separator, List *strings);
+ROX_INTERNAL char *mem_str_join(const char *separator, List *strings);
 
 /**
  * @return Number of milliseconds since Unix Epoch.
  */
-double ROX_INTERNAL current_time_millis();
+ROX_INTERNAL double current_time_millis();
 
-void ROX_INTERNAL thread_sleep(int sleep_millis);
+ROX_INTERNAL void thread_sleep(int sleep_millis);
 
-struct ROX_INTERNAL timespec get_future_timespec(int ms);
+ROX_INTERNAL struct timespec get_future_timespec(int ms);
 
 /**
  * @param file_path Path to the file to read. Not <code>NULL</code>.
@@ -190,36 +190,36 @@ struct ROX_INTERNAL timespec get_future_timespec(int ms);
  * @param buffer_size Not negative.
  * @return Number of bytes read or -1 in case of an error.
  */
-size_t ROX_INTERNAL rox_file_read_b(const char *file_path, unsigned char *buffer, size_t buffer_size);
+ROX_INTERNAL size_t rox_file_read_b(const char *file_path, unsigned char *buffer, size_t buffer_size);
 
-cJSON *ROX_INTERNAL rox_json_create_object(void *skip, ...);
+ROX_INTERNAL cJSON *rox_json_create_object(void *skip, ...);
 
-cJSON *ROX_INTERNAL rox_json_create_array(void *skip, ...);
+ROX_INTERNAL cJSON *rox_json_create_array(void *skip, ...);
 
-List *ROX_INTERNAL rox_list_create(void *skip, ...);
+ROX_INTERNAL List *rox_list_create(void *skip, ...);
 
-List *ROX_INTERNAL rox_list_create_str(void *skip, ...);
+ROX_INTERNAL List *rox_list_create_str(void *skip, ...);
 
-bool ROX_INTERNAL list_equals(List *one, List *another, bool (*cmp)(void *v1, void *v2));
+ROX_INTERNAL bool list_equals(List *one, List *another, bool (*cmp)(void *v1, void *v2));
 
-bool ROX_INTERNAL str_list_equals(List *one, List *another);
+ROX_INTERNAL bool str_list_equals(List *one, List *another);
 
-HashSet *ROX_INTERNAL rox_set_create(void *skip, ...);
+ROX_INTERNAL HashSet *rox_set_create(void *skip, ...);
 
-HashTable *ROX_INTERNAL rox_map_create(void *skip, ...);
+ROX_INTERNAL HashTable *rox_map_create(void *skip, ...);
 
-void ROX_INTERNAL rox_map_free_with_values(HashTable *map);
+ROX_INTERNAL void rox_map_free_with_values(HashTable *map);
 
-void ROX_INTERNAL rox_map_free_with_values_cb(HashTable *map, void (*f)(void *));
+ROX_INTERNAL void rox_map_free_with_values_cb(HashTable *map, void (*f)(void *));
 
-void ROX_INTERNAL rox_map_free_with_keys_and_values(HashTable *map);
+ROX_INTERNAL void rox_map_free_with_keys_and_values(HashTable *map);
 
-void ROX_INTERNAL rox_hash_table_free_with_keys_and_values_cb(
+ROX_INTERNAL void rox_hash_table_free_with_keys_and_values_cb(
         HashTable *map, void (*f_key)(void *), void (*f_value)(void *));
 
 #define ROX_JSON_PRINT_FORMATTED 1u
 
-char *ROX_INTERNAL rox_json_print(cJSON *json, unsigned int flags);
+ROX_INTERNAL char *rox_json_print(cJSON *json, unsigned int flags);
 
 #define ROX_JSON_SERIALIZE(json) rox_json_print(json, 0)
 

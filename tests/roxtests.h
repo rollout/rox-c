@@ -5,7 +5,7 @@
 #include <core/properties.h>
 #include "rollout.h"
 
-Suite *ROX_INTERNAL _rox_create_test_suite(char *name, ...) {
+ROX_INTERNAL Suite *_rox_create_test_suite(char *name, ...) {
     va_list args;
             va_start(args, name);
 
@@ -20,13 +20,13 @@ Suite *ROX_INTERNAL _rox_create_test_suite(char *name, ...) {
     return suite;
 }
 
-TCase *ROX_INTERNAL _rox_create_test_case(char *name, const TTest *test) {
+ROX_INTERNAL TCase *_rox_create_test_case(char *name, const TTest *test) {
     TCase *test_case = tcase_create(name);
     tcase_add_test(test_case, test);
     return test_case;
 }
 
-int ROX_INTERNAL _rox_run_tests(Suite *suite) {
+ROX_INTERNAL int _rox_run_tests(Suite *suite) {
     int number_failed;
     SRunner *runner = srunner_create(suite);
     srunner_run_all(runner, CK_NORMAL);
@@ -35,14 +35,14 @@ int ROX_INTERNAL _rox_run_tests(Suite *suite) {
     return number_failed;
 }
 
-void ROX_INTERNAL rox_check_and_free(char *str, const char *expected_value) {
+ROX_INTERNAL void rox_check_and_free(char *str, const char *expected_value) {
     ck_assert_str_eq(str, expected_value);
     if (str) {
         free(str);
     }
 }
 
-void ROX_INTERNAL rox_check_map_contains(HashTable *map, const char *key, const char *expected_value) {
+ROX_INTERNAL void rox_check_map_contains(HashTable *map, const char *key, const char *expected_value) {
     char *actual_value;
     ck_assert_int_eq(hashtable_get(map, (void *) key, (void **) &actual_value), CC_OK);
     ck_assert_str_eq(actual_value, expected_value);

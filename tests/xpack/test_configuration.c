@@ -8,7 +8,7 @@
 // ConfigurationFetchedInvokerTests
 //
 
-typedef struct ROX_INTERNAL ConfigurationFetchedInvokerTestContext {
+typedef struct ConfigurationFetchedInvokerTestContext {
     ConfigurationFetchedInvoker *invoker;
     ExperimentRepository *experiment_repository;
     Parser *parser;
