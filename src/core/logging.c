@@ -58,10 +58,11 @@ static void _rox_handle_log_message(
             return;
     }
 
-    char buffer[ROX_LOG_MESSAGE_BUFFER_SIZE];
+    char *buffer = malloc(ROX_LOG_MESSAGE_BUFFER_SIZE);
     vsnprintf(buffer, ROX_LOG_MESSAGE_BUFFER_SIZE, fmt, args);
     message.message = buffer;
     ROX_LOGGING_HANDLER(ROX_LOGGING_TARGET, &message);
+    free(buffer);
 }
 
 #undef ROX_LOG_MESSAGE_BUFFER_SIZE
