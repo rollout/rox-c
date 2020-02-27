@@ -1,9 +1,9 @@
-#include <collectc/hashset.h>
 #include <assert.h>
 #include <check.h>
 #include "roxtests.h"
 #include "xpack/impression.h"
 #include "core/consts.h"
+#include "collections.h"
 
 typedef struct ImpressionValues {
     const char *reporting_value_name;
@@ -12,7 +12,7 @@ typedef struct ImpressionValues {
     const char *experiment_name;
     const char *experiment_stickiness_property;
     bool experiment_archived;
-    HashSet *experiment_labels;
+    RoxSet *experiment_labels;
     RoxContext *context;
 } ImpressionValues;
 
@@ -36,14 +36,14 @@ static ImpressionValues *_impression_values_create(
 }
 
 static ImpressionValues *_impression_values_check(
-        List *list,
+        RoxList *list,
         int index,
         RoxReportingValue *value,
         ExperimentModel *experiment,
         RoxContext *context) {
 
     ImpressionValues *values;
-    ck_assert_int_eq(list_get_at(list, index, (void **) &values), CC_OK);
+    ck_assert(rox_list_get_at(list, index, (void **) &values));
     ck_assert_str_eq(values->reporting_value_name, value->name);
     ck_assert_str_eq(values->reporting_value, value->value);
     ck_assert_str_eq(values->experiment_id, experiment->id);
@@ -57,13 +57,14 @@ static ImpressionValues *_impression_values_check(
 static void _impression_labels_check(ImpressionValues *values, ...) {
     va_list args;
             va_start(args, values);
-    HashSetIter iter;
-    hashset_iter_init(&iter, values->experiment_labels);
+    RoxSetIter *iter = rox_set_iter_create();
+    rox_set_iter_init(iter, values->experiment_labels);
     char *actual_label;
-    while (hashset_iter_next(&iter, (void **) &actual_label) != CC_ITER_END) {
+    while (rox_set_iter_next(iter, (void **) &actual_label)) {
         char *expected_label = va_arg(args, char*);
         ck_assert_str_eq(actual_label, expected_label);
     }
+    rox_set_iter_free(iter);
             va_end(args);
 }
 
@@ -82,29 +83,29 @@ typedef struct ImpressionInvocationTestContext {
     AnalyticsClient *client;
     XImpressionInvoker *x_invoker;
     ImpressionInvoker *invoker;
-    List *impressions;
-    List *analytics_events;
+    RoxList *impressions;
+    RoxList *analytics_events;
 } ImpressionInvocationTestContext;
 
 static void
 _test_impression_handler(void *target, RoxReportingValue *value, RoxExperiment *experiment, RoxContext *context) {
     assert(target);
     ImpressionInvocationTestContext *ctx = (ImpressionInvocationTestContext *) target;
-    list_add(ctx->impressions, _impression_values_create(value, experiment, context));
+    rox_list_add(ctx->impressions, _impression_values_create(value, experiment, context));
 }
 
 static void _test_analytics_client_track(void *target, AnalyticsEvent *event) {
     assert(target);
     assert(event);
     ImpressionInvocationTestContext *ctx = (ImpressionInvocationTestContext *) target;
-    list_add(ctx->analytics_events, analytics_event_copy(event));
+    rox_list_add(ctx->analytics_events, analytics_event_copy(event));
 }
 
 static ImpressionInvocationTestContext *_impression_test_context_create_cfg(bool roxy) {
     ImpressionInvocationTestContext *ctx = calloc(1, sizeof(ImpressionInvocationTestContext));
 
-    list_new(&ctx->impressions);
-    list_new(&ctx->analytics_events);
+    ctx->impressions = rox_list_create();
+    ctx->analytics_events = rox_list_create();
 
     ctx->experiment_repository = experiment_repository_create();
     ctx->parser = parser_create();
@@ -151,8 +152,8 @@ static void _impression_test_context_free(ImpressionInvocationTestContext *ctx) 
     internal_flags_free(ctx->flags);
     parser_free(ctx->parser);
     experiment_repository_free(ctx->experiment_repository);
-    list_destroy_cb(ctx->impressions, (void (*)(void *)) &_impression_values_free);
-    list_destroy_cb(ctx->analytics_events, (void (*)(void *)) &analytics_event_free);
+    rox_list_free_cb(ctx->impressions, (void (*)(void *)) &_impression_values_free);
+    rox_list_free_cb(ctx->analytics_events, (void (*)(void *)) &analytics_event_free);
     free(ctx);
 }
 
@@ -179,7 +180,7 @@ START_TEST (test_will_test_impression_invoker_invoke_and_parameters) {
 
     impression_invoker_invoke(ctx->invoker, reporting_value, experiment, context);
 
-    ck_assert_int_eq(list_size(ctx->impressions), 1);
+    ck_assert_int_eq(rox_list_size(ctx->impressions), 1);
 
     ImpressionValues *values = _impression_values_check(ctx->impressions, 0, reporting_value, experiment, context);
     _impression_labels_check(values, "label1");
@@ -203,9 +204,10 @@ START_TEST (test_experiment_constructor) {
     ck_assert_int_eq(original_experiment->archived, experiment->archived);
 
     char *label;
-    HashSetIter iter;
-    hashset_iter_init(&iter, experiment->labels);
-    ck_assert_int_eq(hashset_iter_next(&iter, (void **) &label), CC_OK);
+    RoxSetIter *iter = rox_set_iter_create();
+    rox_set_iter_init(iter, experiment->labels);
+    ck_assert(rox_set_iter_next(iter, (void **) &label));
+    rox_set_iter_free(iter);
     ck_assert_str_eq(label, "name1");
 
     experiment_free(experiment);
@@ -234,9 +236,9 @@ START_TEST (test_will_not_invoke_analytics_when_flag_is_off) {
 
     impression_invoker_invoke(ctx->invoker, reporting_value, experiment, context);
 
-    ck_assert_int_eq(list_size(ctx->impressions), 1);
+    ck_assert_int_eq(rox_list_size(ctx->impressions), 1);
     _impression_values_check(ctx->impressions, 0, reporting_value, experiment, context);
-    ck_assert_int_eq(list_size(ctx->analytics_events), 0);
+    ck_assert_int_eq(rox_list_size(ctx->analytics_events), 0);
 
     experiment_model_free(experiment);
     reporting_value_free(reporting_value);
@@ -257,9 +259,9 @@ START_TEST (test_will_not_invoke_analytics_when_is_roxy) {
     experiment_repository_set_experiments(ctx->experiment_repository, ROX_LIST(experiment));
     impression_invoker_invoke(ctx->invoker, reporting_value, experiment, context);
 
-    ck_assert_int_eq(list_size(ctx->impressions), 1);
+    ck_assert_int_eq(rox_list_size(ctx->impressions), 1);
     _impression_values_check(ctx->impressions, 0, reporting_value, experiment, context);
-    ck_assert_int_eq(list_size(ctx->analytics_events), 0);
+    ck_assert_int_eq(rox_list_size(ctx->analytics_events), 0);
 
     experiment_model_free(experiment);
     reporting_value_free(reporting_value);
@@ -291,13 +293,13 @@ START_TEST (test_will_invoke_analytics) {
 
     impression_invoker_invoke(ctx->invoker, reporting_value, experiment, context);
 
-    ck_assert_int_eq(list_size(ctx->impressions), 1);
+    ck_assert_int_eq(rox_list_size(ctx->impressions), 1);
     _impression_values_check(ctx->impressions, 0, reporting_value, experiment, context);
 
-    ck_assert_int_eq(list_size(ctx->analytics_events), 1);
+    ck_assert_int_eq(rox_list_size(ctx->analytics_events), 1);
 
     AnalyticsEvent *event;
-    list_get_at(ctx->analytics_events, 0, (void **) &event);
+    rox_list_get_at(ctx->analytics_events, 0, (void **) &event);
     ck_assert_str_eq(event->distinct_id, "stam");
     ck_assert_str_eq(event->experiment_id, "id");
     ck_assert_str_eq(event->experiment_version, "0");
@@ -343,13 +345,13 @@ START_TEST (test_will_invoke_analytics_with_stickiness_prop) {
 
     impression_invoker_invoke(ctx->invoker, reporting_value, experiment, context);
 
-    ck_assert_int_eq(list_size(ctx->impressions), 1);
+    ck_assert_int_eq(rox_list_size(ctx->impressions), 1);
     _impression_values_check(ctx->impressions, 0, reporting_value, experiment, context);
 
-    ck_assert_int_eq(list_size(ctx->analytics_events), 1);
+    ck_assert_int_eq(rox_list_size(ctx->analytics_events), 1);
 
     AnalyticsEvent *event;
-    list_get_at(ctx->analytics_events, 0, (void **) &event);
+    rox_list_get_at(ctx->analytics_events, 0, (void **) &event);
     ck_assert_str_eq(event->distinct_id, "stamStick");
     ck_assert_str_eq(event->experiment_id, "id");
     ck_assert_str_eq(event->experiment_version, "0");
@@ -395,13 +397,13 @@ START_TEST (test_will_invoke_analytics_with_default_prop_when_no_stickiness_prop
 
     impression_invoker_invoke(ctx->invoker, reporting_value, experiment, context);
 
-    ck_assert_int_eq(list_size(ctx->impressions), 1);
+    ck_assert_int_eq(rox_list_size(ctx->impressions), 1);
     _impression_values_check(ctx->impressions, 0, reporting_value, experiment, context);
 
-    ck_assert_int_eq(list_size(ctx->analytics_events), 1);
+    ck_assert_int_eq(rox_list_size(ctx->analytics_events), 1);
 
     AnalyticsEvent *event;
-    list_get_at(ctx->analytics_events, 0, (void **) &event);
+    rox_list_get_at(ctx->analytics_events, 0, (void **) &event);
     ck_assert_str_eq(event->distinct_id, "stamDist");
     ck_assert_str_eq(event->experiment_id, "id");
     ck_assert_str_eq(event->experiment_version, "0");
@@ -433,13 +435,13 @@ START_TEST (test_will_invoke_analytics_with_bad_distinct_id) {
 
     impression_invoker_invoke(ctx->invoker, reporting_value, experiment, context);
 
-    ck_assert_int_eq(list_size(ctx->impressions), 1);
+    ck_assert_int_eq(rox_list_size(ctx->impressions), 1);
     _impression_values_check(ctx->impressions, 0, reporting_value, experiment, context);
 
-    ck_assert_int_eq(list_size(ctx->analytics_events), 1);
+    ck_assert_int_eq(rox_list_size(ctx->analytics_events), 1);
 
     AnalyticsEvent *event;
-    list_get_at(ctx->analytics_events, 0, (void **) &event);
+    rox_list_get_at(ctx->analytics_events, 0, (void **) &event);
     ck_assert_str_eq(event->distinct_id, "(null_distinct_id");
     ck_assert_str_eq(event->experiment_id, "id");
     ck_assert_str_eq(event->experiment_version, "0");

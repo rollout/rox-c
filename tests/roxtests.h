@@ -4,6 +4,7 @@
 #include <check.h>
 #include <core/properties.h>
 #include "rollout.h"
+#include "collections.h"
 
 ROX_INTERNAL Suite *_rox_create_test_suite(char *name, ...) {
     va_list args;
@@ -42,9 +43,9 @@ ROX_INTERNAL void rox_check_and_free(char *str, const char *expected_value) {
     }
 }
 
-ROX_INTERNAL void rox_check_map_contains(HashTable *map, const char *key, const char *expected_value) {
+ROX_INTERNAL void rox_check_map_contains(RoxMap *map, const char *key, const char *expected_value) {
     char *actual_value;
-    ck_assert_int_eq(hashtable_get(map, (void *) key, (void **) &actual_value), CC_OK);
+    ck_assert(rox_map_get(map, (void *) key, (void **) &actual_value));
     ck_assert_str_eq(actual_value, expected_value);
 }
 

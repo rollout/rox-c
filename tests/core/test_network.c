@@ -7,6 +7,7 @@
 #include "core/reporting.h"
 #include "util.h"
 #include "fixtures.h"
+#include "collections.h"
 
 //
 // Test Fixtures
@@ -42,7 +43,7 @@ static void _test_error_reporting_func(void *target,
     // Stub
 }
 
-static RequestTestContext *_request_test_context_create(HashTable *device_properties_map, const char *buid) {
+static RequestTestContext *_request_test_context_create(RoxMap *device_properties_map, const char *buid) {
 
     RequestTestContext *ctx = calloc(1, sizeof(RequestTestContext));
 
@@ -118,7 +119,7 @@ START_TEST (test_will_return_cdn_data_when_successful) {
     ConfigurationFetchResult *result = configuration_fetcher_fetch(fetcher);
     ck_assert_ptr_nonnull(result);
     ck_assert_str_eq(ctx->request->last_get_uri, "https://conf.rollout.io/123/buid");
-    ck_assert_int_eq(hashtable_size(ctx->request->last_get_params), 1);
+    ck_assert_int_eq(rox_map_size(ctx->request->last_get_params), 1);
     rox_check_map_contains(ctx->request->last_get_params, ROX_PROPERTY_TYPE_DISTINCT_ID.name, "id");
     ck_assert_str_eq(cJSON_GetObjectItem(result->parsed_data, "a")->valuestring, "harti");
     ck_assert_int_eq(CONFIGURATION_SOURCE_CDN, result->source);
@@ -232,11 +233,11 @@ START_TEST (test_will_return_api_data_when_cdn_fails_with_result_404_api_ok) {
     ck_assert_ptr_nonnull(result);
 
     ck_assert_str_eq(ctx->request->last_get_uri, "https://conf.rollout.io/123/buid");
-    ck_assert_int_eq(hashtable_size(ctx->request->last_get_params), 1);
+    ck_assert_int_eq(rox_map_size(ctx->request->last_get_params), 1);
     rox_check_map_contains(ctx->request->last_get_params, ROX_PROPERTY_TYPE_DISTINCT_ID.name, "id");
 
     ck_assert_str_eq(ctx->request->last_post_uri, "https://x-api.rollout.io/device/get_configuration/123/buid");
-    ck_assert_int_eq(hashtable_size(ctx->request->last_post_params), 5);
+    ck_assert_int_eq(rox_map_size(ctx->request->last_post_params), 5);
     rox_check_map_contains(ctx->request->last_post_params, ROX_PROPERTY_TYPE_APP_KEY.name, "123");
     rox_check_map_contains(ctx->request->last_post_params, ROX_PROPERTY_TYPE_API_VERSION.name, "4.0.0");
     rox_check_map_contains(ctx->request->last_post_params, ROX_PROPERTY_TYPE_DISTINCT_ID.name, "id");
@@ -273,7 +274,7 @@ START_TEST (test_will_return_api_data_when_cdn_succeed_with_result200) {
     ck_assert_ptr_nonnull(result);
 
     ck_assert_str_eq(ctx->request->last_get_uri, "https://conf.rollout.io/123/buid");
-    ck_assert_int_eq(hashtable_size(ctx->request->last_get_params), 1);
+    ck_assert_int_eq(rox_map_size(ctx->request->last_get_params), 1);
     rox_check_map_contains(ctx->request->last_get_params, ROX_PROPERTY_TYPE_DISTINCT_ID.name, "id");
 
     ck_assert_str_eq(cJSON_GetObjectItem(result->parsed_data, "harto")->valuestring, "a");
@@ -306,11 +307,11 @@ START_TEST (test_will_return_api_data_when_cdn_fails_404_api_ok) {
     ck_assert_ptr_nonnull(result);
 
     ck_assert_str_eq(ctx->request->last_get_uri, "https://conf.rollout.io/123/buid");
-    ck_assert_int_eq(hashtable_size(ctx->request->last_get_params), 1);
+    ck_assert_int_eq(rox_map_size(ctx->request->last_get_params), 1);
     rox_check_map_contains(ctx->request->last_get_params, ROX_PROPERTY_TYPE_DISTINCT_ID.name, "id");
 
     ck_assert_str_eq(ctx->request->last_post_uri, "https://x-api.rollout.io/device/get_configuration/123/buid");
-    ck_assert_int_eq(hashtable_size(ctx->request->last_post_params), 5);
+    ck_assert_int_eq(rox_map_size(ctx->request->last_post_params), 5);
     rox_check_map_contains(ctx->request->last_post_params, ROX_PROPERTY_TYPE_APP_KEY.name, "123");
     rox_check_map_contains(ctx->request->last_post_params, ROX_PROPERTY_TYPE_API_VERSION.name, "4.0.0");
     rox_check_map_contains(ctx->request->last_post_params, ROX_PROPERTY_TYPE_DISTINCT_ID.name, "id");

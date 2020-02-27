@@ -1,6 +1,5 @@
 #pragma once
 
-#include <collectc/hashtable.h>
 #include "configuration/models.h"
 #include "properties.h"
 #include "entities.h"
@@ -48,11 +47,11 @@ ROX_INTERNAL CustomProperty *custom_property_repository_get_custom_property(
         const char *property_name);
 
 /**
- * The returned object is maintained by the repository, you must not call <code>hashtable_destroy</code> on it.
+ * The returned object is maintained by the repository, you must not call <code>rox_map_destroy</code> on it.
  * @param repository Not <code>NULL</code>.
  * @return Not <code>NULL</code>.
  */
-ROX_INTERNAL HashTable *custom_property_repository_get_all_custom_properties(
+ROX_INTERNAL RoxMap *custom_property_repository_get_all_custom_properties(
         CustomPropertyRepository *repository);
 
 /**
@@ -87,7 +86,7 @@ ROX_INTERNAL ExperimentRepository *experiment_repository_create();
  */
 ROX_INTERNAL void experiment_repository_set_experiments(
         ExperimentRepository *repository,
-        List *experiments);
+        RoxList *experiments);
 
 /**
  * @param repository Not <code>NULL</code>.
@@ -103,7 +102,7 @@ ROX_INTERNAL ExperimentModel *experiment_repository_get_experiment_by_flag(
  * @param repository Not <code>NULL</code>.
  * @return List of <code>ExperimentModel *</code>
  */
-ROX_INTERNAL List *experiment_repository_get_all_experiments(ExperimentRepository *repository);
+ROX_INTERNAL RoxList *experiment_repository_get_all_experiments(ExperimentRepository *repository);
 
 /**
  * @param repository Not <code>NULL</code>.
@@ -142,11 +141,11 @@ ROX_INTERNAL RoxVariant *flag_repository_get_flag(
         const char *name);
 
 /**
- * The returned object is maintained by the repository, you must not call <code>hashtable_destroy</code> on it.
+ * The returned object is maintained by the repository, you must not call <code>rox_map_destroy</code> on it.
  * @param repository Not <code>NULL</code>.
  * @return Hash table with flag names as keys and <code>RoxVariant *</code> as values. Not <code>NULL</code>.
  */
-ROX_INTERNAL HashTable *flag_repository_get_all_flags(FlagRepository *repository);
+ROX_INTERNAL RoxMap *flag_repository_get_all_flags(FlagRepository *repository);
 
 typedef void (*flag_added_callback)(void *target, RoxVariant *variant);
 
@@ -186,7 +185,7 @@ ROX_INTERNAL TargetGroupRepository *target_group_repository_create();
  */
 ROX_INTERNAL void target_group_repository_set_target_groups(
         TargetGroupRepository *repository,
-        List *target_groups);
+        RoxList *target_groups);
 
 /**
  *

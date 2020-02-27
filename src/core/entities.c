@@ -1,10 +1,10 @@
 #include <assert.h>
 #include "core/configuration/models.h"
 #include "roxx/parser.h"
-#include "core/context.h"
 #include "entities.h"
 #include "repositories.h"
 #include "util.h"
+#include "collections.h"
 
 //
 // RoxVariant
@@ -12,7 +12,7 @@
 
 struct RoxVariant {
     char *default_value;
-    List *options;
+    RoxList *options;
     char *condition;
     Parser *parser;
     RoxContext *global_context;
@@ -22,15 +22,15 @@ struct RoxVariant {
     bool is_flag;
 };
 
-ROX_INTERNAL RoxVariant *variant_create(const char *default_value, List *options) {
+ROX_INTERNAL RoxVariant *variant_create(const char *default_value, RoxList *options) {
     RoxVariant *variant = calloc(1, sizeof(RoxVariant));
     variant->default_value = default_value ? mem_copy_str(default_value) : NULL;
     variant->options = options;
     if (!variant->options) {
-        list_new(&variant->options);
+        variant->options = rox_list_create();
     }
     if (variant->default_value && !str_in_list(variant->default_value, options)) {
-        list_add(options, mem_copy_str(variant->default_value));
+        rox_list_add(options, mem_copy_str(variant->default_value));
     }
     return variant;
 }
@@ -70,7 +70,7 @@ ROX_INTERNAL ImpressionInvoker *variant_get_impression_invoker(RoxVariant *varia
     return variant->impression_invoker;
 }
 
-ROX_INTERNAL List *variant_get_options(RoxVariant *variant) {
+ROX_INTERNAL RoxList *variant_get_options(RoxVariant *variant) {
     assert(variant);
     return variant->options;
 }
@@ -186,7 +186,7 @@ ROX_INTERNAL void variant_free(RoxVariant *variant) {
         free(variant->default_value);
     }
     if (variant->options) {
-        list_destroy_cb(variant->options, &free);
+        rox_list_free_cb(variant->options, &free);
     }
     free(variant);
 }
@@ -288,29 +288,28 @@ ROX_INTERNAL FlagSetter *flag_setter_create(
 ROX_INTERNAL void flag_setter_set_experiments(FlagSetter *flag_setter) {
     assert(flag_setter);
 
-    HashSet *flags_with_condition;
-    hashset_new(&flags_with_condition);
-    List *experiments = experiment_repository_get_all_experiments(flag_setter->experiment_repository);
+    RoxSet *flags_with_condition = rox_set_create();
+    RoxList *experiments = experiment_repository_get_all_experiments(flag_setter->experiment_repository);
 
-    LIST_FOREACH(exp, experiments, {
+    ROX_LIST_FOREACH(exp, experiments, {
         ExperimentModel *model = (ExperimentModel *) exp;
-        ListIter flag_iter;
-        list_iter_init(&flag_iter, model->flags);
+        RoxListIter *flag_iter = rox_list_iter_create();
+        rox_list_iter_init(flag_iter, model->flags);
         char *flag_name;
-        while (list_iter_next(&flag_iter, (void **) &flag_name) != CC_ITER_END) {
+        while (rox_list_iter_next(flag_iter, (void **) &flag_name)) {
             RoxVariant *flag = flag_repository_get_flag(flag_setter->flag_repository, flag_name);
             if (flag) {
                 variant_set_for_evaluation(flag, flag_setter->parser, exp, flag_setter->impression_invoker);
-                hashset_add(flags_with_condition, flag_name);
+                rox_set_add(flags_with_condition, flag_name);
             }
         }
+        rox_list_iter_free(flag_iter);
     })
 
-    HashTable *all_flags = flag_repository_get_all_flags(flag_setter->flag_repository);
-    TableEntry *entry;
-    HASHTABLE_FOREACH(entry, all_flags, {
-        RoxVariant *flag = entry->value;
-        if (!hashset_contains(flags_with_condition, flag->name)) {
+    RoxMap *all_flags = flag_repository_get_all_flags(flag_setter->flag_repository);
+    ROX_MAP_FOREACH(key, value, all_flags, {
+        RoxVariant *flag = value;
+        if (!rox_set_contains(flags_with_condition, flag->name)) {
             variant_set_for_evaluation(flag, flag_setter->parser, NULL, flag_setter->impression_invoker);
         }
     })
@@ -341,7 +340,7 @@ ROX_INTERNAL RoxVariant *entities_provider_create_flag(EntitiesProvider *provide
 ROX_INTERNAL RoxVariant *entities_provider_create_variant(
         EntitiesProvider *provider,
         const char *defaultValue,
-        List *options) {
+        RoxList *options) {
     assert(provider);
     return variant_create(defaultValue, options);
 }

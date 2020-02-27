@@ -1,7 +1,5 @@
 #pragma once
 
-#include <collectc/hashtable.h>
-#include <collectc/list.h>
 #include "rollout.h"
 #include "context.h"
 #include "repositories.h"
@@ -120,7 +118,7 @@ typedef struct DeviceProperties DeviceProperties;
 ROX_INTERNAL DeviceProperties *device_properties_create_from_map(
         SdkSettings *sdk_settings,
         RoxOptions *rox_options,
-        HashTable *map);
+        RoxMap *map);
 
 /**
  * @param sdk_settings Not <code>NULL</code>.
@@ -138,7 +136,7 @@ ROX_INTERNAL DeviceProperties *device_properties_create(
  * @param properties Not <code>NULL</code>.
  * @return Map <code>char *</code> => <code>char *</code>. Not <code>NULL</code>.
  */
-ROX_INTERNAL HashTable *device_properties_get_all_properties(DeviceProperties *properties);
+ROX_INTERNAL RoxMap *device_properties_get_all_properties(DeviceProperties *properties);
 
 /**
  * The returned value should <em>not</em> be freed.
@@ -242,7 +240,7 @@ ROX_INTERNAL void internal_flags_free(InternalFlags *flags);
  * @param extra_values List of <code>char* </code> May be <code>NULL</code>.
  * @return Not <code>NULL</code>.
  */
-ROX_INTERNAL char *md5_generator_generate(HashTable *properties, List *generator_list, List *extra_values);
+ROX_INTERNAL char *md5_generator_generate(RoxMap *properties, RoxList *generator_list, RoxList *extra_values);
 
 //
 // BUID

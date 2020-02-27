@@ -1,8 +1,12 @@
 #include <assert.h>
 #include <math.h>
 #include <float.h>
-#include "dynamic.h"
+#include <stdbool.h>
+#include <string.h>
+
+#include "rollout.h"
 #include "util.h"
+#include "collections.h"
 
 //
 // Handle
@@ -12,8 +16,8 @@ struct RoxDynamicValue {
     int *int_value;
     double *double_value;
     char *str_value;
-    List *list_value;
-    HashTable *map_value;
+    RoxList *list_value;
+    RoxMap *map_value;
     bool is_true;
     bool is_false;
     bool is_null;
@@ -65,14 +69,14 @@ ROX_API RoxDynamicValue *rox_dynamic_value_create_string_ptr(char *value) {
     return dynamic_value;
 }
 
-ROX_API RoxDynamicValue *rox_dynamic_value_create_list(List *value) {
+ROX_API RoxDynamicValue *rox_dynamic_value_create_list(RoxList *value) {
     assert(value);
     RoxDynamicValue *dynamic_value = _create_value();
     dynamic_value->list_value = value;
     return dynamic_value;
 }
 
-ROX_API RoxDynamicValue *rox_dynamic_value_create_map(HashTable *value) {
+ROX_API RoxDynamicValue *rox_dynamic_value_create_map(RoxMap *value) {
     assert(value);
     RoxDynamicValue *dynamic_value = _create_value();
     dynamic_value->map_value = value;
@@ -104,19 +108,18 @@ ROX_API RoxDynamicValue *rox_dynamic_value_create_copy(RoxDynamicValue *value) {
         copy->str_value = mem_copy_str(value->str_value);
     }
     if (value->list_value) {
-        list_new(&copy->list_value);
-        LIST_FOREACH(item, value->list_value, {
+        copy->list_value = rox_list_create();
+        ROX_LIST_FOREACH(item, value->list_value, {
             RoxDynamicValue *dv = (RoxDynamicValue *) item;
-            list_add(copy->list_value, rox_dynamic_value_create_copy(dv));
+            rox_list_add(copy->list_value, rox_dynamic_value_create_copy(dv));
         })
     }
     if (value->map_value) {
-        hashtable_new(&copy->map_value);
-        TableEntry *entry;
-        HASHTABLE_FOREACH(entry, value->map_value, {
-            hashtable_add(copy->map_value,
-                          mem_copy_str(entry->key),
-                          rox_dynamic_value_create_copy(entry->value));
+        copy->map_value = rox_map_create();
+        ROX_MAP_FOREACH(key, val, value->map_value, {
+            rox_map_add(copy->map_value,
+                        mem_copy_str(key),
+                        rox_dynamic_value_create_copy(val));
         })
     }
     copy->is_undefined = value->is_undefined;
@@ -198,13 +201,13 @@ ROX_API char *rox_dynamic_value_get_string(RoxDynamicValue *value) {
     return value->str_value;
 }
 
-ROX_API List *rox_dynamic_value_get_list(RoxDynamicValue *value) {
+ROX_API RoxList *rox_dynamic_value_get_list(RoxDynamicValue *value) {
     assert(value);
     assert(value->list_value);
     return value->list_value;
 }
 
-ROX_API HashTable *rox_dynamic_value_get_map(RoxDynamicValue *value) {
+ROX_API RoxMap *rox_dynamic_value_get_map(RoxDynamicValue *value) {
     assert(value);
     assert(value->map_value);
     return value->map_value;
@@ -257,10 +260,10 @@ ROX_API RoxDynamicValue *rox_dynamic_value_free(RoxDynamicValue *value) {
         free(value->str_value);
     }
     if (value->list_value) {
-        list_destroy_cb(value->list_value, (void (*)(void *)) &rox_dynamic_value_free);
+        rox_list_free_cb(value->list_value, (void (*)(void *)) &rox_dynamic_value_free);
     }
     if (value->map_value) {
-        rox_hash_table_free_with_keys_and_values_cb(
+        rox_map_free_with_keys_and_values_cb(
                 value->map_value, &free,
                 (void (*)(void *)) &rox_dynamic_value_free);
     }

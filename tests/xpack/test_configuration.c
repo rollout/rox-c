@@ -17,7 +17,7 @@ typedef struct ConfigurationFetchedInvokerTestContext {
     XConfigurationFetchedInvoker *x_invoker;
     int times_invoked;
     int times_fetch_invoked;
-    List *args;
+    RoxList *args;
 } ConfigurationFetchedInvokerTestContext;
 
 static void _check_conf_fetched_args(
@@ -29,10 +29,10 @@ static void _check_conf_fetched_args(
 
     assert(ctx);
 
-    ck_assert_int_eq(1, list_size(ctx->args));
+    ck_assert_int_eq(1, rox_list_size(ctx->args));
 
     RoxConfigurationFetchedArgs *args;
-    ck_assert_int_eq(list_get_first(ctx->args, (void **) &args), CC_OK);
+    ck_assert(rox_list_get_first(ctx->args, (void **) &args));
     ck_assert_int_eq(status, args->fetcher_status);
     ck_assert_int_eq(has_changes, args->has_changes);
     ck_assert_int_eq(error, args->error_details);
@@ -54,7 +54,7 @@ static void _test_configuration_fetched_handler(void *target, RoxConfigurationFe
     assert(target);
     assert(args);
     ConfigurationFetchedInvokerTestContext *ctx = (ConfigurationFetchedInvokerTestContext *) target;
-    list_add(ctx->args, configuration_fetched_args_copy(args));
+    rox_list_add(ctx->args, configuration_fetched_args_copy(args));
 }
 
 static ConfigurationFetchedInvokerTestContext *_configuration_fetched_invoker_test_context_create() {
@@ -66,7 +66,7 @@ static ConfigurationFetchedInvokerTestContext *_configuration_fetched_invoker_te
     ctx->sdk_settings = sdk_settings_create("test", "test");
     ctx->x_invoker = x_configuration_fetched_invoker_create(
             ctx->flags, ctx->sdk_settings, ctx, &_test_configuration_fetch_func);
-    list_new(&ctx->args);
+    ctx->args = rox_list_create();
     configuration_fetched_invoker_register_handler(ctx->invoker, ctx->x_invoker, &x_configuration_fetched_handler);
     configuration_fetched_invoker_register_handler(ctx->invoker, ctx, &_test_configuration_fetched_handler);
     return ctx;
@@ -80,7 +80,7 @@ static void _configuration_fetched_invoker_test_context_free(ConfigurationFetche
     experiment_repository_free(ctx->experiment_repository);
     parser_free(ctx->parser);
     configuration_fetched_invoker_free(ctx->invoker);
-    list_destroy_cb(ctx->args, (void (*)(void *)) &configuration_fetched_args_free);
+    rox_list_free_cb(ctx->args, (void (*)(void *)) &configuration_fetched_args_free);
     free(ctx);
 }
 

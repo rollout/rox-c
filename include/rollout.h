@@ -3,10 +3,6 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
-// FIXME: get rid of external dependencies in the API; define own RoxSet, RoxMap and RoxList backed by any lib.
-#include <collectc/hashset.h>
-#include <collectc/list.h>
-
 // Generic helper definitions for shared library support.
 // (see https://gcc.gnu.org/wiki/Visibility/)
 #if defined _WIN32 || defined __CYGWIN__
@@ -75,6 +71,40 @@ typedef struct RoxLoggingConfig {
 
 ROX_API void rox_logging_init(RoxLoggingConfig *config);
 
+// Collections
+
+typedef struct RoxMap RoxMap;
+
+typedef struct RoxList RoxList;
+
+typedef struct RoxSet RoxSet;
+
+ROX_API RoxList *rox_list_create_va(void *skip, ...);
+
+ROX_API RoxList *rox_list_create_str_va(void *skip, ...);
+
+ROX_API RoxSet *rox_set_create_va(void *skip, ...);
+
+ROX_API RoxMap *rox_map_create_va(void *skip, ...);
+
+ROX_API char *mem_copy_str(const char *ptr);
+
+#define ROX_LIST(...) rox_list_create_va(NULL, __VA_ARGS__, NULL)
+
+#define ROX_EMPTY_LIST ROX_LIST(NULL)
+
+#define ROX_LIST_COPY_STR(...) rox_list_create_str_va(NULL, __VA_ARGS__, NULL)
+
+#define ROX_SET(...) rox_set_create_va(NULL, __VA_ARGS__, NULL)
+
+#define ROX_EMPTY_SET ROX_SET(NULL)
+
+#define ROX_COPY(str) mem_copy_str(str)
+
+#define ROX_MAP(...) rox_map_create_va(NULL, __VA_ARGS__, NULL)
+
+#define ROX_EMPTY_MAP ROX_MAP(NULL)
+
 //
 // RoxReportingValue
 //
@@ -90,7 +120,7 @@ typedef struct RoxExperiment {
     char *name;
     char *identifier;
     bool archived;
-    HashSet *labels;
+    RoxSet *labels;
     char *stickiness_property;
 } RoxExperiment;
 
@@ -125,7 +155,7 @@ ROX_API RoxDynamicValue *rox_dynamic_value_create_string_ptr(char *value);
  *
  * @param value List of <code>RoxDynamicValue*</code>
  */
-ROX_API RoxDynamicValue *rox_dynamic_value_create_list(List *value);
+ROX_API RoxDynamicValue *rox_dynamic_value_create_list(RoxList *value);
 
 /**
  * Note: the ownership of the map is delegated to the dynamic value
@@ -134,7 +164,7 @@ ROX_API RoxDynamicValue *rox_dynamic_value_create_list(List *value);
  *
  * @param value Keys are <code>char *</code>s and values are <code>RoxDynamicValue*</code>s.
  */
-ROX_API RoxDynamicValue *rox_dynamic_value_create_map(HashTable *value);
+ROX_API RoxDynamicValue *rox_dynamic_value_create_map(RoxMap *value);
 
 ROX_API RoxDynamicValue *rox_dynamic_value_create_null();
 
@@ -166,9 +196,9 @@ ROX_API bool rox_dynamic_value_get_boolean(RoxDynamicValue *value);
 
 ROX_API char *rox_dynamic_value_get_string(RoxDynamicValue *value);
 
-ROX_API List *rox_dynamic_value_get_list(RoxDynamicValue *value);
+ROX_API RoxList *rox_dynamic_value_get_list(RoxDynamicValue *value);
 
-ROX_API HashTable *rox_dynamic_value_get_map(RoxDynamicValue *value);
+ROX_API RoxMap *rox_dynamic_value_get_map(RoxDynamicValue *value);
 
 ROX_API bool rox_dynamic_value_equals(RoxDynamicValue *v1, RoxDynamicValue *v2);
 
@@ -197,7 +227,7 @@ ROX_API RoxContext *rox_context_create_empty();
  * @param map Not <code>NULL</code>. Keys are strings, values are <code>RoxDynamicValue *</code>.
  * @return Not <code>NULL</code>.
  */
-ROX_API RoxContext *rox_context_create_from_map(HashTable *map);
+ROX_API RoxContext *rox_context_create_from_map(RoxMap *map);
 
 /**
  * The called holds the ownership on the given contexts. They will <em>NOT</em> be freed when
@@ -394,7 +424,7 @@ ROX_API RoxVariant *rox_add_flag(const char *name, bool default_value);
  * @param options May be <code>NULL</code>. If passed, ownership is delegated to ROX.
  * @return Not <code>NULL</code>. Memory is managed by ROX.
  */
-ROX_API RoxVariant *rox_add_variant(const char *name, const char *default_value, List *options);
+ROX_API RoxVariant *rox_add_variant(const char *name, const char *default_value, RoxList *options);
 
 /**
  * The returned value must be freed after use by the caller, if not <code>NULL</code>.
@@ -584,7 +614,7 @@ ROX_API char *rox_dynamic_api_get_value(
         RoxDynamicApi *api,
         const char *name,
         char *default_value,
-        List *options,
+        RoxList *options,
         RoxContext *context);
 
 /**

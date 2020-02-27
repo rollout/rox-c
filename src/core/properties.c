@@ -2,7 +2,6 @@
 #include <stdio.h>
 #include "properties.h"
 #include "util.h"
-#include "dynamic.h"
 
 //
 // CustomPropertyType

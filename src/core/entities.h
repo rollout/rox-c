@@ -15,7 +15,7 @@
  * @param options List of strings. May be <code>NULL</code>. If passed, ownership is delegated to variant.
  * @return Not <code>NULL</code>.
  */
-ROX_INTERNAL RoxVariant *variant_create(const char *default_value, List *options);
+ROX_INTERNAL RoxVariant *variant_create(const char *default_value, RoxList *options);
 
 /**
  * @param variant Not <code>NULL</code>.
@@ -61,7 +61,7 @@ ROX_INTERNAL bool variant_is_flag(RoxVariant *variant);
 /**
  * @param variant Not <code>NULL</code>.
  */
-ROX_INTERNAL List *variant_get_options(RoxVariant *variant);
+ROX_INTERNAL RoxList *variant_get_options(RoxVariant *variant);
 
 /**
  * The returned value must be freed after use by the caller, if not <code>NULL</code>.
@@ -230,7 +230,7 @@ ROX_INTERNAL RoxVariant *entities_provider_create_flag(EntitiesProvider *provide
 ROX_INTERNAL RoxVariant *entities_provider_create_variant(
         EntitiesProvider *provider,
         const char *defaultValue,
-        List *options);
+        RoxList *options);
 
 /**
  * @param entities_provider Not <code>NULL</code>.

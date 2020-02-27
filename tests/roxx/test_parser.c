@@ -6,44 +6,44 @@
 #include "roxtests.h"
 #include "roxx/parser.h"
 #include "roxx/extensions.h"
+#include "collections.h"
 
 START_TEST (test_simple_tokenization) {
 
-    HashTable *operators;
-    hashtable_new(&operators);
-    hashtable_add(operators, "eq", "true");
-    hashtable_add(operators, "lt", "true");
+    RoxMap *operators = rox_map_create();
+    rox_map_add(operators, "eq", "true");
+    rox_map_add(operators, "lt", "true");
 
-    List *tokens = tokenized_expression_get_tokens("eq(false, lt(-123, \"123\"))", operators);
-    ck_assert_int_eq(list_size(tokens), 5);
+    RoxList *tokens = tokenized_expression_get_tokens("eq(false, lt(-123, \"123\"))", operators);
+    ck_assert_int_eq(rox_list_size(tokens), 5);
 
     ParserNode *node;
-    list_get_at(tokens, 0, (void **) &node);
+    rox_list_get_at(tokens, 0, (void **) &node);
     ck_assert_int_eq(node_get_type(node), NodeTypeRator);
     ck_assert(rox_dynamic_value_is_string(node_get_value(node)));
     ck_assert_str_eq("eq", rox_dynamic_value_get_string(node_get_value(node)));
 
-    list_get_at(tokens, 1, (void **) &node);
+    rox_list_get_at(tokens, 1, (void **) &node);
     ck_assert_int_eq(node_get_type(node), NodeTypeRand);
     ck_assert(rox_dynamic_value_is_boolean(node_get_value(node)));
     ck_assert(!rox_dynamic_value_get_boolean(node_get_value(node)));
 
-    list_get_at(tokens, 2, (void **) &node);
+    rox_list_get_at(tokens, 2, (void **) &node);
     ck_assert_int_eq(node_get_type(node), NodeTypeRator);
     ck_assert(rox_dynamic_value_is_string(node_get_value(node)));
     ck_assert_str_eq("lt", rox_dynamic_value_get_string(node_get_value(node)));
 
-    list_get_at(tokens, 3, (void **) &node);
+    rox_list_get_at(tokens, 3, (void **) &node);
     ck_assert_int_eq(node_get_type(node), NodeTypeRand);
     ck_assert(rox_dynamic_value_is_double(node_get_value(node)));
     ck_assert_double_eq(rox_dynamic_value_get_double(node_get_value(node)), -123.0);
 
-    list_get_at(tokens, 4, (void **) &node);
+    rox_list_get_at(tokens, 4, (void **) &node);
     ck_assert_int_eq(node_get_type(node), NodeTypeRand);
     ck_assert(rox_dynamic_value_is_string(node_get_value(node)));
     ck_assert_str_eq(rox_dynamic_value_get_string(node_get_value(node)), "123");
 
-    list_destroy_cb(tokens, (void (*)(void *)) node_free);
+    rox_list_free_cb(tokens, (void (*)(void *)) node_free);
 }
 
 END_TEST

@@ -1,6 +1,5 @@
 #pragma once
 
-#include <collectc/list.h>
 #include <cjson/cJSON.h>
 
 #include "rollout.h"
@@ -13,8 +12,8 @@
 
 typedef struct Configuration {
     char *signature_date;
-    List *experiments;
-    List *target_groups;
+    RoxList *experiments;
+    RoxList *target_groups;
 } Configuration;
 
 /**
@@ -26,8 +25,8 @@ typedef struct Configuration {
  * @return Not <code>NULL</code>.
  */
 ROX_INTERNAL Configuration *configuration_create(
-        List *experiments,
-        List *target_groups,
+        RoxList *experiments,
+        RoxList *target_groups,
         const char *signature_date);
 
 /**
@@ -150,7 +149,7 @@ ROX_INTERNAL ConfigurationParser *configuration_parser_create(
  * @param fetch_result Not <code>NULL</code>.
  * @return May be <code>NULL</code>.
  */
-ROX_INTERNAL Configuration * configuration_parser_parse(
+ROX_INTERNAL Configuration *configuration_parser_parse(
         ConfigurationParser *parser,
         ConfigurationFetchResult *fetch_result);
 

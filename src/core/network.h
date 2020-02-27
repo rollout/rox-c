@@ -1,12 +1,12 @@
 #pragma once
 
-#include <collectc/hashtable.h>
 #include <cjson/cJSON.h>
 #include "rollout.h"
 #include "properties.h"
 #include "client.h"
 #include "configuration.h"
 #include "reporting.h"
+#include "collections.h"
 
 //
 // RequestData
@@ -14,7 +14,7 @@
 
 typedef struct RequestData {
     char *url;
-    HashTable *params;
+    RoxMap *params;
 } RequestData;
 
 /**
@@ -22,7 +22,7 @@ typedef struct RequestData {
  * @param params May be <code>NULL</code>. If passed, ownership is NOT delegated to the returned <code>RequestData</code> so the caller is responsible for freeing it.
  * @return Not <code>NULL</code>.
  */
-ROX_INTERNAL RequestData *request_data_create(const char *url, HashTable *params);
+ROX_INTERNAL RequestData *request_data_create(const char *url, RoxMap *params);
 
 /**
  * @param data Not <code>NULL</code>.

@@ -1,9 +1,6 @@
 #pragma once
 
 #include <cjson/cJSON.h>
-#include <collectc/list.h>
-#include <collectc/hashset.h>
-#include <collectc/hashtable.h>
 #include <stdbool.h>
 #include <time.h>
 #include "rollout.h"
@@ -24,21 +21,7 @@ ROX_INTERNAL int *mem_copy_int(int value);
 
 ROX_INTERNAL double *mem_copy_double(double value);
 
-ROX_INTERNAL char *mem_copy_str(const char *ptr);
-
 ROX_INTERNAL bool *mem_copy_bool(bool value);
-
-ROX_INTERNAL HashTable *mem_copy_map(HashTable *map);
-
-ROX_INTERNAL List *mem_copy_list(List *list);
-
-ROX_INTERNAL List *mem_deep_copy_list(List *list, void *(*copy_func)(void *));
-
-ROX_INTERNAL HashSet *mem_copy_set(HashSet *set);
-
-ROX_INTERNAL HashSet *mem_deep_copy_set(HashSet *set, void *(*copy_func)(void *));
-
-ROX_INTERNAL HashTable *mem_deep_copy_str_value_map(HashTable *map);
 
 ROX_INTERNAL int *mem_str_to_int(const char *str);
 
@@ -71,8 +54,6 @@ ROX_INTERNAL bool str_is_empty(const char *str);
  * @return <code>str</code> itself, no new string is created.
  */
 ROX_INTERNAL char *str_to_upper(char *str);
-
-ROX_INTERNAL bool str_in_list(const char *str, List *list_of_strings);
 
 ROX_INTERNAL void str_substring_b(const char *str, int start, int len, char *buffer);
 
@@ -168,14 +149,6 @@ ROX_INTERNAL unsigned char *mem_sha256(const char *s);
 ROX_INTERNAL char *mem_sha256_str(const char *s);
 
 /**
- * NOTE: THE RETURNED STR MUST BE FREED AFTER USE
- * @param separator Separator string. Not <code>NULL</code>.
- * @param strings List of <code>char *</code>. Not <code>NULL</code>.
- * @return Not <code>NULL</code>.
- */
-ROX_INTERNAL char *mem_str_join(const char *separator, List *strings);
-
-/**
  * @return Number of milliseconds since Unix Epoch.
  */
 ROX_INTERNAL double current_time_millis();
@@ -197,27 +170,6 @@ ROX_INTERNAL size_t rox_file_read_b(const char *file_path, unsigned char *buffer
 ROX_INTERNAL cJSON *rox_json_create_object(void *skip, ...);
 
 ROX_INTERNAL cJSON *rox_json_create_array(void *skip, ...);
-
-ROX_INTERNAL List *rox_list_create(void *skip, ...);
-
-ROX_INTERNAL List *rox_list_create_str(void *skip, ...);
-
-ROX_INTERNAL bool list_equals(List *one, List *another, bool (*cmp)(void *v1, void *v2));
-
-ROX_INTERNAL bool str_list_equals(List *one, List *another);
-
-ROX_INTERNAL HashSet *rox_set_create(void *skip, ...);
-
-ROX_INTERNAL HashTable *rox_map_create(void *skip, ...);
-
-ROX_INTERNAL void rox_map_free_with_values(HashTable *map);
-
-ROX_INTERNAL void rox_map_free_with_values_cb(HashTable *map, void (*f)(void *));
-
-ROX_INTERNAL void rox_map_free_with_keys_and_values(HashTable *map);
-
-ROX_INTERNAL void rox_hash_table_free_with_keys_and_values_cb(
-        HashTable *map, void (*f_key)(void *), void (*f_value)(void *));
 
 #define ROX_JSON_PRINT_FORMATTED 1u
 
@@ -246,33 +198,3 @@ ROX_INTERNAL char *rox_json_print(cJSON *json, unsigned int flags);
 #define ROX_JSON_BOOL cJSON_CreateBool()
 
 #define ROX_JSON_NULL cJSON_CreateNull()
-
-#define ROX_LIST(...) rox_list_create(NULL, __VA_ARGS__, NULL)
-
-#define ROX_EMPTY_LIST ROX_LIST(NULL)
-
-#define ROX_LIST_COPY_STR(...) rox_list_create_str(NULL, __VA_ARGS__, NULL)
-
-#define ROX_SET(...) rox_set_create(NULL, __VA_ARGS__, NULL)
-
-#define ROX_EMPTY_SET ROX_SET(NULL)
-
-#define ROX_COPY(str) mem_copy_str(str)
-
-#define ROX_MAP(...) rox_map_create(NULL, __VA_ARGS__, NULL)
-
-#define ROX_STR(value) #value
-
-#define ROX_EMPTY_MAP ROX_MAP(NULL)
-
-/**
- * Collectc has a bug in HASHSET_FOREACH it uses HashsetIter name instead of HashSetIter.
- */
-#define ROX_SET_FOREACH(val, hashset, body)                             \
-    {                                                                   \
-        HashSetIter hashset_iter_53d46d2a04458e7b;                      \
-        hashset_iter_init(&hashset_iter_53d46d2a04458e7b, hashset);     \
-        void *val;                                                      \
-        while (hashset_iter_next(&hashset_iter_53d46d2a04458e7b, &val) != CC_ITER_END) \
-            body                                                        \
-                }

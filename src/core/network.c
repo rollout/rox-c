@@ -1,5 +1,4 @@
 #include <pthread.h>
-#include <collectc/list.h>
 #include <curl/curl.h>
 #include <stdlib.h>
 #include <assert.h>
@@ -12,7 +11,7 @@
 // RequestData
 //
 
-ROX_INTERNAL RequestData *request_data_create(const char *url, HashTable *params) {
+ROX_INTERNAL RequestData *request_data_create(const char *url, RoxMap *params) {
     assert(url);
     RequestData *data = calloc(1, sizeof(RequestData));
     data->url = mem_copy_str(url);
@@ -116,39 +115,38 @@ static size_t _request_curl_write_callback(char *contents, size_t size, size_t n
     return real_size;
 }
 
-static char *_request_build_url_with_params(Request *request, const char *url, HashTable *params) {
+static char *_request_build_url_with_params(Request *request, const char *url, RoxMap *params) {
     assert(request);
     assert(url);
     assert(params);
-    List *kv_pairs;
-    list_new(&kv_pairs);
+    RoxList *kv_pairs = rox_list_create();
     CURL *curl = _request_get_handle(request);
 
-    HashTableIter i;
-    hashtable_iter_init(&i, params);
-    TableEntry *entry;
-    while (hashtable_iter_next(&i, &entry) != CC_ITER_END) {
-        char *key = curl_easy_escape(curl, entry->key, 0);
-        char *value = curl_easy_escape(curl, entry->value, 0);
+    RoxMapIter *i = rox_map_iter_create();
+    rox_map_iter_init(i, params);
+    void *entry_key, *entry_value;
+    while (rox_map_iter_next(i, &entry_key, &entry_value)) {
+        char *key = curl_easy_escape(curl, entry_key, 0);
+        char *value = curl_easy_escape(curl, entry_value, 0);
         char *pair = mem_str_format("%s=%s", key, value);
         curl_free(key);
         curl_free(value);
-        list_add(kv_pairs, pair);
+        rox_list_add(kv_pairs, pair);
     }
+    rox_map_iter_free(i);
     char *query_part = mem_str_join("&", kv_pairs);
-    list_destroy_cb(kv_pairs, &free);
+    rox_list_free_cb(kv_pairs, &free);
     char *result = mem_str_format("%s?%s", url, query_part);
     free(query_part);
     return result;
 }
 
-static cJSON *_build_json_from_params(HashTable *params) {
+static cJSON *_build_json_from_params(RoxMap *params) {
     assert(params);
     cJSON *json = cJSON_CreateObject();
-    TableEntry *entry;
-    HASHTABLE_FOREACH(entry, params, {
-        cJSON *item = cJSON_CreateString(entry->value);
-        cJSON_AddItemToObject(json, entry->key, item);
+    ROX_MAP_FOREACH(key, value, params, {
+        cJSON *item = cJSON_CreateString(value);
+        cJSON_AddItemToObject(json, key, item);
     })
     return json;
 }
@@ -395,19 +393,17 @@ static HttpResponseMessage *_configuration_fetcher_internal_fetch(ConfigurationF
     char buffer[ROXY_URL_BUFFER_SIZE];
     rox_env_get_internal_path(buffer, ROXY_URL_BUFFER_SIZE);
 
-    HashTable *params;
-    hashtable_new(&params);
-    HashTable *device_props = device_properties_get_all_properties(fetcher->device_properties);
+    RoxMap *params = rox_map_create();
+    RoxMap *device_props = device_properties_get_all_properties(fetcher->device_properties);
 
-    TableEntry *entry;
-    HASHTABLE_FOREACH(entry, device_props, {
-        hashtable_add(params, entry->key, entry->value);
+    ROX_MAP_FOREACH(key, value, device_props, {
+        rox_map_add(params, key, value);
     })
 
     RequestData *roxy_request = request_data_create(buffer, params);
     HttpResponseMessage *message = request_send_get(fetcher->request, roxy_request);
     request_data_free(roxy_request);
-    hashtable_destroy(params);
+    rox_map_free(params);
     return message;
 }
 
@@ -424,19 +420,19 @@ static ConfigurationFetchResult *_configuration_fetcher_fetch_using_roxy_url(Con
     }
 }
 
-static HashTable *_configuration_fetcher_prepare_props_from_device_props(ConfigurationFetcher *fetcher) {
+static RoxMap *_configuration_fetcher_prepare_props_from_device_props(ConfigurationFetcher *fetcher) {
     assert(fetcher);
-    HashTable *device_props = device_properties_get_all_properties(fetcher->device_properties);
-    HashTable *params = mem_deep_copy_str_value_map(device_props);
-    if (!hashtable_contains_key(params, ROX_PROPERTY_TYPE_BUID.name)) {
+    RoxMap *device_props = device_properties_get_all_properties(fetcher->device_properties);
+    RoxMap *params = mem_deep_copy_str_value_map(device_props);
+    if (!rox_map_contains_key(params, ROX_PROPERTY_TYPE_BUID.name)) {
         char *buid = buid_get_value(fetcher->buid);
-        hashtable_add(params, ROX_PROPERTY_TYPE_BUID.name, mem_copy_str(buid));
+        rox_map_add(params, ROX_PROPERTY_TYPE_BUID.name, mem_copy_str(buid));
     }
     char *buid, *app_key;
-    if (hashtable_get(params, ROX_PROPERTY_TYPE_BUID.name, (void **) &buid) == CC_OK &&
-        hashtable_get(params, ROX_PROPERTY_TYPE_APP_KEY.name, (void **) &app_key) == CC_OK) {
+    if (rox_map_get(params, ROX_PROPERTY_TYPE_BUID.name, (void **) &buid) &&
+        rox_map_get(params, ROX_PROPERTY_TYPE_APP_KEY.name, (void **) &app_key)) {
         char *path = mem_str_format("%s/%s", app_key, buid);
-        hashtable_add(params, ROX_PROPERTY_TYPE_CACHE_MISS_RELATIVE_URL.name, path);
+        rox_map_add(params, ROX_PROPERTY_TYPE_CACHE_MISS_RELATIVE_URL.name, path);
     }
     return params;
 }
@@ -445,35 +441,35 @@ static HashTable *_configuration_fetcher_prepare_props_from_device_props(Configu
 
 ROX_INTERNAL HttpResponseMessage *configuration_fetcher_fetch_from_cdn(
         ConfigurationFetcher *fetcher,
-        HashTable *properties) {
+        RoxMap *properties) {
     assert(fetcher);
     assert(properties);
     char buffer[ROX_FETCH_URL_BUFFER_SIZE];
     rox_env_get_cdn_path(buffer, ROX_FETCH_URL_BUFFER_SIZE);
     char *path, *distinct_id;
-    if (hashtable_get(properties, ROX_PROPERTY_TYPE_CACHE_MISS_RELATIVE_URL.name, (void **) &path) != CC_OK ||
-        hashtable_get(properties, ROX_PROPERTY_TYPE_DISTINCT_ID.name, (void **) &distinct_id) != CC_OK) {
+    if (!rox_map_get(properties, ROX_PROPERTY_TYPE_CACHE_MISS_RELATIVE_URL.name, (void **) &path) ||
+        !rox_map_get(properties, ROX_PROPERTY_TYPE_DISTINCT_ID.name, (void **) &distinct_id)) {
         return NULL;
     }
     char *url = mem_str_format("%s/%s", buffer, path);
-    HashTable *params = ROX_MAP(ROX_PROPERTY_TYPE_DISTINCT_ID.name, distinct_id);
+    RoxMap *params = ROX_MAP(ROX_PROPERTY_TYPE_DISTINCT_ID.name, distinct_id);
     RequestData *cdn_request = request_data_create(url, params);
     HttpResponseMessage *message = request_send_get(fetcher->request, cdn_request);
     request_data_free(cdn_request);
-    hashtable_destroy(params);
+    rox_map_free(params);
     free(url);
     return message;
 }
 
 ROX_INTERNAL HttpResponseMessage *configuration_fetcher_fetch_from_api(
         ConfigurationFetcher *fetcher,
-        HashTable *properties) {
+        RoxMap *properties) {
     assert(fetcher);
     assert(properties);
     char buffer[ROX_FETCH_URL_BUFFER_SIZE];
     rox_env_get_api_path(buffer, ROX_FETCH_URL_BUFFER_SIZE);
     char *path;
-    if (hashtable_get(properties, ROX_PROPERTY_TYPE_CACHE_MISS_RELATIVE_URL.name, (void **) &path) != CC_OK) {
+    if (!rox_map_get(properties, ROX_PROPERTY_TYPE_CACHE_MISS_RELATIVE_URL.name, (void **) &path)) {
         return NULL;
     }
     char *url = mem_str_format("%s/%s", buffer, path);
@@ -495,7 +491,7 @@ ROX_INTERNAL ConfigurationFetchResult *configuration_fetcher_fetch(Configuration
     bool should_retry = false;
     ConfigurationSource source = CONFIGURATION_SOURCE_CDN;
     ConfigurationFetchResult *result = NULL;
-    HashTable *properties = _configuration_fetcher_prepare_props_from_device_props(fetcher);
+    RoxMap *properties = _configuration_fetcher_prepare_props_from_device_props(fetcher);
     HttpResponseMessage *message = configuration_fetcher_fetch_from_cdn(fetcher, properties);
 
     if (!message) {

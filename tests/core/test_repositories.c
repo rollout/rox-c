@@ -80,7 +80,7 @@ START_TEST (test_custom_property_repo_will_raise_prop_added_event) {
 END_TEST
 
 START_TEST (test_experiment_repository_will_return_null_when_not_found) {
-    List *exp = ROX_LIST(
+    RoxList *exp = ROX_LIST(
             experiment_model_create("1", "1", "1", false, ROX_LIST(ROX_COPY("a")), ROX_EMPTY_SET, "stam"));
     ExperimentRepository *repo = experiment_repository_create();
     experiment_repository_set_experiments(repo, exp);
@@ -92,7 +92,7 @@ START_TEST (test_experiment_repository_will_return_null_when_not_found) {
 END_TEST
 
 START_TEST (test_experiment_repository_will_return_when_found) {
-    List *exp = ROX_LIST(
+    RoxList *exp = ROX_LIST(
             experiment_model_create("1", "1", "1", false, ROX_LIST(ROX_COPY("a")), ROX_EMPTY_SET, "stam"));
     ExperimentRepository *repo = experiment_repository_create();
     experiment_repository_set_experiments(repo, exp);

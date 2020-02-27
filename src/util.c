@@ -50,7 +50,7 @@ double *mem_copy_double(double value) {
     return copy;
 }
 
-ROX_INTERNAL char *mem_copy_str(const char *ptr) {
+ROX_API char *mem_copy_str(const char *ptr) {
     assert(ptr);
     size_t length = strlen(ptr);
     char *copy = malloc((length + 1) * sizeof(char));
@@ -61,63 +61,6 @@ ROX_INTERNAL char *mem_copy_str(const char *ptr) {
 ROX_INTERNAL bool *mem_copy_bool(bool value) {
     bool *copy = malloc(sizeof(bool));
     *copy = value;
-    return copy;
-}
-
-ROX_INTERNAL HashTable *mem_copy_map(HashTable *map) {
-    assert(map);
-    HashTable *params;
-    hashtable_new(&params);
-    TableEntry *entry;
-    HASHTABLE_FOREACH(entry, map, {
-        hashtable_add(params, entry->key, entry->value);
-    })
-    return params;
-}
-
-ROX_INTERNAL List *mem_copy_list(List *list) {
-    assert(list);
-    List *copy;
-    list_copy_shallow(list, &copy);
-    return copy;
-}
-
-ROX_INTERNAL List *mem_deep_copy_list(List *list, void *(*copy_func)(void *)) {
-    assert(list);
-    assert(copy_func);
-    List *copy;
-    list_copy_deep(list, copy_func, &copy);
-    return copy;
-}
-
-ROX_INTERNAL HashSet *mem_copy_set(HashSet *set) {
-    assert(set);
-    HashSet *copy;
-    hashset_new(&copy);
-    ROX_SET_FOREACH(item, set, {
-        hashset_add(copy, item);
-    })
-    return copy;
-}
-
-ROX_INTERNAL HashSet *mem_deep_copy_set(HashSet *set, void *(*copy_func)(void *)) {
-    assert(set);
-    HashSet *copy;
-    hashset_new(&copy);
-    ROX_SET_FOREACH(item, set, {
-        hashset_add(copy, copy_func(item));
-    })
-    return copy;
-}
-
-ROX_INTERNAL HashTable *mem_deep_copy_str_value_map(HashTable *map) {
-    assert(map);
-    HashTable *copy;
-    hashtable_new(&copy);
-    TableEntry *entry;
-    HASHTABLE_FOREACH(entry, map, {
-        hashtable_add(copy, entry->key, mem_copy_str(entry->value));
-    })
     return copy;
 }
 
@@ -263,14 +206,6 @@ ROX_INTERNAL char *str_to_upper(char *str) {
         str[i] = (char) toupper(str[i]);
     }
     return str;
-}
-
-ROX_INTERNAL bool str_in_list(const char *str, List *list_of_strings) {
-    assert(str);
-    assert(list_of_strings);
-    return list_contains_value(list_of_strings,
-                               (void *) str,
-                               (int (*)(const void *, const void *)) &strcmp);
 }
 
 ROX_INTERNAL void str_substring_b(const char *str, int start, int len, char *buffer) {
@@ -515,41 +450,6 @@ ROX_INTERNAL char *mem_sha256_str(const char *s) {
     return result;
 }
 
-ROX_INTERNAL char *mem_str_join(const char *separator, List *strings) {
-    assert(separator);
-    assert(strings);
-    size_t result_len = 0;
-    int count = 0;
-    LIST_FOREACH(item, strings, {
-        char *str = (char *) item;
-        result_len += strlen(str);
-        ++count;
-    })
-    if (count == 0) {
-        return mem_copy_str("");
-    }
-    size_t separator_len = strlen(separator);
-    result_len += separator_len * (count - 1);
-    char *result = malloc((result_len + 1) * sizeof(char));
-    result[result_len] = '\0';
-    char *dest = result;
-    LIST_FOREACH(item, strings, {
-        char *str = (char *) item;
-        int len = strlen(str);
-        if (len > 0) {
-            strncpy(dest, str, len);
-            dest += len;
-        }
-        if (--count > 0) {
-            if (separator_len > 0) {
-                strncpy(dest, separator, separator_len);
-                dest += separator_len;
-            }
-        }
-    })
-    return result;
-}
-
 /**
  * @param s The BASE64-ed string to decode.
  * @return Size if the resulting decoded data in bytes.
@@ -628,123 +528,6 @@ ROX_INTERNAL cJSON *rox_json_create_array(void *skip, ...) {
     };
             va_end(args);
     return arr;
-}
-
-ROX_INTERNAL List *rox_list_create(void *skip, ...) {
-    va_list args;
-            va_start(args, skip);
-
-    List *list;
-    list_new(&list);
-    void *item = va_arg(args, void*);
-    while (item != NULL) {
-        list_add(list, item);
-        item = va_arg(args, void*);
-    };
-            va_end(args);
-    return list;
-}
-
-ROX_INTERNAL List *rox_list_create_str(void *skip, ...) {
-    va_list args;
-            va_start(args, skip);
-
-    List *list;
-    list_new(&list);
-    char *item = va_arg(args, char*);
-    while (item != NULL) {
-        list_add(list, mem_copy_str(item));
-        item = va_arg(args, char*);
-    };
-            va_end(args);
-    return list;
-}
-
-ROX_INTERNAL bool list_equals(List *one, List *another, bool (*cmp)(void *v1, void *v2)) {
-    assert(one);
-    assert(another);
-    if (list_size(one) != list_size(another)) {
-        return false;
-    }
-    ListIter i1, i2;
-    list_iter_init(&i1, one);
-    list_iter_init(&i2, another);
-    void *v1, *v2;
-    while (list_iter_next(&i1, &v1) != CC_ITER_END && list_iter_next(&i2, &v2) != CC_ITER_END) {
-        if (!cmp(v1, v2)) {
-            return false;
-        }
-    }
-    return true;
-}
-
-ROX_INTERNAL bool str_list_equals(List *one, List *another) {
-    assert(one);
-    assert(another);
-    return list_equals(one, another, (bool (*)(void *, void *)) &str_equals);
-}
-
-ROX_INTERNAL HashSet *rox_set_create(void *skip, ...) {
-    va_list args;
-            va_start(args, skip);
-
-    HashSet *hash_set;
-    hashset_new(&hash_set);
-    void *item = va_arg(args, void*);
-    while (item != NULL) {
-        hashset_add(hash_set, item);
-        item = va_arg(args, void*);
-    };
-            va_end(args);
-    return hash_set;
-}
-
-HashTable *rox_map_create(void *skip, ...) {
-    va_list args;
-            va_start(args, skip);
-
-    HashTable *map;
-    hashtable_new(&map);
-    char *property_name = va_arg(args, char*);
-    while (property_name != NULL) {
-        void *property_value = va_arg(args, void *);
-        hashtable_add(map, property_name, property_value);
-        property_name = va_arg(args, char*);
-    };
-            va_end(args);
-    return map;
-}
-
-ROX_INTERNAL void rox_map_free_with_values(HashTable *map) {
-    assert(map);
-    rox_map_free_with_values_cb(map, &free);
-}
-
-ROX_INTERNAL void rox_map_free_with_keys_and_values(HashTable *map) {
-    assert(map);
-    rox_hash_table_free_with_keys_and_values_cb(map, &free, &free);
-}
-
-ROX_INTERNAL void rox_map_free_with_values_cb(HashTable *map, void (*f)(void *)) {
-    assert(map);
-    TableEntry *entry;
-    HASHTABLE_FOREACH(entry, map, {
-        f(entry->value);
-    })
-    hashtable_destroy(map);
-}
-
-ROX_INTERNAL void
-rox_hash_table_free_with_keys_and_values_cb(HashTable *map, void (*f_key)(void *), void (*f_value)(void *)) {
-    assert(map);
-    TableEntry *entry;
-    HASHTABLE_FOREACH(entry, map, {
-        f_key(entry->key);
-        if (entry->value) {
-            f_value(entry->value);
-        }
-    })
-    hashtable_destroy(map);
 }
 
 #define ROX_JSON_PRINT_BUFFER_SIZE 10240

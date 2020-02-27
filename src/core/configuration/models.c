@@ -1,6 +1,6 @@
 #include <assert.h>
 #include "models.h"
-#include "util.h"
+#include "collections.h"
 
 //
 // ExperimentModel
@@ -11,8 +11,8 @@ ROX_INTERNAL ExperimentModel *experiment_model_create(
         const char *name,
         const char *condition,
         bool archived,
-        List *flags,
-        HashSet *labels,
+        RoxList *flags,
+        RoxSet *labels,
         const char *stickiness_property) {
 
     assert(id);
@@ -52,16 +52,17 @@ ROX_INTERNAL void experiment_model_free(ExperimentModel *model) {
         free(model->stickiness_property);
     }
     if (model->flags) {
-        list_destroy_cb(model->flags, &free);
+        rox_list_free_cb(model->flags, &free);
     }
     if (model->labels) {
-        HashSetIter iter;
-        hashset_iter_init(&iter, model->labels);
+        RoxSetIter *iter = rox_set_iter_create();
+        rox_set_iter_init(iter, model->labels);
         void *val;
-        while (hashset_iter_next(&iter, &val) != CC_ITER_END) {
+        while (rox_set_iter_next(iter, &val)) {
             free(val);
         }
-        hashset_destroy(model->labels);
+        rox_set_iter_free(iter);
+        rox_set_free(model->labels);
     }
 }
 

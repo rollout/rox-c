@@ -3,7 +3,6 @@
 #include <cjson/cJSON.h>
 #include "rollout.h"
 #include "context.h"
-#include "dynamic.h"
 
 //
 // CustomPropertyType

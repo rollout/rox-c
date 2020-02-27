@@ -5,11 +5,8 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <stdbool.h>
-#include <collectc/list.h>
-#include <collectc/hashtable.h>
 #include "stack.h"
 #include "util.h"
-#include "dynamic.h"
 
 struct CoreStack {
     StackItem *first;
@@ -87,13 +84,13 @@ ROX_INTERNAL void rox_stack_push_string_ptr(CoreStack *stack, char *value) {
     rox_stack_push_dynamic_value(stack, rox_dynamic_value_create_string_ptr(value));
 }
 
-ROX_INTERNAL void rox_stack_push_list(CoreStack *stack, List *value) {
+ROX_INTERNAL void rox_stack_push_list(CoreStack *stack, RoxList *value) {
     assert(stack);
     assert(value);
     rox_stack_push_dynamic_value(stack, rox_dynamic_value_create_list(value));
 }
 
-ROX_INTERNAL void rox_stack_push_map(CoreStack *stack, HashTable *value) {
+ROX_INTERNAL void rox_stack_push_map(CoreStack *stack, RoxMap *value) {
     assert(stack);
     assert(value);
     rox_stack_push_dynamic_value(stack, rox_dynamic_value_create_map(value));
@@ -138,7 +135,7 @@ ROX_INTERNAL StackItem *rox_stack_peek(CoreStack *stack) {
 ROX_INTERNAL bool rox_stack_is_numeric(StackItem *item) {
     assert(item);
     return rox_dynamic_value_is_int(item->value) ||
-            rox_dynamic_value_is_double(item->value);
+           rox_dynamic_value_is_double(item->value);
 }
 
 ROX_INTERNAL bool rox_stack_is_boolean(StackItem *item) {
@@ -195,12 +192,12 @@ ROX_INTERNAL char *rox_stack_get_string(StackItem *item) {
     return rox_dynamic_value_get_string(item->value);
 }
 
-ROX_INTERNAL List *rox_stack_get_list(StackItem *item) {
+ROX_INTERNAL RoxList *rox_stack_get_list(StackItem *item) {
     assert(item);
     return rox_dynamic_value_get_list(item->value);
 }
 
-ROX_INTERNAL HashTable *rox_stack_get_map(StackItem *item) {
+ROX_INTERNAL RoxMap *rox_stack_get_map(StackItem *item) {
     assert(item);
     return rox_dynamic_value_get_map(item->value);
 }

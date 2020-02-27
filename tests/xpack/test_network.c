@@ -6,6 +6,7 @@
 #include "xpack/network.h"
 #include "util.h"
 #include "fixtures.h"
+#include "collections.h"
 
 //
 // DebouncerTests
@@ -157,14 +158,14 @@ static void _state_sender_test_context_free(StateSenderTestContext *ctx) {
     free(ctx);
 }
 
-static void check_map_value(HashTable *map, const char *key, const char *expected_value) {
+static void check_map_value(RoxMap *map, const char *key, const char *expected_value) {
     char *actual_value;
-    ck_assert_int_eq(hashtable_get(map, (void *) key, (void **) &actual_value), CC_OK);
+    ck_assert(rox_map_get(map, (void *) key, (void **) &actual_value));
     ck_assert_str_eq(expected_value, actual_value);
 }
 
 static void _validate_request_params(StateSenderTestContext *ctx) {
-    HashTable *params = ctx->request->last_post_params;
+    RoxMap *params = ctx->request->last_post_params;
     check_map_value(params, ROX_PROPERTY_TYPE_PLATFORM.name, ".net");
     check_map_value(params, ROX_PROPERTY_TYPE_FEATURE_FLAGS.name,
                     "[{\"name\":\"flag\",\"defaultValue\":\"false\",\"options\":[\"false\",\"true\"]}]");

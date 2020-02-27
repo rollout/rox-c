@@ -4,8 +4,6 @@
 #include <pcre2.h>
 #include <float.h>
 #include <math.h>
-#include <collectc/list.h>
-#include <collectc/hashtable.h>
 
 #include "rollout.h"
 #include "util.h"
@@ -13,6 +11,7 @@
 #include "stack.h"
 #include "vendor/semver.h"
 #include "core/logging.h"
+#include "collections.h"
 
 //
 // Symbols
@@ -191,14 +190,14 @@ ROX_INTERNAL ParserNode *node_create_bool(NodeType type, bool value) {
     return node;
 }
 
-ROX_INTERNAL ParserNode *node_create_list(NodeType type, List *value) {
+ROX_INTERNAL ParserNode *node_create_list(NodeType type, RoxList *value) {
     assert(value);
     ParserNode *node = _node_create_empty(type);
     node->value = rox_dynamic_value_create_list(value);
     return node;
 }
 
-ROX_INTERNAL ParserNode *node_create_map(NodeType type, HashTable *value) {
+ROX_INTERNAL ParserNode *node_create_map(NodeType type, RoxMap *value) {
     assert(value);
     ParserNode *node = _node_create_empty(type);
     node->value = rox_dynamic_value_create_map(value);
@@ -375,39 +374,39 @@ static const char *ESCAPED_QUOTE = "\\\"";
 static const char *ESCAPED_QUOTE_PLACEHOLDER = "\\RO_Q";
 
 typedef struct TokenizedExpression {
-    List *array_accumulator;
-    HashTable *dict_accumulator;
+    RoxList *array_accumulator;
+    RoxMap *dict_accumulator;
     char *dict_key;
 } TokenizedExpression;
 
 ROX_INTERNAL void tokenized_expression_free(TokenizedExpression *expr) {
     assert(expr);
     if (expr->array_accumulator) {
-        list_destroy(expr->array_accumulator); // FIXME: add warning: unclosed array literal
+        rox_list_free(expr->array_accumulator); // FIXME: add warning: unclosed array literal
     }
     if (expr->dict_accumulator) {
-        hashtable_destroy(expr->dict_accumulator);  // FIXME: add warning: unclosed dictionary literal
+        rox_map_free(expr->dict_accumulator);  // FIXME: add warning: unclosed dictionary literal
     }
     free(expr);
 }
 
-ROX_INTERNAL void _tokenized_expression_push_node(TokenizedExpression *expr, ParserNode *node, List *node_list) {
+ROX_INTERNAL void _tokenized_expression_push_node(TokenizedExpression *expr, ParserNode *node, RoxList *node_list) {
     assert(expr);
     assert(node);
     assert(node_list);
     if (expr->dict_accumulator && !expr->dict_key) {
         expr->dict_key = rox_dynamic_value_get_string(node->value);
     } else if (expr->dict_accumulator && expr->dict_key) {
-        if (!hashtable_contains_key(expr->dict_accumulator, expr->dict_key)) {
-            hashtable_add(expr->dict_accumulator,
-                          mem_copy_str(expr->dict_key),
-                          node->value);
+        if (!rox_map_contains_key(expr->dict_accumulator, expr->dict_key)) {
+            rox_map_add(expr->dict_accumulator,
+                        mem_copy_str(expr->dict_key),
+                        node->value);
         }
         expr->dict_key = NULL;
     } else if (expr->array_accumulator) {
-        list_add(expr->array_accumulator, node->value);
+        rox_list_add(expr->array_accumulator, node->value);
     } else {
-        list_add(node_list, node);
+        rox_list_add(node_list, node);
     }
 }
 
@@ -437,14 +436,13 @@ ROX_INTERNAL ParserNode *_tokenized_expression_node_from_token(NodeType nodeType
 
 #define ROX_TOKEN_BUFFER_SIZE 1024
 
-ROX_INTERNAL List *tokenized_expression_get_tokens(const char *expression, HashTable *operators) {
+ROX_INTERNAL RoxList *tokenized_expression_get_tokens(const char *expression, RoxMap *operators) {
     assert(expression);
     assert(operators);
 
     TokenizedExpression *expr = calloc(1, sizeof(TokenizedExpression));
 
-    List *result_list;
-    list_new(&result_list);
+    RoxList *result_list = rox_list_create();
 
     const char *delimiters_to_use = TOKEN_DELIMITERS;
     char *normalized_expression = mem_str_replace(expression, ESCAPED_QUOTE, ESCAPED_QUOTE_PLACEHOLDER);
@@ -466,11 +464,11 @@ ROX_INTERNAL List *tokenized_expression_get_tokens(const char *expression, HashT
         if (!in_string && str_equals(token, DICT_START_DELIMITER)) {
             if (expr->dict_accumulator) {
                 ROX_WARN("new dict has started before the existing is closed");
-                hashtable_destroy(expr->dict_accumulator); // FIXME: what about dict-in-dict case?
+                rox_map_free(expr->dict_accumulator); // FIXME: what about dict-in-dict case?
             }
-            hashtable_new(&expr->dict_accumulator);
+            expr->dict_accumulator = rox_map_create();
         } else if (!in_string && str_equals(token, DICT_END_DELIMITER)) {
-            HashTable *dict_result = expr->dict_accumulator;
+            RoxMap *dict_result = expr->dict_accumulator;
             expr->dict_accumulator = NULL;
             _tokenized_expression_push_node(
                     expr,
@@ -479,11 +477,11 @@ ROX_INTERNAL List *tokenized_expression_get_tokens(const char *expression, HashT
         } else if (!in_string && str_equals(token, ARRAY_START_DELIMITER)) {
             if (expr->array_accumulator) {
                 ROX_WARN("new array has started before the existing is closed");
-                list_destroy(expr->array_accumulator);  // FIXME: what about array-in-array case?
+                rox_list_free(expr->array_accumulator);  // FIXME: what about array-in-array case?
             }
-            list_new(&expr->array_accumulator);
+            expr->array_accumulator = rox_list_create();
         } else if (!in_string && str_equals(token, ARRAY_END_DELIMITER)) {
-            List *array_result = expr->array_accumulator;
+            RoxList *array_result = expr->array_accumulator;
             expr->array_accumulator = NULL;
             _tokenized_expression_push_node(
                     expr,
@@ -507,7 +505,7 @@ ROX_INTERNAL List *tokenized_expression_get_tokens(const char *expression, HashT
                         node_create_str_ptr(NodeTypeRand, escaped_token),
                         result_list);
             } else if (!strstr(TOKEN_DELIMITERS, token) && !str_equals(token, PRE_POST_STRING_CHAR)) {
-                ParserNode *node = hashtable_contains_key(operators, token)
+                ParserNode *node = rox_map_contains_key(operators, token)
                                    ? node_create_str_copy(NodeTypeRator, token)
                                    : _tokenized_expression_node_from_token(NodeTypeRand, token);
                 _tokenized_expression_push_node(expr, node, result_list);
@@ -533,8 +531,8 @@ typedef struct ParserDisposalHandler {
 } ParserDisposalHandler;
 
 struct Parser {
-    List *disposal_handlers;
-    HashTable *operators_map;
+    RoxList *disposal_handlers;
+    RoxMap *operators_map;
 };
 
 typedef struct ParserOperator {
@@ -654,9 +652,9 @@ ROX_INTERNAL void _parser_operator_in_array(void *target, Parser *parser, CoreSt
         rox_stack_push_boolean(stack, false);
         return;
     }
-    List *list = rox_stack_get_list(op2);
+    RoxList *list = rox_stack_get_list(op2);
     RoxDynamicValue *v1 = rox_stack_get_value(op1);
-    LIST_FOREACH(item, list, {
+    ROX_LIST_FOREACH(item, list, {
         RoxDynamicValue *v2 = (RoxDynamicValue *) item;
         if (rox_dynamic_value_equals(v1, v2)) {
             rox_stack_push_boolean(stack, true);
@@ -900,8 +898,8 @@ ROX_INTERNAL void _parser_set_basic_operators(Parser *parser) {
 
 ROX_INTERNAL Parser *parser_create() {
     Parser *parser = calloc(1, sizeof(Parser));
-    list_new(&parser->disposal_handlers);
-    hashtable_new(&parser->operators_map);
+    parser->disposal_handlers = rox_list_create();
+    parser->operators_map = rox_map_create();
     _parser_set_basic_operators(parser);
     return parser;
 }
@@ -917,17 +915,17 @@ ROX_INTERNAL void parser_add_disposal_handler(
     ParserDisposalHandler *h = calloc(1, sizeof(ParserDisposalHandler));
     h->target = target;
     h->handler = handler;
-    list_add(parser->disposal_handlers, h);
+    rox_list_add(parser->disposal_handlers, h);
 }
 
 ROX_INTERNAL void parser_free(Parser *parser) {
     assert(parser);
-    LIST_FOREACH(item, parser->disposal_handlers, {
+    ROX_LIST_FOREACH(item, parser->disposal_handlers, {
         ParserDisposalHandler *handler = (ParserDisposalHandler *) item;
         handler->handler(handler->target, parser);
     })
     rox_map_free_with_keys_and_values(parser->operators_map);
-    list_destroy_cb(parser->disposal_handlers, &free);
+    rox_list_free_cb(parser->disposal_handlers, &free);
     free(parser);
 }
 
@@ -935,11 +933,11 @@ ROX_INTERNAL void parser_add_operator(Parser *parser, const char *name, void *ta
     assert(parser);
     assert(name);
     assert(op);
-    assert(!hashtable_contains_key(parser->operators_map, (void *) name));
+    assert(!rox_map_contains_key(parser->operators_map, (void *) name));
     ParserOperator *operator = calloc(1, sizeof(ParserOperator));
     operator->target = target;
     operator->operation = op;
-    hashtable_add(parser->operators_map, (void *) mem_copy_str(name), operator);
+    rox_map_add(parser->operators_map, (void *) mem_copy_str(name), operator);
 }
 
 ROX_INTERNAL EvaluationResult *parser_evaluate_expression(Parser *parser, const char *expression, RoxContext *context) {
@@ -949,20 +947,19 @@ ROX_INTERNAL EvaluationResult *parser_evaluate_expression(Parser *parser, const 
     EvaluationResult *result = NULL;
     StackItem *item = NULL;
     CoreStack *stack = rox_stack_create();
-    List *tokens = tokenized_expression_get_tokens(expression, parser->operators_map);
-    list_reverse(tokens);
+    RoxList *tokens = tokenized_expression_get_tokens(expression, parser->operators_map);
+    rox_list_reverse(tokens);
 
-    ListIter i;
-    list_iter_init(&i, tokens);
+    RoxListIter *i = rox_list_iter_create();
+    rox_list_iter_init(i, tokens);
     ParserNode *node;
-    while (list_iter_next(&i, (void **) &node) != CC_ITER_END) {
+    while (rox_list_iter_next(i, (void **) &node)) {
         if (node->type == NodeTypeRand) {
             rox_stack_push_dynamic_value(stack, rox_dynamic_value_create_copy(node->value));
         } else if (node->type == NodeTypeRator) {
             assert(rox_dynamic_value_is_string(node->value));
             ParserOperator *op;
-            if (hashtable_get(parser->operators_map, rox_dynamic_value_get_string(node->value), (void **) &op) ==
-                CC_OK) {
+            if (rox_map_get(parser->operators_map, rox_dynamic_value_get_string(node->value), (void **) &op)) {
                 op->operation(op->target, parser, stack, context);
             }
         } else {
@@ -975,7 +972,7 @@ ROX_INTERNAL EvaluationResult *parser_evaluate_expression(Parser *parser, const 
         result = _create_result_from_stack_item(item);
     }
 
-    list_destroy_cb(tokens, (void (*)(void *)) &node_free); // here all the inner lists and maps should be destroyed
+    rox_list_free_cb(tokens, (void (*)(void *)) &node_free); // here all the inner lists and maps should be freeed
     rox_stack_free(stack);
 
     return result;

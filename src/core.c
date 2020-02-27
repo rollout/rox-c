@@ -11,6 +11,7 @@
 #include "xpack/configuration.h"
 #include "xpack/impression.h"
 #include "util.h"
+#include "collections.h"
 
 //
 // PeriodicTask
@@ -57,8 +58,8 @@ static PeriodicTask *_periodic_task_create(int seconds, void *target, periodic_t
     task->period_seconds = seconds;
     task->target = target;
     task->func = func;
-    task->thread_mutex = (pthread_mutex_t)PTHREAD_MUTEX_INITIALIZER;
-    task->thread_cond = (pthread_cond_t)PTHREAD_COND_INITIALIZER;
+    task->thread_mutex = (pthread_mutex_t) PTHREAD_MUTEX_INITIALIZER;
+    task->thread_cond = (pthread_cond_t) PTHREAD_COND_INITIALIZER;
     task->thread_started = (pthread_create(
             &task->thread, NULL, _periodic_task_thread_func, (void *) task) == 0);
     return task;
@@ -386,10 +387,9 @@ ROX_INTERNAL bool rox_core_setup(
 ROX_INTERNAL void rox_core_set_context(RoxCore *core, RoxContext *context) {
     assert(core);
     assert(context);
-    HashTable *flags = flag_repository_get_all_flags(core->flag_repository);
-    TableEntry *entry;
-    HASHTABLE_FOREACH(entry, flags, {
-        RoxVariant *flag = (RoxVariant *) entry->value;
+    RoxMap *flags = flag_repository_get_all_flags(core->flag_repository);
+    ROX_MAP_FOREACH(key, value, flags, {
+        RoxVariant *flag = (RoxVariant *) value;
         variant_set_context(flag, context);
     })
 }

@@ -4,7 +4,7 @@
 #include "roxx/parser.h"
 #include "roxx/extensions.h"
 #include "core/repositories.h"
-#include "util.h"
+#include "collections.h"
 
 typedef struct ImpressionArgs {
     const char *name;
@@ -19,7 +19,7 @@ typedef struct ParserExtensionsTestContext {
     CustomPropertyRepository *custom_property_repository;
     DynamicProperties *dynamic_properties;
     ImpressionInvoker *impression_invoker;
-    List *impressions;
+    RoxList *impressions;
     const char *property_context_key;
 } ParserExtensionsTestContext;
 
@@ -43,7 +43,7 @@ static void _parser_extensions_impression_handler(
     ImpressionArgs *args = calloc(1, sizeof(ImpressionArgs));
     args->name = value->name;
     args->value = value->value;
-    list_add(test_context->impressions, args);
+    rox_list_add(test_context->impressions, args);
 }
 
 static ParserExtensionsTestContext *parser_extensions_test_context_create() {
@@ -55,7 +55,7 @@ static ParserExtensionsTestContext *parser_extensions_test_context_create() {
     context->custom_property_repository = custom_property_repository_create();
     context->dynamic_properties = dynamic_properties_create();
     context->impression_invoker = impression_invoker_create();
-    list_new(&context->impressions);
+    context->impressions = rox_list_create();
     impression_invoker_register(context->impression_invoker, context,
                                 &_parser_extensions_impression_handler);
     parser_add_experiments_extensions(context->parser,
@@ -76,7 +76,7 @@ static void parser_extensions_test_context_free(ParserExtensionsTestContext *con
     custom_property_repository_free(context->custom_property_repository);
     dynamic_properties_free(context->dynamic_properties);
     parser_free(context->parser);
-    list_destroy_cb(context->impressions, &free);
+    rox_list_free_cb(context->impressions, &free);
     impression_invoker_free(context->impression_invoker);
     free(context);
 }
@@ -198,14 +198,14 @@ START_TEST (test_flag_dependency_impression_handler) {
     char *value = variant_get_value_or_default(v, NULL);
     ck_assert_str_eq("green", value);
 
-    ck_assert_int_eq(list_size(context->impressions), 2);
+    ck_assert_int_eq(rox_list_size(context->impressions), 2);
 
     ImpressionArgs *args;
-    list_get_at(context->impressions, 0, (void **) &args);
+    rox_list_get_at(context->impressions, 0, (void **) &args);
     ck_assert_str_eq(args->name, "f1");
     ck_assert_str_eq(args->value, "false");
 
-    list_get_at(context->impressions, 1, (void **) &args);
+    rox_list_get_at(context->impressions, 1, (void **) &args);
     ck_assert_str_eq(args->name, "v1");
     ck_assert_str_eq(args->value, "green");
 
@@ -240,7 +240,7 @@ END_TEST
 START_TEST (test_flag_dependency_unexisting_flag_but_existing_experiment) {
     ParserExtensionsTestContext *context = parser_extensions_test_context_create();
 
-    List *experiment_models = ROX_LIST(
+    RoxList *experiment_models = ROX_LIST(
             experiment_model_create("exp1id", "exp1name", "ifThen(true, \"true\", \"false\")", false,
                                     ROX_LIST_COPY_STR("someFlag"), ROX_EMPTY_SET, "stam"),
             experiment_model_create("exp2id", "exp2name",
@@ -268,7 +268,7 @@ END_TEST
 START_TEST (test_flag_dependency_unexisting_flag_and_experiment_undefined) {
     ParserExtensionsTestContext *context = parser_extensions_test_context_create();
 
-    List *experiment_models = ROX_LIST(
+    RoxList *experiment_models = ROX_LIST(
             experiment_model_create("exp1id", "exp1name", "undefined", false, ROX_LIST_COPY_STR("someFlag"),
                                     ROX_EMPTY_SET, "stam"),
             experiment_model_create("exp2id", "exp2name",
@@ -342,7 +342,7 @@ START_TEST (test_flag_dependency_with_context_used_on_experiment_with_no_flag) {
     variant_set_condition(flag3, "flagValue(\"flag2\")");
     flag_repository_add_flag(context->flag_repository, flag3, "flag3");
 
-    List *experiment_models = ROX_LIST(
+    RoxList *experiment_models = ROX_LIST(
             experiment_model_create("exp1id", "exp1name", "property(\"prop\")", false, ROX_LIST_COPY_STR("flag2"),
                                     ROX_EMPTY_SET, "stam"));
 
@@ -382,7 +382,7 @@ START_TEST (test_flag_dependency_with_context2_level_mid_level_no_flag_eval_expe
     variant_set_condition(flag3, "flagValue(\"flag2\")");
     flag_repository_add_flag(context->flag_repository, flag3, "flag3");
 
-    List *experiment_models = ROX_LIST(
+    RoxList *experiment_models = ROX_LIST(
             experiment_model_create("exp1id", "exp1name", "flagValue(\"flag1\")", false, ROX_LIST_COPY_STR("flag2"),
                                     ROX_EMPTY_SET, "stam"));
 
@@ -724,9 +724,7 @@ END_TEST
 START_TEST (test_dynamic_rule_return_unsupported_type) {
     ParserExtensionsTestContext *context = parser_extensions_test_context_create();
 
-    HashTable *map;
-    hashtable_new(&map);
-
+    RoxMap *map = rox_map_create();
     RoxContext *ctx = rox_context_create_from_map(
             ROX_MAP(
                     mem_copy_str("testKeyRule"),

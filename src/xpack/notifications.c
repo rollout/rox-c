@@ -1,4 +1,3 @@
-#include <collectc/hashtable.h>
 #include <curl/curl.h>
 #include <stdlib.h>
 #include <assert.h>
@@ -7,6 +6,7 @@
 #include "notifications.h"
 #include "util.h"
 #include "core/logging.h"
+#include "collections.h"
 
 //
 // DisconnectEventArgs
@@ -395,7 +395,7 @@ typedef struct NotificationListenerEventHandler {
 struct NotificationListener {
     char *listen_url;
     char *app_key;
-    HashTable *handlers; // char* => List* of NotificationListenerEventHandler
+    RoxMap *handlers; // char* => List* of NotificationListenerEventHandler
     EventSourceReader *reader;
     // debugging options
     bool testing;
@@ -409,10 +409,10 @@ static void _notification_listener_message_received(void *target, EventSourceMes
 
     NotificationListener *listener = (NotificationListener *) target;
 
-    List *handlers;
-    if (hashtable_get(listener->handlers, (void *) args->event, (void **) &handlers) == CC_OK) {
+    RoxList *handlers;
+    if (rox_map_get(listener->handlers, (void *) args->event, (void **) &handlers)) {
         assert(handlers);
-        LIST_FOREACH(item, handlers, {
+        ROX_LIST_FOREACH(item, handlers, {
             NotificationListenerEventHandler *handler = (NotificationListenerEventHandler *) item;
             NotificationListenerEvent *event = notification_listener_event_create(args->event, args->message);
             handler->handler(handler->target, event);
@@ -430,7 +430,7 @@ ROX_INTERNAL NotificationListener *notification_listener_create(NotificationList
     NotificationListener *listener = calloc(1, sizeof(NotificationListener));
     listener->listen_url = mem_copy_str(config->listen_url);
     listener->app_key = mem_copy_str(config->app_key);
-    hashtable_new(&listener->handlers);
+    listener->handlers = rox_map_create();
 
     listener->testing = config->testing;
     listener->current_thread = config->current_thread;
@@ -460,20 +460,19 @@ ROX_INTERNAL void notification_listener_on(
     assert(handler);
 
     void *key = mem_copy_str(event_name);
-    if (!hashtable_contains_key(listener->handlers, key)) {
-        List *handlers;
-        list_new(&handlers);
-        hashtable_add(listener->handlers, key, handlers);
+    if (!rox_map_contains_key(listener->handlers, key)) {
+        RoxList *handlers = rox_list_create();
+        rox_map_add(listener->handlers, key, handlers);
     }
 
     NotificationListenerEventHandler *h = malloc(sizeof(NotificationListenerEventHandler));
     h->target = target;
     h->handler = handler;
 
-    List *handlers;
-    if (hashtable_get(listener->handlers, key, (void **) &handlers) == CC_OK) {
+    RoxList *handlers;
+    if (rox_map_get(listener->handlers, key, (void **) &handlers)) {
         assert(handlers);
-        list_add(handlers, h);
+        rox_list_add(handlers, h);
     } else {
         assert(false);
     }
@@ -515,12 +514,11 @@ ROX_INTERNAL void notification_listener_free(NotificationListener *listener) {
     assert(listener);
     free(listener->listen_url);
     free(listener->app_key);
-    TableEntry *entry;
-    HASHTABLE_FOREACH(entry, listener->handlers, {
-        free(entry->key);
-        list_destroy_cb(entry->value, &free);
+    ROX_MAP_FOREACH(key, value, listener->handlers, {
+        free(key);
+        rox_list_free_cb(value, &free);
     })
-    hashtable_destroy(listener->handlers);
+    rox_map_free(listener->handlers);
     if (listener->reader) {
         _event_source_reader_free(listener->reader);
     }

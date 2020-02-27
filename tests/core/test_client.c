@@ -6,6 +6,7 @@
 #include "core/client.h"
 #include "core/entities.h"
 #include "util.h"
+#include "collections.h"
 
 //
 // DynamicApiTests
@@ -22,7 +23,7 @@ START_TEST (test_is_enabled) {
     ck_assert(dynamic_api_is_enabled(api, "default.newFlag", true, NULL));
     ck_assert(flag_is_enabled(flag_repository_get_flag(flag_repo, "default.newFlag"), NULL));
     ck_assert(!dynamic_api_is_enabled(api, "default.newFlag", false, NULL));
-    ck_assert_int_eq(1, hashtable_size(flag_repository_get_all_flags(flag_repo)));
+    ck_assert_int_eq(1, rox_map_size(flag_repository_get_all_flags(flag_repo)));
 
     experiment_repository_set_experiments(exp_repo, ROX_LIST(
             experiment_model_create("1", "default.newFlag", "and(true, true)", false,
@@ -76,14 +77,14 @@ START_TEST (test_get_value) {
     EntitiesProvider *entities_provider = entities_provider_create();
     RoxDynamicApi *api = dynamic_api_create(flag_repo, entities_provider);
 
-    List *options = ROX_LIST_COPY_STR("A", "B", "C");
+    RoxList *options = ROX_LIST_COPY_STR("A", "B", "C");
     rox_check_and_free(rox_dynamic_api_get_value(api, "default.newVariant", "A", options, NULL), "A");
 
     RoxVariant *flag = flag_repository_get_flag(flag_repo, "default.newVariant");
     rox_check_and_free(variant_get_value_or_default(flag, NULL), "A");
 
     rox_check_and_free(rox_dynamic_api_get_value(api, "default.newVariant", "B", options, NULL), "B");
-    ck_assert_int_eq(1, hashtable_size(flag_repository_get_all_flags(flag_repo)));
+    ck_assert_int_eq(1, rox_map_size(flag_repository_get_all_flags(flag_repo)));
 
     experiment_repository_set_experiments(exp_repo, ROX_LIST(
             experiment_model_create("1", "default.newVariant", "ifThen(true, \"B\", \"A\")", false,
@@ -169,52 +170,48 @@ END_TEST
 //
 
 START_TEST (test_will_check_md5_uses_right_props) {
-    HashTable *props;
-    hashtable_new(&props);
-    hashtable_add(props, ROX_PROPERTY_TYPE_PLATFORM.name, "plat");
+    RoxMap *props = rox_map_create();
+    rox_map_add(props, ROX_PROPERTY_TYPE_PLATFORM.name, "plat");
     char *md5 = md5_generator_generate(props, ROX_LIST(&ROX_PROPERTY_TYPE_PLATFORM), NULL);
     rox_check_and_free(md5, "1380AFEBC7CE22DE7B3450F8CAB86D2C");
-    hashtable_destroy(props);
+    rox_map_free(props);
 }
 
 END_TEST
 
 START_TEST (test_will_check_md5_not_using_all_props) {
-    HashTable *props;
-    hashtable_new(&props);
-    hashtable_add(props, ROX_PROPERTY_TYPE_DEV_MODE_SECRET.name, "dev");
-    hashtable_add(props, ROX_PROPERTY_TYPE_PLATFORM.name, "plat");
+    RoxMap *props = rox_map_create();
+    rox_map_add(props, ROX_PROPERTY_TYPE_DEV_MODE_SECRET.name, "dev");
+    rox_map_add(props, ROX_PROPERTY_TYPE_PLATFORM.name, "plat");
     char *md5 = md5_generator_generate(props, ROX_LIST(&ROX_PROPERTY_TYPE_PLATFORM), NULL);
     rox_check_and_free(md5, "1380AFEBC7CE22DE7B3450F8CAB86D2C");
-    hashtable_destroy(props);
+    rox_map_free(props);
 }
 
 END_TEST
 
 START_TEST (test_will_check_md5_with_objects) {
-    HashTable *props;
-    hashtable_new(&props);
-    hashtable_add(props, ROX_PROPERTY_TYPE_DEV_MODE_SECRET.name, "22");
-    hashtable_add(props, ROX_PROPERTY_TYPE_PLATFORM.name, "True"); // Dotnet legacy, true becomes True
+    RoxMap *props = rox_map_create();
+    rox_map_add(props, ROX_PROPERTY_TYPE_DEV_MODE_SECRET.name, "22");
+    rox_map_add(props, ROX_PROPERTY_TYPE_PLATFORM.name, "True"); // Dotnet legacy, true becomes True
     char *md5 = md5_generator_generate(props, ROX_LIST(
             &ROX_PROPERTY_TYPE_PLATFORM,
             &ROX_PROPERTY_TYPE_DEV_MODE_SECRET), NULL);
     rox_check_and_free(md5, "D3816631EDE04D536EAEB479FE5829FD");
-    hashtable_destroy(props);
+    rox_map_free(props);
 }
 
 END_TEST
 
 START_TEST (test_will_check_md5_with_json_object) {
-    HashTable *props;
-    hashtable_new(&props);
-    hashtable_add(props, ROX_PROPERTY_TYPE_DEV_MODE_SECRET.name, "[{\"key\":\"value\"}]");
-    hashtable_add(props, ROX_PROPERTY_TYPE_PLATFORM.name, "value"); // Dotnet legacy, true becomes True
+    RoxMap *props = rox_map_create();
+    rox_map_add(props, ROX_PROPERTY_TYPE_DEV_MODE_SECRET.name, "[{\"key\":\"value\"}]");
+    rox_map_add(props, ROX_PROPERTY_TYPE_PLATFORM.name, "value"); // Dotnet legacy, true becomes True
     char *md5 = md5_generator_generate(props, ROX_LIST(
             &ROX_PROPERTY_TYPE_PLATFORM,
             &ROX_PROPERTY_TYPE_DEV_MODE_SECRET), NULL);
     rox_check_and_free(md5, "AA16F2AA33D095940A93C991B00D55C7");
-    hashtable_destroy(props);
+    rox_map_free(props);
 }
 
 END_TEST

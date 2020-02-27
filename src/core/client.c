@@ -1,4 +1,3 @@
-#include <collectc/hashtable.h>
 #include <assert.h>
 #include "client.h"
 #include "consts.h"
@@ -6,6 +5,7 @@
 #include "device.h"
 #include "entities.h"
 #include "repositories.h"
+#include "collections.h"
 
 //
 // SdkSettings
@@ -14,7 +14,7 @@
 ROX_INTERNAL SdkSettings *sdk_settings_create(const char *api_key, const char *dev_mode_secret) {
     assert(api_key);
     assert(dev_mode_secret);
-    SdkSettings * settings = calloc(1, sizeof(SdkSettings));
+    SdkSettings *settings = calloc(1, sizeof(SdkSettings));
     settings->api_key = mem_copy_str(api_key);
     settings->dev_mode_secret = mem_copy_str(dev_mode_secret);
     return settings;
@@ -45,7 +45,7 @@ struct RoxOptions {
 };
 
 ROX_API RoxOptions *rox_options_create() {
-    RoxOptions * options = calloc(1, sizeof(RoxOptions));
+    RoxOptions *options = calloc(1, sizeof(RoxOptions));
     options->dev_mod_key = mem_copy_str("stam");
     options->version = mem_copy_str("0.0");
     options->fetch_interval = 60;
@@ -176,7 +176,7 @@ ROX_INTERNAL void rox_options_free(RoxOptions *options) {
 struct DeviceProperties {
     SdkSettings *sdk_settings;
     RoxOptions *rox_options;
-    HashTable *map;
+    RoxMap *map;
     const char *distinct_id;
     char *env;
 };
@@ -184,13 +184,13 @@ struct DeviceProperties {
 ROX_INTERNAL DeviceProperties *device_properties_create_from_map(
         SdkSettings *sdk_settings,
         RoxOptions *rox_options,
-        HashTable *map) {
+        RoxMap *map) {
 
     assert(sdk_settings);
     assert(rox_options);
     assert(map);
 
-    DeviceProperties * properties = calloc(1, sizeof(DeviceProperties));
+    DeviceProperties *properties = calloc(1, sizeof(DeviceProperties));
     properties->sdk_settings = sdk_settings;
     properties->rox_options = rox_options;
     properties->map = map;
@@ -219,24 +219,23 @@ ROX_INTERNAL DeviceProperties *device_properties_create(
     assert(sdk_settings);
     assert(rox_options);
 
-    HashTable * map;
-    hashtable_new(&map);
-    hashtable_add(map, ROX_PROPERTY_TYPE_LIB_VERSION.name, mem_copy_str(ROX_LIB_VERSION));
-    hashtable_add(map, ROX_PROPERTY_TYPE_ROLLOUT_BUILD.name,
-                  mem_copy_str("50")); // TODO: fix the build number
-    hashtable_add(map, ROX_PROPERTY_TYPE_API_VERSION.name, mem_copy_str(ROX_API_VERSION));
-    hashtable_add(map, ROX_PROPERTY_TYPE_APP_RELEASE.name,
-                  mem_copy_str(rox_options_get_version(rox_options))); // used for the version filter
-    hashtable_add(map, ROX_PROPERTY_TYPE_DISTINCT_ID.name, mem_copy_str(rox_globally_unique_device_id()));
-    hashtable_add(map, ROX_PROPERTY_TYPE_APP_KEY.name, mem_copy_str(sdk_settings->api_key));
-    hashtable_add(map, ROX_PROPERTY_TYPE_PLATFORM.name, mem_copy_str(ROX_PLATFORM));
-    hashtable_add(map, ROX_PROPERTY_TYPE_DEV_MODE_SECRET.name,
-                  mem_copy_str(rox_options_get_dev_mode_key(rox_options)));
+    RoxMap *map = rox_map_create();
+    rox_map_add(map, ROX_PROPERTY_TYPE_LIB_VERSION.name, mem_copy_str(ROX_LIB_VERSION));
+    rox_map_add(map, ROX_PROPERTY_TYPE_ROLLOUT_BUILD.name,
+                mem_copy_str("50")); // TODO: fix the build number
+    rox_map_add(map, ROX_PROPERTY_TYPE_API_VERSION.name, mem_copy_str(ROX_API_VERSION));
+    rox_map_add(map, ROX_PROPERTY_TYPE_APP_RELEASE.name,
+                mem_copy_str(rox_options_get_version(rox_options))); // used for the version filter
+    rox_map_add(map, ROX_PROPERTY_TYPE_DISTINCT_ID.name, mem_copy_str(rox_globally_unique_device_id()));
+    rox_map_add(map, ROX_PROPERTY_TYPE_APP_KEY.name, mem_copy_str(sdk_settings->api_key));
+    rox_map_add(map, ROX_PROPERTY_TYPE_PLATFORM.name, mem_copy_str(ROX_PLATFORM));
+    rox_map_add(map, ROX_PROPERTY_TYPE_DEV_MODE_SECRET.name,
+                mem_copy_str(rox_options_get_dev_mode_key(rox_options)));
 
     return device_properties_create_from_map(sdk_settings, rox_options, map);
 }
 
-ROX_INTERNAL HashTable *device_properties_get_all_properties(DeviceProperties *properties) {
+ROX_INTERNAL RoxMap *device_properties_get_all_properties(DeviceProperties *properties) {
     assert(properties);
     return properties->map;
 }
@@ -282,7 +281,7 @@ ROX_INTERNAL RoxDynamicApi *dynamic_api_create(
         EntitiesProvider *entities_provider) {
     assert(flag_repository);
     assert(entities_provider);
-    RoxDynamicApi * api = calloc(1, sizeof(RoxDynamicApi));
+    RoxDynamicApi *api = calloc(1, sizeof(RoxDynamicApi));
     api->flag_repository = flag_repository;
     api->entities_provider = entities_provider;
     return api;
@@ -296,13 +295,13 @@ ROX_INTERNAL bool dynamic_api_is_enabled(
     assert(api);
     assert(name);
 
-    RoxVariant * variant = flag_repository_get_flag(api->flag_repository, name);
+    RoxVariant *variant = flag_repository_get_flag(api->flag_repository, name);
     if (!variant) {
         variant = entities_provider_create_flag(api->entities_provider, default_value);
         flag_repository_add_flag(api->flag_repository, variant, name);
     }
 
-    RoxVariant * flag = variant;
+    RoxVariant *flag = variant;
     if (!flag || !variant_is_flag(flag)) {
         return default_value;
     }
@@ -315,13 +314,13 @@ ROX_API char *rox_dynamic_api_get_value(
         RoxDynamicApi *api,
         const char *name,
         char *default_value,
-        List *options,
+        RoxList *options,
         RoxContext *context) {
 
     assert(api);
     assert(name);
 
-    RoxVariant * variant = flag_repository_get_flag(api->flag_repository, name);
+    RoxVariant *variant = flag_repository_get_flag(api->flag_repository, name);
     if (!variant) {
         variant = entities_provider_create_variant(api->entities_provider, default_value, options);
         flag_repository_add_flag(api->flag_repository, variant, name);
@@ -355,7 +354,7 @@ ROX_INTERNAL InternalFlags *internal_flags_create(
     assert(experiment_repository);
     assert(parser);
 
-    InternalFlags * flags = calloc(1, sizeof(InternalFlags));
+    InternalFlags *flags = calloc(1, sizeof(InternalFlags));
     flags->experiment_repository = experiment_repository;
     flags->parser = parser;
     return flags;
@@ -364,7 +363,7 @@ ROX_INTERNAL InternalFlags *internal_flags_create(
 ROX_INTERNAL bool internal_flags_is_enabled(InternalFlags *flags, const char *flag_name) {
     assert(flags);
     assert(flag_name);
-    ExperimentModel * internal_experiment = experiment_repository_get_experiment_by_flag(
+    ExperimentModel *internal_experiment = experiment_repository_get_experiment_by_flag(
             flags->experiment_repository, flag_name);
     if (!internal_experiment) {
         return false;
@@ -379,7 +378,7 @@ ROX_INTERNAL bool internal_flags_is_enabled(InternalFlags *flags, const char *fl
 ROX_INTERNAL int *internal_flags_get_int_value(InternalFlags *flags, const char *flag_name) {
     assert(flags);
     assert(flag_name);
-    ExperimentModel * internal_experiment = experiment_repository_get_experiment_by_flag(
+    ExperimentModel *internal_experiment = experiment_repository_get_experiment_by_flag(
             flags->experiment_repository, flag_name);
     if (!internal_experiment) {
         return NULL;
@@ -404,29 +403,28 @@ ROX_INTERNAL void internal_flags_free(InternalFlags *flags) {
 // MD5Generator
 //
 
-ROX_INTERNAL char *md5_generator_generate(HashTable *properties, List *generator_list, List *extra_values) {
+ROX_INTERNAL char *md5_generator_generate(RoxMap *properties, RoxList *generator_list, RoxList *extra_values) {
     assert(properties);
     assert(generator_list);
 
-    List * values;
-    list_new(&values);
-    LIST_FOREACH(item, generator_list, {
+    RoxList *values = rox_list_create();
+    ROX_LIST_FOREACH(item, generator_list, {
         PropertyType *pt = (PropertyType *) item;
         char *value;
-        if (hashtable_get(properties, pt->name, (void **) &value) == CC_OK) {
-            list_add(values, value);
+        if (rox_map_get(properties, pt->name, (void **) &value)) {
+            rox_list_add(values, value);
         }
     })
 
     if (extra_values) {
-        LIST_FOREACH(item, extra_values, {
-            list_add(values, (char *) item);
+        ROX_LIST_FOREACH(item, extra_values, {
+            rox_list_add(values, (char *) item);
         })
     }
 
     char *concat = mem_str_join("|", values);
     char *result = mem_md5_str(concat);
-    list_destroy(values);
+    rox_list_free(values);
     free(concat);
 
     str_to_upper(result);
@@ -444,14 +442,14 @@ struct BUID {
 
 ROX_INTERNAL BUID *buid_create(DeviceProperties *device_properties) {
     assert(device_properties);
-    BUID * buid = calloc(1, sizeof(BUID));
+    BUID *buid = calloc(1, sizeof(BUID));
     buid->device_properties = device_properties;
     return buid;
 }
 
 ROX_INTERNAL BUID *buid_create_dummy(const char *value) {
     assert(value);
-    BUID * buid = calloc(1, sizeof(BUID));
+    BUID *buid = calloc(1, sizeof(BUID));
     buid->buid = mem_copy_str(value);
     return buid;
 }
@@ -463,16 +461,15 @@ ROX_INTERNAL char *buid_get_value(BUID *buid) {
         return buid->buid;
     }
 
-    List * buid_generators;
-    list_new(&buid_generators);
-    list_add(buid_generators, (void *) &ROX_PROPERTY_TYPE_PLATFORM);
-    list_add(buid_generators, (void *) &ROX_PROPERTY_TYPE_APP_KEY);
-    list_add(buid_generators, (void *) &ROX_PROPERTY_TYPE_LIB_VERSION);
-    list_add(buid_generators, (void *) &ROX_PROPERTY_TYPE_API_VERSION);
+    RoxList *buid_generators = rox_list_create();
+    rox_list_add(buid_generators, (void *) &ROX_PROPERTY_TYPE_PLATFORM);
+    rox_list_add(buid_generators, (void *) &ROX_PROPERTY_TYPE_APP_KEY);
+    rox_list_add(buid_generators, (void *) &ROX_PROPERTY_TYPE_LIB_VERSION);
+    rox_list_add(buid_generators, (void *) &ROX_PROPERTY_TYPE_API_VERSION);
 
-    HashTable * properties = device_properties_get_all_properties(buid->device_properties);
+    RoxMap *properties = device_properties_get_all_properties(buid->device_properties);
     buid->buid = md5_generator_generate(properties, buid_generators, NULL);
-    list_destroy(buid_generators);
+    rox_list_free(buid_generators);
 
     return buid->buid;
 }

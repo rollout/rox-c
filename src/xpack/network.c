@@ -1,12 +1,13 @@
-#include <collectc/hashtable.h>
 #include <assert.h>
 #include <pthread.h>
 #include <errno.h>
+#include <string.h>
 #include <time.h>
 #include "core/consts.h"
 #include "core/logging.h"
 #include "network.h"
 #include "util.h"
+#include "collections.h"
 
 //
 // Debouncer
@@ -32,8 +33,8 @@ ROX_INTERNAL Debouncer *debouncer_create(int interval_millis, void *target, debo
     debouncer->target = target;
     debouncer->func = func;
     debouncer->cancel_until = current_time_millis();
-    debouncer->thread_mutex = (pthread_mutex_t)PTHREAD_MUTEX_INITIALIZER;
-    debouncer->thread_cond = (pthread_cond_t)PTHREAD_COND_INITIALIZER;
+    debouncer->thread_mutex = (pthread_mutex_t) PTHREAD_MUTEX_INITIALIZER;
+    debouncer->thread_cond = (pthread_cond_t) PTHREAD_COND_INITIALIZER;
     return debouncer;
 }
 
@@ -91,8 +92,8 @@ struct StateSender {
     FlagRepository *flag_repository;
     CustomPropertyRepository *custom_property_repository;
     Debouncer *state_debouncer;
-    List *state_generators;
-    List *relevant_api_call_params;
+    RoxList *state_generators;
+    RoxList *relevant_api_call_params;
 };
 
 static int _state_sender_list_key_cmp(const void *e1, const void *e2) {
@@ -101,33 +102,32 @@ static int _state_sender_list_key_cmp(const void *e1, const void *e2) {
     return strcmp(s1, s2);
 }
 
-static List *_state_sender_get_sorted_keys(HashTable *map) {
+static RoxList *_state_sender_get_sorted_keys(RoxMap *map) {
     assert(map);
-    List *keys;
-    list_new(&keys);
-    TableEntry *entry;
-    HASHTABLE_FOREACH(entry, map, {
-        list_add(keys, entry->key);
+    RoxList *keys = rox_list_create();
+    ROX_MAP_FOREACH(key, value, map, {
+        rox_list_add(keys, key);
     })
-    list_sort(keys, &_state_sender_list_key_cmp);
+    rox_list_sort(keys, &_state_sender_list_key_cmp);
     return keys;
 }
 
 static char *_state_sender_serialize_feature_flags(StateSender *sender) {
     assert(sender);
     cJSON *arr = cJSON_CreateArray();
-    HashTable *flags = flag_repository_get_all_flags(sender->flag_repository);
-    List *keys = _state_sender_get_sorted_keys(flags);
-    LIST_FOREACH(key, keys, {
+    RoxMap *flags = flag_repository_get_all_flags(sender->flag_repository);
+    RoxList *keys = _state_sender_get_sorted_keys(flags);
+    ROX_LIST_FOREACH(key, keys, {
         RoxVariant *flag;
-        if (hashtable_get(flags, key, (void **) &flag) == CC_OK) {
+        if (rox_map_get(flags, key, (void **) &flag)) {
             cJSON *options_arr = cJSON_CreateArray();
-            ListIter list_iter;
-            list_iter_init(&list_iter, variant_get_options(flag));
+            RoxListIter *list_iter = rox_list_iter_create();
+            rox_list_iter_init(list_iter, variant_get_options(flag));
             char *option;
-            while (list_iter_next(&list_iter, (void **) &option) != CC_ITER_END) {
+            while (rox_list_iter_next(list_iter, (void **) &option)) {
                 cJSON_AddItemToArray(options_arr, ROX_JSON_STRING(option));
             }
+            rox_list_iter_free(list_iter);
             const char *default_value = variant_get_default_value(flag);
             const char *variant_name = variant_get_name(flag);
             cJSON_AddItemToArray(arr, ROX_JSON_OBJECT(
@@ -145,45 +145,45 @@ static char *_state_sender_serialize_feature_flags(StateSender *sender) {
 static char *_state_sender_serialize_custom_properties(StateSender *sender) {
     assert(sender);
     cJSON *arr = cJSON_CreateArray();
-    HashTable *props = custom_property_repository_get_all_custom_properties(sender->custom_property_repository);
+    RoxMap *props = custom_property_repository_get_all_custom_properties(sender->custom_property_repository);
 
-    List *keys = _state_sender_get_sorted_keys(props);
-    LIST_FOREACH(key, keys, {
+    RoxList *keys = _state_sender_get_sorted_keys(props);
+    ROX_LIST_FOREACH(key, keys, {
         CustomProperty *property;
-        if (hashtable_get(props, key, (void **) &property) == CC_OK) {
+        if (rox_map_get(props, key, (void **) &property)) {
             cJSON_AddItemToArray(arr, custom_property_to_json(property));
         }
     })
-    list_destroy(keys);
+    rox_list_free(keys);
 
     char *json_str = ROX_JSON_SERIALIZE(arr);
     cJSON_Delete(arr);
     return json_str;
 }
 
-static char *_state_sender_get_state_md5(StateSender *sender, HashTable *properties) {
+static char *_state_sender_get_state_md5(StateSender *sender, RoxMap *properties) {
     assert(sender);
     assert(properties);
     return md5_generator_generate(properties, sender->state_generators, NULL);
 }
 
-static HashTable *_state_sender_prepare_props_from_device_props(StateSender *sender) {
+static RoxMap *_state_sender_prepare_props_from_device_props(StateSender *sender) {
     assert(sender);
-    HashTable *properties = mem_deep_copy_str_value_map(
+    RoxMap *properties = mem_deep_copy_str_value_map(
             device_properties_get_all_properties(sender->device_properties));
-    hashtable_add(properties, ROX_PROPERTY_TYPE_FEATURE_FLAGS.name, _state_sender_serialize_feature_flags(sender));
-    hashtable_add(properties, ROX_PROPERTY_TYPE_REMOTE_VARIABLES.name, ROX_JSON_SERIALIZE(ROX_EMPTY_JSON_ARRAY));
-    hashtable_add(properties, ROX_PROPERTY_TYPE_CUSTOM_PROPERTIES.name,
-                  _state_sender_serialize_custom_properties(sender));
+    rox_map_add(properties, ROX_PROPERTY_TYPE_FEATURE_FLAGS.name, _state_sender_serialize_feature_flags(sender));
+    rox_map_add(properties, ROX_PROPERTY_TYPE_REMOTE_VARIABLES.name, ROX_JSON_SERIALIZE(ROX_EMPTY_JSON_ARRAY));
+    rox_map_add(properties, ROX_PROPERTY_TYPE_CUSTOM_PROPERTIES.name,
+                _state_sender_serialize_custom_properties(sender));
     char *state_md5 = _state_sender_get_state_md5(sender, properties);
-    hashtable_add(properties, ROX_PROPERTY_TYPE_STATE_MD5.name, state_md5);
+    rox_map_add(properties, ROX_PROPERTY_TYPE_STATE_MD5.name, state_md5);
     return properties;
 }
 
-static char *_state_sender_get_path(HashTable *properties) {
+static char *_state_sender_get_path(RoxMap *properties) {
     char *app_key, *state_md5;
-    if (hashtable_get(properties, ROX_PROPERTY_TYPE_APP_KEY.name, (void **) &app_key) == CC_OK &&
-        hashtable_get(properties, ROX_PROPERTY_TYPE_STATE_MD5.name, (void **) &state_md5) == CC_OK) {
+    if (rox_map_get(properties, ROX_PROPERTY_TYPE_APP_KEY.name, (void **) &app_key) &&
+        rox_map_get(properties, ROX_PROPERTY_TYPE_STATE_MD5.name, (void **) &state_md5)) {
         return mem_str_format("%s/%s", app_key, state_md5);
     }
     return NULL;
@@ -191,7 +191,7 @@ static char *_state_sender_get_path(HashTable *properties) {
 
 #define ROX_STATE_SENDER_URL_BUFFER_LENGTH 1024
 
-static char *_state_sender_get_url(HashTable *properties, size_t (*get_url_func)(char *, size_t)) {
+static char *_state_sender_get_url(RoxMap *properties, size_t (*get_url_func)(char *, size_t)) {
     char *path = _state_sender_get_path(properties);
     if (!path) {
         return NULL;
@@ -205,15 +205,15 @@ static char *_state_sender_get_url(HashTable *properties, size_t (*get_url_func)
 
 #undef ROX_STATE_SENDER_URL_BUFFER_LENGTH
 
-static char *_state_sender_get_cdn_url(HashTable *properties) {
+static char *_state_sender_get_cdn_url(RoxMap *properties) {
     return _state_sender_get_url(properties, &rox_env_get_state_cdn_path);
 }
 
-static char *_state_sender_get_api_url(HashTable *properties) {
+static char *_state_sender_get_api_url(RoxMap *properties) {
     return _state_sender_get_url(properties, &rox_env_get_state_api_path);
 }
 
-static HttpResponseMessage *_state_sender_send_state_to_cdn(StateSender *sender, HashTable *properties) {
+static HttpResponseMessage *_state_sender_send_state_to_cdn(StateSender *sender, RoxMap *properties) {
     char *url = _state_sender_get_cdn_url(properties);
     if (!url) {
         return NULL;
@@ -225,20 +225,20 @@ static HttpResponseMessage *_state_sender_send_state_to_cdn(StateSender *sender,
     return response;
 }
 
-static HttpResponseMessage *_state_sender_send_state_to_api(StateSender *sender, HashTable *properties) {
+static HttpResponseMessage *_state_sender_send_state_to_api(StateSender *sender, RoxMap *properties) {
     char *url = _state_sender_get_api_url(properties);
-    HashTable *query_params = ROX_EMPTY_MAP;
-    LIST_FOREACH(item, sender->relevant_api_call_params, {
+    RoxMap *query_params = ROX_EMPTY_MAP;
+    ROX_LIST_FOREACH(item, sender->relevant_api_call_params, {
         PropertyType *type = (PropertyType *) item;
         char *prop_name = type->name;
         char *prop_value = NULL;
-        if (CC_OK == hashtable_get(properties, prop_name, (void **) &prop_value)) {
-            hashtable_add(query_params, prop_name, prop_value);
+        if (rox_map_get(properties, prop_name, (void **) &prop_value)) {
+            rox_map_add(query_params, prop_name, prop_value);
         }
     })
     RequestData *api_request = request_data_create(url, query_params);
     HttpResponseMessage *response = request_send_post(sender->request, api_request);
-    hashtable_destroy(query_params);
+    rox_map_free(query_params);
     return response;
 }
 
@@ -249,7 +249,7 @@ static void _state_sender_log_log_send_state_exception(ConfigurationSource sourc
 ROX_INTERNAL void state_sender_send(StateSender *sender) {
     assert(sender);
 
-    HashTable *properties = _state_sender_prepare_props_from_device_props(sender);
+    RoxMap *properties = _state_sender_prepare_props_from_device_props(sender);
     bool should_retry = false;
     ConfigurationSource source = CONFIGURATION_SOURCE_CDN;
 
@@ -373,7 +373,7 @@ ROX_INTERNAL StateSender *state_sender_create(
 ROX_INTERNAL void state_sender_free(StateSender *sender) {
     assert(sender);
     debouncer_free(sender->state_debouncer);
-    list_destroy(sender->state_generators);
-    list_destroy(sender->relevant_api_call_params);
+    rox_list_free(sender->state_generators);
+    rox_list_free(sender->relevant_api_call_params);
     free(sender);
 }

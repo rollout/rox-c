@@ -1,6 +1,5 @@
 #pragma once
 
-#include <collectc/hashtable.h>
 #include "core/network.h"
 #include "rollout.h"
 
@@ -17,12 +16,12 @@ typedef struct RequestTestFixture {
     const char *data_to_return_to_post_json;
     int times_get_sent;
     char *last_get_uri;
-    HashTable *last_get_params;
+    RoxMap *last_get_params;
     int times_post_sent;
     char *last_post_uri;
     int times_post_json_sent;
     char *last_post_json_uri;
-    HashTable *last_post_params;
+    RoxMap *last_post_params;
     RequestConfig config;
     Request *request;
 } RequestTestFixture;
@@ -41,7 +40,7 @@ typedef struct LogRecord {
 } LogRecord;
 
 typedef struct LoggingTestFixture {
-    List *log_records;
+    RoxList *log_records;
 } LoggingTestFixture;
 
 ROX_INTERNAL LoggingTestFixture *logging_test_fixture_create(RoxLogLevel log_level);

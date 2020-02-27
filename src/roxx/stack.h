@@ -1,9 +1,6 @@
 #pragma once
 
 #include <stdbool.h>
-#include <collectc/list.h>
-#include <collectc/hashtable.h>
-#include <dynamic.h>
 #include "rollout.h"
 
 typedef struct CoreStack CoreStack;
@@ -42,11 +39,11 @@ ROX_INTERNAL void rox_stack_push_string_copy(CoreStack *stack, const char *value
 
 ROX_INTERNAL void rox_stack_push_string_ptr(CoreStack *stack, char *value);
 
-ROX_INTERNAL void rox_stack_push_list(CoreStack *stack, List *value);
+ROX_INTERNAL void rox_stack_push_list(CoreStack *stack, RoxList *value);
 
-ROX_INTERNAL void rox_stack_push_map(CoreStack *stack, HashTable *value);
+ROX_INTERNAL void rox_stack_push_map(CoreStack *stack, RoxMap *value);
 
-ROX_INTERNAL void rox_stack_push_dynamic_value(CoreStack *stack, RoxDynamicValue* value);
+ROX_INTERNAL void rox_stack_push_dynamic_value(CoreStack *stack, RoxDynamicValue *value);
 
 ROX_INTERNAL void rox_stack_push_null(CoreStack *stack);
 
@@ -97,8 +94,8 @@ ROX_INTERNAL bool rox_stack_get_boolean(StackItem *item);
 
 ROX_INTERNAL char *rox_stack_get_string(StackItem *item);
 
-ROX_INTERNAL List *rox_stack_get_list(StackItem *item);
+ROX_INTERNAL RoxList *rox_stack_get_list(StackItem *item);
 
-ROX_INTERNAL HashTable *rox_stack_get_map(StackItem *item);
+ROX_INTERNAL RoxMap *rox_stack_get_map(StackItem *item);
 
 ROX_INTERNAL RoxDynamicValue *rox_stack_get_value(StackItem *item);

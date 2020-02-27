@@ -16,7 +16,7 @@ void check_variant_value_eq(RoxVariant *variant, const char *expected_value) {
 
 START_TEST (test_will_not_add_default_to_options_if_exists) {
     RoxVariant *variant = variant_create("1", ROX_LIST_COPY_STR("1", "2", "3"));
-    ck_assert_int_eq(list_size(variant_get_options(variant)), 3);
+    ck_assert_int_eq(rox_list_size(variant_get_options(variant)), 3);
     variant_free(variant);
 }
 
@@ -24,7 +24,7 @@ END_TEST
 
 START_TEST (test_will_add_default_to_options_if_not_exists) {
     RoxVariant *variant = variant_create("1", ROX_LIST_COPY_STR("2", "3"));
-    ck_assert_int_eq(list_size(variant_get_options(variant)), 3);
+    ck_assert_int_eq(rox_list_size(variant_get_options(variant)), 3);
     ck_assert(str_in_list("1", variant_get_options(variant)));
     variant_free(variant);
 }

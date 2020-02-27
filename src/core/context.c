@@ -1,9 +1,10 @@
 #include <assert.h>
 #include "context.h"
 #include "util.h"
+#include "collections.h"
 
 struct RoxContext {
-    HashTable *map;
+    RoxMap *map;
     void *target;
     rox_context_get_value_func get_value;
     rox_context_free_target_func fee_target;
@@ -16,7 +17,7 @@ ROX_API RoxDynamicValue *rox_context_get(RoxContext *context, const char *key) {
         return context->get_value(context->target, key);
     }
     void *ptr;
-    if (hashtable_get(context->map, (void *) key, &ptr) == CC_OK) {
+    if (rox_map_get(context->map, (void *) key, &ptr)) {
         return ptr;
     }
     return NULL;
@@ -24,11 +25,11 @@ ROX_API RoxDynamicValue *rox_context_get(RoxContext *context, const char *key) {
 
 ROX_API RoxContext *rox_context_create_empty() {
     RoxContext *context = calloc(1, sizeof(RoxContext));
-    hashtable_new(&context->map);
+    context->map = rox_map_create();
     return context;
 }
 
-ROX_API RoxContext *rox_context_create_from_map(HashTable *map) {
+ROX_API RoxContext *rox_context_create_from_map(RoxMap *map) {
     assert(map);
     RoxContext *context = calloc(1, sizeof(RoxContext));
     context->map = map;
@@ -79,7 +80,7 @@ ROX_API RoxContext *rox_context_create_custom(RoxContextConfig *config) {
 ROX_API void rox_context_free(RoxContext *context) {
     assert(context);
     if (context->map) {
-        rox_hash_table_free_with_keys_and_values_cb(
+        rox_map_free_with_keys_and_values_cb(
                 context->map,
                 &free,
                 (void (*)(void *)) &rox_dynamic_value_free);

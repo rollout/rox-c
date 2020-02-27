@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include "fixtures.h"
 #include "util.h"
+#include "collections.h"
 
 static HttpResponseMessage *_test_request_send_get_func(void *target, Request *request, RequestData *data) {
     assert(target);
@@ -103,7 +104,7 @@ static void _test_logging_handler(void *target, RoxLogMessage *message) {
     LogRecord *record = calloc(1, sizeof(LogRecord));
     record->level = message->level;
     record->message = mem_copy_str(message->message);
-    list_add(fixture->log_records, record);
+    rox_list_add(fixture->log_records, record);
 
     FILE *stream = message->level == RoxLogLevelDebug ? stdout : stderr;
     fprintf(stream,
@@ -117,7 +118,7 @@ static void _test_logging_handler(void *target, RoxLogMessage *message) {
 
 ROX_INTERNAL LoggingTestFixture *logging_test_fixture_create(RoxLogLevel log_level) {
     LoggingTestFixture *fixture = calloc(1, sizeof(LoggingTestFixture));
-    list_new(&fixture->log_records);
+    fixture->log_records = rox_list_create();
     RoxLoggingConfig cfg = {log_level, fixture, &_test_logging_handler};
     rox_logging_init(&cfg);
     return fixture;
@@ -125,12 +126,12 @@ ROX_INTERNAL LoggingTestFixture *logging_test_fixture_create(RoxLogLevel log_lev
 
 ROX_INTERNAL void logging_test_fixture_free(LoggingTestFixture *fixture) {
     assert(fixture);
-    list_destroy_cb(fixture->log_records, (void (*)(void *)) &_log_record_free);
+    rox_list_free_cb(fixture->log_records, (void (*)(void *)) &_log_record_free);
 }
 
 ROX_INTERNAL void logging_test_fixture_check_no_messages(LoggingTestFixture *fixture, RoxLogLevel log_level) {
     assert(fixture);
-    LIST_FOREACH(item, fixture->log_records, {
+    ROX_LIST_FOREACH(item, fixture->log_records, {
         LogRecord *log_record = (LogRecord *) item;
         ck_assert(log_record->level < log_level);
     })
@@ -144,7 +145,7 @@ ROX_INTERNAL void logging_test_fixture_check_no_errors(LoggingTestFixture *fixtu
 ROX_INTERNAL void logging_test_fixture_check_log_message(
         LoggingTestFixture *fixture, RoxLogLevel log_level, const char *message) {
     assert(fixture);
-    LIST_FOREACH(item, fixture->log_records, {
+    ROX_LIST_FOREACH(item, fixture->log_records, {
         LogRecord *log_record = (LogRecord *) item;
         if (log_record->level == log_level) {
             ck_assert(str_starts_with(log_record->message, message));

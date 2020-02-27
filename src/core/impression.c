@@ -1,8 +1,9 @@
 #include <assert.h>
 #include "impression.h"
+#include "collections.h"
 
 struct ImpressionInvoker {
-    List *handlers;
+    RoxList *handlers;
 };
 
 typedef struct ImpressionHandler {
@@ -12,7 +13,7 @@ typedef struct ImpressionHandler {
 
 ImpressionInvoker *impression_invoker_create() {
     ImpressionInvoker *invoker = calloc(1, sizeof(ImpressionInvoker));
-    list_new(&invoker->handlers);
+    invoker->handlers = rox_list_create();
     return invoker;
 }
 
@@ -25,7 +26,7 @@ ROX_INTERNAL void impression_invoker_register(
     ImpressionHandler *h = calloc(1, sizeof(ImpressionHandler));
     h->target = target;
     h->handler = handler;
-    list_add(impression_invoker->handlers, h);
+    rox_list_add(impression_invoker->handlers, h);
 }
 
 ROX_INTERNAL void impression_invoker_invoke(
@@ -35,7 +36,7 @@ ROX_INTERNAL void impression_invoker_invoke(
         RoxContext *context) {
     assert(impression_invoker);
     RoxExperiment *exp = experiment ? experiment_create(experiment) : NULL;
-    LIST_FOREACH(h, impression_invoker->handlers, {
+    ROX_LIST_FOREACH(h, impression_invoker->handlers, {
         ImpressionHandler *handler = (ImpressionHandler *) h;
         handler->handler(handler->target, value, exp, context);
     })
@@ -46,6 +47,6 @@ ROX_INTERNAL void impression_invoker_invoke(
 
 ROX_INTERNAL void impression_invoker_free(ImpressionInvoker *impression_invoker) {
     assert(impression_invoker);
-    list_destroy_cb(impression_invoker->handlers, &free);
+    rox_list_free_cb(impression_invoker->handlers, &free);
     free(impression_invoker);
 }

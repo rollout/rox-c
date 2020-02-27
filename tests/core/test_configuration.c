@@ -189,50 +189,51 @@ START_TEST (test_will_parse_experiments_and_target_groups) {
     ck_assert(!context->configuration_fetched);
     ck_assert(!context->fetcher_error);
 
-    ck_assert_int_eq(list_size(conf->target_groups), 2);
+    ck_assert_int_eq(rox_list_size(conf->target_groups), 2);
 
     TargetGroupModel *target_group_model;
-    ck_assert_int_eq(list_get_at(conf->target_groups, 0, (void **) &target_group_model), CC_OK);
+    ck_assert(rox_list_get_at(conf->target_groups, 0, (void **) &target_group_model));
     ck_assert_str_eq(target_group_model->id, "12345");
     ck_assert_str_eq(target_group_model->condition, "eq(true,true)");
 
-    ck_assert_int_eq(list_get_at(conf->target_groups, 1, (void **) &target_group_model), CC_OK);
+    ck_assert(rox_list_get_at(conf->target_groups, 1, (void **) &target_group_model));
     ck_assert_str_eq(target_group_model->id, "123456");
     ck_assert_str_eq(target_group_model->condition, "eq(true,true)");
 
-    ck_assert_int_eq(list_size(conf->experiments), 2);
+    ck_assert_int_eq(rox_list_size(conf->experiments), 2);
 
     ExperimentModel *experiment_model;
-    ck_assert_int_eq(list_get_at(conf->experiments, 0, (void **) &experiment_model), CC_OK);
+    ck_assert(rox_list_get_at(conf->experiments, 0, (void **) &experiment_model));
     ck_assert_str_eq(experiment_model->id, "1");
     ck_assert_str_eq(experiment_model->name, "Feature Flags Drawer Item");
     ck_assert_str_eq(experiment_model->condition, "ifThen(and(true, true)");
     ck_assert_int_eq(experiment_model->archived, false);
-    ck_assert_int_eq(list_size(experiment_model->flags), 1);
+    ck_assert_int_eq(rox_list_size(experiment_model->flags), 1);
 
     char *flag;
-    ck_assert_int_eq(list_get_first(experiment_model->flags, (void **) &flag), CC_OK);
+    ck_assert(rox_list_get_first(experiment_model->flags, (void **) &flag));
     ck_assert_str_eq(flag, "FeatureFlags.isFeatureFlagsEnabled");
 
-    ck_assert_int_eq(hashset_size(experiment_model->labels), 1);
+    ck_assert_int_eq(rox_set_size(experiment_model->labels), 1);
 
     char *label;
-    HashSetIter iter;
-    hashset_iter_init(&iter, experiment_model->labels);
-    ck_assert_int_eq(hashset_iter_next(&iter, (void **) &label), CC_OK);
+    RoxSetIter *iter = rox_set_iter_create();
+    rox_set_iter_init(iter, experiment_model->labels);
+    ck_assert(rox_set_iter_next(iter, (void **) &label));
     ck_assert_str_eq(label, "label1");
+    rox_set_iter_free(iter);
 
-    ck_assert_int_eq(list_get_at(conf->experiments, 1, (void **) &experiment_model), CC_OK);
+    ck_assert(rox_list_get_at(conf->experiments, 1, (void **) &experiment_model));
     ck_assert_str_eq(experiment_model->id, "2");
     ck_assert_str_eq(experiment_model->name, "Enable Modern Invitations");
     ck_assert_str_eq(experiment_model->condition, "ifThen(and(true, true)");
     ck_assert_int_eq(experiment_model->archived, false);
 
-    ck_assert_int_eq(list_size(experiment_model->flags), 1);
-    ck_assert_int_eq(list_get_first(experiment_model->flags, (void **) &flag), CC_OK);
+    ck_assert_int_eq(rox_list_size(experiment_model->flags), 1);
+    ck_assert(rox_list_get_first(experiment_model->flags, (void **) &flag));
     ck_assert_str_eq(flag, "Invitations.isInvitationsEnabled");
 
-    ck_assert_int_eq(hashset_size(experiment_model->labels), 0);
+    ck_assert_int_eq(rox_set_size(experiment_model->labels), 0);
 
     configuration_test_context_free(context);
 }

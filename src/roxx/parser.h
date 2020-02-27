@@ -2,7 +2,6 @@
 
 #include "rollout.h"
 #include "stack.h"
-#include "dynamic.h"
 #include "core/context.h"
 
 typedef struct Parser Parser;
@@ -44,7 +43,7 @@ ROX_INTERNAL void node_free(ParserNode *node);
  * @param operators Set of supported operator names (set of char* )
  * @return List of ParserNode*
  */
-ROX_INTERNAL List *tokenized_expression_get_tokens(const char *expression, HashTable *operators);
+ROX_INTERNAL RoxList *tokenized_expression_get_tokens(const char *expression, RoxMap *operators);
 
 ROX_INTERNAL Parser *parser_create();
 

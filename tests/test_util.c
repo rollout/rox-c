@@ -4,6 +4,7 @@
 
 #include "roxtests.h"
 #include "util.h"
+#include "collections.h"
 
 START_TEST (test_matches_empty_strings) {
     ck_assert(str_matches("", "", 0));
@@ -228,50 +229,48 @@ START_TEST (test_json_serialization) {
 }
 
 START_TEST (test_string_in_list) {
-    List *list;
-    list_new(&list);
+    RoxList *list = rox_list_create();
     ck_assert(!str_in_list("", list));
-    list_add(list, "one");
-    list_add(list, "two");
-    list_add(list, "three");
+    rox_list_add(list, "one");
+    rox_list_add(list, "two");
+    rox_list_add(list, "three");
     ck_assert(!str_in_list("ONE", list));
     ck_assert(str_in_list("one", list));
     ck_assert(str_in_list(strstr("sub-three", "three"), list));
     ck_assert(!str_in_list("", list));
-    list_destroy(list);
+    rox_list_free(list);
 }
 
 END_TEST
 
 START_TEST (test_string_join) {
-    List *list;
-    list_new(&list);
+    RoxList *list = rox_list_create();
     rox_check_and_free(mem_str_join("", list), "");
     rox_check_and_free(mem_str_join("|", list), "");
 
-    list_add(list, "");
+    rox_list_add(list, "");
     rox_check_and_free(mem_str_join("", list), "");
     rox_check_and_free(mem_str_join("|", list), "");
 
-    list_add(list, "");
+    rox_list_add(list, "");
     rox_check_and_free(mem_str_join("", list), "");
     rox_check_and_free(mem_str_join("|", list), "|");
 
-    list_remove_all(list);
-    list_add(list, "one");
+    rox_list_remove_all(list);
+    rox_list_add(list, "one");
     rox_check_and_free(mem_str_join("", list), "one");
     rox_check_and_free(mem_str_join("|", list), "one");
 
-    list_add(list, "two");
+    rox_list_add(list, "two");
     rox_check_and_free(mem_str_join("", list), "onetwo");
     rox_check_and_free(mem_str_join("|", list), "one|two");
 
-    list_add(list, "three");
+    rox_list_add(list, "three");
     rox_check_and_free(mem_str_join("", list), "onetwothree");
     rox_check_and_free(mem_str_join("|", list), "one|two|three");
     rox_check_and_free(mem_str_join(" AND ", list), "one AND two AND three");
 
-    list_destroy(list);
+    rox_list_free(list);
 }
 
 END_TEST
@@ -300,10 +299,10 @@ START_TEST (test_build_url) {
 
 END_TEST
 
-static bool check_str_lists_equal(List *l1, List *l2) {
+static bool check_str_lists_equal(RoxList *l1, RoxList *l2) {
     bool result = str_list_equals(l1, l2);
-    list_destroy(l1);
-    list_destroy(l2);
+    rox_list_free(l1);
+    rox_list_free(l2);
     return result;
 }
 

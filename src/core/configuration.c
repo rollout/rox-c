@@ -1,6 +1,6 @@
 #include <assert.h>
-#include <collectc/list.h>
 #include "configuration.h"
+#include "collections.h"
 #include "configuration/models.h"
 #include "core/logging.h"
 #include "xpack/security.h"
@@ -11,8 +11,8 @@
 //
 
 ROX_INTERNAL Configuration *configuration_create(
-        List *experiments,
-        List *target_groups,
+        RoxList *experiments,
+        RoxList *target_groups,
         const char *signature_date) {
     assert(experiments);
     assert(target_groups);
@@ -37,8 +37,8 @@ ROX_INTERNAL bool configuration_equals(Configuration *c1, Configuration *c2) {
 ROX_INTERNAL void configuration_free(Configuration *configuration) {
     assert(configuration);
     free(configuration->signature_date);
-    list_destroy_cb(configuration->experiments, (void (*)(void *)) &experiment_model_free);
-    list_destroy_cb(configuration->target_groups, (void (*)(void *)) &target_group_model_free);
+    rox_list_free_cb(configuration->experiments, (void (*)(void *)) &experiment_model_free);
+    rox_list_free_cb(configuration->target_groups, (void (*)(void *)) &target_group_model_free);
     free(configuration);
 }
 
@@ -273,7 +273,7 @@ static bool _configuration_parser_is_api_key_verified(ConfigurationParser *parse
     return true;
 }
 
-static List *_configuration_parser_parse_experiments(ConfigurationParser *parser, cJSON *json) {
+static RoxList *_configuration_parser_parse_experiments(ConfigurationParser *parser, cJSON *json) {
     assert(parser);
     assert(json);
 
@@ -282,8 +282,7 @@ static List *_configuration_parser_parse_experiments(ConfigurationParser *parser
         return NULL;
     }
 
-    List *result;
-    list_new(&result);
+    RoxList *result = rox_list_create();
     for (int i = 0, n = cJSON_GetArraySize(experiments_json); i < n; ++i) {
         cJSON *exp_json = cJSON_GetArrayItem(experiments_json, i);
         cJSON *deployment_configuration_json = cJSON_GetObjectItem(exp_json, "deploymentConfiguration");
@@ -306,30 +305,28 @@ static List *_configuration_parser_parse_experiments(ConfigurationParser *parser
                     "Failed to parse configuration: one of \"_id\", \"name\", or "
                     "\"deploymentConfiguration\".\"condition\" is empty");
 
-            list_destroy_cb(result, (void (*)(void *)) &experiment_model_free);
+            rox_list_free_cb(result, (void (*)(void *)) &experiment_model_free);
             return NULL;
         }
 
-        HashSet *labels;
-        hashset_new(&labels);
+        RoxSet *labels = rox_set_create();
         if (labels_json) {
             for (int j = 0, k = cJSON_GetArraySize(labels_json); j < k; ++j) {
                 cJSON *label_json = cJSON_GetArrayItem(labels_json, j);
                 if (label_json && !str_is_empty(label_json->valuestring)) {
-                    hashset_add(labels, mem_copy_str(label_json->valuestring));
+                    rox_set_add(labels, mem_copy_str(label_json->valuestring));
                 }
             }
         }
 
-        List *flags;
-        list_new(&flags);
+        RoxList *flags = rox_list_create();
         if (feature_flags_json) {
             for (int j = 0, k = cJSON_GetArraySize(feature_flags_json); j < k; ++j) {
                 cJSON *flag_json = cJSON_GetArrayItem(feature_flags_json, j);
                 if (flag_json) {
                     cJSON *flag_name_json = cJSON_GetObjectItem(flag_json, "name");
                     if (flag_name_json && !str_is_empty(flag_name_json->valuestring)) {
-                        list_add(flags, mem_copy_str(flag_name_json->valuestring));
+                        rox_list_add(flags, mem_copy_str(flag_name_json->valuestring));
                     }
                 }
             }
@@ -344,13 +341,13 @@ static List *_configuration_parser_parse_experiments(ConfigurationParser *parser
                 labels,
                 stickiness_property_json ? stickiness_property_json->valuestring : NULL);
 
-        list_add(result, model);
+        rox_list_add(result, model);
     }
 
     return result;
 }
 
-static List *_configuration_parser_parse_target_groups(ConfigurationParser *parser, cJSON *json) {
+static RoxList *_configuration_parser_parse_target_groups(ConfigurationParser *parser, cJSON *json) {
     assert(parser);
     assert(json);
 
@@ -359,8 +356,7 @@ static List *_configuration_parser_parse_target_groups(ConfigurationParser *pars
         return NULL;
     }
 
-    List *result;
-    list_new(&result);
+    RoxList *result = rox_list_create();
     for (int i = 0, n = cJSON_GetArraySize(target_groups_json); i < n; ++i) {
         cJSON *group_json = cJSON_GetArrayItem(target_groups_json, i);
         cJSON *id_json = cJSON_GetObjectItem(group_json, "_id");
@@ -370,7 +366,7 @@ static List *_configuration_parser_parse_target_groups(ConfigurationParser *pars
             str_is_empty(id_json->valuestring) ||
             str_is_empty(condition_json->valuestring)) {
             ROX_ERROR("Invalid JSON provided: no id or condition: %s, %s", id_json, condition_json);
-            list_destroy_cb(result, (void (*)(void *)) &target_group_model_free);
+            rox_list_free_cb(result, (void (*)(void *)) &target_group_model_free);
             return NULL;
         }
 
@@ -378,7 +374,7 @@ static List *_configuration_parser_parse_target_groups(ConfigurationParser *pars
                 id_json->valuestring,
                 condition_json->valuestring);
 
-        list_add(result, model);
+        rox_list_add(result, model);
     }
 
     return result;
@@ -425,14 +421,14 @@ ROX_INTERNAL Configuration *configuration_parser_parse(
         return NULL;
     }
 
-    List *experiments = _configuration_parser_parse_experiments(parser, internal_data_object);
-    List *target_groups = _configuration_parser_parse_target_groups(parser, internal_data_object);
+    RoxList *experiments = _configuration_parser_parse_experiments(parser, internal_data_object);
+    RoxList *target_groups = _configuration_parser_parse_target_groups(parser, internal_data_object);
     if (experiments == NULL || target_groups == NULL) {
         if (experiments) {
-            list_destroy_cb(experiments, (void (*)(void *)) &experiment_model_free);
+            rox_list_free_cb(experiments, (void (*)(void *)) &experiment_model_free);
         }
         if (target_groups) {
-            list_destroy_cb(target_groups, (void (*)(void *)) &target_group_model_free);
+            rox_list_free_cb(target_groups, (void (*)(void *)) &target_group_model_free);
         }
         ROX_ERROR("Failed to parse configurations");
         configuration_fetched_invoker_invoke_error(

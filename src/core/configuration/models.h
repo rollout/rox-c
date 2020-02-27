@@ -1,8 +1,6 @@
 #pragma once
 
 #include <stdbool.h>
-#include <collectc/hashset.h>
-#include <collectc/list.h>
 #include "rollout.h"
 
 //
@@ -14,8 +12,8 @@ typedef struct ExperimentModel {
     char *name;
     char *condition;
     bool archived;
-    List *flags;
-    HashSet *labels;
+    RoxList *flags;
+    RoxSet *labels;
     char *stickiness_property;
 } ExperimentModel;
 
@@ -36,8 +34,8 @@ ROX_INTERNAL ExperimentModel *experiment_model_create(
         const char *name,
         const char *condition,
         bool archived,
-        List *flags,
-        HashSet *labels,
+        RoxList *flags,
+        RoxSet *labels,
         const char *stickiness_property);
 
 /**

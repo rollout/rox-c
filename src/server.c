@@ -3,6 +3,7 @@
 #include "core/logging.h"
 #include "core.h"
 #include "util.h"
+#include "collections.h"
 
 typedef struct Rox {
     RoxCore *core;
@@ -25,7 +26,7 @@ static Rox *_rox_get_or_create() {
 }
 
 static void _create_custom_property(
-        HashTable *map,
+        RoxMap *map,
         const char *name,
         const char *value,
         const char *prefix,
@@ -35,7 +36,7 @@ static void _create_custom_property(
     assert(map);
 
     if (!value) {
-        hashtable_get(map, type->name, (void **) &value);
+        rox_map_get(map, type->name, (void **) &value);
     }
 
     if (!name) {
@@ -78,7 +79,7 @@ ROX_API void rox_setup(const char *api_key, RoxOptions *options) {
     rox->device_properties = device_properties_create(rox->sdk_settings, options);
     rox->entities_provider = entities_provider_create();
 
-    HashTable *props = device_properties_get_all_properties(rox->device_properties);
+    RoxMap *props = device_properties_get_all_properties(rox->device_properties);
     _create_custom_property(props, NULL, NULL, NULL, &ROX_PROPERTY_TYPE_PLATFORM, &ROX_CUSTOM_PROPERTY_TYPE_STRING);
     _create_custom_property(props, NULL, NULL, NULL, &ROX_PROPERTY_TYPE_APP_RELEASE, &ROX_CUSTOM_PROPERTY_TYPE_SEMVER);
     _create_custom_property(props, NULL, NULL, NULL, &ROX_PROPERTY_TYPE_DISTINCT_ID, &ROX_CUSTOM_PROPERTY_TYPE_STRING);
@@ -139,7 +140,7 @@ ROX_API RoxVariant *rox_add_flag(const char *name, bool default_value) {
     return flag;
 }
 
-ROX_API RoxVariant *rox_add_variant(const char *name, const char *default_value, List *options) {
+ROX_API RoxVariant *rox_add_variant(const char *name, const char *default_value, RoxList *options) {
     assert(name);
     RoxVariant *variant = variant_create(default_value, options);
     Rox *rox = _rox_get_or_create();
