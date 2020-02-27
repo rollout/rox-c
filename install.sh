@@ -68,6 +68,8 @@ if [ "${SKIP_INSTALL}" -ne "1" ]; then
     ldconfig "${INSTALL_DIR}/lib"
   fi
   echo "${PROJECT_NAME} successfully installed into ${INSTALL_PREFIX}."
+else
+  echo "Skipping installation."
 fi
 
-echo "${PROJECT_NAME} installation finished."
+echo "${PROJECT_NAME} build finished."
