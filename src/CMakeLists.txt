@@ -47,4 +47,10 @@ target_link_libraries(rollout ${ROX_EXTERNAL_LIBS})
 set_target_properties(rollout PROPERTIES PUBLIC_HEADER "../include/rollout.h")
 set_target_properties(rollout PROPERTIES C_VISIBILITY_PRESET hidden)
 
-# TODO: install section
+INSTALL(TARGETS rollout rollout_static
+        RUNTIME DESTINATION bin
+        LIBRARY DESTINATION lib
+        ARCHIVE DESTINATION lib
+        PUBLIC_HEADER DESTINATION include)
+
+INSTALL(FILES ${ROX_EXTERNAL_LIB_RUNTIME_FILES} DESTINATION bin)
