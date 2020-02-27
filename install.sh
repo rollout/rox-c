@@ -35,6 +35,7 @@ if [ ! -w "${INSTALL_DIR}" ]; then
 fi
 
 INSTALL_PREFIX="${INSTALL_DIR}/${INSTALL_SUBDIR}"
+CWD=$(pwd)
 
 if [ "${SKIP_BUILDING_THIRD_PARTY_LIBS}" -ne "1" ]; then
   echo "Building third party libraries."
@@ -49,12 +50,12 @@ if [ "${SKIP_BUILDING_THIRD_PARTY_LIBS}" -ne "1" ]; then
   cd build || exit
   cmake ..
   make
-  cd ..
 else
   echo "Not building third party libraries."
 fi
 
 echo "Building ${PROJECT_NAME}..."
+cd "${CWD}" || exit
 if [ "${SKIP_CLEAN}" -ne "1" ]; then
   echo "Cleaning up build directory."
   rm -rf build
