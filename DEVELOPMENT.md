@@ -1,4 +1,4 @@
-﻿# ROX C SDK 
+﻿# Developing ROX C SDK 
 
 ## Supported Platforms
 

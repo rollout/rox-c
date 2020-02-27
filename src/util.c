@@ -4,7 +4,6 @@
 #include <assert.h>
 #include <pcre2.h>
 #include <stdio.h>
-#include <time.h>
 #include <stdarg.h>
 #include <ctype.h>
 
@@ -21,6 +20,14 @@
 
 #else
 #include <unistd.h>
+#endif
+
+#ifdef ROX_APPLE
+#include <sys/time.h>
+#else
+
+#include <time.h>
+
 #endif
 
 ROX_INTERNAL void *mem_copy(void *ptr, size_t bytes) {
@@ -391,9 +398,20 @@ ROX_INTERNAL void thread_sleep(int sleep_millis) {
 #endif
 }
 
+ROX_INTERNAL struct timespec get_current_timespec() {
+    struct timespec now;
+#if defined(ROX_APPLE)
+    int result = gettimeofday(&now, NULL);
+    assert(result == 0);
+#else
+    int result = timespec_get(&now, TIME_UTC);
+    assert(result != 0);
+#endif
+    return now;
+}
+
 ROX_INTERNAL struct timespec get_future_timespec(int ms) {
-    struct timespec now, due;
-    timespec_get(&now, TIME_UTC);
+    struct timespec now = get_current_timespec(), due;
     due.tv_sec = now.tv_sec + ms / 1000;
     due.tv_nsec = now.tv_nsec + (ms % 1000) * 1000000;
     if (due.tv_nsec >= 1000000000) {
@@ -582,7 +600,7 @@ ROX_INTERNAL char *mem_base64_decode_str(const char *s) {
     return buffer;
 }
 
-ROX_INTERNAL cJSON * rox_json_create_object(void *skip, ...) {
+ROX_INTERNAL cJSON *rox_json_create_object(void *skip, ...) {
     va_list args;
             va_start(args, skip);
 
@@ -598,7 +616,7 @@ ROX_INTERNAL cJSON * rox_json_create_object(void *skip, ...) {
     return json;
 }
 
-ROX_INTERNAL cJSON * rox_json_create_array(void *skip, ...) {
+ROX_INTERNAL cJSON *rox_json_create_array(void *skip, ...) {
     va_list args;
             va_start(args, skip);
 

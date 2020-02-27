@@ -156,7 +156,7 @@ static ServerTextContext *_server_text_context_create() {
     RoxOptions *options = rox_options_create();
     rox_options_set_configuration_fetched_handler(options, ctx, &_test_configuration_fetched_handler);
     rox_options_set_impression_handler(options, ctx, &_test_rox_impression_handler);
-    rox_options_set_dev_mode_key(options, "01fcd0d21eeaed9923dff6d8");
+    rox_options_set_dev_mode_key(options, "37d6265f591155bb00ffb4e2");
 
     ctx->simple_flag = rox_add_flag("simpleFlag", true);
     ctx->simple_flag_overwritten = rox_add_flag("simpleFlagOverwritten", true);
@@ -213,7 +213,7 @@ static ServerTextContext *_server_text_context_create() {
             &ctx->is_prop_for_target_group_for_dependency,
             &_test_computed_boolean_property_using_value);
 
-    rox_setup("5b3356d00d81206da3055bc0", options);
+    rox_setup("5e579ecfc45c395c43b42893", options);
 
     return ctx;
 }
@@ -345,7 +345,7 @@ START_TEST (testing_impression_handler) {
     ck_assert_str_eq("flagForImpressionWithExperimentAndContext", ctx->last_impression_value_name);
 
     ck_assert_ptr_nonnull(ctx->last_impression_experiment);
-    ck_assert_str_eq("5b3cc569f452c215921a4a9c", ctx->last_impression_experiment->identifier);
+    ck_assert_str_eq("5e57a3d31d6e807bf3c307ee", ctx->last_impression_experiment->identifier);
     ck_assert_str_eq("flag for impression with experiment and context", ctx->last_impression_experiment->name);
 
     ck_assert_ptr_nonnull(ctx->last_impression_context_value);

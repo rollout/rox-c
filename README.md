@@ -1,3 +1,0 @@
-﻿# ROX C SDK 
-
-TBD

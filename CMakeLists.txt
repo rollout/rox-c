@@ -2,6 +2,11 @@ cmake_minimum_required(VERSION 3.9)
 
 project(rollout-sdk)
 
+set(ROX_VERSION_MAJOR 1)
+set(ROX_VERSION_MINOR 0)
+set(ROX_VERSION_PATCH 0)
+set(ROX_VERSION_STRING ${ROX_VERSION_MAJOR}.${ROX_VERSION_MINOR}.${ROX_VERSION_PATCH})
+
 enable_testing()
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/cmake/modules)

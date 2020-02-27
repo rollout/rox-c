@@ -7,7 +7,7 @@
 // Build
 //
 
-ROX_INTERNAL const char *ROX_PLATFORM = ".NET"; // FIXME: change to "C"
+ROX_INTERNAL const char *ROX_PLATFORM = "C";
 ROX_INTERNAL const char *ROX_API_VERSION = "1.8.0";
 ROX_INTERNAL const char *ROX_LIB_VERSION = "1.0.0";
 ROX_INTERNAL const char *ROX_ENV_MODE_KEY = "ROLLOUT_MODE";
@@ -34,7 +34,7 @@ ROX_INTERNAL size_t _rox_env_return_value_using_mode_env(
     assert(buffer);
     assert(buffer_size > 0);
     const char *value;
-    if (value = getenv(ROX_ENV_MODE_KEY)) {
+    if ((value = getenv(ROX_ENV_MODE_KEY))) {
         if (str_equals(value, ROX_ENV_MODE_QA)) {
             return str_copy_value_to_buffer(buffer, buffer_size, qa_mode_value);
         } else if (str_equals(value, ROX_ENV_MODE_LOCAL)) {

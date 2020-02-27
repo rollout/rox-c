@@ -11,7 +11,7 @@ START_TEST (test_sse_shutting_down_gracefully) {
 
     NotificationListenerConfig config = {
             "https://qax-push.rollout.io/sse",
-            "5b3356d00d81206da3055bc0"
+            "5e579ecfc45c395c43b42893"
     };
 
     NotificationListener *listener = notification_listener_create(&config);

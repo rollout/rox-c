@@ -182,6 +182,8 @@ ROX_INTERNAL double current_time_millis();
 
 ROX_INTERNAL void thread_sleep(int sleep_millis);
 
+ROX_INTERNAL struct timespec get_current_timespec();
+
 ROX_INTERNAL struct timespec get_future_timespec(int ms);
 
 /**
