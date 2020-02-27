@@ -71,7 +71,7 @@ make
 if [ "${SKIP_INSTALL}" -ne "1" ]; then
   echo "Installing ${PROJECT_NAME} into ${INSTALL_PREFIX}."
   make install
-  if [ "${INSTALL_DIR}" -eq "${DEFAULT_INSTALL_DIR}" ]; then
+  if [ "${INSTALL_DIR}" = "${DEFAULT_INSTALL_DIR}" ]; then
     ldconfig "${INSTALL_DIR}/lib"
   fi
   echo "${PROJECT_NAME} successfully installed into ${INSTALL_PREFIX}."
