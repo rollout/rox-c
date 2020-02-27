@@ -174,9 +174,9 @@ START_TEST (test_base64_encode) {
 END_TEST
 
 START_TEST (test_base64_decode) {
-    char *str = mem_base64_decode_str("dGVzdA==");
-    ck_assert_str_eq(str, "test");
-    free(str);
+    rox_check_and_free(mem_base64_decode_str("dGVzdA=="), "test");
+    rox_check_and_free(mem_base64_decode_str("Ymx1ZQ=="), "blue");
+    rox_check_and_free(mem_base64_decode_str("Qmx1ZQ=="), "Blue");
 }
 
 END_TEST

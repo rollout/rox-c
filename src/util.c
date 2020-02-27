@@ -433,18 +433,23 @@ size_t ROX_INTERNAL rox_file_read_b(const char *file_path, unsigned char *buffer
     return file_size;
 }
 
-#define ROX_MEM_BASE64_ENCODE_BUFFER_SIZE 1024
+// calculate the size of 'output' buffer required for a 'input' buffer of length x during Base64 encoding operation
+#define B64ENCODE_OUT_SAFESIZE(x) ((((x) + 3 - 1)/3) * 4 + 1)
 
 char *ROX_INTERNAL mem_base64_encode(const char *s) {
     assert(s);
-    char buffer[ROX_MEM_BASE64_ENCODE_BUFFER_SIZE];
     size_t len = strlen(s);
-    int result = base64encode(s, len * sizeof(char), buffer, ROX_MEM_BASE64_ENCODE_BUFFER_SIZE);
-    assert(result == 0);
-    return result == 0 ? mem_copy_str(buffer) : NULL;
+    size_t size = B64ENCODE_OUT_SAFESIZE(len);
+    char *buffer = malloc(size);
+    int result = base64encode(s, len * sizeof(char), buffer, size);
+    if (result != 0) {
+        ROX_DEBUG("Failed to decode str %s: %d", s, result);
+        free(buffer);
+        assert(result == 0);
+        return NULL;
+    }
+    return buffer;
 }
-
-#undef ROX_MEM_BASE64_ENCODE_BUFFER_SIZE
 
 void ROX_INTERNAL md5_str_b(const char *s, unsigned char *buffer) {
     MD5_CTX context;
@@ -537,40 +542,45 @@ size_t ROX_INTERNAL base64_decode_b(const char *s, unsigned char *buffer) {
     size_t len = strlen(s);
     size_t result_len;
     int result = base64decode(s, len, buffer, &result_len);
+    if (result != 0) {
+        ROX_DEBUG("Failed to decode str %s: %d", s, result);
+    }
     assert(result == 0);
     return result_len;
 }
 
-#define ROX_MEM_BASE64_DECODE_BUFFER_SIZE 1024
+// calculate the size of 'output' buffer required for a 'input' buffer of length x during Base64 decoding operation
+#define B64DECODE_OUT_SAFESIZE(x) (((x)*3)/4)
 
 unsigned char *ROX_INTERNAL mem_base64_decode(const char *s, size_t *result_length) {
     assert(s);
-    unsigned char buffer[ROX_MEM_BASE64_DECODE_BUFFER_SIZE];
     size_t len = strlen(s);
+    size_t size = B64DECODE_OUT_SAFESIZE(len) + 1;
+    unsigned char *buffer = malloc(size);
     size_t resulting_str_len;
     int result = base64decode(s, len, buffer, &resulting_str_len);
     assert(result == 0);
     if (result == 0) {
-        unsigned char *copy = mem_copy(buffer, resulting_str_len);
         if (result_length) {
             *result_length = resulting_str_len;
         }
-        return copy;
+        return buffer;
+    } else {
+        free(buffer);
+        return NULL;
     }
-    return NULL;
 }
 
 char *ROX_INTERNAL mem_base64_decode_str(const char *s) {
     assert(s);
-    unsigned char buffer[ROX_MEM_BASE64_DECODE_BUFFER_SIZE];
+    size_t size = B64DECODE_OUT_SAFESIZE(strlen(s)) + 1;
+    unsigned char *buffer = malloc(size);
     size_t resulting_str_len = base64_decode_b(s, buffer);
     assert(resulting_str_len);
-    assert(resulting_str_len < ROX_MEM_BASE64_DECODE_BUFFER_SIZE);
+    assert(resulting_str_len < size);
     buffer[resulting_str_len] = 0;
-    return mem_copy(buffer, resulting_str_len + 1);
+    return buffer;
 }
-
-#undef ROX_MEM_BASE64_DECODE_BUFFER_SIZE
 
 cJSON *ROX_INTERNAL rox_json_create_object(void *skip, ...) {
     va_list args;
