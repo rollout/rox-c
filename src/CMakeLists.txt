@@ -40,6 +40,13 @@ set(ROX_SRC
         util.c
         api.cxx)
 
+if (APPLE)
+    find_library(CoreFoundation CoreFoundation)
+    find_library(IOKit IOKit)
+    list(APPEND ROX_EXTERNAL_LIBS ${CoreFoundation})
+    list(APPEND ROX_EXTERNAL_LIBS ${IOKit})
+endif ()
+
 add_library(rollout_static STATIC ${ROX_SRC})
 target_link_libraries(rollout_static ${ROX_EXTERNAL_LIBS})
 
@@ -52,12 +59,6 @@ set_target_properties(rollout PROPERTIES
         COMPILE_DEFINITIONS "ROX_DLL;ROX_DLL_EXPORTS"
         VERSION ${ROX_VERSION_STRING}
         SOVERSION ${ROX_VERSION_MAJOR})
-
-if (APPLE)
-    find_library(CoreFoundation CoreFoundation)
-    find_library(IOKit IOKit)
-    target_link_libraries(rollout ${CoreFoundation} ${IOKit})
-endif ()
 
 INSTALL(TARGETS rollout rollout_static
         RUNTIME DESTINATION bin
