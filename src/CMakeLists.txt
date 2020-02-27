@@ -53,6 +53,12 @@ set_target_properties(rollout PROPERTIES
         VERSION ${ROX_VERSION_STRING}
         SOVERSION ${ROX_VERSION_MAJOR})
 
+if (APPLE)
+    find_library(CoreFoundation CoreFoundation)
+    find_library(IOKit IOKit)
+    target_link_libraries(rollout ${CoreFoundation} ${IOKit})
+endif ()
+
 INSTALL(TARGETS rollout rollout_static
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
