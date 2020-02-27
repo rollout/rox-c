@@ -37,23 +37,29 @@ fi
 INSTALL_PREFIX="${INSTALL_DIR}/${INSTALL_SUBDIR}"
 
 if [ "${SKIP_BUILDING_THIRD_PARTY_LIBS}" -ne "1" ]; then
-  echo "Building third party libraries..."
+  echo "Building third party libraries."
   cd vendor || exit
   if [ "${SKIP_CLEAN}" -ne "1" ]; then
     echo "Cleaning up build directory."
     rm -rf build
+  else
+    echo "Not cleaning up build directory."
   fi
   mkdir -p build
   cd build || exit
   cmake ..
   make
   cd ..
+else
+  echo "Not building third party libraries."
 fi
 
 echo "Building ${PROJECT_NAME}..."
 if [ "${SKIP_CLEAN}" -ne "1" ]; then
   echo "Cleaning up build directory."
   rm -rf build
+else
+  echo "Not cleaning up build directory."
 fi
 mkdir -p build
 cd build || exit
