@@ -36,30 +36,35 @@ fi
 
 INSTALL_PREFIX=${INSTALL_DIR}/${INSTALL_SUBDIR}
 
-if [ ! $SKIP_BUILDING_THIRD_PARTY_LIBS ]; then
+if [ "$SKIP_BUILDING_THIRD_PARTY_LIBS" -ne "1" ]; then
   echo "Building third party libraries..."
   cd vendor || exit
   if [ ! $SKIP_CLEAN ]; then
     rm -rf build
-    mkdir build
   fi
+  mkdir -p build
   cd build || exit
   cmake ..
   make
+  cd ..
 fi
 
 echo "Building ${PROJECT_NAME}..."
-cd ../
-if [ ! $SKIP_CLEAN ]; then
+if [ "$SKIP_CLEAN" -ne "1" ]; then
   rm -rf build
-  mkdir build
 fi
+mkdir -p build
 cd build || exit
 
-if [ ! $SKIP_INSTALL ]; then
+cmake .. -DCMAKE_INSTALL_PREFIX=${INSTALL_PREFIX} -DCMAKE_BUILD_TYPE=Release
+make
+
+if [ "$SKIP_INSTALL" -ne "1" ]; then
   echo "Installing ${PROJECT_NAME} into ${INSTALL_PREFIX}."
   make install
-  ldconfig "${INSTALL_DIR}/lib"
+  if [ "${INSTALL_DOR}" -eq "${DEFAULT_INSTALL_DIR}" ]; then
+    ldconfig "${INSTALL_DIR}/lib"
+  fi
   echo "${PROJECT_NAME} successfully installed into ${INSTALL_PREFIX}."
 fi
 
