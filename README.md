@@ -31,7 +31,7 @@ cd rox-c && ./install.sh -d /path/to/install/dir
 ```
 
 This will install the rollout c sdk into the subdirectory called rollout-sdk of the 
-directory specified in command. So it would look something 
+directory specified in the command. So it would look something 
 like `/path/to/install/dir/rollout-sdk`.
 
 Please note that parameter `-d` is optional. If omitted, SDK will be installed 
