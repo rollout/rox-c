@@ -7,8 +7,6 @@ set(ROX_VERSION_MINOR 0)
 set(ROX_VERSION_PATCH 0)
 set(ROX_VERSION_STRING ${ROX_VERSION_MAJOR}.${ROX_VERSION_MINOR}.${ROX_VERSION_PATCH})
 
-enable_testing()
-
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/cmake/modules)
 set(ROX_THIRD_PARTY_LIBS_LOCATION ${CMAKE_SOURCE_DIR}/vendor/build)
 set(ROX_THIRD_PARTY_LIBS_CUSTOM_CONFIG_LOCATION ${CMAKE_SOURCE_DIR}/vendor/cmake)
@@ -21,4 +19,8 @@ link_directories(${CMAKE_SOURCE_DIR}/vendor/build/src)
 
 add_subdirectory(include)
 add_subdirectory(src)
-add_subdirectory(tests)
+
+if (NOT ROLLOUT_SKIP_TESTS)
+    enable_testing()
+    add_subdirectory(tests)
+endif ()
