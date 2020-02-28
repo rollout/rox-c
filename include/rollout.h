@@ -69,6 +69,8 @@ typedef struct RoxLoggingConfig {
     rox_logging_handler handler;
 } RoxLoggingConfig;
 
+#define ROX_LOGGING_CONFIG_INITIALIZER(log_level) {log_level, NULL, NULL}
+
 ROX_API void rox_logging_init(RoxLoggingConfig *config);
 
 // Collections

@@ -6,6 +6,9 @@
 
 int main(int argc, char **argv) {
 
+    RoxLoggingConfig cfg = ROX_LOGGING_CONFIG_INITIALIZER(RoxLogLevelDebug);
+    rox_logging_init(&cfg);
+
     RoxVariant *demo_flag = rox_add_flag("demo.demoFlag", false);
     RoxOptions *options = rox_options_create();
     rox_options_set_dev_mode_key(options, DEFAULT_DEV_MODE_KEY);
