@@ -48,7 +48,7 @@ static bool xpack_signature_verifier(
             if (EVP_VerifyInit(ctx, EVP_sha256())) {
                 if (EVP_VerifyUpdate(ctx, data, strlen(data))) {
                     unsigned char sig[256];
-                    size_t sig_len = base64_decode_b(signature_base64, sig);
+                    size_t sig_len = base64_decode_b(signature_base64, sig, sizeof(sig));
                     assert(sig_len == 256);
                     int error_code = EVP_VerifyFinal(ctx, sig, sig_len, pub_key);
                     verified = error_code == 1;

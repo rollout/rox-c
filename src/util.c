@@ -454,14 +454,14 @@ ROX_INTERNAL char *mem_sha256_str(const char *s) {
  * @param s The BASE64-ed string to decode.
  * @return Size if the resulting decoded data in bytes.
  */
-ROX_INTERNAL size_t base64_decode_b(const char *s, unsigned char *buffer) {
+ROX_INTERNAL size_t base64_decode_b(const char *s, unsigned char *buffer, size_t buffer_size) {
     assert(s);
     assert(buffer);
     size_t len = strlen(s);
-    size_t result_len;
+    size_t result_len = buffer_size;
     int result = base64decode(s, len, buffer, &result_len);
     if (result != 0) {
-        ROX_DEBUG("Failed to decode str %s: %d", s, result);
+        ROX_ERROR("Failed to decode str %s: %d", s, result);
     }
     assert(result == 0);
     return result_len;
@@ -493,7 +493,7 @@ ROX_INTERNAL char *mem_base64_decode_str(const char *s) {
     assert(s);
     size_t size = B64DECODE_OUT_SAFESIZE(strlen(s)) + 1;
     unsigned char *buffer = malloc(size);
-    size_t resulting_str_len = base64_decode_b(s, buffer);
+    size_t resulting_str_len = base64_decode_b(s, buffer, size);
     assert(resulting_str_len);
     assert(resulting_str_len < size);
     buffer[resulting_str_len] = 0;

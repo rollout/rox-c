@@ -121,7 +121,7 @@ ROX_INTERNAL char *mem_base64_encode(const char *s);
  * @param s The BASE64-ed string to decode.
  * @return Size if the resulting decoded data in bytes.
  */
-ROX_INTERNAL size_t base64_decode_b(const char *s, unsigned char *buffer);
+ROX_INTERNAL size_t base64_decode_b(const char *s, unsigned char *buffer, size_t buffer_size);
 
 /**
  * NOTE: THE RETURNED STR MUST BE FREED AFTER USE
