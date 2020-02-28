@@ -450,10 +450,6 @@ ROX_INTERNAL char *mem_sha256_str(const char *s) {
     return result;
 }
 
-/**
- * @param s The BASE64-ed string to decode.
- * @return Size if the resulting decoded data in bytes.
- */
 ROX_INTERNAL size_t base64_decode_b(const char *s, unsigned char *buffer, size_t buffer_size) {
     assert(s);
     assert(buffer);
