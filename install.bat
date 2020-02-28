@@ -40,7 +40,8 @@ if %errorlevel% neq 0 exit /b %errorlevel%
 
 cd "%ROOT_DIR%"
 
-if "%INSTALL_DIR%" == "%DEFAULT_INSTALL_DIR%" setx PATH "%PATH%;%INSTALL_DIR%\bin" /M
+REM TODO: add to PATH like this: (current version cuts PATH to 1024 chars)
+REM if "%INSTALL_DIR%" == "%DEFAULT_INSTALL_DIR%" setx PATH "%PATH%;%INSTALL_DIR%\bin" /M
 
 echo %PROJECT_NAME% is successfully installed into %INSTALL_DIR%.
 echo %PROJECT_NAME% build finished.
