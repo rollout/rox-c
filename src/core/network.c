@@ -6,6 +6,7 @@
 #include "network.h"
 #include "util.h"
 #include "consts.h"
+#include "os.h"
 
 //
 // RequestData
@@ -159,7 +160,9 @@ static void _request_reset_handle(Request *request, CURL *curl) {
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &_request_curl_write_callback);
     curl_easy_setopt(curl, CURLOPT_TIMEOUT, request->request_timeout > 0
                                             ? request->request_timeout : 30);
-    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, false); // FIXME: use system CA/root certs
+#ifdef ROX_WINDOWS
+    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, false); // FIXME: use Windows CA/root certs
+#endif
 }
 
 static HttpResponseMessage *_request_send_get(void *target, Request *request, RequestData *data) {

@@ -7,6 +7,7 @@
 #include "util.h"
 #include "core/logging.h"
 #include "collections.h"
+#include "os.h"
 
 //
 // DisconnectEventArgs
@@ -43,7 +44,6 @@ typedef struct EventSourceReader {
     pthread_cond_t thread_cond;
     CURL *curl;
     char *last_event_id;
-    bool skip_ssl_cert_verification;
 } EventSourceReader;
 
 ROX_INTERNAL void _event_source_reader_stop(EventSourceReader *reader) {
@@ -288,8 +288,9 @@ static void *_event_source_reader_thread_func(void *ptr) {
     curl_easy_setopt(reader->curl, CURLOPT_WRITEDATA, reader);
     curl_easy_setopt(reader->curl, CURLOPT_HEADERFUNCTION, &_event_source_reader_header_callback);
     curl_easy_setopt(reader->curl, CURLOPT_HEADERDATA, reader);
-    curl_easy_setopt(reader->curl, CURLOPT_SSL_VERIFYPEER,
-                     !reader->skip_ssl_cert_verification); // FIXME: use system CA/root certs
+#ifdef ROX_WINDOWS
+    curl_easy_setopt(reader->curl, CURLOPT_SSL_VERIFYPEER, false); // FIXME: use Windows CA/root certs
+#endif
 
     struct curl_slist *headers = NULL;
 
