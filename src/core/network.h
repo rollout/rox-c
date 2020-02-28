@@ -15,14 +15,16 @@
 typedef struct RequestData {
     char *url;
     RoxMap *params;
+    RoxList *raw_json_params;
 } RequestData;
 
 /**
  * @param url Not <code>NULL</code>. Data is copied internally, the caller holds an ownership on the data.
  * @param params May be <code>NULL</code>. If passed, ownership is NOT delegated to the returned <code>RequestData</code> so the caller is responsible for freeing it.
+ * @param raw_json_params May be <code>NULL</code>. List of parameter names whose values are already serialized JSON strings. If passed, ownership is <em>NOT</em> delegated to the request data.
  * @return Not <code>NULL</code>.
  */
-ROX_INTERNAL RequestData *request_data_create(const char *url, RoxMap *params);
+ROX_INTERNAL RequestData *request_data_create(const char *url, RoxMap *params, RoxList *raw_json_params);
 
 /**
  * @param data Not <code>NULL</code>.

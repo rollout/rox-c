@@ -94,6 +94,7 @@ struct StateSender {
     Debouncer *state_debouncer;
     RoxList *state_generators;
     RoxList *relevant_api_call_params;
+    RoxList *raw_json_params;
 };
 
 static int _state_sender_list_key_cmp(const void *e1, const void *e2) {
@@ -218,7 +219,7 @@ static HttpResponseMessage *_state_sender_send_state_to_cdn(StateSender *sender,
     if (!url) {
         return NULL;
     }
-    RequestData *cdn_request = request_data_create(url, NULL);
+    RequestData *cdn_request = request_data_create(url, NULL, NULL);
     HttpResponseMessage *response = request_send_get(sender->request, cdn_request);
     free(url);
     request_data_free(cdn_request);
@@ -236,7 +237,7 @@ static HttpResponseMessage *_state_sender_send_state_to_api(StateSender *sender,
             rox_map_add(query_params, prop_name, prop_value);
         }
     })
-    RequestData *api_request = request_data_create(url, query_params);
+    RequestData *api_request = request_data_create(url, query_params, sender->raw_json_params);
     HttpResponseMessage *response = request_send_post(sender->request, api_request);
     rox_map_free(query_params);
     return response;
@@ -309,7 +310,11 @@ ROX_INTERNAL void state_sender_send(StateSender *sender) {
         }
     }
 
-    ROX_ERROR("Failed to send state. Source: %s", configuration_source_to_str(source));
+    ROX_ERROR("Failed to send state. Source: %s (%s)",
+              configuration_source_to_str(source),
+              fetch_result
+              ? response_get_contents(fetch_result)
+              : "unknown error");
 }
 
 ROX_INTERNAL void state_sender_send_debounce(StateSender *sender) {
@@ -364,6 +369,11 @@ ROX_INTERNAL StateSender *state_sender_create(
             &ROX_PROPERTY_TYPE_REMOTE_VARIABLES,
             &ROX_PROPERTY_TYPE_DEV_MODE_SECRET);
 
+    sender->raw_json_params = ROX_LIST(
+            ROX_PROPERTY_TYPE_CUSTOM_PROPERTIES.name,
+            ROX_PROPERTY_TYPE_FEATURE_FLAGS.name,
+            ROX_PROPERTY_TYPE_REMOTE_VARIABLES.name);
+
     custom_property_repository_set_handler(custom_property_repository, sender, &_state_sender_custom_property_handler);
     flag_repository_add_flag_added_callback(flag_repository, sender, &_state_sender_flag_added_callback);
 
@@ -375,5 +385,6 @@ ROX_INTERNAL void state_sender_free(StateSender *sender) {
     debouncer_free(sender->state_debouncer);
     rox_list_free(sender->state_generators);
     rox_list_free(sender->relevant_api_call_params);
+    rox_list_free(sender->raw_json_params);
     free(sender);
 }

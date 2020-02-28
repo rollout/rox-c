@@ -529,9 +529,9 @@ ROX_INTERNAL cJSON *rox_json_create_array(void *skip, ...) {
 #define ROX_JSON_PRINT_BUFFER_SIZE 10240
 
 ROX_INTERNAL char *rox_json_print(cJSON *json, unsigned int flags) {
-    char buffer[ROX_JSON_PRINT_BUFFER_SIZE];
+    char *buffer = malloc(ROX_JSON_PRINT_BUFFER_SIZE);
     cJSON_PrintPreallocated(json, buffer, ROX_JSON_PRINT_BUFFER_SIZE, (flags & ROX_JSON_PRINT_FORMATTED) != 0);
-    return mem_copy_str(buffer);
+    return buffer;
 }
 
 #undef ROX_JSON_PRINT_BUFFER_SIZE

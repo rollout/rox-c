@@ -12,11 +12,12 @@
 // RequestData
 //
 
-ROX_INTERNAL RequestData *request_data_create(const char *url, RoxMap *params) {
+ROX_INTERNAL RequestData *request_data_create(const char *url, RoxMap *params, RoxList *raw_json_params) {
     assert(url);
     RequestData *data = calloc(1, sizeof(RequestData));
     data->url = mem_copy_str(url);
     data->params = params;
+    data->raw_json_params = raw_json_params;
     return data;
 }
 
@@ -142,12 +143,16 @@ static char *_request_build_url_with_params(Request *request, const char *url, R
     return result;
 }
 
-static cJSON *_build_json_from_params(RoxMap *params) {
+static cJSON *_build_json_from_params(RoxMap *params, RoxList *raw_json_params) {
     assert(params);
     cJSON *json = cJSON_CreateObject();
     ROX_MAP_FOREACH(key, value, params, {
-        cJSON *item = cJSON_CreateString(value);
-        cJSON_AddItemToObject(json, key, item);
+        if (raw_json_params && str_in_list(key, raw_json_params)) {
+            cJSON_AddRawToObject(json, key, value);
+        } else {
+            cJSON *item = cJSON_CreateString(value);
+            cJSON_AddItemToObject(json, key, item);
+        }
     })
     return json;
 }
@@ -223,7 +228,7 @@ static HttpResponseMessage *_request_send_post(void *target, Request *request, R
     assert(request);
     assert(data);
     assert(data->params);
-    cJSON *json = _build_json_from_params(data->params);
+    cJSON *json = _build_json_from_params(data->params, data->raw_json_params);
     HttpResponseMessage *message = _request_send_post_json(target, request, data->url, json);
     cJSON_Delete(json);
     return message;
@@ -403,7 +408,7 @@ static HttpResponseMessage *_configuration_fetcher_internal_fetch(ConfigurationF
         rox_map_add(params, key, value);
     })
 
-    RequestData *roxy_request = request_data_create(buffer, params);
+    RequestData *roxy_request = request_data_create(buffer, params, NULL);
     HttpResponseMessage *message = request_send_get(fetcher->request, roxy_request);
     request_data_free(roxy_request);
     rox_map_free(params);
@@ -456,7 +461,7 @@ ROX_INTERNAL HttpResponseMessage *configuration_fetcher_fetch_from_cdn(
     }
     char *url = mem_str_format("%s/%s", buffer, path);
     RoxMap *params = ROX_MAP(ROX_PROPERTY_TYPE_DISTINCT_ID.name, distinct_id);
-    RequestData *cdn_request = request_data_create(url, params);
+    RequestData *cdn_request = request_data_create(url, params, NULL);
     HttpResponseMessage *message = request_send_get(fetcher->request, cdn_request);
     request_data_free(cdn_request);
     rox_map_free(params);
@@ -476,7 +481,7 @@ ROX_INTERNAL HttpResponseMessage *configuration_fetcher_fetch_from_api(
         return NULL;
     }
     char *url = mem_str_format("%s/%s", buffer, path);
-    RequestData *api_request = request_data_create(url, properties);
+    RequestData *api_request = request_data_create(url, properties, NULL);
     HttpResponseMessage *message = request_send_post(fetcher->request, api_request);
     request_data_free(api_request);
     free(url);
