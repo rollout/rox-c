@@ -58,14 +58,14 @@ echo "Building ${PROJECT_NAME}..."
 cd "${CWD}" || exit
 if [ "${SKIP_CLEAN}" -ne "1" ]; then
   echo "Cleaning up build directory."
-  rm -rf build
+  rm -rf build/release
 else
   echo "Not cleaning up build directory."
 fi
-mkdir -p build
-cd build || exit
+mkdir -p build/release
+cd build/release || exit
 
-cmake .. -DCMAKE_INSTALL_PREFIX="${INSTALL_PREFIX}" -DCMAKE_BUILD_TYPE=Release
+cmake ../../ -DCMAKE_INSTALL_PREFIX="${INSTALL_PREFIX}" -DCMAKE_BUILD_TYPE=Release
 make
 
 if [ "${SKIP_INSTALL}" -ne "1" ]; then
