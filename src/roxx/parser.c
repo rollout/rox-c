@@ -763,8 +763,8 @@ ROX_INTERNAL void _parser_operator_gte(void *target, Parser *parser, CoreStack *
 
 typedef int (*_parser_cmp_semver)(semver_t x, semver_t y);
 
-ROX_INTERNAL int
-_parser_operator_semver_cmp(Parser *parser, CoreStack *stack, RoxContext *context, _parser_cmp_semver cmp) {
+ROX_INTERNAL int _parser_operator_semver_cmp(
+        Parser *parser, CoreStack *stack, RoxContext *context, _parser_cmp_semver cmp) {
     assert(parser);
     assert(stack);
     StackItem *item1 = rox_stack_pop(stack);
@@ -776,6 +776,8 @@ _parser_operator_semver_cmp(Parser *parser, CoreStack *stack, RoxContext *contex
     char *s1 = rox_stack_get_string(item1);
     char *s2 = rox_stack_get_string(item2);
     semver_t v1, v2;
+    v1.patch = -1;
+    v2.patch = -1;
     if (semver_parse(s1, &v1) != 0 || semver_parse(s2, &v2) != 0) {
         rox_stack_push_boolean(stack, false);
         return -1;
@@ -790,6 +792,7 @@ ROX_INTERNAL void _parser_operator_semver_ne(void *target, Parser *parser, CoreS
     assert(stack);
     _parser_operator_semver_cmp(parser, stack, context, &semver_neq);
 }
+
 
 ROX_INTERNAL void _parser_operator_semver_eq(void *target, Parser *parser, CoreStack *stack, RoxContext *context) {
     assert(parser);
