@@ -62,7 +62,7 @@ Also these tools are required for running the build:
 ### Installation
  
 1. Open `Cross Tools Command Prompt for VS 20XX <(Your Visual Studio Version here)`.
-2. Navigate the the repository root folder.
+2. Navigate to the repository root folder.
 3. Run `install <INSTALLATION_PATH>` where `<INSTALLATION_PATH>` is where you want to install the SDK 
 (if omitted, it will be installed into `C:\Program Files\rollout-sdk` which may require Administrator permissions).
 4. (optional) add `<INSTALLATION_PATH>\bin` to system `PATH` variable.
