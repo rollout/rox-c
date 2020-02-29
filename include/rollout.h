@@ -640,9 +640,3 @@ ROX_API void rox_shutdown();
 #ifdef __cplusplus
 } // extern "C"
 #endif
-
-#ifdef __cplusplus
-
-// TODO: put API class(es) declaration here
-
-#endif

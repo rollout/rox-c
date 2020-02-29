@@ -274,9 +274,9 @@ ROX_INTERNAL void state_sender_send(StateSender *sender) {
 
         if (!should_retry) {
             // success from cdn
-            response_message_free(fetch_result);
-            rox_map_free_with_values(properties);
             if (response_json) {
+                response_message_free(fetch_result);
+                rox_map_free_with_values(properties);
                 return;
             }
         }
@@ -308,6 +308,7 @@ ROX_INTERNAL void state_sender_send(StateSender *sender) {
             rox_map_free_with_values(properties);
             return;
         }
+
     }
 
     ROX_ERROR("Failed to send state. Source: %s (%s)",
@@ -315,6 +316,9 @@ ROX_INTERNAL void state_sender_send(StateSender *sender) {
               fetch_result
               ? response_get_contents(fetch_result)
               : "unknown error");
+
+    response_message_free(fetch_result);
+    rox_map_free_with_values(properties);
 }
 
 ROX_INTERNAL void state_sender_send_debounce(StateSender *sender) {

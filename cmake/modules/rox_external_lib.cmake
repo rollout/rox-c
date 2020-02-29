@@ -165,6 +165,7 @@ macro(_rox_init_third_party_lib_vars)
         message("LIB_DRY_RUN = ${LIB_DRY_RUN}")
         message("LIB_LINK = ${LIB_LINK}")
         message("LIB_LINK_WIN = ${LIB_LINK_WIN}")
+        message("LIB_HEADERS_ONLY = ${LIB_HEADERS_ONLY}")
         message("LIB_TARGETS = ${LIB_TARGETS}")
         message("LIB_TRY_FIND = ${LIB_TRY_FIND}")
         message("LIB_TRY_FIND_PACKAGE_NAME = ${LIB_TRY_FIND_PACKAGE_NAME}")
@@ -446,38 +447,49 @@ macro(_rox_link_third_party_lib)
 
                 list(GET LIB_FILE_LOCATIONS ${index} LIB_FILE_LOCATION)
 
-                if (EXISTS "${LIB_FILE_LOCATION}")
+                if (LIB_HEADERS_ONLY)
 
-                    if (LIB_SHARED)
-                        add_library(${LIB_TARGET_NAME} SHARED IMPORTED)
-                    endif ()
-
-                    if (LIB_STATIC)
-                        add_library(${LIB_TARGET_NAME} STATIC IMPORTED)
-                    endif ()
+                    add_library(${LIB_TARGET_NAME} INTERFACE)
 
                     set_target_properties(${LIB_TARGET_NAME} PROPERTIES
-                            IMPORTED_LOCATION "${LIB_FILE_LOCATION}"
                             INTERFACE_INCLUDE_DIRECTORIES "${LIB_INCLUDE_DIR}")
 
                 else ()
 
-                    message(FATAL_ERROR "${LIB_NAME} library not found in ${LIB_FILE_LOCATION}. Build third-party libs by navigating to vendor and calling ./build-third-party-libs.sh.")
+                    if (EXISTS "${LIB_FILE_LOCATION}")
 
-                endif ()
+                        if (LIB_SHARED)
+                            add_library(${LIB_TARGET_NAME} SHARED IMPORTED)
+                        endif ()
 
-                if (LIB_LINK)
-                    if (LIB_VERBOSE)
-                        message("Linking target ${LIB_TARGET_NAME} with ${LIB_LINK}")
+                        if (LIB_STATIC)
+                            add_library(${LIB_TARGET_NAME} STATIC IMPORTED)
+                        endif ()
+
+                        set_target_properties(${LIB_TARGET_NAME} PROPERTIES
+                                IMPORTED_LOCATION "${LIB_FILE_LOCATION}"
+                                INTERFACE_INCLUDE_DIRECTORIES "${LIB_INCLUDE_DIR}")
+
+                        if (LIB_LINK)
+                            if (LIB_VERBOSE)
+                                message("Linking target ${LIB_TARGET_NAME} with ${LIB_LINK}")
+                            endif ()
+                            set_target_properties(${LIB_TARGET_NAME} PROPERTIES IMPORTED_LINK_INTERFACE_LIBRARIES "${LIB_LINK}")
+                        endif ()
+
+                        if (LIB_DEFINITIONS)
+                            if (LIB_VERBOSE)
+                                message("Setting compile definitions for target ${LIB_TARGET_NAME} to ${LIB_DEFINITIONS}")
+                            endif ()
+                            target_compile_definitions(${LIB_TARGET_NAME} INTERFACE ${LIB_DEFINITIONS})
+                        endif ()
+
+                    else ()
+
+                        message(FATAL_ERROR "${LIB_NAME} library not found in ${LIB_FILE_LOCATION}. Build third-party libs by navigating to vendor and calling ./build-third-party-libs.sh.")
+
                     endif ()
-                    set_target_properties(${LIB_TARGET_NAME} PROPERTIES IMPORTED_LINK_INTERFACE_LIBRARIES "${LIB_LINK}")
-                endif ()
 
-                if (LIB_DEFINITIONS)
-                    if (LIB_VERBOSE)
-                        message("Setting compile definitions for target ${LIB_TARGET_NAME} to ${LIB_DEFINITIONS}")
-                    endif ()
-                    target_compile_definitions(${LIB_TARGET_NAME} INTERFACE ${LIB_DEFINITIONS})
                 endif ()
 
                 list(APPEND ROX_EXTERNAL_LIBS ${LIB_TARGET_NAME})
@@ -487,13 +499,11 @@ macro(_rox_link_third_party_lib)
         endforeach ()
     endif ()
 
-    # TODO: copy everything from the lib's bin dir into the project dir?
-
 endmacro()
 
 function(rox_external_lib LIB_NAME)
 
-    set(options VERBOSE DRY_RUN STATIC SHARED BUILD_IN_SOURCE TRY_FIND_REQUIRED TRY_FIND_IN_INSTALL_DIR)
+    set(options VERBOSE DRY_RUN STATIC SHARED BUILD_IN_SOURCE TRY_FIND_REQUIRED TRY_FIND_IN_INSTALL_DIR HEADERS_ONLY)
     set(oneValueArgs VERSION URL HASH FILE CFLAGS CONFIGURE BUILD SUBDIR INCLUDE_DIR CMAKE TRY_FIND_THEN TRY_FIND_VERSION TRY_FIND_INCLUDE_DIR TRY_FIND_LIBRARIES TRY_FIND_IN_INSTALL_DIR_SET)
     set(multiValueArgs CMAKE_ARGS TARGETS DEFINITIONS PATCH LINK LINK_WIN DEPENDS_ON TRY_FIND TRY_FIND_LINK TRY_FIND_DEFINITIONS TRY_FIND_IN)
 

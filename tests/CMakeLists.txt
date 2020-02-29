@@ -19,5 +19,5 @@ list(APPEND LIBS roxtest)
 rox_add_tests(".c" "${LIBS}")
 rox_add_tests(".cpp" "${LIBS}")
 
-set_tests_properties(test_server PROPERTIES ENVIRONMENT ROLLOUT_MODE=QA)
+set_tests_properties(test_server test_serverxx PROPERTIES ENVIRONMENT ROLLOUT_MODE=QA)
 rox_copy_shared_libs(roxtest ${CMAKE_BINARY_DIR}/tests)

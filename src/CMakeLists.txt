@@ -31,14 +31,14 @@ set(ROX_SRC
         vendor/md5.c
         vendor/semver.c
         vendor/strrep.c
+        api.cpp
         collections.c
         core.c
         device.c
         dynamic.c
         rollout.c
         server.c
-        util.c
-        api.cxx)
+        util.c)
 
 if (APPLE)
     find_library(CoreFoundation CoreFoundation)
