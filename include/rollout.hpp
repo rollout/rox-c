@@ -1,6 +1,8 @@
 #pragma once
 
 #include <cassert>
+#include <vector>
+#include <string>
 
 extern "C" {
 #include "rollout.h"
