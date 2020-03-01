@@ -54,11 +54,14 @@ add_library(rollout SHARED ${ROX_SRC})
 target_link_libraries(rollout ${ROX_EXTERNAL_LIBS})
 
 set_target_properties(rollout PROPERTIES
-        PUBLIC_HEADER ../include/rollout.h
+        PUBLIC_HEADER "../include/rollout.h;../include/rollout.hpp"
         C_VISIBILITY_PRESET hidden
-        COMPILE_DEFINITIONS "ROX_DLL;ROX_DLL_EXPORTS"
+        COMPILE_DEFINITIONS "ROX_LIB_VERSION=\"${ROX_VERSION_STRING}\";ROX_DLL;ROX_DLL_EXPORTS"
         VERSION ${ROX_VERSION_STRING}
         SOVERSION ${ROX_VERSION_MAJOR})
+
+set_target_properties(rollout_static PROPERTIES
+        COMPILE_DEFINITIONS "ROX_LIB_VERSION=\"${ROX_VERSION_STRING}\"")
 
 INSTALL(TARGETS rollout rollout_static
         RUNTIME DESTINATION bin

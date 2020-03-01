@@ -8,7 +8,6 @@
 
 ROX_INTERNAL extern const char *ROX_PLATFORM;
 ROX_INTERNAL extern const char *ROX_API_VERSION;
-ROX_INTERNAL extern const char *ROX_LIB_VERSION;
 ROX_INTERNAL extern const char *ROX_ENV_MODE_KEY;
 ROX_INTERNAL extern const char *ROX_ENV_MODE_QA;
 ROX_INTERNAL extern const char *ROX_ENV_MODE_LOCAL;
