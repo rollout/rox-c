@@ -96,13 +96,13 @@ namespace Rox {
     // Options
     //
 
-    class ROX_API ImpressionHandler {
+    class ROX_API ImpressionHandlerInterface {
     public:
         virtual void HandleImpression(ReportingValue *value,
                                       Experiment *experiment,
                                       Context *context) = 0;
 
-        virtual ~ImpressionHandler() = default;
+        virtual ~ImpressionHandlerInterface() = default;
     };
 
     class ROX_API ConfigurationFetchedHandler {
@@ -134,7 +134,7 @@ namespace Rox {
 
         OptionsBuilder &SetRoxyUrl(const char *roxy_url);
 
-        OptionsBuilder &SetImpressionHandler(ImpressionHandler *handler);
+        OptionsBuilder &SetImpressionHandler(ImpressionHandlerInterface *handler);
 
         OptionsBuilder &SetConfigurationFetchedHandler(ConfigurationFetchedHandler *handler);
 

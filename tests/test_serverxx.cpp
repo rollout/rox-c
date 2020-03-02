@@ -77,7 +77,7 @@ public:
     }
 };
 
-class TestImpressionHandler : public Rox::ImpressionHandler {
+class TestImpressionHandler : public Rox::ImpressionHandlerInterface {
     ServerTextContext *_ctx;
 public:
     explicit TestImpressionHandler(ServerTextContext *ctx) : _ctx(ctx) {}

@@ -98,7 +98,7 @@ namespace Rox {
             RoxExperiment *experiment,
             RoxContext *context) {
         assert(target);
-        auto *handler = (ImpressionHandler *) target;
+        auto *handler = (ImpressionHandlerInterface *) target;
         handler->HandleImpression(value, experiment, context);
     }
 
@@ -146,7 +146,7 @@ namespace Rox {
         return *this;
     }
 
-    OptionsBuilder &OptionsBuilder::SetImpressionHandler(ImpressionHandler *handler) {
+    OptionsBuilder &OptionsBuilder::SetImpressionHandler(ImpressionHandlerInterface *handler) {
         assert(handler);
         rox_options_set_impression_handler(_options, handler, &_RoxImpressionHandlerAdapter);
         return *this;
