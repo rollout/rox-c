@@ -142,7 +142,7 @@ namespace Rox {
 
         Options *Build();
 
-    protected:
+    private:
         RoxOptions *_options;
     };
 

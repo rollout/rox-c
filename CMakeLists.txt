@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.9)
 
 project(rollout-sdk)
 
+set(CMAKE_CXX_STANDARD 11)
+
 set(ROX_VERSION_MAJOR 1)
 set(ROX_VERSION_MINOR 0)
 set(ROX_VERSION_PATCH 0)
