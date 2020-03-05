@@ -185,7 +185,7 @@ namespace Rox {
     ROX_API Variant *
     Variant::Create(const char *name, const char *defaultValue, const std::vector<std::string> &options) {
         assert(name);
-        RoxList * list = ROX_EMPTY_LIST;
+        RoxList *list = ROX_EMPTY_LIST;
         for (auto &option : options) {
             rox_list_add(list, ROX_COPY(option.data()));
         }
@@ -208,7 +208,7 @@ namespace Rox {
 
     ROX_API Flag *Flag::Create(const char *name, bool defaultValue) {
         assert(name);
-        RoxVariant * handle = rox_add_flag(name, defaultValue);
+        RoxVariant *handle = rox_add_flag(name, defaultValue);
         auto *flag = new Flag(handle);
         rox_list_add(_allVariants, flag);
         return flag;
@@ -365,5 +365,24 @@ namespace Rox {
 
     ROX_API DynamicApi *DynamicApi::Create() {
         return new DynamicApi(rox_dynamic_api());
+    }
+
+    ROX_API char *DynamicApi::GetValue(const char *name,
+                                       char *default_value,
+                                       Context *context) {
+        assert(name);
+        return rox_dynamic_api_get_value(_handle, name, default_value, nullptr, context);
+    }
+
+    ROX_API char *DynamicApi::GetValue(const char *name,
+                                       char *default_value,
+                                       const std::vector<std::string> &options,
+                                       Context *context) {
+        assert(name);
+        RoxList *list = ROX_EMPTY_LIST;
+        for (auto &option : options) {
+            rox_list_add(list, ROX_COPY(option.data()));
+        }
+        return rox_dynamic_api_get_value(_handle, name, default_value, list, context);
     }
 }

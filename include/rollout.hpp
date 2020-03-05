@@ -243,5 +243,14 @@ namespace Rox {
         virtual ~DynamicApi();
 
         static DynamicApi *Create();
+
+        char *GetValue(const char *name,
+                       char *default_value = nullptr,
+                       Context *context = nullptr);
+
+        char *GetValue(const char *name,
+                       char *default_value,
+                       const std::vector<std::string> &options,
+                       Context *context);
     };
 }
