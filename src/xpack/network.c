@@ -35,6 +35,10 @@ ROX_INTERNAL Debouncer *debouncer_create(int interval_millis, void *target, debo
     debouncer->cancel_until = current_time_millis();
     debouncer->thread_mutex = (pthread_mutex_t) PTHREAD_MUTEX_INITIALIZER;
     debouncer->thread_cond = (pthread_cond_t) PTHREAD_COND_INITIALIZER;
+    ROX_TRACE("[%f] Initialize debouncer with interval %dms (cancel until %f)",
+              current_time_millis(),
+              interval_millis,
+              debouncer->cancel_until);
     return debouncer;
 }
 
@@ -42,13 +46,18 @@ static void *_debouncer_thread_func(void *ptr) {
     Debouncer *debouncer = (Debouncer *) ptr;
     if (!debouncer->stopped) {
         double time = current_time_millis();
+        ROX_TRACE("[%f] in _debouncer_thread_func", current_time_millis());
         if (time >= debouncer->cancel_until) {
+            ROX_TRACE("[%f] it's time", current_time_millis());
             // The following code is an analogue of sleep() with the exception
             // that it allows the thread to be awakened by the debouncer when
             // it's destroyed for example.
             struct timespec ts = get_future_timespec(debouncer->interval_millis);
+            ROX_TRACE("[%f] waiting %dms before execute debouncer func", current_time_millis(),
+                      debouncer->interval_millis);
             pthread_mutex_lock(&debouncer->thread_mutex);
             int result = pthread_cond_timedwait(&debouncer->thread_cond, &debouncer->thread_mutex, &ts);
+            ROX_TRACE("[%f] timed wait done, result is %d", current_time_millis(), result);
             pthread_mutex_unlock(&debouncer->thread_mutex);
             if (result == ETIMEDOUT) {
                 debouncer->func(debouncer->target);

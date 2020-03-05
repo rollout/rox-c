@@ -53,6 +53,9 @@ START_TEST (test_will_test_debouncer_skip_double_invoke) {
 END_TEST
 
 START_TEST (test_will_test_debouncer_invoke_after_invoke) {
+    RoxLoggingConfig config = ROX_LOGGING_CONFIG_INITIALIZER(RoxLogLevelTrace);
+    rox_logging_init(&config);
+
     int counter = 0;
     Debouncer *debouncer = debouncer_create(1000, &counter, &_test_debouncer_func);
     ck_assert_int_eq(0, counter);

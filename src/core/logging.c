@@ -43,6 +43,9 @@ static void _rox_handle_log_message(
     message.line = line;
 
     switch (log_level) {
+        case RoxLogLevelTrace:
+            message.level_name = "TRACE";
+            break;
         case RoxLogLevelDebug:
             message.level_name = "DEBUG";
             break;
