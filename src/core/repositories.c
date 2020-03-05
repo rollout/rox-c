@@ -88,6 +88,7 @@ void custom_property_repository_free(CustomPropertyRepository *repository) {
 
 struct ExperimentRepository {
     RoxList *experiments;
+    RoxList *previous_experiments;
 };
 
 ROX_INTERNAL ExperimentRepository *experiment_repository_create() {
@@ -101,7 +102,11 @@ ROX_INTERNAL void experiment_repository_set_experiments(
         RoxList *experiments) {
     assert(repository);
     assert(experiments);
-    rox_list_free_cb(repository->experiments, (void (*)(void *)) &experiment_model_free);
+    // Don't free experiments immediately since they still could be referenced in other threads during the configuration fetch
+    if (repository->previous_experiments) {
+        rox_list_free_cb(repository->previous_experiments, (void (*)(void *)) &experiment_model_free);
+    }
+    repository->previous_experiments = repository->experiments;
     repository->experiments = experiments;
 }
 
@@ -127,6 +132,9 @@ ROX_INTERNAL RoxList *experiment_repository_get_all_experiments(ExperimentReposi
 
 ROX_INTERNAL void experiment_repository_free(ExperimentRepository *repository) {
     assert(repository);
+    if (repository->previous_experiments) {
+        rox_list_free_cb(repository->previous_experiments, (void (*)(void *)) &experiment_model_free);
+    }
     rox_list_free_cb(repository->experiments, (void (*)(void *)) &experiment_model_free);
     free(repository);
 }
@@ -216,6 +224,7 @@ ROX_INTERNAL void flag_repository_free(FlagRepository *repository) {
 
 struct TargetGroupRepository {
     RoxList *target_groups;
+    RoxList *previous_target_groups;
 };
 
 ROX_INTERNAL TargetGroupRepository *target_group_repository_create() {
@@ -229,7 +238,11 @@ ROX_INTERNAL void target_group_repository_set_target_groups(
         RoxList *target_groups) {
     assert(repository);
     assert(target_groups);
-    rox_list_free_cb(repository->target_groups, (void (*)(void *)) &target_group_model_free);
+    // Don't free target groups immediately since they still could be referenced in other threads during the configuration fetch
+    if (repository->previous_target_groups) {
+        rox_list_free_cb(repository->previous_target_groups, (void (*)(void *)) &target_group_model_free);
+    }
+    repository->previous_target_groups = repository->target_groups;
     repository->target_groups = target_groups;
 }
 
@@ -251,6 +264,9 @@ ROX_INTERNAL TargetGroupModel *target_group_repository_get_target_group(
 
 ROX_INTERNAL void target_group_repository_free(TargetGroupRepository *repository) {
     assert(repository);
+    if (repository->previous_target_groups) {
+        rox_list_free_cb(repository->previous_target_groups, (void (*)(void *)) &target_group_model_free);
+    }
     rox_list_free_cb(repository->target_groups, (void (*)(void *)) &target_group_model_free);
     free(repository);
 }

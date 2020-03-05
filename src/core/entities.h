@@ -114,7 +114,7 @@ ROX_INTERNAL void flag_disabled_do(RoxVariant *variant, RoxContext *context, rox
  *
  * @param variant Not <code>NULL</code>.
  * @param parser May be <code>NULL</code>. The ownership is NOT delegated.
- * @param experiment May be <code>NULL</code>. The ownership is NOT delegated.
+ * @param experiment May be <code>NULL</code>. The ownership is NOT delegated. If passed, value is copied internally.
  * @param impression_invoker May be <code>NULL</code>. The ownership is NOT delegated.
  */
 ROX_INTERNAL void variant_set_for_evaluation(

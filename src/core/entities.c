@@ -85,6 +85,7 @@ static void _variant_reset_evaluation_context(RoxVariant *variant) {
         variant->parser = NULL;
     }
     if (variant->experiment) {
+        experiment_model_free(variant->experiment);
         variant->experiment = NULL;
     }
     if (variant->impression_invoker) {
@@ -100,7 +101,7 @@ ROX_INTERNAL void variant_set_for_evaluation(
     assert(variant);
     _variant_reset_evaluation_context(variant);
     if (experiment) {
-        variant->experiment = experiment;
+        variant->experiment = experiment_model_copy(experiment);
         variant->condition = mem_copy_str(experiment->condition);
     } else {
         variant->experiment = NULL;
@@ -187,6 +188,9 @@ ROX_INTERNAL void variant_free(RoxVariant *variant) {
     }
     if (variant->options) {
         rox_list_free_cb(variant->options, &free);
+    }
+    if (variant->experiment) {
+        experiment_model_free(variant->experiment);
     }
     free(variant);
 }
@@ -313,6 +317,8 @@ ROX_INTERNAL void flag_setter_set_experiments(FlagSetter *flag_setter) {
             variant_set_for_evaluation(flag, flag_setter->parser, NULL, flag_setter->impression_invoker);
         }
     })
+
+    rox_set_free(flags_with_condition);
 }
 
 ROX_INTERNAL void flag_setter_free(FlagSetter *flag_setter) {
