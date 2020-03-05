@@ -1,7 +1,8 @@
 #include <check.h>
 #include <assert.h>
-#include <core/consts.h>
 
+#include "core/consts.h"
+#include "core/logging.h"
 #include "roxtests.h"
 #include "xpack/network.h"
 #include "util.h"
@@ -19,6 +20,9 @@ static void _test_debouncer_func(void *target) {
 }
 
 START_TEST (test_will_test_debouncer_called_after_interval) {
+    RoxLoggingConfig config = ROX_LOGGING_CONFIG_INITIALIZER(RoxLogLevelTrace);
+    rox_logging_init(&config);
+    ROX_TRACE("[%f] start test_will_test_debouncer_called_after_interval", current_time_millis());
     int counter = 0;
     Debouncer *debouncer = debouncer_create(1000, &counter, &_test_debouncer_func);
     ck_assert_int_eq(0, counter);
@@ -29,11 +33,15 @@ START_TEST (test_will_test_debouncer_called_after_interval) {
     thread_sleep(600);
     ck_assert_int_eq(1, counter);
     debouncer_free(debouncer);
+    ROX_TRACE("[%f] end test_will_test_debouncer_called_after_interval", current_time_millis());
 }
 
 END_TEST
 
 START_TEST (test_will_test_debouncer_skip_double_invoke) {
+    RoxLoggingConfig config = ROX_LOGGING_CONFIG_INITIALIZER(RoxLogLevelTrace);
+    rox_logging_init(&config);
+    ROX_TRACE("[%f] start test_will_test_debouncer_skip_double_invoke", current_time_millis());
     int counter = 0;
     Debouncer *debouncer = debouncer_create(1000, &counter, &_test_debouncer_func);
     ck_assert_int_eq(0, counter);
@@ -48,6 +56,7 @@ START_TEST (test_will_test_debouncer_skip_double_invoke) {
     thread_sleep(600);
     ck_assert_int_eq(1, counter);
     debouncer_free(debouncer);
+    ROX_TRACE("[%f] end test_will_test_debouncer_skip_double_invoke", current_time_millis());
 }
 
 END_TEST
@@ -55,6 +64,8 @@ END_TEST
 START_TEST (test_will_test_debouncer_invoke_after_invoke) {
     RoxLoggingConfig config = ROX_LOGGING_CONFIG_INITIALIZER(RoxLogLevelTrace);
     rox_logging_init(&config);
+
+    ROX_TRACE("[%f] start test_will_test_debouncer_invoke_after_invoke", current_time_millis());
 
     int counter = 0;
     Debouncer *debouncer = debouncer_create(1000, &counter, &_test_debouncer_func);
@@ -70,11 +81,13 @@ START_TEST (test_will_test_debouncer_invoke_after_invoke) {
     thread_sleep(300);
     ck_assert_int_eq(2, counter);
     debouncer_free(debouncer);
+    ROX_TRACE("[%f] end test_will_test_debouncer_invoke_after_invoke", current_time_millis());
 }
 
 END_TEST
 
 START_TEST (test_will_awake_debouncer_thread) {
+    ROX_TRACE("[%f] start test_will_awake_debouncer_thread", current_time_millis());
     double time = current_time_millis();
     int counter = 0;
     Debouncer *debouncer = debouncer_create(10000, &counter, &_test_debouncer_func);
@@ -84,6 +97,7 @@ START_TEST (test_will_awake_debouncer_thread) {
     ck_assert_int_eq(0, counter);
     double time_passed = current_time_millis() - time;
     ck_assert_int_lt(time_passed, 2000);
+    ROX_TRACE("[%f] end test_will_awake_debouncer_thread", current_time_millis());
 }
 
 END_TEST
