@@ -60,11 +60,11 @@ ROX_INTERNAL void _event_source_reader_stop(EventSourceReader *reader) {
     assert(reader);
     if (reader->reading) {
         reader->reading = false;
-        _cleanup_curl_handle(reader);
         pthread_mutex_lock(&reader->thread_mutex);
         pthread_cond_signal(&reader->thread_cond);
         pthread_mutex_unlock(&reader->thread_mutex);
         pthread_join(reader->thread, NULL);
+        _cleanup_curl_handle(reader);
     }
 }
 
@@ -269,9 +269,26 @@ static void _event_source_reader_update_state(EventSourceReader *reader, const c
     free(fsm);
 }
 
+static int
+_event_source_reader_progress_callback(
+        void *clientp,
+        curl_off_t dltotal,
+        curl_off_t dlnow,
+        curl_off_t ultotal,
+        curl_off_t ulnow) {
+    EventSourceReader *reader = (EventSourceReader *) clientp;
+    if (reader->reading) {
+        return 0;
+    }
+    return 1; // stop the current transfer
+}
+
 static size_t _event_source_reader_write_callback(char *ptr, size_t size, size_t nmemb, void *userdata) {
     size_t real_size = size * nmemb;
     EventSourceReader *reader = (EventSourceReader *) userdata;
+    if (!reader->reading) {
+        return 0; // stop the current transfer
+    }
     _event_source_reader_update_state(reader, ptr, nmemb);
     return real_size;
 }
@@ -287,6 +304,8 @@ static void *_event_source_reader_thread_func(void *ptr) {
     curl_easy_setopt(reader->curl, CURLOPT_HTTPGET, 1L);
     curl_easy_setopt(reader->curl, CURLOPT_WRITEFUNCTION, &_event_source_reader_write_callback);
     curl_easy_setopt(reader->curl, CURLOPT_WRITEDATA, reader);
+    curl_easy_setopt(reader->curl, CURLOPT_XFERINFOFUNCTION, &_event_source_reader_progress_callback);
+    curl_easy_setopt(reader->curl, CURLOPT_XFERINFODATA, reader);
     curl_easy_setopt(reader->curl, CURLOPT_HEADERFUNCTION, &_event_source_reader_header_callback);
     curl_easy_setopt(reader->curl, CURLOPT_HEADERDATA, reader);
 #ifdef ROX_WINDOWS
@@ -305,6 +324,10 @@ static void *_event_source_reader_thread_func(void *ptr) {
     while (reader->reading) {
         ROX_DEBUG("connecting to %s", reader->url);
         CURLcode res = curl_easy_perform(reader->curl);
+        if (!reader->reading) {
+            ROX_DEBUG("curl_easy_perform() cancelled");
+            break;
+        }
         if (res != CURLE_OK) {
             ROX_WARN("curl_easy_perform() failed: %s", curl_easy_strerror(res));
         }
@@ -488,7 +511,9 @@ ROX_INTERNAL void notification_listener_test(NotificationListener *listener, con
     assert(input);
     assert(listener->testing);
     assert(listener->reader);
+    listener->reader->reading = true;
     _event_source_reader_write_callback((char *) input, 1, strlen(input), listener->reader);
+    listener->reader->reading = false;
 }
 
 ROX_INTERNAL void notification_listener_start(NotificationListener *listener) {
@@ -508,6 +533,7 @@ ROX_INTERNAL void notification_listener_stop(NotificationListener *listener) {
     assert(listener);
     if (!listener->testing && listener->reader) {
         if (listener->reader->reading) {
+            ROX_DEBUG("Shutting down event source reader");
             _event_source_reader_stop(listener->reader);
         }
         _event_source_reader_free(listener->reader);
