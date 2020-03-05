@@ -318,10 +318,8 @@ ROX_INTERNAL char *mem_build_url(const char *base_uri, const char *path) {
 }
 
 ROX_INTERNAL double current_time_millis() {
-    time_t t;
-    time(&t);
-    // TODO: get millis somehow
-    return (double) (t * 1000);
+    struct timespec now = get_current_timespec();
+    return (double) (now.tv_sec * 1000 + now.tv_nsec / 1000000);
 }
 
 ROX_INTERNAL void thread_sleep(int sleep_millis) {
