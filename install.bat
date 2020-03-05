@@ -31,7 +31,8 @@ nmake
 if %errorlevel% neq 0 exit /b %errorlevel%
 
 echo Running tests.
-ctest --output-on-failure
+set CK_DEFAULT_TIMEOUT=100
+ctest --output-on-failure --timeout 100
 if %errorlevel% neq 0 exit /b %errorlevel%
 
 echo Installing %PROJECT_NAME% into %INSTALL_DIR%.

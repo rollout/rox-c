@@ -16,7 +16,7 @@ START_TEST (test_sse_shutting_down_gracefully) {
 
     NotificationListener *listener = notification_listener_create(&config);
     notification_listener_start(listener);
-    thread_sleep(2000);
+    thread_sleep(5000);
     notification_listener_stop(listener);
     notification_listener_free(listener);
 }
