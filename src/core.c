@@ -42,10 +42,10 @@ static void *_periodic_task_thread_func(void *ptr) {
             pthread_mutex_lock(&task->thread_mutex);
             result = pthread_cond_timedwait(&task->thread_cond, &task->thread_mutex, &ts);
             pthread_mutex_unlock(&task->thread_mutex);
-            if (result == ETIMEDOUT) {
+            if (result == ETIMEDOUT && !task->stopped) {
                 task->func(task->target);
             }
-        } while (result == ETIMEDOUT);
+        } while (result == ETIMEDOUT && !task->stopped);
     }
     task->thread_started = false;
     return NULL;
