@@ -279,9 +279,6 @@ static size_t _event_source_reader_write_callback(char *ptr, size_t size, size_t
 static void *_event_source_reader_thread_func(void *ptr) {
     EventSourceReader *reader = (EventSourceReader *) ptr;
 
-    _cleanup_curl_handle(reader);
-    reader->curl = curl_easy_init();
-
     curl_easy_setopt(reader->curl, CURLOPT_URL, reader->url);
     curl_easy_setopt(reader->curl, CURLOPT_FOLLOWLOCATION, true);
     curl_easy_setopt(reader->curl, CURLOPT_NOPROGRESS, 1);
@@ -329,6 +326,8 @@ static void *_event_source_reader_thread_func(void *ptr) {
 static void _event_source_reader_start(EventSourceReader *reader, bool join) {
     assert(reader);
     if (!reader->reading) {
+        _cleanup_curl_handle(reader);
+        reader->curl = curl_easy_init();
         reader->reading = (pthread_create(&reader->thread, NULL,
                                           _event_source_reader_thread_func, (void *) reader) == 0);
         if (join) {
