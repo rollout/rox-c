@@ -66,6 +66,17 @@ static void _rox_handle_log_message(
 
 #undef ROX_LOG_MESSAGE_BUFFER_SIZE
 
+ROX_INTERNAL void rox_log_trace(const char *file_name, int line, const char *fmt, ...) {
+    assert(fmt);
+    if (ROX_MIN_LOGGING_LEVEL > RoxLogLevelTrace) {
+        return;
+    }
+    va_list args;
+            va_start(args, fmt);
+    _rox_handle_log_message(file_name, line, RoxLogLevelTrace, fmt, args);
+            va_end(args);
+}
+
 ROX_INTERNAL void rox_log_debug(const char *file_name, int line, const char *fmt, ...) {
     assert(fmt);
     if (ROX_MIN_LOGGING_LEVEL > RoxLogLevelDebug) {

@@ -47,7 +47,8 @@ extern "C"
 //
 
 typedef enum RoxLogLevel {
-    RoxLogLevelDebug = 1,
+    RoxLogLevelTrace = 1,
+    RoxLogLevelDebug,
     RoxLogLevelWarning,
     RoxLogLevelError,
     RoxLogLevelNone
