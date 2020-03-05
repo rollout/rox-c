@@ -71,7 +71,7 @@ cmake ../../ -DCMAKE_INSTALL_PREFIX="${INSTALL_PREFIX}" -DROLLOUT_SKIP_TESTS=${S
 make
 
 if [ "${SKIP_TESTS}" -ne "1" ]; then
-  ctest --output-on-failure
+  CK_DEFAULT_TIMEOUT=10 ctest --output-on-failure --timeout 10
 fi
 
 if [ "${SKIP_INSTALL}" -ne "1" ]; then
