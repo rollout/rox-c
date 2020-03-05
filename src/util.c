@@ -334,7 +334,7 @@ ROX_INTERNAL void thread_sleep(int sleep_millis) {
 ROX_INTERNAL struct timespec get_current_timespec() {
     struct timespec now;
 #if defined(ROX_APPLE)
-    int result = gettimeofday(&now, NULL);
+    int result = clock_gettime(CLOCK_REALTIME, &now);
     assert(result == 0);
 #else
     int result = timespec_get(&now, TIME_UTC);
