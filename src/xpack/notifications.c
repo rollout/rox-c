@@ -41,19 +41,26 @@ typedef struct EventSourceReader {
     int reconnect_timeout_millis;
     pthread_t thread;
     pthread_mutex_t thread_mutex;
+    pthread_mutex_t cleanup_mutex;
     pthread_cond_t thread_cond;
     CURL *curl;
     char *last_event_id;
 } EventSourceReader;
 
+static void _cleanup_curl_handle(EventSourceReader *reader) {
+    pthread_mutex_lock(&reader->cleanup_mutex);
+    if (reader->curl) {
+        curl_easy_cleanup(reader->curl);
+        reader->curl = NULL;
+    }
+    pthread_mutex_unlock(&reader->cleanup_mutex);
+}
+
 ROX_INTERNAL void _event_source_reader_stop(EventSourceReader *reader) {
     assert(reader);
     if (reader->reading) {
         reader->reading = false;
-        if (reader->curl) {
-            curl_easy_cleanup(reader->curl);
-            reader->curl = NULL;
-        }
+        _cleanup_curl_handle(reader);
         pthread_mutex_lock(&reader->thread_mutex);
         pthread_cond_signal(&reader->thread_cond);
         pthread_mutex_unlock(&reader->thread_mutex);
@@ -272,10 +279,7 @@ static size_t _event_source_reader_write_callback(char *ptr, size_t size, size_t
 static void *_event_source_reader_thread_func(void *ptr) {
     EventSourceReader *reader = (EventSourceReader *) ptr;
 
-    if (reader->curl) {
-        curl_easy_cleanup(reader->curl);
-    }
-
+    _cleanup_curl_handle(reader);
     reader->curl = curl_easy_init();
 
     curl_easy_setopt(reader->curl, CURLOPT_URL, reader->url);
@@ -347,6 +351,7 @@ static EventSourceReader *_event_source_reader_create(
     reader->target = target;
     reader->on_message = on_message;
     reader->thread_mutex = (pthread_mutex_t) PTHREAD_MUTEX_INITIALIZER;
+    reader->cleanup_mutex = (pthread_mutex_t) PTHREAD_MUTEX_INITIALIZER;
     reader->thread_cond = (pthread_cond_t) PTHREAD_COND_INITIALIZER;
     reader->reconnect_timeout_millis = reconnect_timeout_millis;
     return reader;
