@@ -31,7 +31,7 @@ nmake
 if %errorlevel% neq 0 exit /b %errorlevel%
 
 echo Running tests.
-ctest
+ctest --output-on-failure
 if %errorlevel% neq 0 exit /b %errorlevel%
 
 echo Installing %PROJECT_NAME% into %INSTALL_DIR%.
