@@ -280,6 +280,7 @@ _event_source_reader_progress_callback(
     if (reader->reading) {
         return 0;
     }
+    ROX_DEBUG("Reader is stopped; returning 1 from progress callback");
     return 1; // stop the current transfer
 }
 
@@ -287,6 +288,7 @@ static size_t _event_source_reader_write_callback(char *ptr, size_t size, size_t
     size_t real_size = size * nmemb;
     EventSourceReader *reader = (EventSourceReader *) userdata;
     if (!reader->reading) {
+        ROX_DEBUG("Reader is stopped; returning 0 from write callback");
         return 0; // stop the current transfer
     }
     _event_source_reader_update_state(reader, ptr, nmemb);
