@@ -18,7 +18,7 @@ while getopts ":ScITd:" opt; do
     S ) # skip building third party libs
       SKIP_BUILDING_THIRD_PARTY_LIBS=1
       ;;
-    c ) # don't clean directories
+    c ) # clean build directories
       DO_CLEAN=1
       ;;
     I ) # skip installation step

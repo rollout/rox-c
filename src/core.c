@@ -74,6 +74,7 @@ static void _periodic_task_free(PeriodicTask *task) {
         pthread_mutex_unlock(&task->thread_mutex);
         // wait for thread to finish
         // (it should finish immediately because we sent signal to its condition)
+        pthread_cancel(task->thread);
         pthread_join(task->thread, NULL);
     }
     assert(!task->thread_started);
