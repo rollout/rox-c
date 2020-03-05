@@ -16,12 +16,6 @@
 #  BSD license.
 #  For details see the accompanying COPYING-CMAKE-SCRIPTS file.
 
-
-INCLUDE(FindPkgConfig)
-
-# Take care about check.pc settings
-PKG_SEARCH_MODULE(CHECK Check)
-
 # Look for CHECK include dir and libraries
 IF (NOT CHECK_FOUND)
     IF (CHECK_INSTALL_DIR)
