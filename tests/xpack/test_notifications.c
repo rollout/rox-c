@@ -6,7 +6,7 @@
 
 START_TEST (test_sse_shutting_down_gracefully) {
 
-    RoxLoggingConfig logging_config = {RoxLogLevelDebug, NULL, NULL};
+    RoxLoggingConfig logging_config = {RoxLogLevelDebug, NULL, NULL, true};
     rox_logging_init(&logging_config);
 
     NotificationListenerConfig config = {

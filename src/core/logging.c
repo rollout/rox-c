@@ -1,22 +1,44 @@
 #include <assert.h>
 #include <stdio.h>
 #include <stdarg.h>
+#include "util.h"
 #include "logging.h"
+
+static bool ROX_LOGGING_PRINT_TIME = false;
 
 static void _default_logging_handler(void *target, RoxLogMessage *message) {
     FILE *stream = message->level == RoxLogLevelDebug ? stdout : stderr;
 #ifndef NDEBUG
-    fprintf(stream,
-            "%s:%d [%s] %s\n",
-            message->file,
-            message->line,
-            message->level_name,
-            message->message);
+    if (ROX_LOGGING_PRINT_TIME) {
+        fprintf(stream,
+                "%lu [%s:%d] (%s) %s\n",
+                (long) current_time_millis(),
+                message->file,
+                message->line,
+                message->level_name,
+                message->message);
+    } else {
+        fprintf(stream,
+                "[%s:%d] (%s) %s\n",
+                message->file,
+                message->line,
+                message->level_name,
+                message->message);
+    }
 #else
-    fprintf(stream,
-            "[%s] %s\n",
+    if (ROX_LOGGING_PRINT_TIME) {
+        fprintf(stream,
+            "%lu (%s) %s\n",
+            (long) current_time_millis(),
             message->level_name,
             message->message);
+    } else {
+        fprintf(stream,
+            "(%s) %s\n",
+            message->level_name,
+            message->message);
+    }
+
 #endif
     fflush(stream);
 }
@@ -30,6 +52,7 @@ ROX_API void rox_logging_init(RoxLoggingConfig *config) {
     ROX_LOGGING_TARGET = config->target;
     ROX_LOGGING_HANDLER = config->handler ? config->handler : &_default_logging_handler;
     ROX_MIN_LOGGING_LEVEL = config->min_level > 0 ? config->min_level : RoxLogLevelError;
+    ROX_LOGGING_PRINT_TIME = config->print_time;
 }
 
 #define ROX_LOG_MESSAGE_BUFFER_SIZE 10240

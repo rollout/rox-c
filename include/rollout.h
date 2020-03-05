@@ -68,9 +68,10 @@ typedef struct RoxLoggingConfig {
     RoxLogLevel min_level;
     void *target;
     rox_logging_handler handler;
+    bool print_time;
 } RoxLoggingConfig;
 
-#define ROX_LOGGING_CONFIG_INITIALIZER(log_level) {log_level, NULL, NULL}
+#define ROX_LOGGING_CONFIG_INITIALIZER(log_level) {log_level, NULL, NULL, false}
 
 ROX_API void rox_logging_init(RoxLoggingConfig *config);
 

@@ -119,7 +119,7 @@ static void _test_logging_handler(void *target, RoxLogMessage *message) {
 ROX_INTERNAL LoggingTestFixture *logging_test_fixture_create(RoxLogLevel log_level) {
     LoggingTestFixture *fixture = calloc(1, sizeof(LoggingTestFixture));
     fixture->log_records = rox_list_create();
-    RoxLoggingConfig cfg = {log_level, fixture, &_test_logging_handler};
+    RoxLoggingConfig cfg = {log_level, fixture, &_test_logging_handler, true};
     rox_logging_init(&cfg);
     return fixture;
 }
