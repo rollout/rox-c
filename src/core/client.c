@@ -69,7 +69,11 @@ ROX_API void rox_options_set_version(RoxOptions *options, const char *version) {
 ROX_API void rox_options_set_fetch_interval(RoxOptions *options, int fetch_interval) {
     assert(options);
     assert(fetch_interval >= 0);
-    options->fetch_interval = fetch_interval < 0 || fetch_interval > 30 ? 30 : fetch_interval;
+    if (fetch_interval == 0) {
+        options->fetch_interval = 0;
+    } else {
+        options->fetch_interval = fetch_interval < 30 ? 30 : fetch_interval;
+    }
 }
 
 ROX_API void rox_options_set_roxy_url(RoxOptions *options, const char *roxy_url) {
