@@ -119,7 +119,7 @@ ROX_INTERNAL ExperimentModel *experiment_repository_get_experiment_by_flag(
         ExperimentModel *model = (ExperimentModel *) item;
         RoxList *flags = model->flags;
         if (flags && str_in_list(flag_name, flags)) {
-            return model;
+            ROX_LIST_FOREACH_RETURN_VALUE(model);
         }
     })
     return NULL;

@@ -658,7 +658,7 @@ ROX_INTERNAL void _parser_operator_in_array(void *target, Parser *parser, CoreSt
         RoxDynamicValue *v2 = (RoxDynamicValue *) item;
         if (rox_dynamic_value_equals(v1, v2)) {
             rox_stack_push_boolean(stack, true);
-            return;
+            ROX_LIST_FOREACH_RETURN;
         }
     })
     rox_stack_push_boolean(stack, false);
@@ -969,6 +969,8 @@ ROX_INTERNAL EvaluationResult *parser_evaluate_expression(Parser *parser, const 
             result = _create_result_from_stack_item(NULL);
         }
     }
+
+    rox_list_iter_free(i);
 
     if (!result) {
         item = rox_stack_pop(stack);

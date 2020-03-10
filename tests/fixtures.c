@@ -149,7 +149,7 @@ ROX_INTERNAL void logging_test_fixture_check_log_message(
         LogRecord *log_record = (LogRecord *) item;
         if (log_record->level == log_level) {
             ck_assert(str_starts_with(log_record->message, message));
-            return;
+            ROX_LIST_FOREACH_RETURN;
         }
     })
     ck_assert(false); // no log record found

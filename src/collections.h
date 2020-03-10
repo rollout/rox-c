@@ -141,3 +141,11 @@ ROX_INTERNAL char *mem_str_join(const char *separator, RoxList *strings);
             body                                                        \
         rox_list_iter_free(list_iter_53d46d2a04458e7b);                 \
     }
+
+#define ROX_LIST_FOREACH_RETURN_VALUE(val) \
+    rox_list_iter_free(list_iter_53d46d2a04458e7b);                 \
+    return val
+
+#define ROX_LIST_FOREACH_RETURN \
+    rox_list_iter_free(list_iter_53d46d2a04458e7b);                 \
+    return
