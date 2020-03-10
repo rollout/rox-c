@@ -88,7 +88,6 @@ ROX_INTERNAL void debouncer_free(Debouncer *debouncer) {
         pthread_cancel(debouncer->thread);
         pthread_join(debouncer->thread, NULL);
     }
-    assert(!debouncer->thread_started);
     free(debouncer);
 }
 
