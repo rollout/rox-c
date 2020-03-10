@@ -12,6 +12,7 @@ DO_CLEAN=0
 SKIP_INSTALL=0
 SKIP_TESTS=0
 BUILD_TYPE=Release
+BUILD_SUBDIR=release
 SKIP_BUILDING_THIRD_PARTY_LIBS=0
 
 while getopts ":SscITd:" opt; do
@@ -33,6 +34,7 @@ while getopts ":SscITd:" opt; do
       ;;
     s ) # enable debug symbols
       BUILD_TYPE=Debug
+      BUILD_SUBDIR=debug
       ;;
     \? ) echo "Usage: install.sh [-S] [-C] [-I] [-d]"
       ;;
@@ -66,10 +68,10 @@ echo "Building ${PROJECT_NAME}..."
 cd "${CWD}" || exit
 if [ "${DO_CLEAN}" -ne "0" ]; then
   echo "Cleaning up build directory."
-  rm -rf build/release
+  rm -rf build/${BUILD_SUBDIR}
 fi
-mkdir -p build/release
-cd build/release || exit
+mkdir -p build/${BUILD_SUBDIR}
+cd build/${BUILD_SUBDIR} || exit
 
 cmake ../../ -DCMAKE_INSTALL_PREFIX="${INSTALL_PREFIX}" -DROLLOUT_SKIP_TESTS=${SKIP_TESTS} -DCMAKE_BUILD_TYPE=${BUILD_TYPE}
 make
