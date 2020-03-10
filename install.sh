@@ -11,9 +11,10 @@ PROJECT_NAME="ROX SDK"
 DO_CLEAN=0
 SKIP_INSTALL=0
 SKIP_TESTS=0
+BUILD_TYPE=Release
 SKIP_BUILDING_THIRD_PARTY_LIBS=0
 
-while getopts ":ScITd:" opt; do
+while getopts ":SscITd:" opt; do
   case ${opt} in
     S ) # skip building third party libs
       SKIP_BUILDING_THIRD_PARTY_LIBS=1
@@ -29,6 +30,9 @@ while getopts ":ScITd:" opt; do
       ;;
     d ) # specify installation directory
       INSTALL_DIR=$OPTARG
+      ;;
+    s ) # enable debug symbols
+      BUILD_TYPE=Debug
       ;;
     \? ) echo "Usage: install.sh [-S] [-C] [-I] [-d]"
       ;;
@@ -67,7 +71,7 @@ fi
 mkdir -p build/release
 cd build/release || exit
 
-cmake ../../ -DCMAKE_INSTALL_PREFIX="${INSTALL_PREFIX}" -DROLLOUT_SKIP_TESTS=${SKIP_TESTS} -DCMAKE_BUILD_TYPE=Release
+cmake ../../ -DCMAKE_INSTALL_PREFIX="${INSTALL_PREFIX}" -DROLLOUT_SKIP_TESTS=${SKIP_TESTS} -DCMAKE_BUILD_TYPE=${BUILD_TYPE}
 make
 
 if [ "${SKIP_TESTS}" -ne "1" ]; then
