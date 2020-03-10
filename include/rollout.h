@@ -294,13 +294,13 @@ typedef enum RoxFetchStatus {
 } RoxFetchStatus;
 
 typedef enum RoxFetcherError {
+    NoError = 0,
     CorruptedJson = 1,
     EmptyJson,
     SignatureVerificationError,
     NetworkError,
     MismatchAppKey,
-    UnknownError,
-    NoError
+    UnknownError
 } RoxFetcherError;
 
 typedef struct RoxConfigurationFetchedArgs {
