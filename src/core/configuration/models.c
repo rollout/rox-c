@@ -64,6 +64,7 @@ ROX_INTERNAL void experiment_model_free(ExperimentModel *model) {
         rox_set_iter_free(iter);
         rox_set_free(model->labels);
     }
+    free(model);
 }
 
 //
