@@ -225,9 +225,6 @@ START_TEST (test_flag_dependency_impression_handler) {
 END_TEST
 
 START_TEST (test_flag_dependency2_levels_bottom_not_exists) {
-    RoxLoggingConfig config = ROX_LOGGING_CONFIG_INITIALIZER(RoxLogLevelTrace);
-    rox_logging_init(&config);
-
     ParserExtensionsTestContext *context = parser_extensions_test_context_create();
 
     RoxVariant *flag = variant_create_flag();
@@ -245,9 +242,6 @@ START_TEST (test_flag_dependency2_levels_bottom_not_exists) {
     free(value);
 
     parser_extensions_test_context_free(context);
-
-    RoxLoggingConfig old_config = ROX_LOGGING_CONFIG_INITIALIZER(RoxLogLevelDebug);
-    rox_logging_init(&old_config);
 }
 
 END_TEST
