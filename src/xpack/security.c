@@ -7,6 +7,7 @@
 #include "util.h"
 
 #include <stdlib.h>
+#include <string.h>
 
 //
 // SignatureVerifier
@@ -54,6 +55,7 @@ static bool xpack_signature_verifier(
                     verified = error_code == 1;
                 }
             }
+            EVP_MD_CTX_free(ctx);
         }
         EVP_PKEY_free(pub_key);
         X509_free(cert_x509);
