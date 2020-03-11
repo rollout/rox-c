@@ -1,6 +1,8 @@
 #include <stdbool.h>
 #include "os.h"
 #include "device.h"
+#include "util.h"
+#include "core/logging.h"
 
 #ifdef ROX_WINDOWS
 
