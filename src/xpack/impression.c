@@ -46,7 +46,7 @@ ROX_INTERNAL void x_impression_handler(
                     ROX_PROPERTY_TYPE_DISTINCT_ID.name);
             prop = custom_property_repository_get_custom_property(invoker->custom_property_repository, property_name);
         }
-        char *distinct_id = mem_copy_str("(null_distinct_id");
+        char *distinct_id = NULL;
         if (prop) {
             RoxDynamicValue *prop_value = custom_property_get_value(prop, context);
             if (rox_dynamic_value_is_string(prop_value)) {
@@ -60,7 +60,7 @@ ROX_INTERNAL void x_impression_handler(
         AnalyticsEvent *event = analytics_event_create(
                 value->name,
                 value->value,
-                distinct_id,
+                distinct_id ? distinct_id : "(null_distinct_id",
                 experiment->identifier);
         if (distinct_id) {
             free(distinct_id);
