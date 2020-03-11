@@ -382,10 +382,18 @@ typedef struct TokenizedExpression {
 ROX_INTERNAL void tokenized_expression_free(TokenizedExpression *expr) {
     assert(expr);
     if (expr->array_accumulator) {
-        rox_list_free(expr->array_accumulator); // FIXME: add warning: unclosed array literal
+        ROX_WARN("Unclosed array literal in roxx expression");
+        rox_list_free_cb(expr->array_accumulator,
+                         (void (*)(void *)) &rox_dynamic_value_free);
     }
     if (expr->dict_accumulator) {
-        rox_map_free(expr->dict_accumulator);  // FIXME: add warning: unclosed dictionary literal
+        ROX_WARN("Unclosed dictionary literal in roxx expression");
+        rox_map_free_with_keys_and_values_cb(expr->dict_accumulator,
+                                             &free, (void (*)(void *)) &rox_dynamic_value_free);
+    }
+    if (expr->dict_key) {
+        ROX_WARN("Unclosed dictionary literal in roxx expression");
+        free(expr->dict_key);
     }
     free(expr);
 }
@@ -469,7 +477,9 @@ ROX_INTERNAL RoxList *tokenized_expression_get_tokens(const char *expression, Ro
         if (!in_string && str_equals(token, DICT_START_DELIMITER)) {
             if (expr->dict_accumulator) {
                 ROX_WARN("new dict has started before the existing is closed");
-                rox_map_free(expr->dict_accumulator); // FIXME: what about dict-in-dict case?
+                rox_map_free_with_keys_and_values_cb(
+                        expr->dict_accumulator,
+                        &free, (void (*)(void *)) &rox_dynamic_value_free); // FIXME: what about dict-in-dict case?
             }
             expr->dict_accumulator = rox_map_create();
         } else if (!in_string && str_equals(token, DICT_END_DELIMITER)) {
@@ -482,7 +492,8 @@ ROX_INTERNAL RoxList *tokenized_expression_get_tokens(const char *expression, Ro
         } else if (!in_string && str_equals(token, ARRAY_START_DELIMITER)) {
             if (expr->array_accumulator) {
                 ROX_WARN("new array has started before the existing is closed");
-                rox_list_free(expr->array_accumulator);  // FIXME: what about array-in-array case?
+                rox_list_free_cb(expr->array_accumulator,
+                                 (void (*)(void *)) &rox_dynamic_value_free);  // FIXME: what about array-in-array case?
             }
             expr->array_accumulator = rox_list_create();
         } else if (!in_string && str_equals(token, ARRAY_END_DELIMITER)) {
