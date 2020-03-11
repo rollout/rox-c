@@ -40,7 +40,7 @@ while getopts ":SscITd:l" opt; do
       ;;
     l ) # find memory leaks
       FIND_LEAKS=1
-      CTEST_EXTRA_ARGS=-DExperimentalMemCheck
+      CTEST_EXTRA_ARGS=-D ExperimentalMemCheck
       ;;
     \? ) echo "Usage: install.sh [-S] [-C] [-I] [-d]"
       ;;
