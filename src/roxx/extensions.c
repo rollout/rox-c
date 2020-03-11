@@ -40,7 +40,8 @@ ROX_INTERNAL void _parser_operator_merge_seed(void *target, Parser *parser, Core
     rox_stack_push_string_ptr(stack, merged);
 }
 
-ROX_INTERNAL void _parser_operator_is_in_percentage(void *target, Parser *parser, CoreStack *stack, RoxContext *context) {
+ROX_INTERNAL void
+_parser_operator_is_in_percentage(void *target, Parser *parser, CoreStack *stack, RoxContext *context) {
     assert(parser);
     assert(stack);
     StackItem *item1 = rox_stack_pop(stack);
@@ -87,9 +88,10 @@ ROX_INTERNAL void _parser_operator_flag_value(void *target, Parser *parser, Core
                     parser, flags_experiment->condition, context);
             char *result_str = result_get_string(evaluation_result);
             if (!str_is_empty(result_str)) {
-                result = result_str;
+                result = mem_copy_str(result_str);
                 value_set = true;
             }
+            result_free(evaluation_result);
         }
     }
     if (!result && !value_set) {

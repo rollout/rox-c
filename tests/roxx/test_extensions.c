@@ -269,6 +269,7 @@ START_TEST (test_flag_dependency_unexisting_flag_but_existing_experiment) {
     ck_assert_str_eq("blue", result);
     free(result);
 
+    flag_setter_free(flag_setter);
     parser_extensions_test_context_free(context);
 }
 
@@ -297,6 +298,7 @@ START_TEST (test_flag_dependency_unexisting_flag_and_experiment_undefined) {
     ck_assert_str_eq("green", result);
     free(result);
 
+    flag_setter_free(flag_setter);
     parser_extensions_test_context_free(context);
 }
 
