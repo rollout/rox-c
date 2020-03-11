@@ -127,6 +127,7 @@ ROX_INTERNAL LoggingTestFixture *logging_test_fixture_create(RoxLogLevel log_lev
 ROX_INTERNAL void logging_test_fixture_free(LoggingTestFixture *fixture) {
     assert(fixture);
     rox_list_free_cb(fixture->log_records, (void (*)(void *)) &_log_record_free);
+    free(fixture);
 }
 
 ROX_INTERNAL void logging_test_fixture_check_no_messages(LoggingTestFixture *fixture, RoxLogLevel log_level) {
