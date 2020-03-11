@@ -171,9 +171,11 @@ END_TEST
 START_TEST (test_will_check_md5_uses_right_props) {
     RoxMap *props = rox_map_create();
     rox_map_add(props, ROX_PROPERTY_TYPE_PLATFORM.name, "plat");
-    char *md5 = md5_generator_generate(props, ROX_LIST(&ROX_PROPERTY_TYPE_PLATFORM), NULL);
+    RoxList *generators = ROX_LIST(&ROX_PROPERTY_TYPE_PLATFORM);
+    char *md5 = md5_generator_generate(props, generators, NULL);
     rox_check_and_free(md5, "1380AFEBC7CE22DE7B3450F8CAB86D2C");
     rox_map_free(props);
+    rox_list_free(generators);
 }
 
 END_TEST
@@ -182,9 +184,11 @@ START_TEST (test_will_check_md5_not_using_all_props) {
     RoxMap *props = rox_map_create();
     rox_map_add(props, ROX_PROPERTY_TYPE_DEV_MODE_SECRET.name, "dev");
     rox_map_add(props, ROX_PROPERTY_TYPE_PLATFORM.name, "plat");
-    char *md5 = md5_generator_generate(props, ROX_LIST(&ROX_PROPERTY_TYPE_PLATFORM), NULL);
+    RoxList *generators = ROX_LIST(&ROX_PROPERTY_TYPE_PLATFORM);
+    char *md5 = md5_generator_generate(props, generators, NULL);
     rox_check_and_free(md5, "1380AFEBC7CE22DE7B3450F8CAB86D2C");
     rox_map_free(props);
+    rox_list_free(generators);
 }
 
 END_TEST
@@ -193,11 +197,13 @@ START_TEST (test_will_check_md5_with_objects) {
     RoxMap *props = rox_map_create();
     rox_map_add(props, ROX_PROPERTY_TYPE_DEV_MODE_SECRET.name, "22");
     rox_map_add(props, ROX_PROPERTY_TYPE_PLATFORM.name, "True"); // Dotnet legacy, true becomes True
-    char *md5 = md5_generator_generate(props, ROX_LIST(
+    RoxList *generators = ROX_LIST(
             &ROX_PROPERTY_TYPE_PLATFORM,
-            &ROX_PROPERTY_TYPE_DEV_MODE_SECRET), NULL);
+            &ROX_PROPERTY_TYPE_DEV_MODE_SECRET);
+    char *md5 = md5_generator_generate(props, generators, NULL);
     rox_check_and_free(md5, "D3816631EDE04D536EAEB479FE5829FD");
     rox_map_free(props);
+    rox_list_free(generators);
 }
 
 END_TEST
@@ -206,11 +212,13 @@ START_TEST (test_will_check_md5_with_json_object) {
     RoxMap *props = rox_map_create();
     rox_map_add(props, ROX_PROPERTY_TYPE_DEV_MODE_SECRET.name, "[{\"key\":\"value\"}]");
     rox_map_add(props, ROX_PROPERTY_TYPE_PLATFORM.name, "value"); // Dotnet legacy, true becomes True
-    char *md5 = md5_generator_generate(props, ROX_LIST(
+    RoxList *generators = ROX_LIST(
             &ROX_PROPERTY_TYPE_PLATFORM,
-            &ROX_PROPERTY_TYPE_DEV_MODE_SECRET), NULL);
+            &ROX_PROPERTY_TYPE_DEV_MODE_SECRET);
+    char *md5 = md5_generator_generate(props, generators, NULL);
     rox_check_and_free(md5, "AA16F2AA33D095940A93C991B00D55C7");
     rox_map_free(props);
+    rox_list_free(generators);
 }
 
 END_TEST

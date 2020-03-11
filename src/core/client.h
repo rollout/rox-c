@@ -235,9 +235,9 @@ ROX_INTERNAL void internal_flags_free(InternalFlags *flags);
 /**
  * Note: the returned string must be freed after use.
  *
- * @param properties Map property name (<code>char *</code>) => property value (<code>char *</code>). Not <code>NULL</code>.
- * @param generator_list List of <code>PropertyType *</code>. Not <code>NULL</code>.
- * @param extra_values List of <code>char* </code> May be <code>NULL</code>.
+ * @param properties Map property name (<code>char *</code>) => property value (<code>char *</code>). Not <code>NULL</code>. The caller is responsible for freeing it.
+ * @param generator_list List of <code>PropertyType *</code>. Not <code>NULL</code>. The caller is responsible for freeing it.
+ * @param extra_values List of <code>char* </code> May be <code>NULL</code>. The caller is responsible for freeing it.
  * @return Not <code>NULL</code>.
  */
 ROX_INTERNAL char *md5_generator_generate(RoxMap *properties, RoxList *generator_list, RoxList *extra_values);
