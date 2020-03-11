@@ -172,6 +172,7 @@ ROX_INTERNAL void rox_options_free(RoxOptions *options) {
     if (options->roxy_url) {
         free(options->roxy_url);
     }
+    free(options);
 }
 
 //
