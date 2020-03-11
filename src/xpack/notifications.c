@@ -396,8 +396,8 @@ ROX_INTERNAL void _event_source_reader_free(EventSourceReader *reader) {
 ROX_INTERNAL NotificationListenerEvent *notification_listener_event_create(const char *event_name, const char *data) {
     assert(event_name);
     NotificationListenerEvent *event = calloc(1, sizeof(NotificationListenerEvent));
-    event->event_name = event_name;
-    event->data = data;
+    event->event_name = mem_copy_str(event_name);
+    event->data = data ? mem_copy_str(data) : NULL;
     return event;
 }
 
@@ -411,6 +411,10 @@ ROX_INTERNAL NotificationListenerEvent *notification_listener_event_copy(Notific
 
 ROX_INTERNAL void notification_listener_event_free(NotificationListenerEvent *event) {
     assert(event);
+    free(event->event_name);
+    if (event->data) {
+        free(event->data);
+    }
     free(event);
 }
 

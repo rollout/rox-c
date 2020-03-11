@@ -7,8 +7,8 @@
 //
 
 typedef struct NotificationListenerEvent {
-    const char *event_name;
-    const char *data;
+    char *event_name;
+    char *data;
 } NotificationListenerEvent;
 
 /**
