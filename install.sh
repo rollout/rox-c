@@ -44,7 +44,7 @@ while getopts ":SscITd:lt:" opt; do
     l ) # find memory leaks
       FIND_LEAKS=1
       ;;
-    \? ) echo "Usage: install.sh [-S] [-C] [-I] [-d]"
+    \? ) echo "Usage: install.sh [-S] [-T] [-I] [-d] [-s] [-c] [-l] [-t]"
       ;;
   esac
 done
