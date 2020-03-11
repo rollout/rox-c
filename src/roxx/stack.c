@@ -6,11 +6,11 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include "stack.h"
-#include "util.h"
+#include "collections.h"
 
 struct CoreStack {
-    StackItem *first;
     StackItem *current;
+    RoxSet *all;
 };
 
 struct StackItem {
@@ -19,19 +19,19 @@ struct StackItem {
 };
 
 ROX_INTERNAL CoreStack *rox_stack_create() {
-    return (CoreStack *) calloc(1, sizeof(CoreStack));
+    CoreStack *stack = (CoreStack *) calloc(1, sizeof(CoreStack));
+    stack->all = ROX_EMPTY_SET;
+    return stack;
 }
 
 ROX_INTERNAL void rox_stack_free(CoreStack *stack) {
     assert(stack);
-    StackItem *item = stack->first;
-    while (item) {
-        StackItem *next = item->next;
-        rox_dynamic_value_free(item->value);
-        free(item);
-        item = next;
-    }
-    stack->current = NULL;
+    ROX_SET_FOREACH(item, stack->all, {
+        StackItem *stack_item = (StackItem *) item;
+        rox_dynamic_value_free(stack_item->value);
+        free(stack_item);
+    })
+    rox_set_free(stack->all);
     free(stack);
 }
 
@@ -50,9 +50,7 @@ ROX_INTERNAL StackItem *_create_stack_item(RoxDynamicValue *value) {
 ROX_INTERNAL void _stack_push(CoreStack *stack, StackItem *item) {
     assert(stack);
     assert(item);
-    if (!stack->first) {
-        stack->first = item;
-    }
+    rox_set_add(stack->all, item);
     item->next = stack->current;
     stack->current = item;
 }
