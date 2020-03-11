@@ -112,6 +112,9 @@ START_TEST (test_configuration_fetched_args_constructor) {
     ck_assert_ptr_null(args2->creation_date);
     ck_assert_int_eq(false, args2->has_changes);
     ck_assert_int_eq(SignatureVerificationError, args2->error_details);
+
+    configuration_fetched_args_free(args);
+    configuration_fetched_args_free(args2);
 }
 
 END_TEST
