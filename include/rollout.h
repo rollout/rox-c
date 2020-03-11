@@ -606,6 +606,17 @@ ROX_API void rox_set_custom_computed_semver_property(
 typedef struct RoxDynamicApi RoxDynamicApi;
 
 /**
+ * @param api Not <code>NULL</code>.
+ * @param name Not <code>NULL</code>.
+ * @param context May be <code>NULL</code>.
+ */
+ROX_API bool rox_dynamic_api_is_enabled(
+        RoxDynamicApi *api,
+        const char *name,
+        bool default_value,
+        RoxContext *context);
+
+/**
  * The returned value, if not <code>NULL</code>, must be freed after use by the caller.
  *
  * @param api Not <code>NULL</code>.

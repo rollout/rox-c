@@ -367,6 +367,13 @@ namespace Rox {
         return new DynamicApi(rox_dynamic_api());
     }
 
+    ROX_API bool DynamicApi::IsEnabled(const char *name,
+                                       bool default_value,
+                                       Context *context) {
+        assert(name);
+        return rox_dynamic_api_is_enabled(_handle, name, default_value, context);
+    }
+
     ROX_API char *DynamicApi::GetValue(const char *name,
                                        char *default_value,
                                        Context *context) {

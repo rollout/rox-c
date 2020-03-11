@@ -244,6 +244,10 @@ namespace Rox {
 
         static DynamicApi *Create();
 
+        bool IsEnabled(const char *name,
+                       bool default_value = false,
+                       Context *context = nullptr);
+
         char *GetValue(const char *name,
                        char *default_value = nullptr,
                        Context *context = nullptr);
