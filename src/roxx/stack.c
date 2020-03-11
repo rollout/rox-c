@@ -7,6 +7,7 @@
 #include <stdbool.h>
 #include "stack.h"
 #include "collections.h"
+#include "core/logging.h"
 
 struct CoreStack {
     StackItem *current;
@@ -19,9 +20,11 @@ struct StackItem {
 };
 
 static StackItem *_stack_item_create(RoxDynamicValue *value) {
+    assert(value);
     // calloc sets all bytes to zeroes, so pointers must be NULLed by default.
     StackItem *item = (StackItem *) calloc(1, sizeof(StackItem));
     item->value = value;
+    ROX_TRACE("stack item created");
     return item;
 }
 
@@ -29,19 +32,24 @@ static void _stack_item_free(StackItem *item) {
     assert(item);
     rox_dynamic_value_free(item->value);
     free(item);
+    ROX_TRACE("stack item freed");
 }
 
 ROX_INTERNAL CoreStack *rox_stack_create() {
     CoreStack *stack = (CoreStack *) calloc(1, sizeof(CoreStack));
     stack->all = ROX_EMPTY_SET;
+    ROX_TRACE("new stack created");
     return stack;
 }
 
 ROX_INTERNAL void rox_stack_free(CoreStack *stack) {
     assert(stack);
+    int freed = 0;
     ROX_SET_FOREACH(item, stack->all, {
         _stack_item_free(item);
+        ++freed;
     })
+    ROX_TRACE("%d stack items freed");
     rox_set_free(stack->all);
     free(stack);
 }
