@@ -120,12 +120,18 @@ ROX_INTERNAL void variant_set_context(RoxVariant *variant, RoxContext *context) 
 ROX_INTERNAL void variant_set_name(RoxVariant *variant, const char *name) {
     assert(variant);
     assert(name);
+    if (variant->name) {
+        free(variant->name);
+    }
     variant->name = mem_copy_str(name);
 }
 
 ROX_INTERNAL void variant_set_condition(RoxVariant *variant, const char *condition) {
     assert(variant);
     assert(condition);
+    if (variant->condition) {
+        free(variant->condition);
+    }
     variant->condition = mem_copy_str(condition);
 }
 
