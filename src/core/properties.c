@@ -83,7 +83,7 @@ ROX_INTERNAL RoxDynamicValue *custom_property_get_value(CustomProperty *property
     return NULL;
 }
 
-ROX_INTERNAL cJSON * custom_property_to_json(CustomProperty *property) {
+ROX_INTERNAL cJSON *custom_property_to_json(CustomProperty *property) {
     assert(property);
     return ROX_JSON_OBJECT(
             "name", ROX_JSON_STRING(property->name),
@@ -94,6 +94,9 @@ ROX_INTERNAL cJSON * custom_property_to_json(CustomProperty *property) {
 ROX_INTERNAL void custom_property_free(CustomProperty *property) {
     assert(property);
     free(property->name);
+    if (property->value) {
+        rox_dynamic_value_free(property->value);
+    }
     free(property);
 }
 

@@ -38,6 +38,12 @@ ROX_INTERNAL CustomProperty *custom_property_create(
         void *target,
         rox_custom_property_value_generator generator);
 
+/**
+ * @param name Not <code>NULL</code>.
+ * @param type Not <code>NULL</code>.
+ * @param value Not <code>NULL</code>. The ownership is delegated to the returned <code>CustomProperty</code>.
+ * @return Not <code>NULL</code>.
+ */
 ROX_INTERNAL CustomProperty *custom_property_create_using_value(
         const char *name,
         const CustomPropertyType *type,
