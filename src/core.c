@@ -346,12 +346,6 @@ ROX_INTERNAL bool rox_core_setup(
             core->api_key_verifier,
             core->configuration_fetched_invoker);
 
-    core->flag_setter = flag_setter_create(
-            core->flag_repository,
-            core->parser,
-            core->experiment_repository,
-            core->impression_invoker);
-
     rox_core_fetch(core, false);
 
     if (rox_options) {

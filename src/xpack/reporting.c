@@ -47,8 +47,17 @@ static void _x_error_reporter_send_error(XErrorReporter *x_reporter, cJSON *json
     assert(json);
 
     ROX_DEBUG("Sending bugsnag error report...");
-    request_send_post_json(x_reporter->request, BUGSNAG_NOTIFY_URL, json);
-    ROX_DEBUG("Bugsnag error report was sent");
+    HttpResponseMessage *message = request_send_post_json(x_reporter->request, BUGSNAG_NOTIFY_URL, json);
+    if (message && response_message_is_successful(message)) {
+        ROX_DEBUG("Bugsnag error report was sent");
+    } else {
+        ROX_ERROR("Bugsnag error report was NOT sent. Response code is %d (%s)",
+                  message ? response_message_get_status(message) : 0,
+                  message ? response_get_contents(message) : "unknown");
+    }
+    if (message) {
+        response_message_free(message);
+    }
 }
 
 #undef BUGSNAG_NOTIFY_URL

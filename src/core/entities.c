@@ -286,7 +286,7 @@ ROX_INTERNAL FlagSetter *flag_setter_create(
         ImpressionInvoker *impression_invoker) {
     assert(flag_repository);
     assert(experiment_repository);
-    FlagSetter *flag_setter = calloc(1, sizeof(struct FlagSetter));
+    FlagSetter *flag_setter = calloc(1, sizeof(FlagSetter));
     flag_setter->flag_repository = flag_repository;
     flag_setter->parser = parser;
     flag_setter->experiment_repository = experiment_repository;
