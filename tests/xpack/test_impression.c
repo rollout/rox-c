@@ -145,7 +145,9 @@ static void _impression_test_context_free(ImpressionInvocationTestContext *ctx) 
     assert(ctx);
     impression_invoker_free(ctx->invoker);
     x_impression_invoker_free(ctx->x_invoker);
-    analytics_client_free(ctx->client);
+    if (ctx->client) {
+        analytics_client_free(ctx->client);
+    }
     device_properties_free(ctx->device_properties);
     rox_options_free(ctx->rox_options);
     custom_property_repository_free(ctx->custom_property_repository);
@@ -243,6 +245,7 @@ START_TEST (test_will_not_invoke_analytics_when_flag_is_off) {
     experiment_model_free(experiment);
     reporting_value_free(reporting_value);
     rox_context_free(context);
+    _impression_test_context_free(ctx);
 }
 
 END_TEST
@@ -263,9 +266,9 @@ START_TEST (test_will_not_invoke_analytics_when_is_roxy) {
     _impression_values_check(ctx->impressions, 0, reporting_value, experiment, context);
     ck_assert_int_eq(rox_list_size(ctx->analytics_events), 0);
 
-    experiment_model_free(experiment);
     reporting_value_free(reporting_value);
     rox_context_free(context);
+    _impression_test_context_free(ctx);
 }
 
 END_TEST
@@ -310,6 +313,7 @@ START_TEST (test_will_invoke_analytics) {
 
     reporting_value_free(reporting_value);
     rox_context_free(context);
+    _impression_test_context_free(ctx);
 }
 
 END_TEST
@@ -362,6 +366,7 @@ START_TEST (test_will_invoke_analytics_with_stickiness_prop) {
 
     reporting_value_free(reporting_value);
     rox_context_free(context);
+    _impression_test_context_free(ctx);
 }
 
 END_TEST
@@ -414,6 +419,7 @@ START_TEST (test_will_invoke_analytics_with_default_prop_when_no_stickiness_prop
 
     reporting_value_free(reporting_value);
     rox_context_free(context);
+    _impression_test_context_free(ctx);
 }
 
 END_TEST
@@ -452,6 +458,7 @@ START_TEST (test_will_invoke_analytics_with_bad_distinct_id) {
 
     reporting_value_free(reporting_value);
     rox_context_free(context);
+    _impression_test_context_free(ctx);
 }
 
 END_TEST
