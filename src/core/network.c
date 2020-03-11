@@ -421,9 +421,15 @@ static ConfigurationFetchResult *_configuration_fetcher_fetch_using_roxy_url(Con
     assert(fetcher);
     HttpResponseMessage *message = _configuration_fetcher_internal_fetch(fetcher);
     if (message && response_message_is_successful(message)) {
-        return _configuration_fetcher_create_result(fetcher, message, CONFIGURATION_SOURCE_ROXY);
+        ConfigurationFetchResult *result = _configuration_fetcher_create_result(fetcher, message,
+                                                                                CONFIGURATION_SOURCE_ROXY);
+        response_message_free(message);
+        return result;
     } else {
         _configuration_fetcher_handle_error(fetcher, CONFIGURATION_SOURCE_ROXY, message, true, 0);
+        if (message) {
+            response_message_free(message);
+        }
         return NULL;
     }
 }
@@ -552,7 +558,9 @@ ROX_INTERNAL ConfigurationFetchResult *configuration_fetcher_fetch(Configuration
         }
         if (response_message_is_successful(message)) {
             rox_map_free_with_values(properties);
-            return _configuration_fetcher_create_result(fetcher, message, source);
+            result = _configuration_fetcher_create_result(fetcher, message, source);
+            response_message_free(message);
+            return result;
         }
     }
 
