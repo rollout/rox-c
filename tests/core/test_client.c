@@ -253,6 +253,7 @@ START_TEST (test_will_generate_correct_md5_value) {
     ck_assert_str_eq(buid_get_value(buid2), "F5F30C84B8A806E0004043864724A56E");
     buid_free(buid2);
     device_properties_free(device_props2);
+    rox_options_free(options);
 }
 
 END_TEST

@@ -115,6 +115,7 @@ static void configuration_test_context_free(ConfigurationTestContext *context) {
     assert(context);
     error_reporter_free(context->error_reporter);
     api_key_verifier_free(context->key_verifier);
+    signature_verifier_free(context->signature_verifier);
     configuration_fetched_invoker_free(context->invoker);
     configuration_fetch_result_free(context->result);
     configuration_parser_free(context->parser);
@@ -236,6 +237,7 @@ START_TEST (test_will_parse_experiments_and_target_groups) {
     ck_assert_int_eq(rox_set_size(experiment_model->labels), 0);
 
     configuration_test_context_free(context);
+    configuration_free(conf);
 }
 
 END_TEST

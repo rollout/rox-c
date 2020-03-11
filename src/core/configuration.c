@@ -414,15 +414,25 @@ ROX_INTERNAL Configuration *configuration_parser_parse(
     }
 
     cJSON *internal_data_object = cJSON_Parse(data_json->valuestring);
+    if (!internal_data_object) {
+        configuration_fetched_invoker_invoke_error(
+                parser->configuration_fetched_invoker,
+                CorruptedJson);
+        return NULL;
+    }
+
     if (!_configuration_parser_is_api_key_verified(parser, internal_data_object)) {
         configuration_fetched_invoker_invoke_error(
                 parser->configuration_fetched_invoker,
                 MismatchAppKey);
+        cJSON_Delete(internal_data_object);
         return NULL;
     }
 
     RoxList *experiments = _configuration_parser_parse_experiments(parser, internal_data_object);
     RoxList *target_groups = _configuration_parser_parse_target_groups(parser, internal_data_object);
+    cJSON_Delete(internal_data_object);
+    
     if (experiments == NULL || target_groups == NULL) {
         if (experiments) {
             rox_list_free_cb(experiments, (void (*)(void *)) &experiment_model_free);
