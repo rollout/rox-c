@@ -395,16 +395,21 @@ ROX_INTERNAL void _tokenized_expression_push_node(TokenizedExpression *expr, Par
     assert(node);
     assert(node_list);
     if (expr->dict_accumulator && !expr->dict_key) {
-        expr->dict_key = rox_dynamic_value_get_string(node->value);
+        expr->dict_key = mem_copy_str(rox_dynamic_value_get_string(node->value));
+        node_free(node);
     } else if (expr->dict_accumulator && expr->dict_key) {
         if (!rox_map_contains_key(expr->dict_accumulator, expr->dict_key)) {
             rox_map_add(expr->dict_accumulator,
-                        mem_copy_str(expr->dict_key),
-                        node->value);
+                        expr->dict_key,
+                        rox_dynamic_value_create_copy(node->value));
+        } else {
+            free(expr->dict_key);
         }
+        node_free(node);
         expr->dict_key = NULL;
     } else if (expr->array_accumulator) {
-        rox_list_add(expr->array_accumulator, node->value);
+        rox_list_add(expr->array_accumulator, rox_dynamic_value_create_copy(node->value));
+        node_free(node);
     } else {
         rox_list_add(node_list, node);
     }
@@ -979,7 +984,7 @@ ROX_INTERNAL EvaluationResult *parser_evaluate_expression(Parser *parser, const 
         result = _create_result_from_stack_item(item);
     }
 
-    rox_list_free_cb(tokens, (void (*)(void *)) &node_free); // here all the inner lists and maps should be freeed
+    rox_list_free_cb(tokens, (void (*)(void *)) &node_free); // here all the inner lists and maps should be freed
     rox_stack_free(stack);
 
     return result;
