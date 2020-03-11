@@ -278,12 +278,14 @@ START_TEST (test_will_invoke_analytics) {
     RoxContext *context = rox_context_create_from_map(ROX_MAP(ROX_COPY("obj1"), rox_dynamic_value_create_int(1)));
     RoxReportingValue *reporting_value = reporting_value_create("name", "value");
 
+    char *name = mem_str_format("rox.%s", ROX_PROPERTY_TYPE_DISTINCT_ID.name);
     custom_property_repository_add_custom_property(
             ctx->custom_property_repository,
             custom_property_create_using_value(
-                    mem_str_format("rox.%s", ROX_PROPERTY_TYPE_DISTINCT_ID.name),
+                    name,
                     &ROX_CUSTOM_PROPERTY_TYPE_STRING,
                     rox_dynamic_value_create_string_copy("stam")));
+    free(name);
 
     ExperimentModel *experiment = experiment_model_create(
             "id", "name", "cond", true, NULL,
@@ -323,12 +325,14 @@ START_TEST (test_will_invoke_analytics_with_stickiness_prop) {
     RoxContext *context = rox_context_create_from_map(ROX_MAP(ROX_COPY("obj1"), rox_dynamic_value_create_int(1)));
     RoxReportingValue *reporting_value = reporting_value_create("name", "value");
 
+    char *name = mem_str_format("rox.%s", ROX_PROPERTY_TYPE_DISTINCT_ID.name);
     custom_property_repository_add_custom_property(
             ctx->custom_property_repository,
             custom_property_create_using_value(
-                    mem_str_format("rox.%s", ROX_PROPERTY_TYPE_DISTINCT_ID.name),
+                    name,
                     &ROX_CUSTOM_PROPERTY_TYPE_STRING,
                     rox_dynamic_value_create_string_copy("stamDist")));
+    free(name);
 
     custom_property_repository_add_custom_property(
             ctx->custom_property_repository,
@@ -376,12 +380,14 @@ START_TEST (test_will_invoke_analytics_with_default_prop_when_no_stickiness_prop
     RoxContext *context = rox_context_create_from_map(ROX_MAP(ROX_COPY("obj1"), rox_dynamic_value_create_int(1)));
     RoxReportingValue *reporting_value = reporting_value_create("name", "value");
 
+    char *name = mem_str_format("rox.%s", ROX_PROPERTY_TYPE_DISTINCT_ID.name);
     custom_property_repository_add_custom_property(
             ctx->custom_property_repository,
             custom_property_create_using_value(
-                    mem_str_format("rox.%s", ROX_PROPERTY_TYPE_DISTINCT_ID.name),
+                    name,
                     &ROX_CUSTOM_PROPERTY_TYPE_STRING,
                     rox_dynamic_value_create_string_copy("stamDist")));
+    free(name);
 
     custom_property_repository_add_custom_property(
             ctx->custom_property_repository,
