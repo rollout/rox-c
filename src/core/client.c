@@ -269,7 +269,7 @@ ROX_INTERNAL const char *device_properties_get_rollout_key(DeviceProperties *pro
 ROX_INTERNAL void device_properties_free(DeviceProperties *properties) {
     assert(properties);
     free(properties->env);
-    rox_map_free_with_values(properties->map);
+    rox_map_free_with_values_cb(properties->map, &free);
     free(properties);
 }
 
