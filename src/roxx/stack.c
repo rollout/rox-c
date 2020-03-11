@@ -10,7 +10,7 @@
 
 struct CoreStack {
     StackItem *current;
-    RoxSet *all;
+    RoxList *all;
 };
 
 struct StackItem {
@@ -34,18 +34,13 @@ static void _stack_item_free(StackItem *item) {
 
 ROX_INTERNAL CoreStack *rox_stack_create() {
     CoreStack *stack = (CoreStack *) calloc(1, sizeof(CoreStack));
-    stack->all = ROX_EMPTY_SET;
+    stack->all = ROX_EMPTY_LIST;
     return stack;
 }
 
 ROX_INTERNAL void rox_stack_free(CoreStack *stack) {
     assert(stack);
-    int freed = 0;
-    ROX_SET_FOREACH(item, stack->all, {
-        _stack_item_free(item);
-        ++freed;
-    })
-    rox_set_free(stack->all);
+    rox_list_free_cb(stack->all, (void (*)(void *)) &_stack_item_free);
     free(stack);
 }
 
@@ -57,8 +52,7 @@ ROX_INTERNAL bool rox_stack_is_empty(CoreStack *stack) {
 ROX_INTERNAL void _stack_push(CoreStack *stack, StackItem *item) {
     assert(stack);
     assert(item);
-    bool added = rox_set_add(stack->all, item);
-    assert(added);
+    rox_list_add(stack->all, item);
     item->next = stack->current;
     stack->current = item;
 }
