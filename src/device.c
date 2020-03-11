@@ -19,7 +19,7 @@
 
 #define ROX_MACHINE_ID_BUFFER_LENGTH 128
 
-static const char *ROX_DEVICE_ID = NULL;
+static char *ROX_DEVICE_ID = NULL;
 
 static char *get_device_id() {
 #if defined(ROX_FREE_BSD)
@@ -74,9 +74,16 @@ static char *get_device_id() {
 
 #undef ROX_MACHINE_ID_BUFFER_LENGTH
 
+static void _rox_device_id_cleanup() {
+    if (ROX_DEVICE_ID) {
+        free(ROX_DEVICE_ID);
+    }
+}
+
 ROX_INTERNAL const char *rox_globally_unique_device_id() {
     if (!ROX_DEVICE_ID) {
         ROX_DEVICE_ID = get_device_id();
+        atexit(&_rox_device_id_cleanup);
     }
     return ROX_DEVICE_ID;
 }

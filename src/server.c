@@ -101,6 +101,8 @@ ROX_API void rox_setup(const char *api_key, RoxOptions *options) {
     } else {
         rox->initialized = true;
     }
+
+    atexit(&rox_shutdown);
 }
 
 static bool _check_setup_called() {
