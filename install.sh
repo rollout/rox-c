@@ -15,9 +15,9 @@ SKIP_TESTS=0
 BUILD_TYPE=Release
 BUILD_SUBDIR=release
 SKIP_BUILDING_THIRD_PARTY_LIBS=0
-CTEST_EXTRA_ARGS=
+TEST_TIMEOUT_SECONDS=60
 
-while getopts ":SscITd:l" opt; do
+while getopts ":SscITd:lt:" opt; do
   case ${opt} in
     S ) # skip building third party libs
       SKIP_BUILDING_THIRD_PARTY_LIBS=1
@@ -31,6 +31,9 @@ while getopts ":SscITd:l" opt; do
     T ) # skip testing step
       SKIP_TESTS=1
       ;;
+    t ) # specify test timeout
+      TEST_TIMEOUT_SECONDS=$OPTARG
+      ;;
     d ) # specify installation directory
       INSTALL_DIR=$OPTARG
       ;;
@@ -40,7 +43,6 @@ while getopts ":SscITd:l" opt; do
       ;;
     l ) # find memory leaks
       FIND_LEAKS=1
-      CTEST_EXTRA_ARGS=-D ExperimentalMemCheck
       ;;
     \? ) echo "Usage: install.sh [-S] [-C] [-I] [-d]"
       ;;
@@ -88,8 +90,11 @@ cmake ../../ \
 make
 
 if [ "${SKIP_TESTS}" -ne "1" ]; then
-  TEST_TIMEOUT_SECONDS=60
-  CK_DEFAULT_TIMEOUT=${TEST_TIMEOUT_SECONDS} ctest --output-on-failure --timeout ${TEST_TIMEOUT_SECONDS} ${CTEST_EXTRA_ARGS}
+  CTEST_COMMAND="CK_DEFAULT_TIMEOUT=${TEST_TIMEOUT_SECONDS} ctest --output-on-failure --timeout ${TEST_TIMEOUT_SECONDS}"
+  if [ "${FIND_LEAKS}" -ne "0" ]; then
+    CTEST_COMMAND="${CTEST_COMMAND} -D ExperimentalMemCheck"
+  fi
+  bash -c "${CTEST_COMMAND}"
 fi
 
 if [ "${SKIP_INSTALL}" -ne "1" ]; then
