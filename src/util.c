@@ -267,7 +267,7 @@ ROX_INTERNAL char *mem_str_replace(const char *str, const char *search, const ch
     char *replaced = strrep(str, search, rep);
     char *result = replaced == str // Pointer to the same string, not modified
                    ? mem_copy_str(str)
-                   : mem_copy_str(replaced);
+                   : replaced;
     return result;
 }
 

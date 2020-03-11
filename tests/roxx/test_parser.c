@@ -43,6 +43,7 @@ START_TEST (test_simple_tokenization) {
     ck_assert(rox_dynamic_value_is_string(node_get_value(node)));
     ck_assert_str_eq(rox_dynamic_value_get_string(node_get_value(node)), "123");
 
+    rox_map_free(operators);
     rox_list_free_cb(tokens, (void (*)(void *)) node_free);
 }
 
