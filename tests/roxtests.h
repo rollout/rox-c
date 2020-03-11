@@ -30,6 +30,7 @@ ROX_INTERNAL TCase *_rox_create_test_case(char *name, const TTest *test) {
 ROX_INTERNAL int _rox_run_tests(Suite *suite) {
     int number_failed;
     SRunner *runner = srunner_create(suite);
+    srunner_set_fork_status(runner, CK_NOFORK);
     srunner_run_all(runner, CK_NORMAL);
     number_failed = srunner_ntests_failed(runner);
     srunner_free(runner);
