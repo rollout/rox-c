@@ -1,8 +1,6 @@
 #include <stdbool.h>
 #include "os.h"
 #include "device.h"
-#include "util.h"
-#include "core/logging.h"
 
 #ifdef ROX_WINDOWS
 
@@ -19,23 +17,22 @@
 
 #define ROX_MACHINE_ID_BUFFER_LENGTH 128
 
-static char *ROX_DEVICE_ID = NULL;
+static char system_device_id[ROX_MACHINE_ID_BUFFER_LENGTH];
+static bool system_device_id_initialized = false;
 
 static char *get_device_id() {
 #if defined(ROX_FREE_BSD)
-    char buffer[ROX_MACHINE_ID_BUFFER_LENGTH];
-    if (rox_file_read_b("/etc/hostid", (unsigned char*)buffer, ROX_MACHINE_ID_BUFFER_LENGTH) == -1) {
+    if (rox_file_read_b("/etc/hostid", (unsigned char*)system_device_id, ROX_MACHINE_ID_BUFFER_LENGTH) == -1) {
         ROX_ERROR("Failed to read /etc/hostid");
         return NULL;
     }
-    return mem_copy_str(buffer);
+    return system_device_id;
 #elif defined(ROX_LINUX)
-    char buffer[ROX_MACHINE_ID_BUFFER_LENGTH];
-    if (rox_file_read_b("/var/lib/dbus/machine-id", (unsigned char*)buffer, ROX_MACHINE_ID_BUFFER_LENGTH) == -1) {
+    if (rox_file_read_b("/var/lib/dbus/machine-id", (unsigned char*)system_device_id, ROX_MACHINE_ID_BUFFER_LENGTH) == -1) {
         ROX_ERROR("Failed to read /var/lib/dbus/machine-id");
         return NULL;
     }
-    return mem_copy_str(buffer);
+    return system_device_id;
 #elif defined(ROX_APPLE)
     io_registry_entry_t registry_entry = IORegistryEntryFromPath(kIOMasterPortDefault, "IOService:/");
     if (!registry_entry) {
@@ -48,24 +45,23 @@ static char *get_device_id() {
         ROX_ERROR("IORegistryEntryCreateCFProperty failed");
         return NULL;
     }
-    char buffer[ROX_MACHINE_ID_BUFFER_LENGTH];
-    if (!CFStringGetCString(uuid_ref, buffer, ROX_MACHINE_ID_BUFFER_LENGTH, kCFStringEncodingASCII)) {
+    if (!CFStringGetCString(uuid_ref, system_device_id, ROX_MACHINE_ID_BUFFER_LENGTH, kCFStringEncodingASCII)) {
         ROX_ERROR("CFStringGetCString failed");
         CFRelease(uuid_ref);
         return NULL;
     }
     CFRelease(uuid_ref);
-    return mem_copy_str(buffer);
+    return system_device_id;
 #elif defined(ROX_WINDOWS)
     HKEY key = NULL;
     if (RegOpenKeyEx(HKEY_LOCAL_MACHINE, "SOFTWARE\\Microsoft\\Cryptography", 0,
                      KEY_READ | KEY_WOW64_64KEY, &key) == ERROR_SUCCESS) {
-        char buffer[ROX_MACHINE_ID_BUFFER_LENGTH + 1];
-        DWORD size = sizeof(buffer);
-        bool found = (RegQueryValueEx(key, "MachineGuid", NULL, NULL, (LPBYTE) buffer, &size) == ERROR_SUCCESS);
+        DWORD size = sizeof(system_device_id);
+        bool found = (RegQueryValueEx(key, "MachineGuid", NULL, NULL, (LPBYTE) system_device_id, &size) ==
+                      ERROR_SUCCESS);
         RegCloseKey(key);
         if (found) {
-            return mem_copy_str(buffer);
+            return system_device_id;
         }
     }
 #endif
@@ -74,16 +70,13 @@ static char *get_device_id() {
 
 #undef ROX_MACHINE_ID_BUFFER_LENGTH
 
-static void _rox_device_id_cleanup() {
-    if (ROX_DEVICE_ID) {
-        free(ROX_DEVICE_ID);
-    }
-}
-
 ROX_INTERNAL const char *rox_globally_unique_device_id() {
-    if (!ROX_DEVICE_ID) {
-        ROX_DEVICE_ID = get_device_id();
-        atexit(&_rox_device_id_cleanup);
+    if (system_device_id_initialized) {
+        return system_device_id;
     }
-    return ROX_DEVICE_ID;
+    char *device_id = get_device_id();
+    if (device_id != NULL) {
+        system_device_id_initialized = true;
+    }
+    return device_id;
 }
