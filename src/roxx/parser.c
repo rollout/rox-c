@@ -776,6 +776,8 @@ ROX_INTERNAL int _parser_operator_semver_cmp(
     char *s1 = rox_stack_get_string(item1);
     char *s2 = rox_stack_get_string(item2);
     semver_t v1, v2;
+    memset(&v1, 0, sizeof(semver_t));
+    memset(&v2, 0, sizeof(semver_t));
     v1.patch = -1;
     v2.patch = -1;
     if (semver_parse(s1, &v1) != 0 || semver_parse(s2, &v2) != 0) {

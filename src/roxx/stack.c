@@ -18,6 +18,19 @@ struct StackItem {
     StackItem *next;
 };
 
+static StackItem *_stack_item_create(RoxDynamicValue *value) {
+    // calloc sets all bytes to zeroes, so pointers must be NULLed by default.
+    StackItem *item = (StackItem *) calloc(1, sizeof(StackItem));
+    item->value = value;
+    return item;
+}
+
+static void _stack_item_free(StackItem *item) {
+    assert(item);
+    rox_dynamic_value_free(item->value);
+    free(item);
+}
+
 ROX_INTERNAL CoreStack *rox_stack_create() {
     CoreStack *stack = (CoreStack *) calloc(1, sizeof(CoreStack));
     stack->all = ROX_EMPTY_SET;
@@ -27,9 +40,7 @@ ROX_INTERNAL CoreStack *rox_stack_create() {
 ROX_INTERNAL void rox_stack_free(CoreStack *stack) {
     assert(stack);
     ROX_SET_FOREACH(item, stack->all, {
-        StackItem *stack_item = (StackItem *) item;
-        rox_dynamic_value_free(stack_item->value);
-        free(stack_item);
+        _stack_item_free(item);
     })
     rox_set_free(stack->all);
     free(stack);
@@ -40,17 +51,11 @@ ROX_INTERNAL bool rox_stack_is_empty(CoreStack *stack) {
     return !stack->current;
 }
 
-ROX_INTERNAL StackItem *_create_stack_item(RoxDynamicValue *value) {
-    // calloc sets all bytes to zeroes, so pointers must be NULLed by default.
-    StackItem *item = (StackItem *) calloc(1, sizeof(StackItem));
-    item->value = value;
-    return item;
-}
-
 ROX_INTERNAL void _stack_push(CoreStack *stack, StackItem *item) {
     assert(stack);
     assert(item);
-    rox_set_add(stack->all, item);
+    bool added = rox_set_add(stack->all, item);
+    assert(added);
     item->next = stack->current;
     stack->current = item;
 }
@@ -97,7 +102,7 @@ ROX_INTERNAL void rox_stack_push_map(CoreStack *stack, RoxMap *value) {
 ROX_INTERNAL void rox_stack_push_dynamic_value(CoreStack *stack, RoxDynamicValue *value) {
     assert(stack);
     assert(value);
-    _stack_push(stack, _create_stack_item(value));
+    _stack_push(stack, _stack_item_create(value));
 }
 
 ROX_INTERNAL void rox_stack_push_null(CoreStack *stack) {
