@@ -7,8 +7,8 @@
 #include "collections.h"
 
 typedef struct ImpressionArgs {
-    const char *name;
-    const char *value;
+    char *name;
+    char *value;
 } ImpressionArgs;
 
 typedef struct ParserExtensionsTestContext {
@@ -41,8 +41,8 @@ static void _parser_extensions_impression_handler(
         RoxContext *context) {
     ParserExtensionsTestContext *test_context = (ParserExtensionsTestContext *) target;
     ImpressionArgs *args = calloc(1, sizeof(ImpressionArgs));
-    args->name = value->name;
-    args->value = value->value;
+    args->name = mem_copy_str(value->name);
+    args->value = value->value ? mem_copy_str(value->value) : NULL;
     rox_list_add(test_context->impressions, args);
 }
 
@@ -68,6 +68,15 @@ static ParserExtensionsTestContext *parser_extensions_test_context_create() {
     return context;
 }
 
+static void _impression_arg_free(ImpressionArgs *args) {
+    assert(args);
+    free(args->name);
+    if (args->value) {
+        free(args->value);
+    }
+    free(args);
+}
+
 static void parser_extensions_test_context_free(ParserExtensionsTestContext *context) {
     assert(context);
     target_group_repository_free(context->target_groups_repository);
@@ -76,7 +85,7 @@ static void parser_extensions_test_context_free(ParserExtensionsTestContext *con
     custom_property_repository_free(context->custom_property_repository);
     dynamic_properties_free(context->dynamic_properties);
     parser_free(context->parser);
-    rox_list_free_cb(context->impressions, &free);
+    rox_list_free_cb(context->impressions, &_impression_arg_free);
     impression_invoker_free(context->impression_invoker);
     free(context);
 }
