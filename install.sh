@@ -9,13 +9,15 @@ INSTALL_SUBDIR=rollout-sdk
 PROJECT_NAME="ROX SDK"
 
 DO_CLEAN=0
+FIND_LEAKS=0
 SKIP_INSTALL=0
 SKIP_TESTS=0
 BUILD_TYPE=Release
 BUILD_SUBDIR=release
 SKIP_BUILDING_THIRD_PARTY_LIBS=0
+CTEST_EXTRA_ARGS=
 
-while getopts ":SscITd:" opt; do
+while getopts ":SscITd:l" opt; do
   case ${opt} in
     S ) # skip building third party libs
       SKIP_BUILDING_THIRD_PARTY_LIBS=1
@@ -35,6 +37,10 @@ while getopts ":SscITd:" opt; do
     s ) # enable debug symbols
       BUILD_TYPE=Debug
       BUILD_SUBDIR=debug
+      ;;
+    l ) # find memory leaks
+      FIND_LEAKS=1
+      CTEST_EXTRA_ARGS=-DExperimentalMemCheck
       ;;
     \? ) echo "Usage: install.sh [-S] [-C] [-I] [-d]"
       ;;
@@ -73,12 +79,17 @@ fi
 mkdir -p build/${BUILD_SUBDIR}
 cd build/${BUILD_SUBDIR} || exit
 
-cmake ../../ -DCMAKE_INSTALL_PREFIX="${INSTALL_PREFIX}" -DROLLOUT_SKIP_TESTS=${SKIP_TESTS} -DCMAKE_BUILD_TYPE=${BUILD_TYPE}
+cmake ../../ \
+  -DCMAKE_INSTALL_PREFIX="${INSTALL_PREFIX}" \
+  -DROLLOUT_SKIP_TESTS=${SKIP_TESTS} \
+  -DCMAKE_BUILD_TYPE=${BUILD_TYPE} \
+  -DROLLOUT_FIND_LEAKS=${FIND_LEAKS}
+
 make
 
 if [ "${SKIP_TESTS}" -ne "1" ]; then
   TEST_TIMEOUT_SECONDS=60
-  CK_DEFAULT_TIMEOUT=${TEST_TIMEOUT_SECONDS} ctest --output-on-failure --timeout ${TEST_TIMEOUT_SECONDS}
+  CK_DEFAULT_TIMEOUT=${TEST_TIMEOUT_SECONDS} ctest --output-on-failure --timeout ${TEST_TIMEOUT_SECONDS} ${CTEST_EXTRA_ARGS}
 fi
 
 if [ "${SKIP_INSTALL}" -ne "1" ]; then
