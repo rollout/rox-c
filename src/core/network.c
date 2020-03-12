@@ -94,10 +94,9 @@ typedef struct RequestCurlHandle {
 
 static void _request_delete_handle(RequestCurlHandle *handle) {
     assert(handle);
-    rox_list_remove(handle->request->curl_handles, handle->curl);
     curl_easy_cleanup(handle->curl);
+    handle->curl = NULL;
     pthread_setspecific(handle->request->thread_local_storage_key, NULL);
-    free(handle);
 }
 
 static CURL *_request_get_handle(Request *request) {
@@ -108,7 +107,7 @@ static CURL *_request_get_handle(Request *request) {
         handle->request = request;
         handle->curl = curl_easy_init();
         pthread_setspecific(request->thread_local_storage_key, handle);
-        rox_list_add(request->curl_handles, handle->curl);
+        rox_list_add(request->curl_handles, handle);
     }
     return handle->curl;
 }
@@ -291,7 +290,14 @@ ROX_INTERNAL HttpResponseMessage *request_send_post_json(Request *request, const
 
 ROX_INTERNAL void request_free(Request *request) {
     assert(request);
-    rox_list_free_cb(request->curl_handles, &curl_easy_cleanup);
+    ROX_LIST_FOREACH(item, request->curl_handles, {
+        RequestCurlHandle *handle = (RequestCurlHandle *) item;
+        if (handle->curl) {
+            curl_easy_cleanup(handle->curl);
+        }
+        free(handle);
+    })
+    rox_list_free(request->curl_handles);
     pthread_key_delete(request->thread_local_storage_key);
     free(request);
 }
