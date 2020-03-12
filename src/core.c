@@ -71,7 +71,6 @@ static void _periodic_task_free(PeriodicTask *task) {
     if (task->thread_started) {
         pthread_cancel(task->thread);
         pthread_join(task->thread, NULL);
-        pthread_detach(task->thread);
     }
     free(task);
 }

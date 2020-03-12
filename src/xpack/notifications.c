@@ -62,7 +62,6 @@ ROX_INTERNAL void _event_source_reader_stop(EventSourceReader *reader) {
         reader->reading = false;
         pthread_cancel(reader->thread);
         pthread_join(reader->thread, NULL);
-        pthread_detach(reader->thread);
         _cleanup_curl_handle(reader);
     }
 }

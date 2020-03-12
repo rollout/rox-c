@@ -82,7 +82,6 @@ ROX_INTERNAL void debouncer_free(Debouncer *debouncer) {
     if (debouncer->thread_started) {
         pthread_cancel(debouncer->thread);
         pthread_join(debouncer->thread, NULL);
-        pthread_detach(debouncer->thread);
     }
     free(debouncer);
 }
