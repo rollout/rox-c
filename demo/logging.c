@@ -12,6 +12,7 @@ static void _file_logging_handler(void *target, RoxLogMessage *message) {
     assert(message);
     FILE *file = (FILE *) target;
     fprintf(file, "(%s) %s\n", message->level_name, message->message);
+    fflush(file);
 }
 
 int main(int argc, char **argv) {
