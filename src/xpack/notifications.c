@@ -167,8 +167,10 @@ static void _event_source_reader_message_read(
         if (!fsm->message) {
             fsm->message = data;
         } else {
-            fsm->message = mem_str_format("%s\n%s", fsm->message, data);
+            char *msg = fsm->message;
+            fsm->message = mem_str_format("%s\n%s", msg, data);
             free(data);
+            free(msg);
         }
 
     } else if (str_eq_n(src, fsm->field_name_start, fsm->field_name_end, "id")) {
