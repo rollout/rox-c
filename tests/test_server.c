@@ -122,7 +122,8 @@ static RoxDynamicValue *_test_computed_property_using_context(void *target, RoxC
     assert(target);
     assert(context);
     const char *key = (const char *) target;
-    return rox_context_get(context, key);
+    RoxDynamicValue *value = rox_context_get(context, key);
+    return value ? rox_dynamic_value_create_copy(value) : NULL;
 }
 
 static RoxDynamicValue *_test_computed_boolean_property_using_value(void *target, RoxContext *context) {

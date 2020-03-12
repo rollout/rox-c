@@ -7,7 +7,7 @@ struct RoxContext {
     RoxMap *map;
     void *target;
     rox_context_get_value_func get_value;
-    rox_context_free_target_func fee_target;
+    rox_context_free_target_func free_target;
 };
 
 ROX_API RoxDynamicValue *rox_context_get(RoxContext *context, const char *key) {
@@ -73,7 +73,7 @@ ROX_API RoxContext *rox_context_create_custom(RoxContextConfig *config) {
     RoxContext *context = calloc(1, sizeof(RoxContext));
     context->target = config->target;
     context->get_value = config->get_value_func;
-    context->fee_target = config->fee_target_func;
+    context->free_target = config->fee_target_func;
     return context;
 }
 
@@ -85,8 +85,8 @@ ROX_API void rox_context_free(RoxContext *context) {
                 &free,
                 (void (*)(void *)) &rox_dynamic_value_free);
     }
-    if (context->target && context->fee_target) {
-        context->fee_target(context->target);
+    if (context->target && context->free_target) {
+        context->free_target(context->target);
     }
     free(context);
 }

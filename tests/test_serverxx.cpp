@@ -180,7 +180,8 @@ public:
     explicit TestComputedComputedPropertyUsingContext(const char *key) : _key(key) {}
 
     Rox::DynamicValue *operator()(Rox::Context *context) override {
-        return rox_context_get(context, _key);
+        RoxDynamicValue *value = rox_context_get(context, _key);
+        return value ? rox_dynamic_value_create_copy(value) : NULL;
     }
 };
 
@@ -366,6 +367,8 @@ TEST_CASE ("testing_variant_with_context", "[server]") {
                             "blue"));
     REQUIRE(_CompareAndFree(ctx->variantWithContext->GetValue(someNegativeContext),
                             "red"));
+    rox_context_free(somePositiveContext);
+    rox_context_free(someNegativeContext);
     delete ctx;
 }
 
@@ -415,6 +418,8 @@ TEST_CASE ("testing_impression_handler", "[server]") {
     REQUIRE(rox_dynamic_value_is_string(ctx->lastImpressionContextValue));
     REQUIRE(str_equals(rox_dynamic_value_get_string(ctx->lastImpressionContextValue), "val"));
 
+    rox_context_free(context);
+
     delete ctx;
 }
 
@@ -454,6 +459,9 @@ TEST_CASE ("testing_variant_dependency_with_context", "[server]") {
     REQUIRE(_CompareAndFree(
             ctx->flagColorDependentWithContext->GetValue(somePositiveContext),
             "Yellow"));
+
+    rox_context_free(somePositiveContext);
+    rox_context_free(someNegativeContext);
 
     delete ctx;
 }
