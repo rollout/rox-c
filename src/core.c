@@ -219,7 +219,9 @@ ROX_INTERNAL void rox_core_fetch(RoxCore *core, bool is_source_pushing) {
                 has_changes);
 
         configuration_free(configuration);
-        ROX_DEBUG("Configuration updated");
+        ROX_DEBUG(has_changes
+                  ? "Configuration updated"
+                  : "No changes in configuration");
     }
 
     pthread_mutex_unlock(&core->fetch_lock);
