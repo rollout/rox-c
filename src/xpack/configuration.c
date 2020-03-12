@@ -45,9 +45,9 @@ static void _start_or_stop_push_updates_listener(XConfigurationFetchedInvoker *i
         if (!invoker->push_updates_listener) {
             char notifications_path[X_CONF_FETCH_NOTIFICATIONS_PATH_BUFFER_SIZE];
             rox_env_get_notifications_path(notifications_path, X_CONF_FETCH_NOTIFICATIONS_PATH_BUFFER_SIZE);
-            NotificationListenerConfig config;
-            config.listen_url = notifications_path;
-            config.app_key = invoker->sdk_settings->api_key;
+            NotificationListenerConfig config = NOTIFICATION_LISTENER_CONFIG_INITIALIZER(
+                    notifications_path,
+                    invoker->sdk_settings->api_key);
             invoker->push_updates_listener = notification_listener_create(&config);
             notification_listener_on(
                     invoker->push_updates_listener, "changed", invoker,

@@ -40,6 +40,8 @@ typedef struct NotificationListenerConfig {
     int reconnect_timeout_millis;
 } NotificationListenerConfig;
 
+#define NOTIFICATION_LISTENER_CONFIG_INITIALIZER(listen_url, app_key) {listen_url, app_key, false, false, 0}
+
 /**
  * @param config Not <code>NULL</code>. String values will be copied internally.
  * @return Not <code>NULL</code>.
