@@ -79,6 +79,7 @@ struct Request {
     request_send_post_json_func send_post_json;
     pthread_key_t thread_local_storage_key;
     int request_timeout;
+    RoxList *curl_handles;
 };
 
 typedef struct RequestCurlContext {
@@ -86,19 +87,30 @@ typedef struct RequestCurlContext {
     HttpResponseMessage *message;
 } RequestCurlContext;
 
-static void _request_delete_handle(CURL *curl) {
-    assert(curl);
-    curl_easy_cleanup(curl);
+typedef struct RequestCurlHandle {
+    Request *request;
+    CURL *curl;
+} RequestCurlHandle;
+
+static void _request_delete_handle(RequestCurlHandle *handle) {
+    assert(handle);
+    rox_list_remove(handle->request->curl_handles, handle->curl);
+    curl_easy_cleanup(handle->curl);
+    pthread_setspecific(handle->request->thread_local_storage_key, NULL);
+    free(handle);
 }
 
 static CURL *_request_get_handle(Request *request) {
     assert(request);
-    CURL *curl = pthread_getspecific(request->thread_local_storage_key);
-    if (!curl) {
-        curl = curl_easy_init();
-        pthread_setspecific(request->thread_local_storage_key, curl);
+    RequestCurlHandle *handle = pthread_getspecific(request->thread_local_storage_key);
+    if (!handle) {
+        handle = calloc(1, sizeof(RequestCurlHandle));
+        handle->request = request;
+        handle->curl = curl_easy_init();
+        pthread_setspecific(request->thread_local_storage_key, handle);
+        rox_list_add(request->curl_handles, handle->curl);
     }
-    return curl;
+    return handle->curl;
 }
 
 static size_t _request_curl_write_callback(char *contents, size_t size, size_t nmemb, void *userdata) {
@@ -252,8 +264,9 @@ ROX_INTERNAL Request *request_create(RequestConfig *config) {
         request->send_post_json = &_request_send_post_json;
     }
     request->request_timeout = config ? config->request_timeout : 0;
-    int ret = pthread_key_create(&request->thread_local_storage_key, &_request_delete_handle);
+    int ret = pthread_key_create(&request->thread_local_storage_key, (void (*)(void *)) &_request_delete_handle);
     assert(ret == 0);
+    request->curl_handles = ROX_EMPTY_LIST;
     return request;
 }
 
@@ -278,6 +291,10 @@ ROX_INTERNAL HttpResponseMessage *request_send_post_json(Request *request, const
 
 ROX_INTERNAL void request_free(Request *request) {
     assert(request);
+    ROX_LIST_FOREACH(handle, request->curl_handles, {
+        curl_easy_cleanup(handle);
+    })
+    pthread_key_delete(request->thread_local_storage_key);
     free(request);
 }
 

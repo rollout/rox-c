@@ -173,6 +173,12 @@ ROX_INTERNAL bool rox_list_get_first(RoxList *list, void **out) {
     return list_get_first(list->list, out) == CC_OK;
 }
 
+ROX_INTERNAL bool rox_list_remove(RoxList *list, void *element) {
+    assert(list);
+    assert(element);
+    return list_remove(list->list, element, NULL) == CC_OK;
+}
+
 ROX_INTERNAL bool rox_list_remove_all(RoxList *list) {
     assert(list);
     return list_remove_all(list->list) == CC_OK;

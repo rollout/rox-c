@@ -69,6 +69,8 @@ ROX_INTERNAL bool rox_list_get_at(RoxList *list, size_t index, void **out);
 
 ROX_INTERNAL bool rox_list_get_first(RoxList *list, void **out);
 
+ROX_INTERNAL bool rox_list_remove(RoxList *list, void* element);
+
 ROX_INTERNAL bool rox_list_remove_all(RoxList *list);
 
 ROX_INTERNAL bool rox_set_contains(RoxSet *set, void *element);
