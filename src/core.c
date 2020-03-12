@@ -219,6 +219,7 @@ ROX_INTERNAL void rox_core_fetch(RoxCore *core, bool is_source_pushing) {
                 has_changes);
 
         configuration_free(configuration);
+        ROX_DEBUG("Configuration updated");
     }
 
     pthread_mutex_unlock(&core->fetch_lock);
@@ -227,6 +228,7 @@ ROX_INTERNAL void rox_core_fetch(RoxCore *core, bool is_source_pushing) {
 static void _core_x_configuration_fetch_func(void *target) {
     assert(target);
     RoxCore *core = (RoxCore *) target;
+    ROX_DEBUG("Fetching configuration");
     rox_core_fetch(core, true);
 }
 
