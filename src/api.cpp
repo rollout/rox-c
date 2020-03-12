@@ -104,7 +104,7 @@ namespace Rox {
 
     static void _RoxConfigurationFetchedHandlerAdapter(void *target, RoxConfigurationFetchedArgs *args) {
         assert(target);
-        auto *handler = (ConfigurationFetchedHandler *) target;
+        auto *handler = (ConfigurationFetchedHandlerInterface *) target;
         handler->ConfigurationFetched(args);
     }
 
@@ -152,7 +152,7 @@ namespace Rox {
         return *this;
     }
 
-    OptionsBuilder &OptionsBuilder::SetConfigurationFetchedHandler(ConfigurationFetchedHandler *handler) {
+    OptionsBuilder &OptionsBuilder::SetConfigurationFetchedHandler(ConfigurationFetchedHandlerInterface *handler) {
         assert(handler);
         rox_options_set_configuration_fetched_handler(_options, handler,
                                                       &_RoxConfigurationFetchedHandlerAdapter);

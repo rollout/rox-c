@@ -105,11 +105,11 @@ namespace Rox {
         virtual ~ImpressionHandlerInterface() = default;
     };
 
-    class ROX_API ConfigurationFetchedHandler {
+    class ROX_API ConfigurationFetchedHandlerInterface {
     public:
         virtual void ConfigurationFetched(ConfigurationFetchedArgs *args) = 0;
 
-        virtual ~ConfigurationFetchedHandler() = default;
+        virtual ~ConfigurationFetchedHandlerInterface() = default;
     };
 
     class ROX_API DynamicPropertiesRuleInterface {
@@ -136,7 +136,7 @@ namespace Rox {
 
         OptionsBuilder &SetImpressionHandler(ImpressionHandlerInterface *handler);
 
-        OptionsBuilder &SetConfigurationFetchedHandler(ConfigurationFetchedHandler *handler);
+        OptionsBuilder &SetConfigurationFetchedHandler(ConfigurationFetchedHandlerInterface *handler);
 
         OptionsBuilder &SetDynamicPropertiesRule(DynamicPropertiesRuleInterface *rule);
 

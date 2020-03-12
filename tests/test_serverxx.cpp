@@ -14,6 +14,9 @@ class ServerTextContext {
 private:
     Rox::CustomPropertyGeneratorInterface *AddGenerator(Rox::CustomPropertyGeneratorInterface *generator);
 
+    Rox::ConfigurationFetchedHandlerInterface *_configurationFetchedHandler;
+    Rox::ImpressionHandlerInterface *_impressionHandler;
+
 public:
     ServerTextContext();
 
@@ -63,7 +66,7 @@ public:
     std::vector<Rox::CustomPropertyGeneratorInterface *> generators;
 };
 
-class TestConfigurationFetchedHandler : public Rox::ConfigurationFetchedHandler {
+class TestConfigurationFetchedHandler : public Rox::ConfigurationFetchedHandlerInterface {
     ServerTextContext *_ctx;
 
 public:
@@ -181,7 +184,7 @@ public:
 
     Rox::DynamicValue *operator()(Rox::Context *context) override {
         RoxDynamicValue *value = rox_context_get(context, _key);
-        return value ? rox_dynamic_value_create_copy(value) : NULL;
+        return value ? rox_dynamic_value_create_copy(value) : nullptr;
     }
 };
 
@@ -206,9 +209,12 @@ static bool _CompareAndFree(char *str, const char *expected_value) {
 ServerTextContext::ServerTextContext() {
     Rox::Logging::SetLogLevel(RoxLogLevelDebug);
 
+    _configurationFetchedHandler = new TestConfigurationFetchedHandler(this);
+    _impressionHandler = new TestImpressionHandler(this);
+
     Rox::Options *options = Rox::OptionsBuilder()
-            .SetConfigurationFetchedHandler(new TestConfigurationFetchedHandler(this))
-            .SetImpressionHandler(new TestImpressionHandler(this))
+            .SetConfigurationFetchedHandler(_configurationFetchedHandler)
+            .SetImpressionHandler(_impressionHandler)
             .SetDevModeKey("37d6265f591155bb00ffb4e2")
             .Build();
 
@@ -288,6 +294,10 @@ ServerTextContext::ServerTextContext() {
 
 ServerTextContext::~ServerTextContext() {
     Rox::Shutdown();
+
+    delete _configurationFetchedHandler;
+    delete _impressionHandler;
+
     if (this->lastImpressionValue) {
         free(this->lastImpressionValue);
     }
