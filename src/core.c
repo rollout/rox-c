@@ -48,6 +48,7 @@ static void *_periodic_task_thread_func(void *ptr) {
         } while (result == ETIMEDOUT && !task->stopped);
     }
     task->thread_started = false;
+    pthread_detach(pthread_self()); // free thread resources
     return NULL;
 }
 

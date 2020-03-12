@@ -346,6 +346,8 @@ static void *_event_source_reader_thread_func(void *ptr) {
     if (headers) {
         curl_slist_free_all(headers);
     }
+
+    pthread_detach(pthread_self()); // free thread resources
 }
 
 static void _event_source_reader_start(EventSourceReader *reader, bool join) {
