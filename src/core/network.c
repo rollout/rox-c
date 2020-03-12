@@ -291,11 +291,8 @@ ROX_INTERNAL HttpResponseMessage *request_send_post_json(Request *request, const
 
 ROX_INTERNAL void request_free(Request *request) {
     assert(request);
-    ROX_LIST_FOREACH(handle, request->curl_handles, {
-        curl_easy_cleanup(handle);
-    })
+    rox_list_free_cb(request->curl_handles, &curl_easy_cleanup);
     pthread_key_delete(request->thread_local_storage_key);
-    rox_list_free(request->curl_handles);
     free(request);
 }
 
