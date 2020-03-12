@@ -149,6 +149,7 @@ static char *_state_sender_serialize_feature_flags(StateSender *sender) {
     })
     char *json_str = ROX_JSON_SERIALIZE(arr);
     cJSON_Delete(arr);
+    rox_list_free(keys);
     return json_str;
 }
 
@@ -230,8 +231,8 @@ static HttpResponseMessage *_state_sender_send_state_to_cdn(StateSender *sender,
     }
     RequestData *cdn_request = request_data_create(url, NULL, NULL);
     HttpResponseMessage *response = request_send_get(sender->request, cdn_request);
-    free(url);
     request_data_free(cdn_request);
+    free(url);
     return response;
 }
 
@@ -249,6 +250,8 @@ static HttpResponseMessage *_state_sender_send_state_to_api(StateSender *sender,
     RequestData *api_request = request_data_create(url, query_params, sender->raw_json_params);
     HttpResponseMessage *response = request_send_post(sender->request, api_request);
     rox_map_free(query_params);
+    request_data_free(api_request);
+    free(url);
     return response;
 }
 
@@ -284,10 +287,15 @@ ROX_INTERNAL void state_sender_send(StateSender *sender) {
         if (!should_retry) {
             // success from cdn
             if (response_json) {
+                cJSON_Delete(response_json);
                 response_message_free(fetch_result);
                 rox_map_free_with_values(properties);
                 return;
             }
+        }
+
+        if (response_json) {
+            cJSON_Delete(response_json);
         }
     }
 
