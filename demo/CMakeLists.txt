@@ -9,6 +9,8 @@ find_package(Rollout REQUIRED)
 
 add_executable(rollout_basic_demo basic.c)
 add_executable(rollout_basic_demo_cpp basic.cpp)
+add_executable(rollout_logging_demo logging.c)
 
 target_link_libraries(rollout_basic_demo ROLLOUT::SDK)
 target_link_libraries(rollout_basic_demo_cpp ROLLOUT::SDK)
+target_link_libraries(rollout_logging_demo ROLLOUT::SDK)

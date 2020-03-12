@@ -1,10 +1,30 @@
 #include <rollout.h>
 #include <stdio.h>
+#include <assert.h>
 
 #define DEFAULT_API_KEY "5e6a3533d3319d76d1ca33fd"
 #define DEFAULT_DEV_MODE_KEY "297c23e7fcb68e54c513dcca"
 
+#define LOG_FILE_PATH "./logging-output.log"
+
+static void _file_logging_handler(void *target, RoxLogMessage *message) {
+    assert(target);
+    assert(message);
+    FILE *file = (FILE *) target;
+    fprintf(file, "(%s) %s\n", message->level_name, message->message);
+}
+
 int main(int argc, char **argv) {
+    FILE *file = fopen(LOG_FILE_PATH, "w");
+    if (!file) {
+        fprintf(stderr, "Cannot open %s", LOG_FILE_PATH);
+        return -1;
+    }
+
+    RoxLoggingConfig cfg = ROX_LOGGING_CONFIG_INITIALIZER(RoxLogLevelDebug);
+    cfg.target = file;
+    cfg.handler = &_file_logging_handler;
+    rox_logging_init(&cfg);
 
     RoxVariant *demo_flag = rox_add_flag("demo.demoFlag", false);
     RoxOptions *options = rox_options_create();
@@ -24,5 +44,6 @@ int main(int argc, char **argv) {
     }
 
     rox_shutdown();
+    fclose(file);
     return 0;
 }

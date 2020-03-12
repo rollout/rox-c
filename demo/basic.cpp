@@ -1,12 +1,10 @@
 #include <rollout.hpp>
 #include <cstdio>
 
-#define DEFAULT_API_KEY "5b3356d00d81206da3055bc0"
-#define DEFAULT_DEV_MODE_KEY "01fcd0d21eeaed9923dff6d8"
+#define DEFAULT_API_KEY "5e6a3533d3319d76d1ca33fd"
+#define DEFAULT_DEV_MODE_KEY "297c23e7fcb68e54c513dcca"
 
 int main(int argc, char **argv) {
-
-    Rox::Logging::SetLogLevel(Rox::LogLevel::RoxLogLevelDebug);
 
     Rox::Flag *demoFlag = Rox::Flag::Create("demo.demoFlag", false);
     Rox::Options *options = Rox::OptionsBuilder()
