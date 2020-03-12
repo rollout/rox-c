@@ -173,12 +173,19 @@ namespace Rox {
     // Flags
     //
 
-    RoxList *Variant::_allVariants = ROX_EMPTY_LIST;
+    RoxList *Variant::_allVariants = nullptr;
+
+    ROX_API void Variant::Add(Variant *variant) {
+        if (!_allVariants) {
+            _allVariants = ROX_EMPTY_LIST;
+        }
+        rox_list_add(_allVariants, variant);
+    }
 
     ROX_API Variant *Variant::Create(const char *name, const char *defaultValue) {
         assert(name);
         auto *variant = new Variant(rox_add_variant(name, defaultValue, nullptr));
-        rox_list_add(_allVariants, variant);
+        Add(variant);
         return variant;
     }
 
@@ -190,7 +197,7 @@ namespace Rox {
             rox_list_add(list, ROX_COPY(option.data()));
         }
         auto *variant = new Variant(rox_add_variant(name, defaultValue, list));
-        rox_list_add(_allVariants, variant);
+        Add(variant);
         return variant;
     }
 
@@ -210,7 +217,7 @@ namespace Rox {
         assert(name);
         RoxVariant *handle = rox_add_flag(name, defaultValue);
         auto *flag = new Flag(handle);
-        rox_list_add(_allVariants, flag);
+        Add(flag);
         return flag;
     }
 
@@ -338,7 +345,7 @@ namespace Rox {
                 delete (Variant *) item;
             })
             rox_list_free(Variant::_allVariants);
-            Variant::_allVariants = ROX_EMPTY_LIST;
+            Variant::_allVariants = nullptr;
         }
     }
 

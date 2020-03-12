@@ -168,6 +168,8 @@ namespace Rox {
 
         static RoxList *_allVariants;
 
+        static void Add(Variant *variant);
+
     public:
 
         virtual ~Variant() = default;
