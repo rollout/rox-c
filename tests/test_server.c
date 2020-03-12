@@ -301,6 +301,8 @@ START_TEST (testing_variant_with_context) {
     rox_check_and_free(rox_variant_get_value_or_default(ctx->variantWithContext), "red");
     rox_check_and_free(rox_variant_get_value_or_default_ctx(ctx->variantWithContext, some_positive_context), "blue");
     rox_check_and_free(rox_variant_get_value_or_default_ctx(ctx->variantWithContext, some_negative_context), "red");
+    rox_context_free(some_positive_context);
+    rox_context_free(some_negative_context);
     _server_text_context_free(ctx);
 }
 
@@ -352,6 +354,8 @@ START_TEST (testing_impression_handler) {
     ck_assert(rox_dynamic_value_is_string(ctx->lastImpressionContextValue));
     ck_assert_str_eq(rox_dynamic_value_get_string(ctx->lastImpressionContextValue), "val");
 
+    rox_context_free(context);
+
     _server_text_context_free(ctx);
 }
 
@@ -392,6 +396,9 @@ START_TEST (testing_variant_dependency_with_context) {
     rox_check_and_free(
             rox_variant_get_value_or_default_ctx(ctx->flagColorDependentWithContext, some_positive_context),
             "Yellow");
+
+    rox_context_free(some_positive_context);
+    rox_context_free(some_negative_context);
 
     _server_text_context_free(ctx);
 }
