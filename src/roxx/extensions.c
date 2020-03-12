@@ -116,6 +116,7 @@ _parser_operator_is_in_target_group(void *target, Parser *parser, CoreStack *sta
     EvaluationResult *result = parser_evaluate_expression(parser, target_group->condition, context);
     bool *bool_result = result_get_boolean(result);
     rox_stack_push_boolean(stack, bool_result ? *bool_result : false);
+    result_free(result);
 }
 
 ROX_INTERNAL void parser_add_experiments_extensions(
