@@ -4,7 +4,6 @@
 
 #define DEFAULT_API_KEY "5e6a3533d3319d76d1ca33fd"
 #define DEFAULT_DEV_MODE_KEY "297c23e7fcb68e54c513dcca"
-
 #define LOG_FILE_PATH "./logging-output.log"
 
 static void _file_logging_handler(void *target, RoxLogMessage *message) {
@@ -18,7 +17,7 @@ static void _file_logging_handler(void *target, RoxLogMessage *message) {
 int main(int argc, char **argv) {
     FILE *file = fopen(LOG_FILE_PATH, "w");
     if (!file) {
-        fprintf(stderr, "Cannot open %s", LOG_FILE_PATH);
+        fprintf(stderr, "Cannot open %s\n", LOG_FILE_PATH);
         return -1;
     }
 
