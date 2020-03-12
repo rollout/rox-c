@@ -182,7 +182,7 @@ static RoxMap *_state_sender_prepare_props_from_device_props(StateSender *sender
     RoxMap *properties = mem_deep_copy_str_value_map(
             device_properties_get_all_properties(sender->device_properties));
     rox_map_add(properties, ROX_PROPERTY_TYPE_FEATURE_FLAGS.name, _state_sender_serialize_feature_flags(sender));
-    rox_map_add(properties, ROX_PROPERTY_TYPE_REMOTE_VARIABLES.name, ROX_JSON_SERIALIZE(ROX_EMPTY_JSON_ARRAY));
+    rox_map_add(properties, ROX_PROPERTY_TYPE_REMOTE_VARIABLES.name, mem_copy_str("[]"));
     rox_map_add(properties, ROX_PROPERTY_TYPE_CUSTOM_PROPERTIES.name,
                 _state_sender_serialize_custom_properties(sender));
     char *state_md5 = _state_sender_get_state_md5(sender, properties);

@@ -11,6 +11,12 @@ static HttpResponseMessage *_test_request_send_get_func(void *target, Request *r
     assert(data);
     RequestTestFixture *ctx = (RequestTestFixture *) target;
     ++ctx->times_get_sent;
+    if (ctx->last_get_uri) {
+        free(ctx->last_get_uri);
+    }
+    if (ctx->last_get_params) {
+        rox_map_free_with_values(ctx->last_get_params);
+    }
     ctx->last_get_uri = mem_copy_str(data->url);
     ctx->last_get_params = data->params ? mem_deep_copy_str_value_map(data->params) : NULL;
     if (!ctx->status_to_return_to_get) {
@@ -29,6 +35,12 @@ static HttpResponseMessage *_test_request_send_post_func(void *target, Request *
     assert(data);
     RequestTestFixture *ctx = (RequestTestFixture *) target;
     ++ctx->times_post_sent;
+    if (ctx->last_post_uri) {
+        free(ctx->last_post_uri);
+    }
+    if (ctx->last_post_params) {
+        rox_map_free_with_values(ctx->last_post_params);
+    }
     ctx->last_post_uri = mem_copy_str(data->url);
     ctx->last_post_params = data->params ? mem_deep_copy_str_value_map(data->params) : NULL;
     if (!ctx->status_to_return_to_post) {
@@ -51,6 +63,10 @@ _test_request_send_post_json_func(void *target, Request *request, const char *ur
     if (!ctx->status_to_return_to_post_json) {
         return NULL;
     }
+    if (ctx->last_post_json_uri) {
+        free(ctx->last_post_json_uri);
+    }
+    ctx->last_post_json_uri = mem_copy_str(uri);
     return response_message_create(
             ctx->status_to_return_to_post_json,
             ctx->data_to_return_to_post_json
