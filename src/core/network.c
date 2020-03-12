@@ -295,6 +295,7 @@ ROX_INTERNAL void request_free(Request *request) {
         curl_easy_cleanup(handle);
     })
     pthread_key_delete(request->thread_local_storage_key);
+    rox_list_free(request->curl_handles);
     free(request);
 }
 
