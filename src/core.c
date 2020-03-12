@@ -69,13 +69,9 @@ static void _periodic_task_free(PeriodicTask *task) {
     assert(task);
     task->stopped = true;
     if (task->thread_started) {
-        pthread_mutex_lock(&task->thread_mutex);
-        pthread_cond_signal(&task->thread_cond);
-        pthread_mutex_unlock(&task->thread_mutex);
-        // wait for thread to finish
-        // (it should finish immediately because we sent signal to its condition)
         pthread_cancel(task->thread);
         pthread_join(task->thread, NULL);
+        pthread_detach(task->thread);
     }
     free(task);
 }

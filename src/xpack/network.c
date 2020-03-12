@@ -80,13 +80,9 @@ ROX_INTERNAL void debouncer_free(Debouncer *debouncer) {
     assert(debouncer);
     debouncer->stopped = true;
     if (debouncer->thread_started) {
-        pthread_mutex_lock(&debouncer->thread_mutex);
-        pthread_cond_signal(&debouncer->thread_cond);
-        pthread_mutex_unlock(&debouncer->thread_mutex);
-        // wait for thread to finish
-        // (it should finish immediately because we sent signal to its condition)
         pthread_cancel(debouncer->thread);
         pthread_join(debouncer->thread, NULL);
+        pthread_detach(debouncer->thread);
     }
     free(debouncer);
 }
