@@ -370,12 +370,7 @@ ROX_API char *rox_dynamic_api_get_value(
         flag_repository_add_flag(api->flag_repository, variant, name);
     }
 
-    char *value = variant_get_value_or_null(variant, context);
-    return value
-           ? value
-           : default_value
-             ? mem_copy_str(default_value)
-             : NULL;
+    return variant_get_value_or(variant, context, default_value);
 }
 
 ROX_API void rox_dynamic_api_free(RoxDynamicApi *api) {

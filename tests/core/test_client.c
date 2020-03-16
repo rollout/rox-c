@@ -1,5 +1,6 @@
 #include <stdbool.h>
 #include <core/consts.h>
+#include <assert.h>
 #include "roxtests.h"
 #include "roxx/parser.h"
 #include "core/repositories.h"
@@ -10,6 +11,37 @@
 //
 // DynamicApiTests
 //
+
+typedef struct TestImpressionHandler {
+    char *last_impression_value;
+    int impressions;
+} TestImpressionHandler;
+
+static void _test_impression_handler_func(
+        void *target,
+        RoxReportingValue *value,
+        RoxExperiment *experiment,
+        RoxContext *context) {
+
+    TestImpressionHandler *handler = (TestImpressionHandler *) target;
+    if (handler->last_impression_value) {
+        free(handler->last_impression_value);
+    }
+    handler->last_impression_value = value->value ? mem_copy_str(value->value) : NULL;
+    ++handler->impressions;
+}
+
+static TestImpressionHandler *_test_impression_handler_create() {
+    return calloc(1, sizeof(TestImpressionHandler));
+}
+
+static void _test_impression_handler_free(TestImpressionHandler *handler) {
+    assert(handler);
+    if (handler->last_impression_value) {
+        free(handler->last_impression_value);
+    }
+    free(handler);
+}
 
 START_TEST (test_is_enabled) {
     Parser *parser = parser_create();
@@ -69,21 +101,32 @@ START_TEST (test_is_enabled_after_setup) {
 END_TEST
 
 START_TEST (test_get_value) {
+
+    TestImpressionHandler *impression_handler = _test_impression_handler_create();
+    ImpressionInvoker *impression_invoker = impression_invoker_create();
+    impression_invoker_register(impression_invoker, impression_handler, &_test_impression_handler_func);
+
     Parser *parser = parser_create();
     FlagRepository *flag_repo = flag_repository_create();
     ExperimentRepository *exp_repo = experiment_repository_create();
-    FlagSetter *flag_setter = flag_setter_create(flag_repo, parser, exp_repo, NULL);
+    FlagSetter *flag_setter = flag_setter_create(flag_repo, parser, exp_repo, impression_invoker);
     EntitiesProvider *entities_provider = entities_provider_create();
     RoxDynamicApi *api = dynamic_api_create(flag_repo, entities_provider);
 
     RoxList *options = ROX_LIST_COPY_STR("A", "B", "C");
     rox_check_and_free(rox_dynamic_api_get_value(api, "default.newVariant", "A", options, NULL), "A");
+    ck_assert_str_eq(impression_handler->last_impression_value, "A");
+    ck_assert_int_eq(impression_handler->impressions, 1);
 
     RoxVariant *flag = flag_repository_get_flag(flag_repo, "default.newVariant");
     rox_check_and_free(variant_get_value_or_default(flag, NULL), "A");
+    ck_assert_str_eq(impression_handler->last_impression_value, "A");
+    ck_assert_int_eq(impression_handler->impressions, 2);
 
     rox_check_and_free(rox_dynamic_api_get_value(api, "default.newVariant", "B", options, NULL), "B");
     ck_assert_int_eq(1, rox_map_size(flag_repository_get_all_flags(flag_repo)));
+    ck_assert_str_eq(impression_handler->last_impression_value, "B");
+    ck_assert_int_eq(impression_handler->impressions, 3);
 
     experiment_repository_set_experiments(exp_repo, ROX_LIST(
             experiment_model_create("1", "default.newVariant", "ifThen(true, \"B\", \"A\")", false,
@@ -92,6 +135,8 @@ START_TEST (test_get_value) {
     flag_setter_set_experiments(flag_setter);
 
     rox_check_and_free(rox_dynamic_api_get_value(api, "default.newVariant", "A", options, NULL), "B");
+    ck_assert_str_eq(impression_handler->last_impression_value, "B");
+    ck_assert_int_eq(impression_handler->impressions, 4);
 
     rox_dynamic_api_free(api);
     entities_provider_free(entities_provider);
@@ -99,6 +144,8 @@ START_TEST (test_get_value) {
     flag_repository_free(flag_repo);
     parser_free(parser);
     experiment_repository_free(exp_repo);
+    impression_invoker_free(impression_invoker);
+    _test_impression_handler_free(impression_handler);
 }
 
 END_TEST

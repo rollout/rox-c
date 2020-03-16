@@ -175,6 +175,11 @@ ROX_INTERNAL char *variant_get_value_or_default(RoxVariant *variant, RoxContext 
     return _variant_get_value(variant, context, variant->default_value);
 }
 
+ROX_INTERNAL char *variant_get_value_or(RoxVariant *variant, RoxContext *context, char *default_value) {
+    assert(variant);
+    return _variant_get_value(variant, context, default_value);
+}
+
 ROX_INTERNAL char *variant_get_value_or_null(RoxVariant *variant, RoxContext *context) {
     assert(variant);
     return _variant_get_value(variant, context, NULL);
