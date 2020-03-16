@@ -42,6 +42,7 @@ struct RoxOptions {
     rox_configuration_fetched_handler configuration_fetched_handler;
     void *dynamic_properties_rule_target;
     rox_dynamic_properties_rule dynamic_properties_rule;
+    bool cxx;
 };
 
 ROX_API RoxOptions *rox_options_create() {
@@ -113,6 +114,16 @@ ROX_API void rox_options_set_dynamic_properties_rule(
     assert(rule);
     options->dynamic_properties_rule_target = target;
     options->dynamic_properties_rule = rule;
+}
+
+ROX_INTERNAL void rox_options_set_cxx(RoxOptions *options) {
+    assert(options);
+    options->cxx = true;
+}
+
+ROX_INTERNAL bool rox_options_is_cxx(RoxOptions *options) {
+    assert(options);
+    return options->cxx;
 }
 
 ROX_INTERNAL char *rox_options_get_dev_mode_key(RoxOptions *options) {
@@ -234,7 +245,8 @@ ROX_INTERNAL DeviceProperties *device_properties_create(
                 mem_copy_str(rox_options_get_version(rox_options))); // used for the version filter
     rox_map_add(map, ROX_PROPERTY_TYPE_DISTINCT_ID.name, mem_copy_str(rox_globally_unique_device_id()));
     rox_map_add(map, ROX_PROPERTY_TYPE_APP_KEY.name, mem_copy_str(sdk_settings->api_key));
-    rox_map_add(map, ROX_PROPERTY_TYPE_PLATFORM.name, mem_copy_str(ROX_PLATFORM));
+    rox_map_add(map, ROX_PROPERTY_TYPE_PLATFORM.name, mem_copy_str(rox_options_is_cxx(rox_options)
+                                                                   ? ROX_PLATFORM_CXX : ROX_PLATFORM_C));
     rox_map_add(map, ROX_PROPERTY_TYPE_DEV_MODE_SECRET.name,
                 mem_copy_str(rox_options_get_dev_mode_key(rox_options)));
 

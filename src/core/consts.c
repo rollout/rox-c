@@ -7,7 +7,8 @@
 // Build
 //
 
-ROX_INTERNAL const char *ROX_PLATFORM = "C";
+ROX_INTERNAL const char *ROX_PLATFORM_C = "C";
+ROX_INTERNAL const char *ROX_PLATFORM_CXX = "C++";
 ROX_INTERNAL const char *ROX_API_VERSION = "1.8.0";
 ROX_INTERNAL const char *ROX_ENV_MODE_KEY = "ROLLOUT_MODE";
 ROX_INTERNAL const char *ROX_ENV_MODE_QA = "QA";

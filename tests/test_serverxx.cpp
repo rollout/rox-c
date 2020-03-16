@@ -215,7 +215,7 @@ ServerTextContext::ServerTextContext() {
     Rox::Options *options = Rox::OptionsBuilder()
             .SetConfigurationFetchedHandler(_configurationFetchedHandler)
             .SetImpressionHandler(_impressionHandler)
-            .SetDevModeKey("37d6265f591155bb00ffb4e2")
+            .SetDevModeKey("f3be3b47c02bca33ae618130")
             .Build();
 
     this->simpleFlag = Rox::Flag::Create("simpleFlag", true);
@@ -289,7 +289,7 @@ ServerTextContext::ServerTextContext() {
             "boolPropTargetGroupForDependency",
             AddGenerator(new TestComputedComputedPropertyUsingValue(&this->isPropForTargetGroupForDependency)));
 
-    Rox::Setup("5e579ecfc45c395c43b42893", options);
+    Rox::Setup("5e6f80212e4fee6222cc9d6c", options);
 }
 
 ServerTextContext::~ServerTextContext() {
@@ -421,7 +421,7 @@ TEST_CASE ("testing_impression_handler", "[server]") {
     REQUIRE(str_equals("flagForImpressionWithExperimentAndContext", ctx->lastImpressionValueName));
 
     REQUIRE(ctx->lastImpressionExperiment != nullptr);
-    REQUIRE(str_equals("5e57a3d31d6e807bf3c307ee", ctx->lastImpressionExperiment->identifier));
+    REQUIRE(str_equals("5e6f8b274365819b98feaf06", ctx->lastImpressionExperiment->identifier));
     REQUIRE(str_equals("flag for impression with experiment and context", ctx->lastImpressionExperiment->name));
 
     REQUIRE(ctx->lastImpressionContextValue);

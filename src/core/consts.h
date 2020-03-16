@@ -6,7 +6,8 @@
 // Build
 //
 
-ROX_INTERNAL extern const char *ROX_PLATFORM;
+ROX_INTERNAL extern const char *ROX_PLATFORM_C;
+ROX_INTERNAL extern const char *ROX_PLATFORM_CXX;
 ROX_INTERNAL extern const char *ROX_API_VERSION;
 ROX_INTERNAL extern const char *ROX_ENV_MODE_KEY;
 ROX_INTERNAL extern const char *ROX_ENV_MODE_QA;

@@ -35,6 +35,16 @@ ROX_INTERNAL void sdk_settings_free(SdkSettings *sdk_settings);
 
 /**
  * @param options Not <code>NULL</code>.
+ */
+ROX_INTERNAL void rox_options_set_cxx(RoxOptions *options);
+
+/**
+ * @param options Not <code>NULL</code>.
+ */
+ROX_INTERNAL bool rox_options_is_cxx(RoxOptions *options);
+
+/**
+ * @param options Not <code>NULL</code>.
  * @return Not <code>NULL</code>.
  */
 ROX_INTERNAL char *rox_options_get_dev_mode_key(RoxOptions *options);

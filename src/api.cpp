@@ -192,7 +192,7 @@ namespace Rox {
     ROX_API Variant *
     Variant::Create(const char *name, const char *defaultValue, const std::vector<std::string> &options) {
         assert(name);
-        RoxList *list = ROX_EMPTY_LIST;
+        RoxList * list = ROX_EMPTY_LIST;
         for (auto &option : options) {
             rox_list_add(list, ROX_COPY(option.data()));
         }
@@ -215,7 +215,7 @@ namespace Rox {
 
     ROX_API Flag *Flag::Create(const char *name, bool defaultValue) {
         assert(name);
-        RoxVariant *handle = rox_add_flag(name, defaultValue);
+        RoxVariant * handle = rox_add_flag(name, defaultValue);
         auto *flag = new Flag(handle);
         Add(flag);
         return flag;
@@ -335,6 +335,7 @@ namespace Rox {
     ROX_API void Setup(const char *api_key, Options *options) {
         assert(api_key);
         assert(options);
+        rox_options_set_cxx(options);
         rox_setup(api_key, options);
     }
 
@@ -393,7 +394,7 @@ namespace Rox {
                                        const std::vector<std::string> &options,
                                        Context *context) {
         assert(name);
-        RoxList *list = ROX_EMPTY_LIST;
+        RoxList * list = ROX_EMPTY_LIST;
         for (auto &option : options) {
             rox_list_add(list, ROX_COPY(option.data()));
         }
