@@ -44,16 +44,30 @@ static void _test_impression_handler_free(TestImpressionHandler *handler) {
 }
 
 START_TEST (test_is_enabled) {
+
+    TestImpressionHandler *impression_handler = _test_impression_handler_create();
+    ImpressionInvoker *impression_invoker = impression_invoker_create();
+    impression_invoker_register(impression_invoker, impression_handler, &_test_impression_handler_func);
+
     Parser *parser = parser_create();
     FlagRepository *flag_repo = flag_repository_create();
     ExperimentRepository *exp_repo = experiment_repository_create();
-    FlagSetter *flag_setter = flag_setter_create(flag_repo, parser, exp_repo, NULL);
+    FlagSetter *flag_setter = flag_setter_create(flag_repo, parser, exp_repo, impression_invoker);
     EntitiesProvider *entities_provider = entities_provider_create();
     RoxDynamicApi *api = dynamic_api_create(flag_repo, entities_provider);
 
     ck_assert(dynamic_api_is_enabled(api, "default.newFlag", true, NULL));
+    ck_assert_str_eq(impression_handler->last_impression_value, "true");
+    ck_assert_int_eq(impression_handler->impressions, 1);
+
     ck_assert(flag_is_enabled(flag_repository_get_flag(flag_repo, "default.newFlag"), NULL));
+    ck_assert_str_eq(impression_handler->last_impression_value, "true");
+    ck_assert_int_eq(impression_handler->impressions, 2);
+
     ck_assert(!dynamic_api_is_enabled(api, "default.newFlag", false, NULL));
+    ck_assert_str_eq(impression_handler->last_impression_value, "false");
+    ck_assert_int_eq(impression_handler->impressions, 3);
+
     ck_assert_int_eq(1, rox_map_size(flag_repository_get_all_flags(flag_repo)));
 
     experiment_repository_set_experiments(exp_repo, ROX_LIST(
@@ -63,6 +77,8 @@ START_TEST (test_is_enabled) {
     flag_setter_set_experiments(flag_setter);
 
     ck_assert(dynamic_api_is_enabled(api, "default.newFlag", false, NULL));
+    ck_assert_str_eq(impression_handler->last_impression_value, "true");
+    ck_assert_int_eq(impression_handler->impressions, 4);
 
     rox_dynamic_api_free(api);
     entities_provider_free(entities_provider);
@@ -70,6 +86,9 @@ START_TEST (test_is_enabled) {
     flag_repository_free(flag_repo);
     parser_free(parser);
     experiment_repository_free(exp_repo);
+
+    impression_invoker_free(impression_invoker);
+    _test_impression_handler_free(impression_handler);
 }
 
 END_TEST

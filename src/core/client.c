@@ -324,8 +324,7 @@ ROX_INTERNAL bool dynamic_api_is_enabled(
         return default_value;
     }
 
-    const bool *is_enabled = flag_is_enabled_or_null(flag, context);
-    return is_enabled ? *is_enabled : default_value;
+    return flag_is_enabled_or(flag, context, default_value);
 }
 
 /**

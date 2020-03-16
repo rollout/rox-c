@@ -80,7 +80,7 @@ ROX_INTERNAL char *variant_get_value_or_default(RoxVariant *variant, RoxContext 
  * @param context May be <code>NULL</code>
  * @return Current value or <code>default_value</code>, if the value is not defined.
  */
-ROX_INTERNAL char *variant_get_value_or(RoxVariant *variant, RoxContext *context, char *default_value);
+ROX_INTERNAL char *variant_get_value_or(RoxVariant *variant, RoxContext *context, const char *default_value);
 
 /**
  * The returned value must be freed after use by the caller, if not <code>NULL</code>.
@@ -103,6 +103,12 @@ ROX_INTERNAL bool flag_is_enabled(RoxVariant *variant, RoxContext *context);
  * @return <code>true</code> or <code>false</code> or <code>NULL</code>.
  */
 ROX_INTERNAL const bool *flag_is_enabled_or_null(RoxVariant *variant, RoxContext *context);
+
+/**
+ * @param variant Not <code>NULL</code>.
+ * @param context May be <code>NULL</code>.
+ */
+ROX_INTERNAL bool flag_is_enabled_or(RoxVariant *variant, RoxContext *context, bool default_value);
 
 /**
  * @param variant Not <code>NULL</code>.
