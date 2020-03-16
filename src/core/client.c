@@ -305,7 +305,7 @@ ROX_INTERNAL RoxDynamicApi *dynamic_api_create(
     return api;
 }
 
-ROX_INTERNAL bool dynamic_api_is_enabled(
+ROX_API bool rox_dynamic_api_is_enabled(
         RoxDynamicApi *api,
         const char *name,
         bool default_value,
@@ -325,32 +325,6 @@ ROX_INTERNAL bool dynamic_api_is_enabled(
     }
 
     return flag_is_enabled_or(flag, context, default_value);
-}
-
-/**
- * @param api Not <code>NULL</code>.
- * @param name Not <code>NULL</code>.
- * @param context May be <code>NULL</code>.
- */
-ROX_API bool rox_dynamic_api_is_enabled(
-        RoxDynamicApi *api,
-        const char *name,
-        bool default_value,
-        RoxContext *context) {
-    assert(api);
-    assert(name);
-
-    RoxVariant *variant = flag_repository_get_flag(api->flag_repository, name);
-    if (!variant) {
-        variant = entities_provider_create_flag(api->entities_provider, default_value);
-        flag_repository_add_flag(api->flag_repository, variant, name);
-    }
-
-    if (!variant_is_flag(variant)) {
-        return default_value;
-    }
-
-    return flag_is_enabled(variant, context);
 }
 
 ROX_API char *rox_dynamic_api_get_value(

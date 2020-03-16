@@ -192,17 +192,6 @@ ROX_INTERNAL RoxDynamicApi *dynamic_api_create(
         FlagRepository *flag_repository,
         EntitiesProvider *entities_provider);
 
-/**
- * @param api Not <code>NULL</code>.
- * @param name Not <code>NULL</code>.
- * @param context May be <code>NULL</code>.
- */
-ROX_INTERNAL bool dynamic_api_is_enabled(
-        RoxDynamicApi *api,
-        const char *name,
-        bool default_value,
-        RoxContext *context);
-
 //
 // InternalFlags
 //

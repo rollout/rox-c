@@ -56,7 +56,7 @@ START_TEST (test_is_enabled) {
     EntitiesProvider *entities_provider = entities_provider_create();
     RoxDynamicApi *api = dynamic_api_create(flag_repo, entities_provider);
 
-    ck_assert(dynamic_api_is_enabled(api, "default.newFlag", true, NULL));
+    ck_assert(rox_dynamic_api_is_enabled(api, "default.newFlag", true, NULL));
     ck_assert_str_eq(impression_handler->last_impression_value, "true");
     ck_assert_int_eq(impression_handler->impressions, 1);
 
@@ -64,7 +64,7 @@ START_TEST (test_is_enabled) {
     ck_assert_str_eq(impression_handler->last_impression_value, "true");
     ck_assert_int_eq(impression_handler->impressions, 2);
 
-    ck_assert(!dynamic_api_is_enabled(api, "default.newFlag", false, NULL));
+    ck_assert(!rox_dynamic_api_is_enabled(api, "default.newFlag", false, NULL));
     ck_assert_str_eq(impression_handler->last_impression_value, "false");
     ck_assert_int_eq(impression_handler->impressions, 3);
 
@@ -76,7 +76,7 @@ START_TEST (test_is_enabled) {
     ));
     flag_setter_set_experiments(flag_setter);
 
-    ck_assert(dynamic_api_is_enabled(api, "default.newFlag", false, NULL));
+    ck_assert(rox_dynamic_api_is_enabled(api, "default.newFlag", false, NULL));
     ck_assert_str_eq(impression_handler->last_impression_value, "true");
     ck_assert_int_eq(impression_handler->impressions, 4);
 
@@ -107,7 +107,7 @@ START_TEST (test_is_enabled_after_setup) {
     ));
     flag_setter_set_experiments(flag_setter);
 
-    ck_assert(dynamic_api_is_enabled(api, "default.newFlag", false, NULL));
+    ck_assert(rox_dynamic_api_is_enabled(api, "default.newFlag", false, NULL));
 
     rox_dynamic_api_free(api);
     entities_provider_free(entities_provider);
