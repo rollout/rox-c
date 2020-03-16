@@ -183,9 +183,6 @@ ROX_INTERNAL char *variant_get_value_or_null(RoxVariant *variant, RoxContext *co
 ROX_INTERNAL void variant_free(RoxVariant *variant) {
     assert(variant);
     _variant_reset_evaluation_context(variant);
-    if (variant->global_context) {
-        rox_context_free(variant->global_context);
-    }
     if (variant->name) {
         free(variant->name);
     }
