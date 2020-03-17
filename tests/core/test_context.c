@@ -12,7 +12,10 @@ START_TEST (test_context_will_return_value) {
     RoxContext *context = rox_context_create_from_map(
             ROX_MAP(mem_copy_str("a"),
                     rox_dynamic_value_create_string_copy("b")));
-    ck_assert_str_eq(rox_dynamic_value_get_string(rox_context_get(context, "a")), "b");
+    RoxDynamicValue *value = rox_context_get(context, "a");
+    ck_assert_ptr_nonnull(value);
+    ck_assert_str_eq(rox_dynamic_value_get_string(value), "b");
+    rox_dynamic_value_free(value);
     rox_context_free(context);
 }
 
@@ -42,7 +45,9 @@ START_TEST (test_with_null_local_context) {
     RoxContext *global_context = rox_context_create_from_map(
             ROX_MAP(mem_copy_str("a"), rox_dynamic_value_create_int(1)));
     RoxContext *merged_context = rox_context_create_merged(global_context, NULL);
-    ck_assert_int_eq(rox_dynamic_value_get_int(rox_context_get(merged_context, "a")), 1);
+    RoxDynamicValue *value = rox_context_get(merged_context, "a");
+    ck_assert_int_eq(rox_dynamic_value_get_int(value), 1);
+    rox_dynamic_value_free(value);
     ck_assert_ptr_null(rox_context_get(merged_context, "b"));
     rox_context_free(merged_context);
     rox_context_free(global_context);
@@ -55,7 +60,9 @@ START_TEST (test_with_null_global_context) {
             ROX_MAP(mem_copy_str("a"), rox_dynamic_value_create_int(1)));
 
     RoxContext *merged_context = rox_context_create_merged(NULL, local_context);
-    ck_assert_int_eq(rox_dynamic_value_get_int(rox_context_get(merged_context, "a")), 1);
+    RoxDynamicValue *value = rox_context_get(merged_context, "a");
+    ck_assert_int_eq(rox_dynamic_value_get_int(value), 1);
+    rox_dynamic_value_free(value);
     ck_assert_ptr_null(rox_context_get(merged_context, "b"));
     rox_context_free(merged_context);
     rox_context_free(local_context);
@@ -76,10 +83,18 @@ START_TEST (test_with_local_and_global_context) {
     RoxContext *local_context = rox_context_create_from_map(local_map);
     RoxContext *merged_context = rox_context_create_merged(global_context, local_context);
 
-    ck_assert_int_eq(rox_dynamic_value_get_int(rox_context_get(merged_context, "a")), 3);
-    ck_assert_int_eq(rox_dynamic_value_get_int(rox_context_get(merged_context, "b")), 2);
-    ck_assert_int_eq(rox_dynamic_value_get_int(rox_context_get(merged_context, "c")), 4);
-    ck_assert_ptr_null(rox_context_get(merged_context, "d"));
+    RoxDynamicValue *v1 = rox_context_get(merged_context, "a");
+    RoxDynamicValue *v2 = rox_context_get(merged_context, "b");
+    RoxDynamicValue *v3 = rox_context_get(merged_context, "c");
+    RoxDynamicValue *v4 = rox_context_get(merged_context, "d");
+    ck_assert_int_eq(rox_dynamic_value_get_int(v1), 3);
+    ck_assert_int_eq(rox_dynamic_value_get_int(v2), 2);
+    ck_assert_int_eq(rox_dynamic_value_get_int(v3), 4);
+    ck_assert_ptr_null(v4);
+
+    rox_dynamic_value_free(v3);
+    rox_dynamic_value_free(v2);
+    rox_dynamic_value_free(v1);
 
     rox_context_free(merged_context);
     rox_context_free(local_context);

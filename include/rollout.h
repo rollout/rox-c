@@ -262,7 +262,7 @@ ROX_API void rox_context_free(RoxContext *context);
 /**
  * @param context Not <code>NULL</code>.
  * @param key Not <code>NULL</code>.
- * @return May be <code>NULL</code>.
+ * @return May be <code>NULL</code>. If returned, the value must be freed by the caller via invoking <code>rox_dynamic_value_free</code>.
  */
 ROX_API RoxDynamicValue *rox_context_get(RoxContext *context, const char *key);
 

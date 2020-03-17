@@ -27,11 +27,7 @@ static RoxDynamicValue *_parser_extensions_custom_property_generator(void *targe
     ParserExtensionsTestContext *test_context = (ParserExtensionsTestContext *) target;
     assert(test_context);
     assert(test_context->property_context_key);
-    RoxDynamicValue *value = rox_context_get(context, test_context->property_context_key);
-    if (value) {
-        return rox_dynamic_value_create_copy(value);
-    }
-    return NULL;
+    return rox_context_get(context, test_context->property_context_key);
 }
 
 static void _parser_extensions_impression_handler(
@@ -659,7 +655,10 @@ START_TEST (test_default_dynamic_rule) {
 END_TEST
 
 static RoxDynamicValue *_test_inc_value(const char *property_name, void *target, RoxContext *context) {
-    return rox_dynamic_value_create_int(rox_dynamic_value_get_int(rox_context_get(context, property_name)) + 1);
+    RoxDynamicValue *value = rox_context_get(context, property_name);
+    int i = rox_dynamic_value_get_int(value);
+    rox_dynamic_value_free(value);
+    return rox_dynamic_value_create_int(i + 1);
 }
 
 START_TEST (test_custom_dynamic_rule) {

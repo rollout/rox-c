@@ -139,10 +139,7 @@ struct RoxDynamicValue *
 ROX_INTERNAL default_dynamic_properties_rule(const char *prop_name, void *target, RoxContext *context) {
     assert(prop_name);
     if (context != NULL) {
-        RoxDynamicValue *value = rox_context_get(context, prop_name);
-        if (value) {
-            return rox_dynamic_value_create_copy(value);
-        }
+        return rox_context_get(context, prop_name);
     }
     return NULL;
 }

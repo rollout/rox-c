@@ -133,7 +133,9 @@ START_TEST (test_will_pass_context) {
                                                          NULL, &_test_capture_context);
     rox_check_prop_str(prop_string, "123", context);
     ck_assert_ptr_nonnull(test_context_from_func);
-    ck_assert_int_eq(rox_dynamic_value_get_int(rox_context_get(test_context_from_func, "a")), test_int_value);
+    RoxDynamicValue *value = rox_context_get(test_context_from_func, "a");
+    ck_assert_int_eq(rox_dynamic_value_get_int(value), test_int_value);
+    rox_dynamic_value_free(value);
     custom_property_free(prop_string);
     rox_context_free(context);
 }

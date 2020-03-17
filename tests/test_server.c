@@ -98,8 +98,7 @@ static void _test_rox_impression_handler(
     ctx->lastImpressionValue = mem_copy_str(value->value);
     ctx->lastImpressionExperiment = experiment ? experiment_copy(experiment) : NULL;
     if (context) {
-        RoxDynamicValue *val = rox_context_get(context, "var");
-        ctx->lastImpressionContextValue = val ? rox_dynamic_value_create_copy(val) : NULL;
+        ctx->lastImpressionContextValue = rox_context_get(context, "var");
     } else {
         ctx->lastImpressionContextValue = NULL;
     }
@@ -122,8 +121,7 @@ static RoxDynamicValue *_test_computed_property_using_context(void *target, RoxC
     assert(target);
     assert(context);
     const char *key = (const char *) target;
-    RoxDynamicValue *value = rox_context_get(context, key);
-    return value ? rox_dynamic_value_create_copy(value) : NULL;
+    return rox_context_get(context, key);
 }
 
 static RoxDynamicValue *_test_computed_boolean_property_using_value(void *target, RoxContext *context) {

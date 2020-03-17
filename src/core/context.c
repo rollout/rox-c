@@ -17,8 +17,8 @@ ROX_API RoxDynamicValue *rox_context_get(RoxContext *context, const char *key) {
         return context->get_value(context->target, key);
     }
     void *ptr;
-    if (rox_map_get(context->map, (void *) key, &ptr)) {
-        return ptr;
+    if (rox_map_get(context->map, (void *) key, &ptr) && ptr) {
+        return rox_dynamic_value_create_copy(ptr);
     }
     return NULL;
 }

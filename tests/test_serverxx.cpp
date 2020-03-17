@@ -114,8 +114,7 @@ public:
         _ctx->lastImpressionValue = mem_copy_str(value->value);
         _ctx->lastImpressionExperiment = experiment ? experiment_copy(experiment) : nullptr;
         if (context) {
-            RoxDynamicValue *val = rox_context_get(context, "var");
-            _ctx->lastImpressionContextValue = val ? rox_dynamic_value_create_copy(val) : nullptr;
+            _ctx->lastImpressionContextValue = rox_context_get(context, "var");
         } else {
             _ctx->lastImpressionContextValue = nullptr;
         }
@@ -183,8 +182,7 @@ public:
     explicit TestComputedComputedPropertyUsingContext(const char *key) : _key(key) {}
 
     Rox::DynamicValue *operator()(Rox::Context *context) override {
-        RoxDynamicValue *value = rox_context_get(context, _key);
-        return value ? rox_dynamic_value_create_copy(value) : nullptr;
+        return rox_context_get(context, _key);
     }
 };
 

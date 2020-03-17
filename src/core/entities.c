@@ -248,9 +248,6 @@ ROX_INTERNAL const bool *flag_is_enabled_or_null(RoxVariant *variant, RoxContext
 ROX_INTERNAL bool flag_is_enabled_or(RoxVariant *variant, RoxContext *context, bool default_value) {
     assert(variant);
     char *value = variant_get_value_or(variant, context, default_value ? FLAG_TRUE_VALUE : FLAG_FALSE_VALUE);
-    if (!value) {
-        return NULL;
-    }
     bool result = str_equals(value, FLAG_TRUE_VALUE);
     free(value);
     return result;
