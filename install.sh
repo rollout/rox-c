@@ -101,6 +101,7 @@ if [ "${SKIP_INSTALL}" -ne "1" ]; then
   echo "Installing ${PROJECT_NAME} into ${INSTALL_PREFIX}."
   make install
   if [ "${INSTALL_DIR}" = "${DEFAULT_INSTALL_DIR}" ] && [ "${OSTYPE}" = "linux-gnu" ]; then
+    echo "Running ldconfig..."
     echo "${INSTALL_PREFIX}/lib" > /etc/ld.so.conf.d/rollout.conf
     ldconfig
   fi
