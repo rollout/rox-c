@@ -12,10 +12,10 @@ if [ ! -d "${ROLLOUT_SDK_ROOT}" ]; then
 fi
 
 echo "Building Rollout SDK demo..."
-rm -rf build
-mkdir -p build
-cd build || exit
-cmake .. -DCMAKE_BUILD_TYPE=Release -DROLLOUT_SDK_ROOT="${ROLLOUT_SDK_ROOT}"
+rm -rf build/release
+mkdir -p build/release
+cd build/release || exit
+cmake ../.. -DCMAKE_BUILD_TYPE=Release -DROLLOUT_SDK_ROOT="${ROLLOUT_SDK_ROOT}"
 make
 
 echo "Rollout SDK demo build finished."
