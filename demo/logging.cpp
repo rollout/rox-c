@@ -8,9 +8,9 @@
 #define LOG_FILE_PATH "./logging-output-cpp.log"
 
 class StreamLoggingHandler : public Rox::LogMessageHandlerInterface {
-    std::ofstream *_stream;
+    std::ostream *_stream;
 public:
-    explicit StreamLoggingHandler(std::ofstream *stream) : _stream(stream) {}
+    explicit StreamLoggingHandler(std::ostream *stream) : _stream(stream) {}
 
     void HandleLogMessage(Rox::LogMessage *message) override {
         *_stream << "(" << message->level_name << ")" << " " << message->message << "\n";
