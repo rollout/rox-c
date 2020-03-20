@@ -1,20 +1,11 @@
 #include <rollout.hpp>
 #include <cstdio>
-#include <cassert>
 #include <iostream>
 #include <fstream>
 
 #define DEFAULT_API_KEY "5e6a3533d3319d76d1ca33fd"
 #define DEFAULT_DEV_MODE_KEY "297c23e7fcb68e54c513dcca"
 #define LOG_FILE_PATH "./logging-output-cpp.log"
-
-static void _file_logging_handler(void *target, RoxLogMessage *message) {
-    assert(target);
-    assert(message);
-    auto *stream = (std::ofstream *) target;
-    *stream << "(" << message->level_name << ")" << " " << message->message << "\n";
-    stream->flush();
-}
 
 class StreamLoggingHandler : public Rox::LogMessageHandlerInterface {
     std::ofstream *_stream;
