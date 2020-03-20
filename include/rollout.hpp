@@ -150,7 +150,7 @@ namespace Rox {
     // Setup/Shutdown
     //
 
-    ROX_API void Setup(const char *api_key, Options *options);
+    ROX_API void Setup(const char *api_key, Options *options = nullptr);
 
     ROX_API void Shutdown();
 

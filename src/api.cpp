@@ -334,7 +334,9 @@ namespace Rox {
 
     ROX_API void Setup(const char *api_key, Options *options) {
         assert(api_key);
-        assert(options);
+        if (!options) {
+            options = rox_options_create();
+        }
         rox_options_set_cxx(options);
         rox_setup(api_key, options);
     }
