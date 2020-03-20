@@ -101,8 +101,10 @@ if [ "${SKIP_INSTALL}" -ne "1" ]; then
   echo "Installing ${PROJECT_NAME} into ${INSTALL_PREFIX}."
   make install
   if [ "${INSTALL_DIR}" = "${DEFAULT_INSTALL_DIR}" ]; then
-    echo "${INSTALL_PREFIX}/lib" > /etc/ld.so.conf.d/rollout.conf
-    ldconfig
+    if [[ "$OSTYPE" == "linux-gnu" ]]; then
+      echo "${INSTALL_PREFIX}/lib" > /etc/ld.so.conf.d/rollout.conf
+      ldconfig
+    el
   fi
   echo "${PROJECT_NAME} is successfully installed into ${INSTALL_PREFIX}."
 else
