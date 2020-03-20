@@ -47,9 +47,9 @@ namespace Rox {
         }
 
         // Stop the compiler generating methods of copy the object
-        Logging(Logging const &copy) = default;
+        Logging(const Logging &copy) = default;
 
-        Logging &operator=(Logging const &copy) = default;
+        Logging &operator=(const Logging &copy) = default;
 
         static Logging &_GetInstance() {
             // The only instance

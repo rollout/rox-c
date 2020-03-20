@@ -18,7 +18,7 @@ namespace Rox {
 
     void Logging::SetLogLevel(LogLevel logLevel) {
         assert(logLevel >= RoxLogLevelDebug);
-        Logging instance = _GetInstance();
+        Logging &instance = _GetInstance();
         instance._config.min_level = logLevel;
         rox_logging_init(&instance._config);
     }
@@ -32,7 +32,7 @@ namespace Rox {
 
     void Logging::SetLogMessageHandler(LogMessageHandlerInterface *handler) {
         assert(handler);
-        Logging instance = _GetInstance();
+        Logging &instance = _GetInstance();
         instance._config.target = handler;
         instance._config.handler = &_RoxLoggingHandlerAdapter;
         rox_logging_init(&instance._config);
