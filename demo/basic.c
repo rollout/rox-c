@@ -16,7 +16,7 @@ int main(int argc, char **argv) {
         printf("Demo flag is %s\n", rox_flag_is_enabled(demo_flag) ? "ON" : "OFF");
         printf("Continue? (Y/n):");
         c = fgetc(stdin);
-        if (c == 0x0A) { // Enter key pressed
+        if ((c == '\n' || c == EOF)) { // Enter key pressed
             c = 'Y';
         }
         getchar(); // read dummy character to clear input buffer, which inserts after character input
