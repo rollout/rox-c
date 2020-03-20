@@ -38,8 +38,9 @@ int main(int argc, char **argv) {
         c = fgetc(stdin);
         if ((c == '\n' || c == EOF)) { // Enter key pressed
             c = 'Y';
+        } else {
+            getchar(); // read dummy character to clear input buffer, which inserts after character input
         }
-        getchar(); // read dummy character to clear input buffer, which inserts after character input
         printf("\n");
     }
 
