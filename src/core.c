@@ -435,10 +435,13 @@ ROX_INTERNAL void rox_core_free(RoxCore *core) {
     custom_property_repository_free(core->custom_property_repository);
     impression_invoker_free(core->impression_invoker);
     dynamic_properties_free(core->dynamic_properties);
-    signature_verifier_free(core->signature_verifier);
     request_free(core->configuration_fetcher_request);
     request_free(core->state_sender_request);
     request_free(core->report_request);
+
+    if (core->signature_verifier) {
+        signature_verifier_free(core->signature_verifier);
+    }
 
     if (core->internal_flags) {
         internal_flags_free(core->internal_flags);
