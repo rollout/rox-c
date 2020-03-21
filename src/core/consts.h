@@ -18,8 +18,6 @@ ROX_INTERNAL extern const char *ROX_ENV_MODE_PRODUCTION;
 // Environment
 //
 
-ROX_INTERNAL size_t rox_env_get_internal_path(char *buffer, size_t buffer_size);
-
 ROX_INTERNAL size_t rox_env_get_cdn_path(char *buffer, size_t buffer_size);
 
 ROX_INTERNAL size_t rox_env_get_api_path(char *buffer, size_t buffer_size);

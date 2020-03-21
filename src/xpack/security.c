@@ -104,7 +104,7 @@ ROX_INTERNAL bool _api_key_verifier_verify(APIKeyVerifier *key_verifier, const c
 ROX_INTERNAL APIKeyVerifier *api_key_verifier_create(APIKeyVerifierConfig *config) {
     assert(config);
     APIKeyVerifier *verifier = calloc(1, sizeof(APIKeyVerifier));
-    verifier->sdk_settings = config->sdk_settings;
+    verifier->sdk_settings = config->payload;
     verifier->verify = config->verify_func ? config->verify_func : &_api_key_verifier_verify;
     return verifier;
 }

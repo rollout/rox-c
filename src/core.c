@@ -134,7 +134,6 @@ ROX_INTERNAL RoxCore *rox_core_create(RequestConfig *request_config) {
             core->experiment_repository,
             core->impression_invoker);
 
-    core->signature_verifier = signature_verifier_create(NULL);
     core->configuration_fetcher_request = request_create(request_config);
     core->state_sender_request = request_create(request_config);
     core->report_request = request_create(request_config);
@@ -272,9 +271,6 @@ ROX_INTERNAL bool rox_core_setup(
     core->sdk_settings = sdk_settings;
     core->device_properties = device_properties;
 
-    APIKeyVerifierConfig api_key_verifier_config = {sdk_settings, NULL};
-    core->api_key_verifier = api_key_verifier_create(&api_key_verifier_config);
-
     core->internal_flags = internal_flags_create(core->experiment_repository, core->parser);
     core->buid = buid_create(device_properties);
     core->x_error_reporter = x_error_reporter_create(core->report_request, device_properties, core->buid);
@@ -284,6 +280,9 @@ ROX_INTERNAL bool rox_core_setup(
 
     if (roxy_url) {
 
+        core->signature_verifier = signature_verifier_create_dummy();
+        core->api_key_verifier = api_key_verifier_create_dummy();
+
         core->configuration_fetcher = configuration_fetcher_create_roxy(
                 core->configuration_fetcher_request, device_properties,
                 core->buid,
@@ -292,6 +291,11 @@ ROX_INTERNAL bool rox_core_setup(
                 roxy_url);
 
     } else {
+
+        core->signature_verifier = signature_verifier_create(NULL);
+
+        APIKeyVerifierConfig api_key_verifier_config = {sdk_settings, NULL};
+        core->api_key_verifier = api_key_verifier_create(&api_key_verifier_config);
 
         core->state_sender = state_sender_create(
                 core->state_sender_request, device_properties, core->flag_repository,

@@ -415,12 +415,9 @@ static ConfigurationFetchResult *_configuration_fetcher_create_result(
     return configuration_fetch_result_create(json, source);
 }
 
-#define ROXY_URL_BUFFER_SIZE 1024
-
 static HttpResponseMessage *_configuration_fetcher_internal_fetch(ConfigurationFetcher *fetcher) {
     assert(fetcher);
-    char buffer[ROXY_URL_BUFFER_SIZE];
-    rox_env_get_internal_path(buffer, ROXY_URL_BUFFER_SIZE);
+    char *url = mem_build_url(fetcher->roxy_url, "device/request_configuration");
 
     RoxMap *params = rox_map_create();
     RoxMap *device_props = device_properties_get_all_properties(fetcher->device_properties);
@@ -429,14 +426,13 @@ static HttpResponseMessage *_configuration_fetcher_internal_fetch(ConfigurationF
         rox_map_add(params, key, value);
     })
 
-    RequestData *roxy_request = request_data_create(buffer, params, NULL);
+    RequestData *roxy_request = request_data_create(url, params, NULL);
     HttpResponseMessage *message = request_send_get(fetcher->request, roxy_request);
     request_data_free(roxy_request);
     rox_map_free(params);
+    free(url);
     return message;
 }
-
-#undef ROXY_URL_BUFFER_SIZE
 
 static ConfigurationFetchResult *_configuration_fetcher_fetch_using_roxy_url(ConfigurationFetcher *fetcher) {
     assert(fetcher);

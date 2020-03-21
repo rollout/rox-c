@@ -16,6 +16,7 @@ set(ROX_SRC
         core/properties.c
         core/reporting.c
         core/repositories.c
+        core/security.c
         roxx/extensions.c
         roxx/parser.c
         roxx/stack.c
