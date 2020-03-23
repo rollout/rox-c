@@ -420,13 +420,10 @@ typedef struct NotificationListenerEventHandler {
 } NotificationListenerEventHandler;
 
 struct NotificationListener {
-    char *listen_url;
-    char *app_key;
     RoxMap *handlers; // char* => List* of NotificationListenerEventHandler
     EventSourceReader *reader;
     // debugging options
     bool testing;
-    int reconnect_timeout_millis;
 };
 
 static void _notification_listener_message_received(void *target, EventSourceMessageEventArgs *args) {
@@ -453,19 +450,19 @@ ROX_INTERNAL NotificationListener *notification_listener_create(NotificationList
     assert(config);
     assert(config->listen_url);
     assert(config->app_key);
+
     NotificationListener *listener = calloc(1, sizeof(NotificationListener));
-    listener->listen_url = mem_copy_str(config->listen_url);
-    listener->app_key = mem_copy_str(config->app_key);
     listener->handlers = rox_map_create();
     listener->testing = config->testing;
-    listener->reconnect_timeout_millis = config->reconnect_timeout_millis > 0
-                                         ? config->reconnect_timeout_millis
-                                         : DEFAULT_RECONNECT_TIMEOUT_SECONDS * 1000;
-    char *url = mem_build_url(listener->listen_url, listener->app_key);
+
+    char *url = mem_build_url(config->listen_url, config->app_key);
     listener->reader = _event_source_reader_create(
             url, listener, &_notification_listener_message_received,
-            listener->reconnect_timeout_millis);
+            config->reconnect_timeout_millis > 0
+            ? config->reconnect_timeout_millis
+            : DEFAULT_RECONNECT_TIMEOUT_SECONDS * 1000);
     free(url);
+
     return listener;
 }
 
@@ -515,25 +512,18 @@ ROX_INTERNAL void notification_listener_start(NotificationListener *listener) {
 
 ROX_INTERNAL void notification_listener_stop(NotificationListener *listener) {
     assert(listener);
-    if (listener->reader) {
-        ROX_DEBUG("Shutting down event source reader");
-        _event_source_reader_free(listener->reader);
-        ROX_DEBUG("Successfully shut down event source reader");
-        listener->reader = NULL;
-    }
+    ROX_DEBUG("Shutting down event source reader");
+    _event_source_reader_stop(listener->reader);
+    ROX_DEBUG("Successfully shut down event source reader");
 }
 
 ROX_INTERNAL void notification_listener_free(NotificationListener *listener) {
     assert(listener);
-    free(listener->listen_url);
-    free(listener->app_key);
     ROX_MAP_FOREACH(key, value, listener->handlers, {
         free(key);
         rox_list_free_cb(value, &free);
     })
     rox_map_free(listener->handlers);
-    if (listener->reader) {
-        _event_source_reader_free(listener->reader);
-    }
+    _event_source_reader_free(listener->reader);
     free(listener);
 }
