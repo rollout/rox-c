@@ -36,11 +36,10 @@ typedef struct NotificationListenerConfig {
     const char *listen_url;
     const char *app_key;
     bool testing;
-    bool current_thread;
     int reconnect_timeout_millis;
 } NotificationListenerConfig;
 
-#define NOTIFICATION_LISTENER_CONFIG_INITIALIZER(listen_url, app_key) {listen_url, app_key, false, false, 0}
+#define NOTIFICATION_LISTENER_CONFIG_INITIALIZER(listen_url, app_key) {listen_url, app_key, false, 0}
 
 /**
  * @param config Not <code>NULL</code>. String values will be copied internally.

@@ -350,16 +350,13 @@ static void *_event_source_reader_thread_func(void *ptr) {
     pthread_detach(pthread_self()); // free thread resources
 }
 
-static void _event_source_reader_start(EventSourceReader *reader, bool join) {
+static void _event_source_reader_start(EventSourceReader *reader) {
     assert(reader);
     if (!reader->reading) {
         _cleanup_curl_handle(reader);
         reader->curl = curl_easy_init();
         reader->reading = (pthread_create(&reader->thread, NULL,
                                           _event_source_reader_thread_func, (void *) reader) == 0);
-        if (join) {
-            pthread_join(reader->thread, NULL);
-        }
     }
 }
 
@@ -435,7 +432,6 @@ struct NotificationListener {
     EventSourceReader *reader;
     // debugging options
     bool testing;
-    bool current_thread;
     int reconnect_timeout_millis;
 };
 
@@ -469,7 +465,6 @@ ROX_INTERNAL NotificationListener *notification_listener_create(NotificationList
     listener->handlers = rox_map_create();
 
     listener->testing = config->testing;
-    listener->current_thread = config->current_thread;
     listener->reconnect_timeout_millis = config->reconnect_timeout_millis > 0
                                          ? config->reconnect_timeout_millis
                                          : DEFAULT_RECONNECT_TIMEOUT_SECONDS * 1000;
@@ -533,7 +528,7 @@ ROX_INTERNAL void notification_listener_start(NotificationListener *listener) {
     listener->reader = _event_source_reader_create(
             url, listener, &_notification_listener_message_received,
             listener->reconnect_timeout_millis);
-    _event_source_reader_start(listener->reader, listener->current_thread);
+    _event_source_reader_start(listener->reader);
     free(url);
 }
 
@@ -543,6 +538,7 @@ ROX_INTERNAL void notification_listener_stop(NotificationListener *listener) {
         if (listener->reader->reading) {
             ROX_DEBUG("Shutting down event source reader");
             _event_source_reader_stop(listener->reader);
+            ROX_DEBUG("Successfully shut down event source reader");
         }
         _event_source_reader_free(listener->reader);
         listener->reader = NULL;
