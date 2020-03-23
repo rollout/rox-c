@@ -51,7 +51,9 @@ ROX_INTERNAL void _event_source_reader_stop(EventSourceReader *reader) {
     assert(reader);
     reader->stopped = true;
     if (reader->reading) {
-        pthread_cancel(reader->thread);
+//        pthread_cancel(reader->thread); Can't use cancel here because curl_easy_perform may leak resources,
+// need to wait while it receives the "stopped" flag in one of the callbacks (read or progress) and
+// then shuts down itself gracefully
         pthread_join(reader->thread, NULL);
         reader->reading = false;
     }
