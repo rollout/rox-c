@@ -75,5 +75,8 @@ ROX_INTERNAL void x_configuration_fetched_handler(void *target, RoxConfiguration
 
 ROX_INTERNAL void x_configuration_fetched_invoker_free(XConfigurationFetchedInvoker *invoker) {
     assert(invoker);
+    if (invoker->push_updates_listener) {
+        _start_or_stop_push_updates_listener(invoker);
+    }
     free(invoker);
 }
