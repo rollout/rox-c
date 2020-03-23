@@ -123,13 +123,18 @@ ROX_INTERNAL void configuration_fetched_args_free(RoxConfigurationFetchedArgs *a
 // ConfigurationFetchedInvoker
 //
 
-struct ConfigurationFetchedInvoker {
+typedef struct ConfigurationFetchedInvokerHandler {
     void *target;
     rox_configuration_fetched_handler handler;
+} ConfigurationFetchedInvokerHandler;
+
+struct ConfigurationFetchedInvoker {
+    RoxList *handlers; // List of ConfigurationFetchedInvokerHandler*
 };
 
 ROX_INTERNAL ConfigurationFetchedInvoker *configuration_fetched_invoker_create() {
     ConfigurationFetchedInvoker *invoker = calloc(1, sizeof(ConfigurationFetchedInvoker));
+    invoker->handlers = ROX_EMPTY_LIST;
     return invoker;
 }
 
@@ -141,11 +146,11 @@ ROX_INTERNAL void configuration_fetched_invoker_invoke(
     assert(invoker);
     assert(fetcher_status);
     assert(creation_date);
-    if (!invoker->handler) {
-        return;
-    }
     RoxConfigurationFetchedArgs *args = configuration_fetched_args_create(fetcher_status, creation_date, has_changes);
-    invoker->handler(invoker->target, args);
+    ROX_LIST_FOREACH(item, invoker->handlers, {
+        ConfigurationFetchedInvokerHandler *handler = (ConfigurationFetchedInvokerHandler *) item;
+        handler->handler(handler->target, args);
+    })
     configuration_fetched_args_free(args);
 }
 
@@ -154,11 +159,11 @@ ROX_INTERNAL void configuration_fetched_invoker_invoke_error(
         RoxFetcherError fetcher_error) {
     assert(invoker);
     assert(fetcher_error);
-    if (!invoker->handler) {
-        return;
-    }
     RoxConfigurationFetchedArgs *args = configuration_fetched_args_create_error(fetcher_error);
-    invoker->handler(invoker->target, args);
+    ROX_LIST_FOREACH(item, invoker->handlers, {
+        ConfigurationFetchedInvokerHandler *handler = (ConfigurationFetchedInvokerHandler *) item;
+        handler->handler(handler->target, args);
+    })
     configuration_fetched_args_free(args);
 }
 
@@ -168,12 +173,15 @@ ROX_INTERNAL void configuration_fetched_invoker_register_handler(
         rox_configuration_fetched_handler handler) {
     assert(invoker);
     assert(handler);
-    invoker->target = target;
-    invoker->handler = handler;
+    ConfigurationFetchedInvokerHandler *h = calloc(1, sizeof(ConfigurationFetchedInvokerHandler));
+    h->target = target;
+    h->handler = handler;
+    rox_list_add(invoker->handlers, h);
 }
 
 ROX_INTERNAL void configuration_fetched_invoker_free(ConfigurationFetchedInvoker *invoker) {
     assert(invoker);
+    rox_list_free_cb(invoker->handlers, &free);
     free(invoker);
 }
 
@@ -432,7 +440,7 @@ ROX_INTERNAL Configuration *configuration_parser_parse(
     RoxList *experiments = _configuration_parser_parse_experiments(parser, internal_data_object);
     RoxList *target_groups = _configuration_parser_parse_target_groups(parser, internal_data_object);
     cJSON_Delete(internal_data_object);
-    
+
     if (experiments == NULL || target_groups == NULL) {
         if (experiments) {
             rox_list_free_cb(experiments, (void (*)(void *)) &experiment_model_free);
