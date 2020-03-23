@@ -457,7 +457,6 @@ ROX_INTERNAL NotificationListener *notification_listener_create(NotificationList
     listener->listen_url = mem_copy_str(config->listen_url);
     listener->app_key = mem_copy_str(config->app_key);
     listener->handlers = rox_map_create();
-
     listener->testing = config->testing;
     listener->reconnect_timeout_millis = config->reconnect_timeout_millis > 0
                                          ? config->reconnect_timeout_millis

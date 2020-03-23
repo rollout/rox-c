@@ -9,10 +9,9 @@ START_TEST (test_sse_shutting_down_gracefully) {
     RoxLoggingConfig logging_config = {RoxLogLevelDebug, NULL, NULL, true};
     rox_logging_init(&logging_config);
 
-    NotificationListenerConfig config = {
+    NotificationListenerConfig config = NOTIFICATION_LISTENER_CONFIG_INITIALIZER(
             "https://qax-push.rollout.io/sse",
-            "5e579ecfc45c395c43b42893"
-    };
+            "5e579ecfc45c395c43b42893");
 
     NotificationListener *listener = notification_listener_create(&config);
     notification_listener_start(listener);
