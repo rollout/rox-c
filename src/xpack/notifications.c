@@ -38,6 +38,7 @@ typedef struct EventSourceReader {
     void *target;
     event_source_reader_on_message_func on_message;
     bool reading;
+    bool stopped;
     int reconnect_timeout_millis;
     pthread_t thread;
     pthread_mutex_t thread_mutex;
@@ -48,10 +49,11 @@ typedef struct EventSourceReader {
 
 ROX_INTERNAL void _event_source_reader_stop(EventSourceReader *reader) {
     assert(reader);
+    reader->stopped = true;
     if (reader->reading) {
-        reader->reading = false;
         pthread_cancel(reader->thread);
         pthread_join(reader->thread, NULL);
+        reader->reading = false;
     }
 }
 
@@ -266,7 +268,7 @@ _event_source_reader_progress_callback(
         curl_off_t ultotal,
         curl_off_t ulnow) {
     EventSourceReader *reader = (EventSourceReader *) clientp;
-    if (reader->reading) {
+    if (!reader->stopped) {
         return 0;
     }
     ROX_DEBUG("Reader is stopped; returning 1 from progress callback");
@@ -276,7 +278,7 @@ _event_source_reader_progress_callback(
 static size_t _event_source_reader_write_callback(char *ptr, size_t size, size_t nmemb, void *userdata) {
     size_t real_size = size * nmemb;
     EventSourceReader *reader = (EventSourceReader *) userdata;
-    if (!reader->reading) {
+    if (reader->stopped) {
         ROX_DEBUG("Reader is stopped; returning 0 from write callback");
         return 0; // stop the current transfer
     }
@@ -313,10 +315,10 @@ static void *_event_source_reader_thread_func(void *ptr) {
         free(last_event_id_header);
     }
 
-    while (reader->reading) {
+    while (!reader->stopped) {
         ROX_DEBUG("connecting to %s", reader->url);
         CURLcode res = curl_easy_perform(curl);
-        if (!reader->reading) {
+        if (reader->stopped) {
             ROX_DEBUG("curl_easy_perform() cancelled");
             break;
         }
@@ -340,10 +342,12 @@ static void *_event_source_reader_thread_func(void *ptr) {
     curl_easy_cleanup(curl);
 
     pthread_detach(pthread_self()); // free thread resources
+    reader->reading = false;
 }
 
 static void _event_source_reader_start(EventSourceReader *reader) {
     assert(reader);
+    reader->stopped = false;
     if (!reader->reading) {
         reader->reading = (pthread_create(&reader->thread, NULL,
                                           _event_source_reader_thread_func, (void *) reader) == 0);
@@ -504,9 +508,7 @@ ROX_INTERNAL void notification_listener_test(NotificationListener *listener, con
     assert(input);
     assert(listener->testing);
     assert(listener->reader);
-    listener->reader->reading = true;
     _event_source_reader_write_callback((char *) input, 1, strlen(input), listener->reader);
-    listener->reader->reading = false;
 }
 
 ROX_INTERNAL void notification_listener_start(NotificationListener *listener) {
@@ -525,12 +527,9 @@ ROX_INTERNAL void notification_listener_start(NotificationListener *listener) {
 ROX_INTERNAL void notification_listener_stop(NotificationListener *listener) {
     assert(listener);
     if (!listener->testing && listener->reader) {
-        if (listener->reader->reading) {
-            ROX_DEBUG("Shutting down event source reader");
-            _event_source_reader_stop(listener->reader);
-            ROX_DEBUG("Successfully shut down event source reader");
-        }
+        ROX_DEBUG("Shutting down event source reader");
         _event_source_reader_free(listener->reader);
+        ROX_DEBUG("Successfully shut down event source reader");
         listener->reader = NULL;
     }
 }
