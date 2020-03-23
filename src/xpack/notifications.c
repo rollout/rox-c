@@ -526,7 +526,7 @@ ROX_INTERNAL void notification_listener_start(NotificationListener *listener) {
 
 ROX_INTERNAL void notification_listener_stop(NotificationListener *listener) {
     assert(listener);
-    if (!listener->testing && listener->reader) {
+    if (listener->reader) {
         ROX_DEBUG("Shutting down event source reader");
         _event_source_reader_free(listener->reader);
         ROX_DEBUG("Successfully shut down event source reader");
