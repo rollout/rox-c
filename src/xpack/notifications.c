@@ -43,18 +43,8 @@ typedef struct EventSourceReader {
     pthread_mutex_t thread_mutex;
     pthread_mutex_t cleanup_mutex;
     pthread_cond_t thread_cond;
-    CURL *curl;
     char *last_event_id;
 } EventSourceReader;
-
-static void _cleanup_curl_handle(EventSourceReader *reader) {
-    pthread_mutex_lock(&reader->cleanup_mutex);
-    if (reader->curl) {
-        curl_easy_cleanup(reader->curl);
-        reader->curl = NULL;
-    }
-    pthread_mutex_unlock(&reader->cleanup_mutex);
-}
 
 ROX_INTERNAL void _event_source_reader_stop(EventSourceReader *reader) {
     assert(reader);
@@ -62,7 +52,6 @@ ROX_INTERNAL void _event_source_reader_stop(EventSourceReader *reader) {
         reader->reading = false;
         pthread_cancel(reader->thread);
         pthread_join(reader->thread, NULL);
-        _cleanup_curl_handle(reader);
     }
 }
 
@@ -298,20 +287,21 @@ static size_t _event_source_reader_write_callback(char *ptr, size_t size, size_t
 static void *_event_source_reader_thread_func(void *ptr) {
     EventSourceReader *reader = (EventSourceReader *) ptr;
 
-    curl_easy_setopt(reader->curl, CURLOPT_URL, reader->url);
-    curl_easy_setopt(reader->curl, CURLOPT_FOLLOWLOCATION, true);
-    curl_easy_setopt(reader->curl, CURLOPT_NOPROGRESS, 1);
-    curl_easy_setopt(reader->curl, CURLOPT_ACCEPT_ENCODING, ""); // enable all supported built-in compressions
-    curl_easy_setopt(reader->curl, CURLOPT_TIMEOUT, 0);
-    curl_easy_setopt(reader->curl, CURLOPT_HTTPGET, 1L);
-    curl_easy_setopt(reader->curl, CURLOPT_WRITEFUNCTION, &_event_source_reader_write_callback);
-    curl_easy_setopt(reader->curl, CURLOPT_WRITEDATA, reader);
-    curl_easy_setopt(reader->curl, CURLOPT_XFERINFOFUNCTION, &_event_source_reader_progress_callback);
-    curl_easy_setopt(reader->curl, CURLOPT_XFERINFODATA, reader);
-    curl_easy_setopt(reader->curl, CURLOPT_HEADERFUNCTION, &_event_source_reader_header_callback);
-    curl_easy_setopt(reader->curl, CURLOPT_HEADERDATA, reader);
+    CURL *curl = curl_easy_init();
+    curl_easy_setopt(curl, CURLOPT_URL, reader->url);
+    curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, true);
+    curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 1);
+    curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, ""); // enable all supported built-in compressions
+    curl_easy_setopt(curl, CURLOPT_TIMEOUT, 0);
+    curl_easy_setopt(curl, CURLOPT_HTTPGET, 1L);
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &_event_source_reader_write_callback);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, reader);
+    curl_easy_setopt(curl, CURLOPT_XFERINFOFUNCTION, &_event_source_reader_progress_callback);
+    curl_easy_setopt(curl, CURLOPT_XFERINFODATA, reader);
+    curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, &_event_source_reader_header_callback);
+    curl_easy_setopt(curl, CURLOPT_HEADERDATA, reader);
 #ifdef ROX_WINDOWS
-    curl_easy_setopt(reader->curl, CURLOPT_SSL_VERIFYPEER, false); // FIXME: use Windows CA/root certs
+    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, false); // FIXME: use Windows CA/root certs
 #endif
 
     struct curl_slist *headers = NULL;
@@ -319,13 +309,13 @@ static void *_event_source_reader_thread_func(void *ptr) {
     if (reader->last_event_id) {
         char *last_event_id_header = mem_str_format("Last-Event-Id: %s", reader->last_event_id);
         headers = curl_slist_append(NULL, last_event_id_header);
-        curl_easy_setopt(reader->curl, CURLOPT_HTTPHEADER, headers);
+        curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
         free(last_event_id_header);
     }
 
     while (reader->reading) {
         ROX_DEBUG("connecting to %s", reader->url);
-        CURLcode res = curl_easy_perform(reader->curl);
+        CURLcode res = curl_easy_perform(curl);
         if (!reader->reading) {
             ROX_DEBUG("curl_easy_perform() cancelled");
             break;
@@ -347,14 +337,14 @@ static void *_event_source_reader_thread_func(void *ptr) {
         curl_slist_free_all(headers);
     }
 
+    curl_easy_cleanup(curl);
+
     pthread_detach(pthread_self()); // free thread resources
 }
 
 static void _event_source_reader_start(EventSourceReader *reader) {
     assert(reader);
     if (!reader->reading) {
-        _cleanup_curl_handle(reader);
-        reader->curl = curl_easy_init();
         reader->reading = (pthread_create(&reader->thread, NULL,
                                           _event_source_reader_thread_func, (void *) reader) == 0);
     }
