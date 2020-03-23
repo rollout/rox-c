@@ -38,9 +38,8 @@ static void _config_notification_listener_event_handler(void *target, Notificati
 
 #define X_CONF_FETCH_NOTIFICATIONS_PATH_BUFFER_SIZE 1024
 
-static void _start_or_stop_push_updates_listener(XConfigurationFetchedInvoker *invoker) {
+static void _start_push_updates_listener(XConfigurationFetchedInvoker *invoker) {
     assert(invoker);
-
     if (internal_flags_is_enabled(invoker->flags, "rox.internal.pushUpdates")) {
         if (!invoker->push_updates_listener) {
             char notifications_path[X_CONF_FETCH_NOTIFICATIONS_PATH_BUFFER_SIZE];
@@ -54,16 +53,28 @@ static void _start_or_stop_push_updates_listener(XConfigurationFetchedInvoker *i
                     &_config_notification_listener_event_handler);
             notification_listener_start(invoker->push_updates_listener);
         }
-    } else {
-        if (invoker->push_updates_listener) {
-            notification_listener_stop(invoker->push_updates_listener);
-            notification_listener_free(invoker->push_updates_listener);
-            invoker->push_updates_listener = NULL;
-        }
     }
 }
 
 #undef X_CONF_FETCH_NOTIFICATIONS_PATH_BUFFER_SIZE
+
+static void _stop_push_updates_listener(XConfigurationFetchedInvoker *invoker) {
+    assert(invoker);
+    if (invoker->push_updates_listener) {
+        notification_listener_stop(invoker->push_updates_listener);
+        notification_listener_free(invoker->push_updates_listener);
+        invoker->push_updates_listener = NULL;
+    }
+}
+
+static void _start_or_stop_push_updates_listener(XConfigurationFetchedInvoker *invoker) {
+    assert(invoker);
+    if (internal_flags_is_enabled(invoker->flags, "rox.internal.pushUpdates")) {
+        _start_push_updates_listener(invoker);
+    } else {
+        _stop_push_updates_listener(invoker);
+    }
+}
 
 ROX_INTERNAL void x_configuration_fetched_handler(void *target, RoxConfigurationFetchedArgs *args) {
     assert(target);
@@ -75,8 +86,6 @@ ROX_INTERNAL void x_configuration_fetched_handler(void *target, RoxConfiguration
 
 ROX_INTERNAL void x_configuration_fetched_invoker_free(XConfigurationFetchedInvoker *invoker) {
     assert(invoker);
-    if (invoker->push_updates_listener) {
-        _start_or_stop_push_updates_listener(invoker);
-    }
+    _stop_push_updates_listener(invoker);
     free(invoker);
 }

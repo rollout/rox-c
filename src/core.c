@@ -426,6 +426,10 @@ ROX_INTERNAL void rox_core_free(RoxCore *core) {
 
     core->stopped = true;
 
+    if (core->x_configuration_fetched_invoker) {
+        x_configuration_fetched_invoker_free(core->x_configuration_fetched_invoker);
+    }
+
     flag_setter_free(core->flag_setter);
     configuration_fetched_invoker_free(core->configuration_fetched_invoker);
     flag_repository_free(core->flag_repository);
@@ -473,10 +477,6 @@ ROX_INTERNAL void rox_core_free(RoxCore *core) {
 
     if (core->state_sender) {
         state_sender_free(core->state_sender);
-    }
-
-    if (core->x_configuration_fetched_invoker) {
-        x_configuration_fetched_invoker_free(core->x_configuration_fetched_invoker);
     }
 
     if (core->analytics_client) {
