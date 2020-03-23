@@ -342,6 +342,9 @@ static void *_event_source_reader_thread_func(void *ptr) {
     }
 
     curl_easy_cleanup(curl);
+#ifndef ROX_APPLE
+    pthread_detach(pthread_self()); // free thread resources
+#endif
     reader->reading = false;
 }
 
