@@ -8,6 +8,7 @@
 #include "network.h"
 #include "util.h"
 #include "collections.h"
+#include "os.h"
 
 //
 // Debouncer
@@ -65,7 +66,9 @@ static void *_debouncer_thread_func(void *ptr) {
         }
     }
     debouncer->thread_started = false;
+#ifndef ROX_APPLE
     pthread_detach(pthread_self()); // free its resources
+#endif
     return NULL;
 }
 

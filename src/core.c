@@ -12,6 +12,7 @@
 #include "xpack/impression.h"
 #include "util.h"
 #include "collections.h"
+#include "os.h"
 
 //
 // PeriodicTask
@@ -48,7 +49,9 @@ static void *_periodic_task_thread_func(void *ptr) {
         } while (result == ETIMEDOUT && !task->stopped);
     }
     task->thread_started = false;
+#ifndef ROX_APPLE
     pthread_detach(pthread_self()); // free thread resources
+#endif
     return NULL;
 }
 
