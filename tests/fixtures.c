@@ -124,7 +124,8 @@ static void _test_logging_handler(void *target, RoxLogMessage *message) {
 
     FILE *stream = message->level == RoxLogLevelDebug ? stdout : stderr;
     fprintf(stream,
-            "%s:%d [%s] %s\n",
+            "%lu %s:%d [%s] %s\n",
+            (long) current_time_millis(),
             message->file,
             message->line,
             message->level_name,
