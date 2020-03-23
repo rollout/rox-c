@@ -40,19 +40,17 @@ static void _config_notification_listener_event_handler(void *target, Notificati
 
 static void _start_push_updates_listener(XConfigurationFetchedInvoker *invoker) {
     assert(invoker);
-    if (internal_flags_is_enabled(invoker->flags, "rox.internal.pushUpdates")) {
-        if (!invoker->push_updates_listener) {
-            char notifications_path[X_CONF_FETCH_NOTIFICATIONS_PATH_BUFFER_SIZE];
-            rox_env_get_notifications_path(notifications_path, X_CONF_FETCH_NOTIFICATIONS_PATH_BUFFER_SIZE);
-            NotificationListenerConfig config = NOTIFICATION_LISTENER_CONFIG_INITIALIZER(
-                    notifications_path,
-                    invoker->sdk_settings->api_key);
-            invoker->push_updates_listener = notification_listener_create(&config);
-            notification_listener_on(
-                    invoker->push_updates_listener, "changed", invoker,
-                    &_config_notification_listener_event_handler);
-            notification_listener_start(invoker->push_updates_listener);
-        }
+    if (!invoker->push_updates_listener) {
+        char notifications_path[X_CONF_FETCH_NOTIFICATIONS_PATH_BUFFER_SIZE];
+        rox_env_get_notifications_path(notifications_path, X_CONF_FETCH_NOTIFICATIONS_PATH_BUFFER_SIZE);
+        NotificationListenerConfig config = NOTIFICATION_LISTENER_CONFIG_INITIALIZER(
+                notifications_path,
+                invoker->sdk_settings->api_key);
+        invoker->push_updates_listener = notification_listener_create(&config);
+        notification_listener_on(
+                invoker->push_updates_listener, "changed", invoker,
+                &_config_notification_listener_event_handler);
+        notification_listener_start(invoker->push_updates_listener);
     }
 }
 

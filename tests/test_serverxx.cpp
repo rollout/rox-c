@@ -10,7 +10,7 @@ extern "C" {
 #include "util.h"
 }
 
-class ServerTextContext {
+class ServerTestContext {
 private:
     Rox::CustomPropertyGeneratorInterface *AddGenerator(Rox::CustomPropertyGeneratorInterface *generator);
 
@@ -18,9 +18,9 @@ private:
     Rox::ImpressionHandlerInterface *_impressionHandler;
 
 public:
-    ServerTextContext();
+    ServerTestContext();
 
-    virtual ~ServerTextContext();
+    virtual ~ServerTestContext();
 
     //
     // Container
@@ -67,10 +67,10 @@ public:
 };
 
 class TestConfigurationFetchedHandler : public Rox::ConfigurationFetchedHandlerInterface {
-    ServerTextContext *_ctx;
+    ServerTestContext *_ctx;
 
 public:
-    explicit TestConfigurationFetchedHandler(ServerTextContext *ctx) : _ctx(ctx) {}
+    explicit TestConfigurationFetchedHandler(ServerTestContext *ctx) : _ctx(ctx) {}
 
 public:
     void ConfigurationFetched(Rox::ConfigurationFetchedArgs *args) override {
@@ -81,9 +81,9 @@ public:
 };
 
 class TestImpressionHandler : public Rox::ImpressionHandlerInterface {
-    ServerTextContext *_ctx;
+    ServerTestContext *_ctx;
 public:
-    explicit TestImpressionHandler(ServerTextContext *ctx) : _ctx(ctx) {}
+    explicit TestImpressionHandler(ServerTestContext *ctx) : _ctx(ctx) {}
 
     void HandleImpression(Rox::ReportingValue *value, Rox::Experiment *experiment, Rox::Context *context) override {
         if (!value) {
@@ -122,9 +122,9 @@ public:
 };
 
 class TestComputedStringProperty : public Rox::CustomPropertyGeneratorInterface {
-    ServerTextContext *_ctx;
+    ServerTestContext *_ctx;
 public:
-    explicit TestComputedStringProperty(ServerTextContext *ctx) : _ctx(ctx) {}
+    explicit TestComputedStringProperty(ServerTestContext *ctx) : _ctx(ctx) {}
 
     Rox::DynamicValue *operator()(Rox::Context *context) override {
         _ctx->isComputedStringPropCalled = true;
@@ -133,9 +133,9 @@ public:
 };
 
 class TestComputedBooleanProperty : public Rox::CustomPropertyGeneratorInterface {
-    ServerTextContext *_ctx;
+    ServerTestContext *_ctx;
 public:
-    explicit TestComputedBooleanProperty(ServerTextContext *ctx) : _ctx(ctx) {}
+    explicit TestComputedBooleanProperty(ServerTestContext *ctx) : _ctx(ctx) {}
 
     Rox::DynamicValue *operator()(Rox::Context *context) override {
         _ctx->isComputedBooleanPropCalled = true;
@@ -144,9 +144,9 @@ public:
 };
 
 class TestComputedDoubleProperty : public Rox::CustomPropertyGeneratorInterface {
-    ServerTextContext *_ctx;
+    ServerTestContext *_ctx;
 public:
-    explicit TestComputedDoubleProperty(ServerTextContext *ctx) : _ctx(ctx) {}
+    explicit TestComputedDoubleProperty(ServerTestContext *ctx) : _ctx(ctx) {}
 
     Rox::DynamicValue *operator()(Rox::Context *context) override {
         _ctx->isComputedDoublePropCalled = true;
@@ -155,9 +155,9 @@ public:
 };
 
 class TestComputedSemverProperty : public Rox::CustomPropertyGeneratorInterface {
-    ServerTextContext *_ctx;
+    ServerTestContext *_ctx;
 public:
-    explicit TestComputedSemverProperty(ServerTextContext *ctx) : _ctx(ctx) {}
+    explicit TestComputedSemverProperty(ServerTestContext *ctx) : _ctx(ctx) {}
 
     Rox::DynamicValue *operator()(Rox::Context *context) override {
         _ctx->isComputedSemverPropCalled = true;
@@ -166,9 +166,9 @@ public:
 };
 
 class TestComputedIntProperty : public Rox::CustomPropertyGeneratorInterface {
-    ServerTextContext *_ctx;
+    ServerTestContext *_ctx;
 public:
-    explicit TestComputedIntProperty(ServerTextContext *ctx) : _ctx(ctx) {}
+    explicit TestComputedIntProperty(ServerTestContext *ctx) : _ctx(ctx) {}
 
     Rox::DynamicValue *operator()(Rox::Context *context) override {
         _ctx->isComputedIntPropCalled = true;
@@ -204,7 +204,7 @@ static bool _CompareAndFree(char *str, const char *expected_value) {
     return result;
 }
 
-ServerTextContext::ServerTextContext() {
+ServerTestContext::ServerTestContext() {
     Rox::Logging::SetLogLevel(RoxLogLevelDebug);
 
     _configurationFetchedHandler = new TestConfigurationFetchedHandler(this);
@@ -290,7 +290,7 @@ ServerTextContext::ServerTextContext() {
     Rox::Setup("5e6f80212e4fee6222cc9d6c", options);
 }
 
-ServerTextContext::~ServerTextContext() {
+ServerTestContext::~ServerTestContext() {
     Rox::Shutdown();
 
     delete _configurationFetchedHandler;
@@ -314,37 +314,37 @@ ServerTextContext::~ServerTextContext() {
 }
 
 Rox::CustomPropertyGeneratorInterface *
-ServerTextContext::AddGenerator(Rox::CustomPropertyGeneratorInterface *generator) {
+ServerTestContext::AddGenerator(Rox::CustomPropertyGeneratorInterface *generator) {
     this->generators.push_back(generator);
     return generator;
 }
 
 TEST_CASE ("test_simple_flag", "[server]") {
-    auto *ctx = new ServerTextContext();
+    auto *ctx = new ServerTestContext();
     REQUIRE(ctx->simpleFlag->IsEnabled());
     delete ctx;
 }
 
 TEST_CASE ("test_simple_flag_overwritten", "[server]") {
-    auto *ctx = new ServerTextContext();
+    auto *ctx = new ServerTestContext();
     REQUIRE(!ctx->simpleFlagOverwritten->IsEnabled());
     delete ctx;
 }
 
 TEST_CASE ("test_variant", "[server]") {
-    auto *ctx = new ServerTextContext();
+    auto *ctx = new ServerTestContext();
     REQUIRE(_CompareAndFree(ctx->variant->GetValue(), "red"));
     delete ctx;
 }
 
 TEST_CASE ("test_variant_overwritten", "[server]") {
-    auto *ctx = new ServerTextContext();
+    auto *ctx = new ServerTestContext();
     REQUIRE(_CompareAndFree(ctx->variantOverwritten->GetValue(), "green"));
     delete ctx;
 }
 
 TEST_CASE ("testing_all_custom_properties", "[server]") {
-    auto *ctx = new ServerTextContext();
+    auto *ctx = new ServerTestContext();
     REQUIRE(ctx->flagCustomProperties->IsEnabled());
     REQUIRE(ctx->isComputedBooleanPropCalled);
     REQUIRE(ctx->isComputedDoublePropCalled);
@@ -355,7 +355,7 @@ TEST_CASE ("testing_all_custom_properties", "[server]") {
 }
 
 TEST_CASE ("testing_fetch_within_timeout", "[server]") {
-    auto *ctx = new ServerTextContext();
+    auto *ctx = new ServerTestContext();
     int numberOfConfigFetches = ctx->configurationFetchedCount;
     Rox::Fetch();
     REQUIRE(ctx->configurationFetchedCount > numberOfConfigFetches);
@@ -363,7 +363,7 @@ TEST_CASE ("testing_fetch_within_timeout", "[server]") {
 }
 
 TEST_CASE ("testing_variant_with_context", "[server]") {
-    auto *ctx = new ServerTextContext();
+    auto *ctx = new ServerTestContext();
     Rox::Context *somePositiveContext = Rox::ContextBuilder()
             .AddBoolValue("isDuckAndCover", true)
             .Build();
@@ -381,7 +381,7 @@ TEST_CASE ("testing_variant_with_context", "[server]") {
 }
 
 TEST_CASE ("testing_target_groups_all_any_none", "[server]") {
-    auto *ctx = new ServerTextContext();
+    auto *ctx = new ServerTestContext();
 
     ctx->targetGroup1 = ctx->targetGroup2 = true;
     REQUIRE(ctx->flagTargetGroupsAll->IsEnabled());
@@ -402,7 +402,7 @@ TEST_CASE ("testing_target_groups_all_any_none", "[server]") {
 }
 
 TEST_CASE ("testing_impression_handler", "[server]") {
-    auto *ctx = new ServerTextContext();
+    auto *ctx = new ServerTestContext();
 
     ctx->flagForImpression->IsEnabled();
     REQUIRE(ctx->isImpressionRaised);
@@ -432,7 +432,7 @@ TEST_CASE ("testing_impression_handler", "[server]") {
 }
 
 TEST_CASE ("testing_flag_dependency", "[server]") {
-    auto *ctx = new ServerTextContext();
+    auto *ctx = new ServerTestContext();
 
     ctx->isPropForTargetGroupForDependency = true;
     REQUIRE(ctx->flagForDependency->IsEnabled());
@@ -446,7 +446,7 @@ TEST_CASE ("testing_flag_dependency", "[server]") {
 }
 
 TEST_CASE ("testing_variant_dependency_with_context", "[server]") {
-    auto *ctx = new ServerTextContext();
+    auto *ctx = new ServerTestContext();
 
     Rox::Context *somePositiveContext = Rox::ContextBuilder()
             .AddBoolValue("isDuckAndCover", true)

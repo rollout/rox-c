@@ -5,7 +5,7 @@
 #include "core/impression/models.h"
 #include "util.h"
 
-typedef struct ServerTextContext {
+typedef struct ServerTestContext {
 
     LoggingTestFixture *logging;
 
@@ -50,12 +50,12 @@ typedef struct ServerTextContext {
     RoxExperiment *lastImpressionExperiment;
     RoxDynamicValue *lastImpressionContextValue;
 
-} ServerTextContext;
+} ServerTestContext;
 
 static void _test_configuration_fetched_handler(void *target, RoxConfigurationFetchedArgs *args) {
     assert(target);
     assert(args);
-    ServerTextContext *ctx = (ServerTextContext *) target;
+    ServerTestContext *ctx = (ServerTestContext *) target;
     if (args->fetcher_status == AppliedFromNetwork) {
         ++ctx->configurationFetchedCount;
     }
@@ -73,7 +73,7 @@ static void _test_rox_impression_handler(
         return;
     }
 
-    ServerTextContext *ctx = (ServerTextContext *) target;
+    ServerTestContext *ctx = (ServerTestContext *) target;
     if (str_equals(value->name, "flagForImpression")) {
         ctx->isImpressionRaised = true;
     }
@@ -106,13 +106,13 @@ static void _test_rox_impression_handler(
 }
 
 static RoxDynamicValue *_test_computed_string_property(void *target, RoxContext *context) {
-    ServerTextContext *ctx = (ServerTextContext *) target;
+    ServerTestContext *ctx = (ServerTestContext *) target;
     ctx->isComputedStringPropCalled = true;
     return rox_dynamic_value_create_string_copy("World");
 }
 
 static RoxDynamicValue *_test_computed_boolean_property(void *target, RoxContext *context) {
-    ServerTextContext *ctx = (ServerTextContext *) target;
+    ServerTestContext *ctx = (ServerTestContext *) target;
     ctx->isComputedBooleanPropCalled = true;
     return rox_dynamic_value_create_boolean(false);
 }
@@ -131,25 +131,25 @@ static RoxDynamicValue *_test_computed_boolean_property_using_value(void *target
 }
 
 static RoxDynamicValue *_test_computed_double_property(void *target, RoxContext *context) {
-    ServerTextContext *ctx = (ServerTextContext *) target;
+    ServerTestContext *ctx = (ServerTestContext *) target;
     ctx->isComputedDoublePropCalled = true;
     return rox_dynamic_value_create_double(1.618);
 }
 
 static RoxDynamicValue *_test_computed_semver_property(void *target, RoxContext *context) {
-    ServerTextContext *ctx = (ServerTextContext *) target;
+    ServerTestContext *ctx = (ServerTestContext *) target;
     ctx->isComputedSemverPropCalled = true;
     return rox_dynamic_value_create_string_copy("20.7.1969");
 }
 
 static RoxDynamicValue *_test_computed_int_property(void *target, RoxContext *context) {
-    ServerTextContext *ctx = (ServerTextContext *) target;
+    ServerTestContext *ctx = (ServerTestContext *) target;
     ctx->isComputedIntPropCalled = true;
     return rox_dynamic_value_create_int(28);
 }
 
-static ServerTextContext *_server_text_context_create() {
-    ServerTextContext *ctx = calloc(1, sizeof(ServerTextContext));
+static ServerTestContext *_server_test_context_create() {
+    ServerTestContext *ctx = calloc(1, sizeof(ServerTestContext));
     ctx->logging = logging_test_fixture_create(RoxLogLevelDebug);
 
     RoxOptions *options = rox_options_create();
@@ -217,7 +217,7 @@ static ServerTextContext *_server_text_context_create() {
     return ctx;
 }
 
-static void _server_text_context_free(ServerTextContext *ctx) {
+static void _server_test_context_free(ServerTestContext *ctx) {
     assert(ctx);
     rox_shutdown();
     logging_test_fixture_free(ctx->logging);
@@ -237,62 +237,62 @@ static void _server_text_context_free(ServerTextContext *ctx) {
 }
 
 START_TEST (test_simple_flag) {
-    ServerTextContext *ctx = _server_text_context_create();
+    ServerTestContext *ctx = _server_test_context_create();
     ck_assert(rox_flag_is_enabled(ctx->simpleFlag));
-    _server_text_context_free(ctx);
+    _server_test_context_free(ctx);
 }
 
 END_TEST
 
 START_TEST (test_simple_flag_overwritten) {
-    ServerTextContext *ctx = _server_text_context_create();
+    ServerTestContext *ctx = _server_test_context_create();
     ck_assert(!rox_flag_is_enabled(ctx->simpleFlagOverwritten));
-    _server_text_context_free(ctx);
+    _server_test_context_free(ctx);
 }
 
 END_TEST
 
 START_TEST (test_variant) {
-    ServerTextContext *ctx = _server_text_context_create();
+    ServerTestContext *ctx = _server_test_context_create();
     rox_check_and_free(rox_variant_get_value_or_default(ctx->variant), "red");
-    _server_text_context_free(ctx);
+    _server_test_context_free(ctx);
 }
 
 END_TEST
 
 START_TEST (test_variant_overwritten) {
-    ServerTextContext *ctx = _server_text_context_create();
+    ServerTestContext *ctx = _server_test_context_create();
     rox_check_and_free(rox_variant_get_value_or_default(ctx->variantOverwritten), "green");
-    _server_text_context_free(ctx);
+    _server_test_context_free(ctx);
 }
 
 END_TEST
 
 START_TEST (testing_all_custom_properties) {
-    ServerTextContext *ctx = _server_text_context_create();
+    ServerTestContext *ctx = _server_test_context_create();
     ck_assert(rox_flag_is_enabled(ctx->flagCustomProperties));
     ck_assert(ctx->isComputedBooleanPropCalled);
     ck_assert(ctx->isComputedDoublePropCalled);
     ck_assert(ctx->isComputedIntPropCalled);
     ck_assert(ctx->isComputedSemverPropCalled);
     ck_assert(ctx->isComputedStringPropCalled);
-    _server_text_context_free(ctx);
+    _server_test_context_free(ctx);
 }
 
 END_TEST
 
 START_TEST (testing_fetch_within_timeout) {
-    ServerTextContext *ctx = _server_text_context_create();
+    ServerTestContext *ctx = _server_test_context_create();
     int number_of_config_fetches = ctx->configurationFetchedCount;
     rox_fetch(); // TODO: do a timeout 5000
     ck_assert_int_gt(ctx->configurationFetchedCount, number_of_config_fetches);
-    _server_text_context_free(ctx);
+    _server_test_context_free(ctx);
 }
 
 END_TEST
 
 START_TEST (testing_variant_with_context) {
-    ServerTextContext *ctx = _server_text_context_create();
+    ServerTestContext *ctx = _server_test_context_create();
     RoxContext *some_positive_context = rox_context_create_from_map(
             ROX_MAP(ROX_COPY("isDuckAndCover"), rox_dynamic_value_create_boolean(true)));
     RoxContext *some_negative_context = rox_context_create_from_map(
@@ -302,13 +302,13 @@ START_TEST (testing_variant_with_context) {
     rox_check_and_free(rox_variant_get_value_or_default_ctx(ctx->variantWithContext, some_negative_context), "red");
     rox_context_free(some_positive_context);
     rox_context_free(some_negative_context);
-    _server_text_context_free(ctx);
+    _server_test_context_free(ctx);
 }
 
 END_TEST
 
 START_TEST (testing_target_groups_all_any_none) {
-    ServerTextContext *ctx = _server_text_context_create();
+    ServerTestContext *ctx = _server_test_context_create();
 
     ctx->targetGroup1 = ctx->targetGroup2 = true;
     ck_assert(rox_flag_is_enabled(ctx->flagTargetGroupsAll));
@@ -325,13 +325,13 @@ START_TEST (testing_target_groups_all_any_none) {
     ck_assert(!rox_flag_is_enabled(ctx->flagTargetGroupsAny));
     ck_assert(rox_flag_is_enabled(ctx->flagTargetGroupsNone));
 
-    _server_text_context_free(ctx);
+    _server_test_context_free(ctx);
 }
 
 END_TEST
 
 START_TEST (testing_impression_handler) {
-    ServerTextContext *ctx = _server_text_context_create();
+    ServerTestContext *ctx = _server_test_context_create();
 
     rox_flag_is_enabled(ctx->flagForImpression);
     ck_assert(ctx->isImpressionRaised);
@@ -355,13 +355,13 @@ START_TEST (testing_impression_handler) {
 
     rox_context_free(context);
 
-    _server_text_context_free(ctx);
+    _server_test_context_free(ctx);
 }
 
 END_TEST
 
 START_TEST (testing_flag_dependency) {
-    ServerTextContext *ctx = _server_text_context_create();
+    ServerTestContext *ctx = _server_test_context_create();
 
     ctx->isPropForTargetGroupForDependency = true;
     ck_assert(rox_flag_is_enabled(ctx->flagForDependency));
@@ -371,13 +371,13 @@ START_TEST (testing_flag_dependency) {
     ck_assert(rox_flag_is_enabled(ctx->flagDependent));
     ck_assert(!rox_flag_is_enabled(ctx->flagForDependency));
 
-    _server_text_context_free(ctx);
+    _server_test_context_free(ctx);
 }
 
 END_TEST
 
 START_TEST (testing_variant_dependency_with_context) {
-    ServerTextContext *ctx = _server_text_context_create();
+    ServerTestContext *ctx = _server_test_context_create();
 
     RoxContext *some_positive_context = rox_context_create_from_map(
             ROX_MAP(ROX_COPY("isDuckAndCover"), rox_dynamic_value_create_boolean(true)));
@@ -399,7 +399,7 @@ START_TEST (testing_variant_dependency_with_context) {
     rox_context_free(some_positive_context);
     rox_context_free(some_negative_context);
 
-    _server_text_context_free(ctx);
+    _server_test_context_free(ctx);
 }
 
 END_TEST
