@@ -461,13 +461,11 @@ ROX_INTERNAL NotificationListener *notification_listener_create(NotificationList
     listener->reconnect_timeout_millis = config->reconnect_timeout_millis > 0
                                          ? config->reconnect_timeout_millis
                                          : DEFAULT_RECONNECT_TIMEOUT_SECONDS * 1000;
-
-    if (config->testing) {
-        listener->reader = _event_source_reader_create(
-                "test", listener, &_notification_listener_message_received,
-                listener->reconnect_timeout_millis);
-    }
-
+    char *url = mem_build_url(listener->listen_url, listener->app_key);
+    listener->reader = _event_source_reader_create(
+            url, listener, &_notification_listener_message_received,
+            listener->reconnect_timeout_millis);
+    free(url);
     return listener;
 }
 
@@ -512,15 +510,7 @@ ROX_INTERNAL void notification_listener_test(NotificationListener *listener, con
 
 ROX_INTERNAL void notification_listener_start(NotificationListener *listener) {
     assert(listener);
-    if (listener->testing || listener->reader) {
-        return;
-    }
-    char *url = mem_build_url(listener->listen_url, listener->app_key);
-    listener->reader = _event_source_reader_create(
-            url, listener, &_notification_listener_message_received,
-            listener->reconnect_timeout_millis);
     _event_source_reader_start(listener->reader);
-    free(url);
 }
 
 ROX_INTERNAL void notification_listener_stop(NotificationListener *listener) {

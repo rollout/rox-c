@@ -38,6 +38,7 @@ static void _test_notification_listener_event_handler(void *target, Notification
 static void _check_notification_listener_event(
         ListenerEventTestContext *ctx,
         const char *name,
+
         const char *data) {
 
     assert(ctx);
