@@ -308,26 +308,34 @@ ROX_INTERNAL RoxDynamicApi *dynamic_api_create(
 ROX_API bool rox_dynamic_api_is_enabled(
         RoxDynamicApi *api,
         const char *name,
+        bool default_value) {
+    return rox_dynamic_api_is_enabled_ctx(api, name, default_value, NULL);
+}
+
+ROX_API bool rox_dynamic_api_is_enabled_ctx(
+        RoxDynamicApi *api,
+        const char *name,
         bool default_value,
         RoxContext *context) {
     assert(api);
     assert(name);
 
-    RoxVariant *variant = flag_repository_get_flag(api->flag_repository, name);
+    RoxStringBase *variant = flag_repository_get_flag(api->flag_repository, name);
     if (!variant) {
         variant = entities_provider_create_flag(api->entities_provider, default_value);
         flag_repository_add_flag(api->flag_repository, variant, name);
     }
-
-    RoxVariant *flag = variant;
-    if (!flag || !variant_is_flag(flag)) {
-        return default_value;
-    }
-
-    return flag_is_enabled_or(flag, context, default_value);
+    return flag_is_enabled_or(variant, context, default_value);
 }
 
-ROX_API char *rox_dynamic_api_get_value(
+ROX_API char *rox_dynamic_api_get_string(
+        RoxDynamicApi *api,
+        const char *name,
+        char *default_value) {
+    return rox_dynamic_api_get_string_ctx(api, name, default_value, NULL, NULL);
+}
+
+ROX_API char *rox_dynamic_api_get_string_ctx(
         RoxDynamicApi *api,
         const char *name,
         char *default_value,
@@ -337,13 +345,62 @@ ROX_API char *rox_dynamic_api_get_value(
     assert(api);
     assert(name);
 
-    RoxVariant *variant = flag_repository_get_flag(api->flag_repository, name);
+    RoxStringBase *variant = flag_repository_get_flag(api->flag_repository, name);
     if (!variant) {
-        variant = entities_provider_create_variant(api->entities_provider, default_value, options);
+        variant = entities_provider_create_string(api->entities_provider, default_value, options);
         flag_repository_add_flag(api->flag_repository, variant, name);
     }
+    return variant_get_string_or(variant, context, default_value);
+}
 
-    return variant_get_value_or(variant, context, default_value);
+ROX_API int rox_dynamic_api_get_int(
+        RoxDynamicApi *api,
+        const char *name,
+        int default_value) {
+    return rox_dynamic_api_get_int_ctx(api, name, default_value, NULL, NULL);
+}
+
+ROX_API int rox_dynamic_api_get_int_ctx(
+        RoxDynamicApi *api,
+        const char *name,
+        int default_value,
+        RoxList *options,
+        RoxContext *context) {
+
+    assert(api);
+    assert(name);
+
+    RoxStringBase *variant = flag_repository_get_flag(api->flag_repository, name);
+    if (!variant) {
+        variant = entities_provider_create_int(api->entities_provider, default_value, options);
+        flag_repository_add_flag(api->flag_repository, variant, name);
+    }
+    return variant_get_int_or(variant, context, default_value);
+}
+
+ROX_API double rox_dynamic_api_get_double(
+        RoxDynamicApi *api,
+        const char *name,
+        double default_value) {
+    return rox_dynamic_api_get_double_ctx(api, name, default_value, NULL, NULL);
+}
+
+ROX_API double rox_dynamic_api_get_double_ctx(
+        RoxDynamicApi *api,
+        const char *name,
+        double default_value,
+        RoxList *options,
+        RoxContext *context) {
+
+    assert(api);
+    assert(name);
+
+    RoxStringBase *variant = flag_repository_get_flag(api->flag_repository, name);
+    if (!variant) {
+        variant = entities_provider_create_double(api->entities_provider, default_value, options);
+        flag_repository_add_flag(api->flag_repository, variant, name);
+    }
+    return variant_get_double_or(variant, context, default_value);
 }
 
 ROX_API void rox_dynamic_api_free(RoxDynamicApi *api) {

@@ -1,7 +1,7 @@
 #pragma once
 
 #include <stdarg.h>
-#include "rollout.h"
+#include "rox/server.h"
 
 typedef struct ErrorReporter ErrorReporter;
 

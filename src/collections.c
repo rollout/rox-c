@@ -305,8 +305,36 @@ ROX_API RoxList *rox_list_create_str_va(void *skip, ...) {
     RoxList *list = rox_list_create();
     char *item = va_arg(args, char*);
     while (item != NULL) {
-        rox_list_add(list, mem_copy_str(item));
+        rox_list_add(list, item ? mem_copy_str(item) : NULL);
         item = va_arg(args, char*);
+    };
+            va_end(args);
+    return list;
+}
+
+ROX_API RoxList *rox_list_create_int_va(void *skip, ...) {
+    va_list args;
+            va_start(args, skip);
+
+    RoxList *list = rox_list_create();
+    int num = va_arg(args, int);
+    while (num != INT_MIN) {
+        rox_list_add(list, mem_int_to_str(num));
+        num = va_arg(args, int);
+    };
+            va_end(args);
+    return list;
+}
+
+ROX_API RoxList *rox_list_create_double_va(void *skip, ...) {
+    va_list args;
+            va_start(args, skip);
+
+    RoxList *list = rox_list_create();
+    double num = va_arg(args, double);
+    while (num != DBL_MIN) {
+        rox_list_add(list, mem_double_to_str(num));
+        num = va_arg(args, double);
     };
             va_end(args);
     return list;

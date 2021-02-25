@@ -4,7 +4,7 @@
 #include <stdbool.h>
 #include <string.h>
 
-#include "rollout.h"
+#include "rox/server.h"
 #include "util.h"
 #include "collections.h"
 
@@ -35,6 +35,12 @@ static RoxDynamicValue *_create_value() {
 ROX_API RoxDynamicValue *rox_dynamic_value_create_int(int value) {
     RoxDynamicValue *dynamic_value = _create_value();
     dynamic_value->int_value = mem_copy_int(value);
+    return dynamic_value;
+}
+
+ROX_API RoxDynamicValue *rox_dynamic_value_create_int_ptr(int *value) {
+    RoxDynamicValue *dynamic_value = _create_value();
+    dynamic_value->int_value = value;
     return dynamic_value;
 }
 
@@ -248,7 +254,7 @@ ROX_API bool rox_dynamic_value_equals(RoxDynamicValue *v1, RoxDynamicValue *v2) 
 // Destructor
 //
 
-ROX_API RoxDynamicValue *rox_dynamic_value_free(RoxDynamicValue *value) {
+ROX_API void rox_dynamic_value_free(RoxDynamicValue *value) {
     assert(value);
     if (value->int_value) {
         free(value->int_value);

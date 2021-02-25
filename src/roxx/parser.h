@@ -1,6 +1,6 @@
 #pragma once
 
-#include "rollout.h"
+#include "rox/server.h"
 #include "stack.h"
 #include "core/context.h"
 
@@ -71,7 +71,7 @@ ROX_INTERNAL void parser_add_operator(Parser *parser, const char *name, void *ta
  * @param parser Parser reference. NOT NULL.
  * @param expression Expression. NOT NULL.
  * @param context Can be NULL.
- * @return Not NULL.
+ * @return Can be NULL.
  */
 ROX_INTERNAL EvaluationResult *parser_evaluate_expression(Parser *parser, const char *expression, RoxContext *context);
 
@@ -79,6 +79,12 @@ ROX_INTERNAL EvaluationResult *parser_evaluate_expression(Parser *parser, const 
 // Get value from evaluation result. If actual value type is different
 // cast is performed, so it's safe to call any of these func on any EvaluationResult.
 //
+
+ROX_INTERNAL EvaluationResult *result_create(RoxContext *context);
+
+ROX_INTERNAL RoxContext *result_get_context(EvaluationResult *result);
+
+ROX_INTERNAL bool result_is_undefined(EvaluationResult *result);
 
 ROX_INTERNAL int *result_get_int(EvaluationResult *result);
 

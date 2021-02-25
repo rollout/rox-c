@@ -3,12 +3,22 @@
 #include <catch2/catch.hpp>
 #include <cassert>
 
-#include "rollout.hpp"
+#include "rox/server.hpp"
 
 extern "C" {
 #include "core/impression/models.h"
 #include "util.h"
 }
+
+// TODO: FlagTests
+
+// TODO: RoxStringTests
+
+// TODO: RoxIntTests
+
+// TODO: RoxDoubleTests
+
+// RoxE2ETests
 
 class ServerTestContext {
 private:
@@ -34,12 +44,12 @@ public:
     Rox::Flag *flagTargetGroupsAll;
     Rox::Flag *flagTargetGroupsAny;
     Rox::Flag *flagTargetGroupsNone;
-    Rox::Variant *variantWithContext;
-    Rox::Variant *variant;
-    Rox::Variant *variantOverwritten;
+    Rox::String *variantWithContext;
+    Rox::String *variant;
+    Rox::String *variantOverwritten;
     Rox::Flag *flagForDependency;
     Rox::Flag *flagDependent;
-    Rox::Variant *flagColorDependentWithContext;
+    Rox::String *flagColorDependentWithContext;
 
     //
     // TestVars
@@ -225,16 +235,16 @@ ServerTestContext::ServerTestContext() {
     this->flagTargetGroupsAll = Rox::Flag::Create("flagTargetGroupsAll", false);
     this->flagTargetGroupsAny = Rox::Flag::Create("flagTargetGroupsAny", false);
     this->flagTargetGroupsNone = Rox::Flag::Create("flagTargetGroupsNone", false);
-    this->variantWithContext = Rox::Variant::Create("variantWithContext", "red",
-                                                    std::vector<std::string>{"red", "blue", "green"});
-    this->variant = Rox::Variant::Create("variant", "red", std::vector<std::string>{"red", "blue", "green"});
-    this->variantOverwritten = Rox::Variant::Create("variantOverwritten", "red",
-                                                    std::vector<std::string>{"red", "blue", "green"});
+    this->variantWithContext = Rox::String::Create("variantWithContext", "red",
+                                                   std::vector<std::string>{"red", "blue", "green"});
+    this->variant = Rox::String::Create("variant", "red", std::vector<std::string>{"red", "blue", "green"});
+    this->variantOverwritten = Rox::String::Create("variantOverwritten", "red",
+                                                   std::vector<std::string>{"red", "blue", "green"});
     this->flagForDependency = Rox::Flag::Create("flagForDependency", false);
     this->flagDependent = Rox::Flag::Create("flagDependent", false);
-    this->flagColorDependentWithContext = Rox::Variant::Create("flagColorDependentWithContext", "White",
-                                                               std::vector<std::string>{"White", "Blue", "Green",
-                                                                                        "Yellow"});
+    this->flagColorDependentWithContext = Rox::String::Create("flagColorDependentWithContext", "White",
+                                                              std::vector<std::string>{"White", "Blue", "Green",
+                                                                                       "Yellow"});
 
     this->isImpressionRaised = false;
     this->isComputedBooleanPropCalled = false;
@@ -377,6 +387,23 @@ TEST_CASE ("testing_variant_with_context", "[server]") {
                             "red"));
     rox_context_free(somePositiveContext);
     rox_context_free(someNegativeContext);
+    delete ctx;
+}
+
+TEST_CASE ("testing_variant_with_global_context", "[server]") {
+    auto *ctx = new ServerTestContext();
+    Rox::Context *somePositiveContext = Rox::ContextBuilder()
+            .AddBoolValue("isDuckAndCover", true)
+            .Build();
+
+    REQUIRE(_CompareAndFree(ctx->variantWithContext->GetValue(), "red"));
+
+    Rox::SetContext(somePositiveContext);
+    REQUIRE(_CompareAndFree(ctx->variantWithContext->GetValue(), "blue"));
+
+    Rox::SetContext(nullptr);
+    REQUIRE(_CompareAndFree(ctx->variantWithContext->GetValue(), "red"));
+    
     delete ctx;
 }
 

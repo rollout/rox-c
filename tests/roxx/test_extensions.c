@@ -155,7 +155,7 @@ END_TEST
 START_TEST (test_flag_value_flag_evaluation_default) {
     ParserExtensionsTestContext *context = parser_extensions_test_context_create();
 
-    RoxVariant *variant = variant_create("op1", ROX_LIST_COPY_STR("op2"));
+    RoxStringBase *variant = variant_create_string("op1", ROX_LIST_COPY_STR("op2"));
     flag_repository_add_flag(context->flag_repository, variant, "f1");
 
     EvaluationResult *result = parser_evaluate_expression(context->parser, "flagValue(\"f1\")", NULL);
@@ -170,15 +170,15 @@ END_TEST
 START_TEST (test_flag_dependency_value) {
     ParserExtensionsTestContext *context = parser_extensions_test_context_create();
 
-    RoxVariant *flag = variant_create_flag();
+    RoxStringBase *flag = variant_create_flag();
     flag_repository_add_flag(context->flag_repository, flag, "f1");
 
-    RoxVariant *v = variant_create("blue", ROX_LIST_COPY_STR("red", "green"));
+    RoxStringBase *v = variant_create_string("blue", ROX_LIST_COPY_STR("red", "green"));
     variant_set_for_evaluation(v, context->parser, NULL, NULL);
     variant_set_condition(v, "ifThen(eq(\"true\", flagValue(\"f1\")), \"red\", \"green\")");
     flag_repository_add_flag(context->flag_repository, v, "v1");
 
-    char *value = variant_get_value_or_default(v, NULL);
+    char *value = variant_get_string_or_default(v, NULL);
     ck_assert_str_eq("green", value);
     free(value);
 
@@ -191,16 +191,16 @@ END_TEST
 START_TEST (test_flag_dependency_impression_handler) {
     ParserExtensionsTestContext *context = parser_extensions_test_context_create();
 
-    RoxVariant *flag = variant_create_flag();
+    RoxStringBase *flag = variant_create_flag();
     flag_repository_add_flag(context->flag_repository, flag, "f1");
     variant_set_for_evaluation(flag, context->parser, NULL, context->impression_invoker);
 
-    RoxVariant *v = variant_create("blue", ROX_LIST_COPY_STR("red", "green"));
+    RoxStringBase *v = variant_create_string("blue", ROX_LIST_COPY_STR("red", "green"));
     variant_set_for_evaluation(v, context->parser, NULL, context->impression_invoker);
     variant_set_condition(v, "ifThen(eq(\"true\", flagValue(\"f1\")), \"red\", \"green\")");
     flag_repository_add_flag(context->flag_repository, v, "v1");
 
-    char *value = variant_get_value_or_default(v, NULL);
+    char *value = variant_get_string_or_default(v, NULL);
     ck_assert_str_eq("green", value);
 
     ck_assert_int_eq(rox_list_size(context->impressions), 2);
@@ -223,17 +223,17 @@ END_TEST
 START_TEST (test_flag_dependency2_levels_bottom_not_exists) {
     ParserExtensionsTestContext *context = parser_extensions_test_context_create();
 
-    RoxVariant *flag = variant_create_flag();
+    RoxStringBase *flag = variant_create_flag();
     flag_repository_add_flag(context->flag_repository, flag, "f1");
     variant_set_for_evaluation(flag, context->parser, NULL, NULL);
     variant_set_condition(flag, "flagValue(\"someFlag\")");
 
-    RoxVariant *v = variant_create("blue", ROX_LIST_COPY_STR("red", "green"));
+    RoxStringBase *v = variant_create_string("blue", ROX_LIST_COPY_STR("red", "green"));
     variant_set_for_evaluation(v, context->parser, NULL, NULL);
     variant_set_condition(v, "ifThen(eq(\"true\", flagValue(\"f1\")), \"red\", \"green\")");
     flag_repository_add_flag(context->flag_repository, v, "v1");
 
-    char *value = variant_get_value_or_default(v, NULL);
+    char *value = variant_get_string_or_default(v, NULL);
     ck_assert_str_eq("green", value);
     free(value);
 
@@ -257,11 +257,11 @@ START_TEST (test_flag_dependency_unexisting_flag_but_existing_experiment) {
     experiment_repository_set_experiments(context->experiment_repository, experiment_models);
     flag_setter_set_experiments(flag_setter);
 
-    RoxVariant *color_var = variant_create("red", ROX_LIST_COPY_STR("red", "green", "blue"));
+    RoxStringBase *color_var = variant_create_string("red", ROX_LIST_COPY_STR("red", "green", "blue"));
     variant_set_for_evaluation(color_var, context->parser, NULL, NULL);
     flag_repository_add_flag(context->flag_repository, color_var, "colorVar");
 
-    char *result = variant_get_value_or_default(color_var, NULL);
+    char *result = variant_get_string_or_default(color_var, NULL);
     ck_assert_str_eq("blue", result);
     free(result);
 
@@ -286,11 +286,11 @@ START_TEST (test_flag_dependency_unexisting_flag_and_experiment_undefined) {
     experiment_repository_set_experiments(context->experiment_repository, experiment_models);
     flag_setter_set_experiments(flag_setter);
 
-    RoxVariant *color_var = variant_create("red", ROX_LIST_COPY_STR("red", "green", "blue"));
+    RoxStringBase *color_var = variant_create_string("red", ROX_LIST_COPY_STR("red", "green", "blue"));
     variant_set_for_evaluation(color_var, context->parser, NULL, NULL);
     flag_repository_add_flag(context->flag_repository, color_var, "colorVar");
 
-    char *result = variant_get_value_or_default(color_var, NULL);
+    char *result = variant_get_string_or_default(color_var, NULL);
     ck_assert_str_eq("green", result);
     free(result);
 
@@ -310,12 +310,12 @@ START_TEST (test_flag_dependency_with_context) {
                                    &ROX_CUSTOM_PROPERTY_TYPE_BOOL,
                                    context, &_parser_extensions_custom_property_generator));
 
-    RoxVariant *flag1 = variant_create_flag();
+    RoxStringBase *flag1 = variant_create_flag();
     variant_set_for_evaluation(flag1, context->parser, NULL, NULL);
     variant_set_condition(flag1, "property(\"prop\")");
     flag_repository_add_flag(context->flag_repository, flag1, "flag1");
 
-    RoxVariant *flag2 = variant_create_flag();
+    RoxStringBase *flag2 = variant_create_flag();
     variant_set_for_evaluation(flag2, context->parser, NULL, NULL);
     variant_set_condition(flag2, "flagValue(\"flag1\")");
     flag_repository_add_flag(context->flag_repository, flag2, "flag2");
@@ -324,7 +324,7 @@ START_TEST (test_flag_dependency_with_context) {
                                                           mem_copy_str("isPropOn"),
                                                           rox_dynamic_value_create_boolean(true)));
 
-    char *flag_value = variant_get_value_or_default(flag2, ctx);
+    char *flag_value = variant_get_string_or_default(flag2, ctx);
     ck_assert_str_eq(flag_value, "true");
     free(flag_value);
     rox_context_free(ctx);
@@ -344,7 +344,7 @@ START_TEST (test_flag_dependency_with_context_used_on_experiment_with_no_flag) {
                                    &ROX_CUSTOM_PROPERTY_TYPE_BOOL,
                                    context, &_parser_extensions_custom_property_generator));
 
-    RoxVariant *flag3 = variant_create_flag();
+    RoxStringBase *flag3 = variant_create_flag();
     variant_set_for_evaluation(flag3, context->parser, NULL, NULL);
     variant_set_condition(flag3, "flagValue(\"flag2\")");
     flag_repository_add_flag(context->flag_repository, flag3, "flag3");
@@ -359,7 +359,7 @@ START_TEST (test_flag_dependency_with_context_used_on_experiment_with_no_flag) {
                                                           mem_copy_str("isPropOn"),
                                                           rox_dynamic_value_create_boolean(true)));
 
-    char *flag_value = variant_get_value_or_default(flag3, ctx);
+    char *flag_value = variant_get_string_or_default(flag3, ctx);
     ck_assert_str_eq(flag_value, "true");
     free(flag_value);
     rox_context_free(ctx);
@@ -379,12 +379,12 @@ START_TEST (test_flag_dependency_with_context2_level_mid_level_no_flag_eval_expe
                                    &ROX_CUSTOM_PROPERTY_TYPE_BOOL,
                                    context, &_parser_extensions_custom_property_generator));
 
-    RoxVariant *flag1 = variant_create_flag();
+    RoxStringBase *flag1 = variant_create_flag();
     variant_set_for_evaluation(flag1, context->parser, NULL, NULL);
     variant_set_condition(flag1, "property(\"prop\")");
     flag_repository_add_flag(context->flag_repository, flag1, "flag1");
 
-    RoxVariant *flag3 = variant_create_flag();
+    RoxStringBase *flag3 = variant_create_flag();
     variant_set_for_evaluation(flag3, context->parser, NULL, NULL);
     variant_set_condition(flag3, "flagValue(\"flag2\")");
     flag_repository_add_flag(context->flag_repository, flag3, "flag3");
@@ -399,7 +399,7 @@ START_TEST (test_flag_dependency_with_context2_level_mid_level_no_flag_eval_expe
                                                           mem_copy_str("isPropOn"),
                                                           rox_dynamic_value_create_boolean(true)));
 
-    char *flag_value = variant_get_value_or_default(flag3, ctx);
+    char *flag_value = variant_get_string_or_default(flag3, ctx);
     ck_assert_str_eq(flag_value, "true");
     free(flag_value);
     rox_context_free(ctx);

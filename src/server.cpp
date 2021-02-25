@@ -2,12 +2,13 @@
 #include <vector>
 #include <string>
 
-#include "rollout.hpp"
+#include "rox/server.hpp"
 
 extern "C" {
 #include "core/client.h"
 #include "core/logging.h"
 #include "collections.h"
+#include "util.h"
 }
 
 namespace Rox {
@@ -23,7 +24,7 @@ namespace Rox {
         rox_logging_init(&instance._config);
     }
 
-    static void _RoxLoggingHandlerAdapter(void *target, LogMessage *message) {
+    static void RoxLoggingHandlerAdapter(void *target, LogMessage *message) {
         assert(target);
         assert(message);
         auto *handler = (LogMessageHandlerInterface *) target;
@@ -34,7 +35,7 @@ namespace Rox {
         assert(handler);
         Logging &instance = _GetInstance();
         instance._config.target = handler;
-        instance._config.handler = &_RoxLoggingHandlerAdapter;
+        instance._config.handler = &RoxLoggingHandlerAdapter;
         rox_logging_init(&instance._config);
     }
 
@@ -92,7 +93,7 @@ namespace Rox {
     // Options
     //
 
-    static void _RoxImpressionHandlerAdapter(
+    static void RoxImpressionHandlerAdapter(
             void *target,
             RoxReportingValue *value,
             RoxExperiment *experiment,
@@ -102,13 +103,13 @@ namespace Rox {
         handler->HandleImpression(value, experiment, context);
     }
 
-    static void _RoxConfigurationFetchedHandlerAdapter(void *target, RoxConfigurationFetchedArgs *args) {
+    static void RoxConfigurationFetchedHandlerAdapter(void *target, RoxConfigurationFetchedArgs *args) {
         assert(target);
         auto *handler = (ConfigurationFetchedHandlerInterface *) target;
         handler->ConfigurationFetched(args);
     }
 
-    static RoxDynamicValue *_RoxDynamicPropertiesRuleAdapter(
+    static RoxDynamicValue *RoxDynamicPropertiesRuleAdapter(
             const char *prop_name,
             void *target,
             RoxContext *context) {
@@ -148,20 +149,20 @@ namespace Rox {
 
     OptionsBuilder &OptionsBuilder::SetImpressionHandler(ImpressionHandlerInterface *handler) {
         assert(handler);
-        rox_options_set_impression_handler(_options, handler, &_RoxImpressionHandlerAdapter);
+        rox_options_set_impression_handler(_options, handler, &RoxImpressionHandlerAdapter);
         return *this;
     }
 
     OptionsBuilder &OptionsBuilder::SetConfigurationFetchedHandler(ConfigurationFetchedHandlerInterface *handler) {
         assert(handler);
         rox_options_set_configuration_fetched_handler(_options, handler,
-                                                      &_RoxConfigurationFetchedHandlerAdapter);
+                                                      &RoxConfigurationFetchedHandlerAdapter);
         return *this;
     }
 
     ROX_API OptionsBuilder &OptionsBuilder::SetDynamicPropertiesRule(DynamicPropertiesRuleInterface *rule) {
         assert(rule);
-        rox_options_set_dynamic_properties_rule(_options, rule, &_RoxDynamicPropertiesRuleAdapter);
+        rox_options_set_dynamic_properties_rule(_options, rule, &RoxDynamicPropertiesRuleAdapter);
         return *this;
     }
 
@@ -173,52 +174,43 @@ namespace Rox {
     // Flags
     //
 
-    RoxList *Variant::_allVariants = nullptr;
+    RoxList *BaseFlag::_allVariants = nullptr;
 
-    ROX_API void Variant::Add(Variant *variant) {
+    ROX_API BaseFlag::BaseFlag(RoxStringBase *variant) : _variant(variant) {
         if (!_allVariants) {
             _allVariants = ROX_EMPTY_LIST;
         }
-        rox_list_add(_allVariants, variant);
+        rox_list_add(_allVariants, this);
     }
 
-    ROX_API Variant *Variant::Create(const char *name, const char *defaultValue) {
+    ROX_API const char *BaseFlag::GetName() {
+        return variant_get_name(_variant);
+    }
+
+    ROX_API String *String::Create(const char *name, const char *defaultValue) {
         assert(name);
-        auto *variant = new Variant(rox_add_variant(name, defaultValue, nullptr));
-        Add(variant);
-        return variant;
+        return new String(rox_add_string(name, defaultValue));
     }
 
-    ROX_API Variant *
-    Variant::Create(const char *name, const char *defaultValue, const std::vector<std::string> &options) {
+    ROX_API String *
+    String::Create(const char *name, const char *defaultValue, const std::vector<std::string> &options) {
         assert(name);
         RoxList * list = ROX_EMPTY_LIST;
         for (auto &option : options) {
             rox_list_add(list, ROX_COPY(option.data()));
         }
-        auto *variant = new Variant(rox_add_variant(name, defaultValue, list));
-        Add(variant);
-        return variant;
+        return new String(rox_add_string_with_options(name, defaultValue, list));
     }
 
-    ROX_API char *Variant::GetValue(Context *context) {
+    ROX_API char *String::GetValue(Context *context) {
         return (context == nullptr)
-               ? rox_variant_get_value_or_default(_variant)
-               : rox_variant_get_value_or_default_ctx(_variant, context);
-    }
-
-    ROX_API char *Variant::GetValueOrNull(Context *context) {
-        return (context == nullptr)
-               ? rox_variant_get_value_or_null(_variant)
-               : rox_variant_get_value_or_null_ctx(_variant, context);
+               ? rox_get_string(_variant)
+               : rox_get_string_ctx(_variant, context);
     }
 
     ROX_API Flag *Flag::Create(const char *name, bool defaultValue) {
         assert(name);
-        RoxVariant * handle = rox_add_flag(name, defaultValue);
-        auto *flag = new Flag(handle);
-        Add(flag);
-        return flag;
+        return new Flag(rox_add_flag(name, defaultValue));
     }
 
     ROX_API bool Flag::IsEnabled(Context *context) {
@@ -227,18 +219,51 @@ namespace Rox {
                : rox_flag_is_enabled_ctx(_variant, context);
     }
 
-    ROX_API bool *Flag::IsEnabledOrNull(Context *context) {
-        return const_cast<bool *>(
-                (context == nullptr)
-                ? rox_flag_is_enabled_or_null(_variant)
-                : rox_flag_is_enabled_or_null_ctx(_variant, context));
+    ROX_API Int *Int::Create(const char *name, int defaultValue) {
+        assert(name);
+        return new Int(rox_add_int(name, defaultValue));
+    }
+
+    ROX_API Int *Int::Create(const char *name, int defaultValue, const std::vector<int> &options) {
+        assert(name);
+        RoxList * list = ROX_EMPTY_LIST;
+        for (auto it = options.begin(); it != options.end(); it++) {
+            rox_list_add(list, mem_int_to_str(*it));
+        }
+        return new Int(rox_add_int_with_options(name, defaultValue, list));
+    }
+
+    ROX_API int Int::GetValue(Context *context) {
+        return (context == nullptr)
+               ? rox_get_int(_variant)
+               : rox_get_int_ctx(_variant, context);
+    }
+
+    ROX_API double Double::GetValue(Context *context) {
+        return (context == nullptr)
+               ? rox_get_double(_variant)
+               : rox_get_double_ctx(_variant, context);
+    }
+
+    ROX_API Double *Double::Create(const char *name, double defaultValue) {
+        assert(name);
+        return new Double(rox_add_double(name, defaultValue));
+    }
+
+    ROX_API Double *Double::Create(const char *name, double defaultValue, const std::vector<double> &options) {
+        assert(name);
+        RoxList * list = ROX_EMPTY_LIST;
+        for (auto it = options.begin(); it != options.end(); it++) {
+            rox_list_add(list, mem_double_to_str(*it));
+        }
+        return new Double(rox_add_double_with_options(name, defaultValue, list));
     }
 
     //
     // CustomProperties
     //
 
-    void _WarnUnsupportedCustomPropertyValueType() {
+    void WarnUnsupportedCustomPropertyValueType() {
         ROX_ERROR(
                 "Calling SetCustomProperty with an unsupported value type. "
                 "Only int, double, bool, and const char* types are supported "
@@ -248,14 +273,14 @@ namespace Rox {
     template<typename T>
     ROX_API void SetCustomProperty(const char *name, T value) {
         assert(name);
-        _WarnUnsupportedCustomPropertyValueType();
+        WarnUnsupportedCustomPropertyValueType();
     }
 
     template<typename T>
     ROX_API void SetCustomComputedProperty(const char *name, CustomPropertyGeneratorInterface *generator) {
         assert(name);
         assert(generator);
-        _WarnUnsupportedCustomPropertyValueType();
+        WarnUnsupportedCustomPropertyValueType();
     }
 
     template<>
@@ -287,7 +312,7 @@ namespace Rox {
         rox_set_custom_semver_property(name, value);
     }
 
-    RoxDynamicValue *_PropertyValueGeneratorAdapter(void *target, RoxContext *context) {
+    RoxDynamicValue *PropertyValueGeneratorAdapter(void *target, RoxContext *context) {
         assert(target);
         auto generator = (CustomPropertyGeneratorInterface *) target;
         return generator->operator()(context);
@@ -297,21 +322,21 @@ namespace Rox {
     ROX_API void SetCustomComputedProperty<bool>(const char *name, CustomPropertyGeneratorInterface *generator) {
         assert(name);
         assert(generator);
-        rox_set_custom_computed_boolean_property(name, generator, &_PropertyValueGeneratorAdapter);
+        rox_set_custom_computed_boolean_property(name, generator, &PropertyValueGeneratorAdapter);
     }
 
     template<>
     ROX_API void SetCustomComputedProperty<int>(const char *name, CustomPropertyGeneratorInterface *generator) {
         assert(name);
         assert(generator);
-        rox_set_custom_computed_integer_property(name, generator, &_PropertyValueGeneratorAdapter);
+        rox_set_custom_computed_integer_property(name, generator, &PropertyValueGeneratorAdapter);
     }
 
     template<>
     ROX_API void SetCustomComputedProperty<double>(const char *name, CustomPropertyGeneratorInterface *generator) {
         assert(name);
         assert(generator);
-        rox_set_custom_computed_double_property(name, generator, &_PropertyValueGeneratorAdapter);
+        rox_set_custom_computed_double_property(name, generator, &PropertyValueGeneratorAdapter);
     }
 
     template<>
@@ -319,13 +344,13 @@ namespace Rox {
     SetCustomComputedProperty<const char *>(const char *name, CustomPropertyGeneratorInterface *generator) {
         assert(name);
         assert(generator);
-        rox_set_custom_computed_string_property(name, generator, &_PropertyValueGeneratorAdapter);
+        rox_set_custom_computed_string_property(name, generator, &PropertyValueGeneratorAdapter);
     }
 
     ROX_API void SetCustomComputedSemverProperty(const char *name, CustomPropertyGeneratorInterface *generator) {
         assert(name);
         assert(generator);
-        rox_set_custom_computed_semver_property(name, generator, &_PropertyValueGeneratorAdapter);
+        rox_set_custom_computed_semver_property(name, generator, &PropertyValueGeneratorAdapter);
     }
 
     //
@@ -343,12 +368,12 @@ namespace Rox {
 
     ROX_API void Shutdown() {
         rox_shutdown();
-        if (Variant::_allVariants) {
-            ROX_LIST_FOREACH(item, Variant::_allVariants, {
-                delete (Variant *) item;
+        if (BaseFlag::_allVariants) {
+            ROX_LIST_FOREACH(item, BaseFlag::_allVariants, {
+                delete (BaseFlag *) item;
             })
-            rox_list_free(Variant::_allVariants);
-            Variant::_allVariants = nullptr;
+            rox_list_free(BaseFlag::_allVariants);
+            BaseFlag::_allVariants = nullptr;
         }
     }
 
@@ -357,7 +382,6 @@ namespace Rox {
     //
 
     ROX_API void SetContext(Context *context) {
-        assert(context);
         rox_set_context(context);
     }
 
@@ -381,25 +405,50 @@ namespace Rox {
                                        bool default_value,
                                        Context *context) {
         assert(name);
-        return rox_dynamic_api_is_enabled(_handle, name, default_value, context);
+        return rox_dynamic_api_is_enabled_ctx(_handle, name, default_value, context);
     }
 
-    ROX_API char *DynamicApi::GetValue(const char *name,
-                                       char *default_value,
-                                       Context *context) {
+    ROX_API char *DynamicApi::GetString(const char *name,
+                                        char *default_value,
+                                        Context *context) {
         assert(name);
-        return rox_dynamic_api_get_value(_handle, name, default_value, nullptr, context);
+        return rox_dynamic_api_get_string_ctx(_handle, name, default_value, nullptr, context);
     }
 
-    ROX_API char *DynamicApi::GetValue(const char *name,
-                                       char *default_value,
-                                       const std::vector<std::string> &options,
-                                       Context *context) {
+    ROX_API char *DynamicApi::GetString(const char *name,
+                                        char *default_value,
+                                        const std::vector<std::string> &options,
+                                        Context *context) {
         assert(name);
         RoxList * list = ROX_EMPTY_LIST;
         for (auto &option : options) {
             rox_list_add(list, ROX_COPY(option.data()));
         }
-        return rox_dynamic_api_get_value(_handle, name, default_value, list, context);
+        return rox_dynamic_api_get_string_ctx(_handle, name, default_value, list, context);
+    }
+
+    int DynamicApi::GetInt(const char *name, int default_value, Context *context) {
+        return rox_dynamic_api_get_int_ctx(_handle, name, default_value, nullptr, context);
+    }
+
+    int DynamicApi::GetInt(const char *name, int default_value, const std::vector<int> &options, Context *context) {
+        RoxList * list = ROX_EMPTY_LIST;
+        for (auto it = options.begin(); it != options.end(); it++) {
+            rox_list_add(list, mem_int_to_str(*it));
+        }
+        return rox_dynamic_api_get_int_ctx(_handle, name, default_value, list, context);
+    }
+
+    double DynamicApi::GetDouble(const char *name, double default_value, Context *context) {
+        return rox_dynamic_api_get_double_ctx(_handle, name, default_value, nullptr, context);
+    }
+
+    double DynamicApi::GetDouble(const char *name, double default_value, const std::vector<double> &options,
+                                 Context *context) {
+        RoxList * list = ROX_EMPTY_LIST;
+        for (auto it = options.begin(); it != options.end(); it++) {
+            rox_list_add(list, mem_double_to_str(*it));
+        }
+        return rox_dynamic_api_get_double_ctx(_handle, name, default_value, list, context);
     }
 }

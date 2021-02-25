@@ -83,6 +83,29 @@ START_TEST (test_index_of_single_character_string) {
 
 END_TEST
 
+START_TEST (test_str_to_int_valid_number) {
+    char *strs[] = {"0", "1", "-1"};
+    double nums[] = {0, 1, -1};
+    for (int i = 0, n = sizeof(strs) / sizeof(char *); i < n; ++i) {
+        int *p = mem_str_to_int(strs[i]);
+        ck_assert_ptr_nonnull(p);
+        ck_assert_int_eq(*p, nums[i]);
+        free(p);
+    }
+}
+
+END_TEST
+
+START_TEST (test_str_to_int_floating_point) {
+    char *strs[] = {"-3.5", "0.0", "3.5"};
+    for (int i = 0, n = sizeof(strs) / sizeof(char *); i < n; ++i) {
+        int *p = mem_str_to_int(strs[i]);
+        ck_assert_ptr_null(p);
+    }
+}
+
+END_TEST
+
 START_TEST (test_index_of_first_occurrence) {
     ck_assert(str_index_of("abcabc", 'a') == 0);
     ck_assert(str_index_of("abc", 'b') == 1);
@@ -318,6 +341,10 @@ START_TEST (test_str_list_equals) {
 END_TEST
 
 ROX_TEST_SUITE(
+// mem_str_to_int
+        ROX_TEST_CASE(test_str_to_int_floating_point),
+        ROX_TEST_CASE(test_str_to_int_valid_number),
+
 // mem_str_to_double
         ROX_TEST_CASE(test_str_to_double_nan),
         ROX_TEST_CASE(test_str_to_double_valid_number),

@@ -5,7 +5,7 @@
 #include <string>
 
 extern "C" {
-#include "rollout.h"
+#include "server.h"
 }
 
 namespace Rox {
@@ -158,34 +158,40 @@ namespace Rox {
     // Flags
     //
 
-    class ROX_API Variant {
+    class ROX_API BaseFlag {
         friend void Shutdown();
 
     protected:
-        explicit Variant(RoxVariant *variant) : _variant(variant) {}
-
-        RoxVariant *_variant;
+        RoxStringBase *_variant;
 
         static RoxList *_allVariants;
 
-        static void Add(Variant *variant);
+        explicit BaseFlag(RoxStringBase *variant);
+
+    public:
+        virtual ~BaseFlag() = default;
+
+        const char *GetName();
+    };
+
+    class ROX_API String : BaseFlag {
+    protected:
+        explicit String(RoxStringBase *variant) : BaseFlag(variant) {}
 
     public:
 
-        virtual ~Variant() = default;
+        ~String() override = default;
 
         char *GetValue(Context *context = nullptr);
 
-        char *GetValueOrNull(Context *context = nullptr);
+        static String *Create(const char *name, const char *defaultValue);
 
-        static Variant *Create(const char *name, const char *defaultValue);
-
-        static Variant *Create(const char *name, const char *defaultValue, const std::vector<std::string> &options);
+        static String *Create(const char *name, const char *defaultValue, const std::vector<std::string> &options);
     };
 
-    class ROX_API Flag : public Variant {
+    class ROX_API Flag : BaseFlag {
     protected:
-        explicit Flag(RoxVariant *variant) : Variant(variant) {}
+        explicit Flag(RoxStringBase *variant) : BaseFlag(variant) {}
 
     public:
 
@@ -193,9 +199,37 @@ namespace Rox {
 
         bool IsEnabled(Context *context = nullptr);
 
-        bool *IsEnabledOrNull(Context *context = nullptr);
-
         static Flag *Create(const char *name, bool defaultValue = false);
+    };
+
+    class ROX_API Int : BaseFlag {
+    protected:
+        explicit Int(RoxStringBase *variant) : BaseFlag(variant) {}
+
+    public:
+
+        ~Int() override = default;
+
+        int GetValue(Context *context = nullptr);
+
+        static Int *Create(const char *name, int defaultValue);
+
+        static Int *Create(const char *name, int defaultValue, const std::vector<int> &options);
+    };
+
+    class ROX_API Double : BaseFlag {
+    protected:
+        explicit Double(RoxStringBase *variant) : BaseFlag(variant) {}
+
+    public:
+
+        ~Double() override = default;
+
+        double GetValue(Context *context = nullptr);
+
+        static Double *Create(const char *name, double defaultValue);
+
+        static Double *Create(const char *name, double defaultValue, const std::vector<double> &options);
     };
 
     //
@@ -250,13 +284,31 @@ namespace Rox {
                        bool default_value = false,
                        Context *context = nullptr);
 
-        char *GetValue(const char *name,
-                       char *default_value = nullptr,
-                       Context *context = nullptr);
+        int GetInt(const char *name,
+                   int default_value,
+                   Context *context = nullptr);
 
-        char *GetValue(const char *name,
-                       char *default_value,
-                       const std::vector<std::string> &options,
-                       Context *context);
+        int GetInt(const char *name,
+                   int default_value,
+                   const std::vector<int> &options,
+                   Context *context);
+
+        double GetDouble(const char *name,
+                         double default_value,
+                         Context *context = nullptr);
+
+        double GetDouble(const char *name,
+                         double default_value,
+                         const std::vector<double> &options,
+                         Context *context);
+
+        char *GetString(const char *name,
+                        char *default_value = nullptr,
+                        Context *context = nullptr);
+
+        char *GetString(const char *name,
+                        char *default_value,
+                        const std::vector<std::string> &options,
+                        Context *context);
     };
 }

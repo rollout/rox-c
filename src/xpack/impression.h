@@ -1,6 +1,6 @@
 #pragma once
 
-#include "rollout.h"
+#include "rox/server.h"
 #include "core/reporting.h"
 #include "core/entities.h"
 #include "core/properties.h"

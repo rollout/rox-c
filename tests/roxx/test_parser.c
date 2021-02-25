@@ -35,8 +35,8 @@ START_TEST (test_simple_tokenization) {
 
     rox_list_get_at(tokens, 3, (void **) &node);
     ck_assert_int_eq(node_get_type(node), NodeTypeRand);
-    ck_assert(rox_dynamic_value_is_double(node_get_value(node)));
-    ck_assert_double_eq(rox_dynamic_value_get_double(node_get_value(node)), -123.0);
+    ck_assert(rox_dynamic_value_is_int(node_get_value(node)));
+    ck_assert_double_eq(rox_dynamic_value_get_int(node_get_value(node)), -123);
 
     rox_list_get_at(tokens, 4, (void **) &node);
     ck_assert_int_eq(node_get_type(node), NodeTypeRand);

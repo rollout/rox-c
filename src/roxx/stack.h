@@ -1,7 +1,7 @@
 #pragma once
 
 #include <stdbool.h>
-#include "rollout.h"
+#include "rox/server.h"
 
 typedef struct CoreStack CoreStack;
 typedef struct StackItem StackItem;
@@ -65,6 +65,10 @@ ROX_INTERNAL void rox_stack_free(CoreStack *stack);
 
 ROX_INTERNAL bool rox_stack_is_numeric(StackItem *item);
 
+ROX_INTERNAL bool rox_stack_is_int(StackItem *item);
+
+ROX_INTERNAL bool rox_stack_is_double(StackItem *item);
+
 ROX_INTERNAL bool rox_stack_is_boolean(StackItem *item);
 
 ROX_INTERNAL bool rox_stack_is_string(StackItem *item);
@@ -89,6 +93,8 @@ ROX_INTERNAL bool rox_stack_is_null(StackItem *item);
 ROX_INTERNAL int rox_stack_get_int(StackItem *item);
 
 ROX_INTERNAL double rox_stack_get_double(StackItem *item);
+
+ROX_INTERNAL double rox_stack_get_number(StackItem *item);
 
 ROX_INTERNAL bool rox_stack_get_boolean(StackItem *item);
 

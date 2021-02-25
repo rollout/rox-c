@@ -5,7 +5,7 @@
 #include <float.h>
 #include <math.h>
 
-#include "rollout.h"
+#include "rox/server.h"
 #include "util.h"
 #include "parser.h"
 #include "stack.h"
@@ -50,45 +50,57 @@ ROX_INTERNAL ParserTokenType get_token_type_from_token(const char *token) {
 //
 
 struct EvaluationResult {
+    RoxContext *context;
     int *int_value;
     double *double_value;
     char *str_value;
     bool is_true;
     bool is_false;
     bool is_null;
+    bool is_undefined;
 };
 
-ROX_INTERNAL EvaluationResult *_create_result_from_stack_item(StackItem *item) {
-    EvaluationResult *result = calloc(1, sizeof(EvaluationResult));
+ROX_INTERNAL EvaluationResult *_create_result_from_stack_item(StackItem *item, RoxContext *context) {
+    EvaluationResult *result = NULL;
 
     if (!item || rox_stack_is_null(item)) {
+        result = result_create(context);
         result->is_null = true;
         return result;
     }
 
     if (rox_stack_is_undefined(item)) {
+        result = result_create(context);
+        result->is_undefined = true;
         return result;
     }
 
     if (rox_stack_is_boolean(item)) {
         bool value = rox_stack_get_boolean(item);
+        result = result_create(context);
         result->is_true = value;
         result->is_false = !value;
         result->str_value = mem_copy_str(value ? ROXX_TRUE : ROXX_FALSE);
         return result;
     }
 
-    if (rox_stack_is_numeric(item)) {
+    if (rox_stack_is_int(item)) {
         int int_value = rox_stack_get_int(item);
-        double double_value = rox_stack_get_double(item);
+        result = result_create(context);
         result->int_value = mem_copy_int(int_value);
+        return result;
+    }
+
+    if (rox_stack_is_double(item)) {
+        double double_value = rox_stack_get_double(item);
+        result = result_create(context);
         result->double_value = mem_copy_double(double_value);
-        result->str_value = mem_double_to_str(double_value);
         return result;
     }
 
     if (rox_stack_is_string(item)) {
         char *value = rox_stack_get_string(item);
+        result = result_create(context);
         result->int_value = mem_str_to_int(value);
         result->double_value = mem_str_to_double(value);
         result->str_value = mem_copy_str(value);
@@ -98,7 +110,24 @@ ROX_INTERNAL EvaluationResult *_create_result_from_stack_item(StackItem *item) {
     return result;
 }
 
+ROX_INTERNAL EvaluationResult *result_create(RoxContext *context) {
+    EvaluationResult *result = calloc(1, sizeof(EvaluationResult));
+    result->context = context;
+    return result;
+}
+
+ROX_INTERNAL RoxContext *result_get_context(EvaluationResult *result) {
+    assert(result);
+    return result->context;
+}
+
+ROX_INTERNAL bool result_is_undefined(EvaluationResult *result) {
+    assert(result);
+    return result->is_undefined;
+}
+
 ROX_INTERNAL int *result_get_int(EvaluationResult *result) {
+    assert(result);
     return result->int_value;
 }
 
@@ -182,6 +211,12 @@ ROX_INTERNAL ParserNode *node_create_double_ptr(NodeType type, double *value) {
 
 ROX_INTERNAL ParserNode *node_create_double(NodeType type, double value) {
     return node_create_double_ptr(type, mem_copy_double(value));
+}
+
+ROX_INTERNAL ParserNode *node_create_int_ptr(NodeType type, int *value) {
+    ParserNode *node = _node_create_empty(type);
+    node->value = rox_dynamic_value_create_int_ptr(value);
+    return node;
 }
 
 ROX_INTERNAL ParserNode *node_create_bool(NodeType type, bool value) {
@@ -441,8 +476,12 @@ ROX_INTERNAL ParserNode *_tokenized_expression_node_from_token(NodeType nodeType
         return node_create_str_ptr(nodeType, value);
     }
     if (token_type == TokenTypeNumber) {
-        double *value = mem_str_to_double(token);
-        return node_create_double_ptr(nodeType, value);
+        if (str_contains(token, '.')) {
+            double *value = mem_str_to_double(token);
+            return node_create_double_ptr(nodeType, value);
+        }
+        int *value = mem_str_to_int(token);
+        return node_create_int_ptr(nodeType, value);
     }
     return node_create_null(NodeTypeUnknown);
 }
@@ -571,7 +610,7 @@ int _parser_compare_stack_items(StackItem *item, StackItem *item2) {
         ret_value = rox_stack_is_undefined(item2) ? 0 : 1;
     } else if (rox_stack_is_numeric(item)) {
         ret_value = rox_stack_is_numeric(item2)
-                    ? fabs(rox_stack_get_double(item) - rox_stack_get_double(item2)) < FLT_EPSILON
+                    ? fabs(rox_stack_get_number(item) - rox_stack_get_number(item2)) < FLT_EPSILON
                       ? 0 : 1
                     : -1;
     } else if (rox_stack_is_boolean(item)) {
@@ -731,8 +770,8 @@ _parser_operator_cmp_dbl(Parser *parser, CoreStack *stack, RoxContext *context, 
         rox_stack_push_boolean(stack, false);
         return;
     }
-    double d1 = rox_stack_get_double(op1);
-    double d2 = rox_stack_get_double(op2);
+    double d1 = rox_stack_get_number(op1);
+    double d2 = rox_stack_get_number(op2);
     bool result = cmp(d1, d2);
     rox_stack_push_boolean(stack, result);
 }
@@ -984,7 +1023,7 @@ ROX_INTERNAL EvaluationResult *parser_evaluate_expression(Parser *parser, const 
                 op->operation(op->target, parser, stack, context);
             }
         } else {
-            result = _create_result_from_stack_item(NULL);
+            result = _create_result_from_stack_item(NULL, context);
         }
     }
 
@@ -992,7 +1031,7 @@ ROX_INTERNAL EvaluationResult *parser_evaluate_expression(Parser *parser, const 
 
     if (!result) {
         item = rox_stack_pop(stack);
-        result = _create_result_from_stack_item(item);
+        result = _create_result_from_stack_item(item, context);
     }
 
     rox_list_free_cb(tokens, (void (*)(void *)) &node_free); // here all the inner lists and maps should be freed

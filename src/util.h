@@ -3,7 +3,7 @@
 #include <cjson/cJSON.h>
 #include <stdbool.h>
 #include <time.h>
-#include "rollout.h"
+#include "rox/server.h"
 
 //
 // Utility functions.
@@ -38,6 +38,8 @@ ROX_INTERNAL char *mem_bool_to_str(bool value,
 ROX_INTERNAL bool str_matches(const char *str, const char *pattern, unsigned int options);
 
 ROX_INTERNAL int str_index_of(const char *str, char c);
+
+ROX_INTERNAL bool str_contains(const char *str, char c);
 
 ROX_INTERNAL bool str_starts_with(const char *str, const char *prefix);
 

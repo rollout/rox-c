@@ -127,7 +127,7 @@ static char *_state_sender_serialize_feature_flags(StateSender *sender) {
     RoxMap *flags = flag_repository_get_all_flags(sender->flag_repository);
     RoxList *keys = _state_sender_get_sorted_keys(flags);
     ROX_LIST_FOREACH(key, keys, {
-        RoxVariant *flag;
+        RoxStringBase *flag;
         if (rox_map_get(flags, key, (void **) &flag)) {
             cJSON *options_arr = cJSON_CreateArray();
             RoxListIter *list_iter = rox_list_iter_create();
@@ -349,7 +349,7 @@ static void _state_sender_custom_property_handler(void *target, CustomProperty *
     state_sender_send_debounce(sender);
 }
 
-static void _state_sender_flag_added_callback(void *target, RoxVariant *variant) {
+static void _state_sender_flag_added_callback(void *target, RoxStringBase *variant) {
     assert(target);
     assert(variant);
     StateSender *sender = (StateSender *) target;

@@ -1,7 +1,7 @@
 #pragma once
 
 #include <stdlib.h>
-#include "rollout.h"
+#include "rox/server.h"
 
 ROX_INTERNAL void rox_log_trace(const char *file_name, int line, const char *fmt, ...);
 

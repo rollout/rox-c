@@ -10,7 +10,7 @@ else ()
     message(WARNING "ROLLOUT_SDK_ROOT is not defined. Looking inside system directories.")
 endif ()
 
-FIND_PATH(ROLLOUT_INCLUDE_DIR rollout.h)
+FIND_PATH(ROLLOUT_INCLUDE_DIR rox/server.h)
 FIND_LIBRARY(ROLLOUT_LIBRARY NAMES rollout)
 SET(ROLLOUT_TARGET_NAME ROLLOUT::SDK)
 

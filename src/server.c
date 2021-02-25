@@ -1,9 +1,9 @@
-#include <assert.h>
+﻿#include <assert.h>
 #include <core/consts.h>
 #include "core/logging.h"
 #include "core.h"
 #include "util.h"
-#include "collections.h"
+#include "rox/server.h"
 
 typedef struct Rox {
     RoxCore *core;
@@ -123,7 +123,6 @@ ROX_API void rox_fetch() {
 }
 
 ROX_API void rox_set_context(RoxContext *context) {
-    assert(context);
     if (!_check_setup_called()) {
         return;
     }
@@ -134,90 +133,114 @@ ROX_API void rox_set_context(RoxContext *context) {
     rox_core_set_context(_rox->core, context);
 }
 
-ROX_API RoxVariant *rox_add_flag(const char *name, bool default_value) {
-    assert(name);
-    RoxVariant *flag = variant_create_flag_with_default(default_value);
+static RoxStringBase *_rox_add(const char *name, RoxStringBase *flag) {
     Rox *rox = _rox_get_or_create();
     rox_core_add_flag(rox->core, flag, name);
     return flag;
 }
 
-ROX_API RoxVariant *rox_add_variant(const char *name, const char *default_value, RoxList *options) {
+ROX_API RoxStringBase *rox_add_flag(const char *name, bool default_value) {
     assert(name);
-    RoxVariant *variant = variant_create(default_value, options);
-    Rox *rox = _rox_get_or_create();
-    rox_core_add_flag(rox->core, variant, name);
-    return variant;
+    return _rox_add(name, variant_create_flag_with_default(default_value));
 }
 
-ROX_API char *rox_variant_get_value_or_default(RoxVariant *variant) {
+ROX_API RoxStringBase *rox_add_string(const char *name, const char *default_value) {
+    return rox_add_string_with_options(name, default_value, NULL);
+}
+
+ROX_API RoxStringBase *rox_add_string_with_options(const char *name, const char *default_value, RoxList *options) {
+    assert(name);
+    return _rox_add(name, variant_create_string(default_value, options));
+}
+
+ROX_API RoxStringBase *rox_add_int(const char *name, int default_value) {
+    return rox_add_int_with_options(name, default_value, NULL);
+}
+
+ROX_API RoxStringBase *rox_add_int_with_options(const char *name, int default_value, RoxList *options) {
+    assert(name);
+    return _rox_add(name, variant_create_int(default_value, options));
+}
+
+ROX_API RoxStringBase *rox_add_double(const char *name, double default_value) {
+    return rox_add_double_with_options(name, default_value, NULL);
+}
+
+ROX_API RoxStringBase *rox_add_double_with_options(const char *name, double default_value, RoxList *options) {
+    assert(name);
+    return _rox_add(name, variant_create_double(default_value, options));
+}
+
+ROX_API char *rox_get_string(RoxStringBase *variant) {
     assert(variant);
-    return variant_get_value_or_default(variant, NULL);
+    return variant_get_string_or_default(variant, NULL);
 }
 
-ROX_API char *rox_variant_get_value_or_default_ctx(RoxVariant *variant, RoxContext *context) {
+ROX_API char *rox_get_string_ctx(RoxStringBase *variant, RoxContext *context) {
     assert(variant);
     assert(context);
-    return variant_get_value_or_default(variant, context);
+    return variant_get_string_or_default(variant, context);
 }
 
-ROX_API char *rox_variant_get_value_or_null(RoxVariant *variant) {
+ROX_API int rox_get_int(RoxStringBase *variant) {
     assert(variant);
-    return variant_get_value_or_null(variant, NULL);
+    return variant_get_int_or_default(variant, NULL);
 }
 
-ROX_API char *rox_variant_get_value_or_null_ctx(RoxVariant *variant, RoxContext *context) {
+ROX_API int rox_get_int_ctx(RoxStringBase *variant, RoxContext *context) {
     assert(variant);
     assert(context);
-    return variant_get_value_or_null(variant, context);
+    return variant_get_int_or_default(variant, context);
 }
 
-ROX_API bool rox_flag_is_enabled(RoxVariant *variant) {
+ROX_API double rox_get_double(RoxStringBase *variant) {
+    assert(variant);
+    return variant_get_double_or_default(variant, NULL);
+}
+
+ROX_API double rox_get_double_ctx(RoxStringBase *variant, RoxContext *context) {
+    assert(variant);
+    assert(context);
+    return variant_get_double_or_default(variant, context);
+}
+
+ROX_API bool rox_flag_is_enabled(RoxStringBase *variant) {
     assert(variant);
     return flag_is_enabled(variant, NULL);
 }
 
-ROX_API bool rox_flag_is_enabled_ctx(RoxVariant *variant, RoxContext *context) {
+ROX_API bool rox_flag_is_enabled_ctx(RoxStringBase *variant, RoxContext *context) {
     assert(variant);
     assert(context);
     return flag_is_enabled(variant, context);
 }
 
-ROX_API const bool *rox_flag_is_enabled_or_null(RoxVariant *variant) {
-    assert(variant);
-    return flag_is_enabled_or_null(variant, NULL);
-}
-
-ROX_API const bool *rox_flag_is_enabled_or_null_ctx(RoxVariant *variant, RoxContext *context) {
-    assert(variant);
-    assert(context);
-    return flag_is_enabled_or_null(variant, context);
-}
-
-ROX_API void rox_flag_enabled_do(RoxVariant *variant, rox_flag_action action) {
+ROX_API void rox_flag_enabled_do(RoxStringBase *variant, void *target, rox_flag_action action) {
     assert(variant);
     assert(action);
-    flag_enabled_do(variant, NULL, action);
+    flag_enabled_do(variant, NULL, target, action);
 }
 
-ROX_API void rox_flag_enabled_do_ctx(RoxVariant *variant, RoxContext *context, rox_flag_action action) {
+ROX_API void
+rox_flag_enabled_do_ctx(RoxStringBase *variant, RoxContext *context, void *target, rox_flag_action action) {
     assert(variant);
     assert(action);
     assert(context);
-    flag_enabled_do(variant, context, action);
+    flag_enabled_do(variant, context, target, action);
 }
 
-ROX_API void rox_flag_disabled_do(RoxVariant *variant, rox_flag_action action) {
+ROX_API void rox_flag_disabled_do(RoxStringBase *variant, void *target, rox_flag_action action) {
     assert(variant);
     assert(action);
-    flag_disabled_do(variant, NULL, action);
+    flag_disabled_do(variant, NULL, target, action);
 }
 
-ROX_API void rox_flag_disabled_do_ctx(RoxVariant *variant, RoxContext *context, rox_flag_action action) {
+ROX_API void
+rox_flag_disabled_do_ctx(RoxStringBase *variant, RoxContext *context, void *target, rox_flag_action action) {
     assert(variant);
     assert(action);
     assert(context);
-    flag_disabled_do(variant, context, action);
+    flag_disabled_do(variant, context, target, action);
 }
 
 static void _add_custom_prop(const char *name, const CustomPropertyType *type, void *target,

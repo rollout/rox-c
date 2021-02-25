@@ -138,6 +138,16 @@ ROX_INTERNAL bool rox_stack_is_numeric(StackItem *item) {
            rox_dynamic_value_is_double(item->value);
 }
 
+ROX_INTERNAL bool rox_stack_is_int(StackItem *item) {
+    assert(item);
+    return rox_dynamic_value_is_int(item->value);
+}
+
+ROX_INTERNAL bool rox_stack_is_double(StackItem *item) {
+    assert(item);
+    return rox_dynamic_value_is_double(item->value);
+}
+
 ROX_INTERNAL bool rox_stack_is_boolean(StackItem *item) {
     assert(item);
     return rox_dynamic_value_is_boolean(item->value);
@@ -170,12 +180,15 @@ ROX_INTERNAL bool rox_stack_is_null(StackItem *item) {
 
 ROX_INTERNAL int rox_stack_get_int(StackItem *item) {
     assert(item);
-    return rox_dynamic_value_is_int(item->value)
-           ? rox_dynamic_value_get_int(item->value)
-           : (int) rox_dynamic_value_get_double(item->value);
+    return rox_dynamic_value_get_int(item->value);
 }
 
 ROX_INTERNAL double rox_stack_get_double(StackItem *item) {
+    assert(item);
+    return rox_dynamic_value_get_double(item->value);
+}
+
+ROX_INTERNAL double rox_stack_get_number(StackItem *item) {
     assert(item);
     return rox_dynamic_value_is_double(item->value)
            ? rox_dynamic_value_get_double(item->value)

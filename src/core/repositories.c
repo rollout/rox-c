@@ -162,7 +162,7 @@ ROX_INTERNAL FlagRepository *flag_repository_create() {
 
 ROX_INTERNAL void flag_repository_add_flag(
         FlagRepository *repository,
-        RoxVariant *variant,
+        RoxStringBase *variant,
         const char *name) {
     assert(repository);
     assert(variant);
@@ -180,7 +180,7 @@ ROX_INTERNAL void flag_repository_add_flag(
     })
 }
 
-ROX_INTERNAL RoxVariant *flag_repository_get_flag(
+ROX_INTERNAL RoxStringBase *flag_repository_get_flag(
         FlagRepository *repository,
         const char *name) {
     assert(repository);

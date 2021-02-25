@@ -3,7 +3,7 @@
 #include <stdarg.h>
 #include <check.h>
 #include <core/properties.h>
-#include "rollout.h"
+#include "rox/server.h"
 #include "collections.h"
 
 ROX_INTERNAL Suite *_rox_create_test_suite(char *name, ...) {

@@ -31,6 +31,7 @@ START_TEST (test_will_push_into_stack_integer) {
     fail_if(!popped_item);
     ck_assert(rox_stack_is_numeric(popped_item));
     ck_assert_int_eq(rox_stack_get_int(popped_item), 5);
+    ck_assert_double_eq(rox_stack_get_number(popped_item), 5.0);
 
     ck_assert(rox_stack_is_empty(stack));
 
@@ -49,6 +50,7 @@ START_TEST (test_will_push_into_stack_double) {
     fail_if(!popped_item);
     ck_assert(rox_stack_is_numeric(popped_item));
     ck_assert_double_eq(rox_stack_get_double(popped_item), 5.5);
+    ck_assert_double_eq(rox_stack_get_number(popped_item), 5.5);
 
     ck_assert(rox_stack_is_empty(stack));
 

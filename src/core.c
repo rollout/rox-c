@@ -387,15 +387,14 @@ ROX_INTERNAL bool rox_core_setup(
 
 ROX_INTERNAL void rox_core_set_context(RoxCore *core, RoxContext *context) {
     assert(core);
-    assert(context);
     RoxMap *flags = flag_repository_get_all_flags(core->flag_repository);
     ROX_MAP_FOREACH(key, value, flags, {
-        RoxVariant *flag = (RoxVariant *) value;
+        RoxStringBase *flag = (RoxStringBase *) value;
         variant_set_context(flag, context);
     })
 }
 
-ROX_INTERNAL void rox_core_add_flag(RoxCore *core, RoxVariant *flag, const char *name) {
+ROX_INTERNAL void rox_core_add_flag(RoxCore *core, RoxStringBase *flag, const char *name) {
     assert(core);
     assert(flag);
     assert(name);

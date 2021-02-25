@@ -46,7 +46,7 @@ _parser_operator_is_in_percentage(void *target, Parser *parser, CoreStack *stack
     assert(stack);
     StackItem *item1 = rox_stack_pop(stack);
     StackItem *item2 = rox_stack_pop(stack);
-    double percentage = rox_stack_get_double(item1);
+    double percentage = rox_stack_get_number(item1);
     char *seed = rox_stack_get_string(item2);
     double bucket = experiment_extensions_get_bucket(seed);
     bool is_in_percentage = bucket <= percentage;
@@ -60,8 +60,8 @@ _parser_operator_is_in_percentage_range(void *target, Parser *parser, CoreStack 
     StackItem *item1 = rox_stack_pop(stack);
     StackItem *item2 = rox_stack_pop(stack);
     StackItem *item3 = rox_stack_pop(stack);
-    double percentage_low = rox_stack_get_double(item1);
-    double percentage_high = rox_stack_get_double(item2);
+    double percentage_low = rox_stack_get_number(item1);
+    double percentage_high = rox_stack_get_number(item2);
     char *seed = rox_stack_get_string(item3);
     double bucket = experiment_extensions_get_bucket(seed);
     bool is_in_percentage = bucket >= percentage_low && bucket < percentage_high;
@@ -76,9 +76,9 @@ ROX_INTERNAL void _parser_operator_flag_value(void *target, Parser *parser, Core
     char *feature_flag_identifier = rox_stack_get_string(item);
     bool value_set = false;
     char *result = NULL;
-    RoxVariant *variant = flag_repository_get_flag(extensions->flags_repository, feature_flag_identifier);
+    RoxStringBase *variant = flag_repository_get_flag(extensions->flags_repository, feature_flag_identifier);
     if (variant) {
-        result = variant_get_value_or_default(variant, context);
+        result = variant_get_string_or_default(variant, context);
         value_set = true;
     } else {
         ExperimentModel *flags_experiment = experiment_repository_get_experiment_by_flag(
@@ -168,7 +168,10 @@ ROX_INTERNAL void _parser_operator_property(void *target, Parser *parser, CoreSt
                 rox_dynamic_value_is_double(value) ||
                 rox_dynamic_value_is_int(value)) {
                 if (rox_dynamic_value_is_int(value)) {
-                    rox_stack_push_double(stack, rox_dynamic_value_get_int(value)); // convert int to double
+                    rox_stack_push_int(stack, rox_dynamic_value_get_int(value));
+                    rox_dynamic_value_free(value);
+                } else if (rox_dynamic_value_is_double(value)) {
+                    rox_stack_push_double(stack, rox_dynamic_value_get_double(value));
                     rox_dynamic_value_free(value);
                 } else {
                     rox_stack_push_dynamic_value(stack, value);

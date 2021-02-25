@@ -70,6 +70,9 @@ ROX_INTERNAL bool *mem_copy_bool(bool value) {
 
 ROX_INTERNAL int *mem_str_to_int(const char *str) {
     assert(str);
+    if (str_contains(str, '.')) {
+        return NULL;
+    }
     long num = strtol(str, NULL, 0);
     if (num == 0 && str[0] != '0') {
         return NULL;
@@ -170,6 +173,10 @@ ROX_INTERNAL int str_index_of(const char *str, char c) {
         return -1;
     }
     return (int) (e - str);
+}
+
+ROX_INTERNAL bool str_contains(const char *str, char c) {
+    return str_index_of(str, c) >= 0;
 }
 
 ROX_INTERNAL bool str_starts_with(const char *str, const char *prefix) {

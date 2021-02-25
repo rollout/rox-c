@@ -1,11 +1,11 @@
 #pragma once
 
-#include "rollout.h"
+#include "rox/server.h"
 #include "core/impression.h"
 #include "roxx/parser.h"
 
 //
-// Variant
+// String
 //
 
 /**
@@ -15,62 +15,102 @@
  * @param options List of strings. May be <code>NULL</code>. If passed, ownership is delegated to variant.
  * @return Not <code>NULL</code>.
  */
-ROX_INTERNAL RoxVariant *variant_create(const char *default_value, RoxList *options);
+ROX_INTERNAL RoxStringBase *variant_create_string(const char *default_value, RoxList *options);
+
+/**
+ * Creates integer flag with the given <code>default_value</code>.
+ * The returned object must be freed after use by calling <code>variant_free()</code>.
+ *
+ * @return Not <code>NULL</code>.
+ */
+ROX_INTERNAL RoxStringBase *variant_create_int(int default_value, RoxList *options);
+
+/**
+ * Creates double flag with the given <code>default_value</code>.
+ * The returned object must be freed after use by calling <code>variant_free()</code>.
+ *
+ * @return Not <code>NULL</code>.
+ */
+ROX_INTERNAL RoxStringBase *variant_create_double(double default_value, RoxList *options);
 
 /**
  * @param variant Not <code>NULL</code>.
  * @return May be <code>NULL</code>.
  */
-ROX_INTERNAL const char *variant_get_name(RoxVariant *variant);
+ROX_INTERNAL const char *variant_get_name(RoxStringBase *variant);
 
 /**
  * @param variant Not <code>NULL</code>.
  * @return May be <code>NULL</code>.
  */
-ROX_INTERNAL const char *variant_get_default_value(RoxVariant *variant);
+ROX_INTERNAL const char *variant_get_default_value(RoxStringBase *variant);
 
 /**
  * @param variant Not <code>NULL</code>.
  * @return May be <code>NULL</code>.
  */
-ROX_INTERNAL const char *variant_get_condition(RoxVariant *variant);
+ROX_INTERNAL const char *variant_get_condition(RoxStringBase *variant);
 
 /**
  * @param variant Not <code>NULL</code>.
  * @return May be <code>NULL</code>.
  */
-ROX_INTERNAL ExperimentModel *variant_get_experiment(RoxVariant *variant);
+ROX_INTERNAL ExperimentModel *variant_get_experiment(RoxStringBase *variant);
 
 /**
  * @param variant Not <code>NULL</code>.
  * @return May be <code>NULL</code>.
  */
-ROX_INTERNAL Parser *variant_get_parser(RoxVariant *variant);
+ROX_INTERNAL Parser *variant_get_parser(RoxStringBase *variant);
 
 /**
  * @param variant Not <code>NULL</code>.
  * @return May be <code>NULL</code>.
  */
-ROX_INTERNAL ImpressionInvoker *variant_get_impression_invoker(RoxVariant *variant);
+ROX_INTERNAL ImpressionInvoker *variant_get_impression_invoker(RoxStringBase *variant);
 
 /**
  * @param variant Not <code>NULL</code>.
  */
-ROX_INTERNAL bool variant_is_flag(RoxVariant *variant);
+ROX_INTERNAL bool variant_is_flag(RoxStringBase *variant);
 
 /**
  * @param variant Not <code>NULL</code>.
  */
-ROX_INTERNAL RoxList *variant_get_options(RoxVariant *variant);
+ROX_INTERNAL bool variant_is_string(RoxStringBase *variant);
+
+/**
+ * @param variant Not <code>NULL</code>.
+ */
+ROX_INTERNAL bool variant_is_int(RoxStringBase *variant);
+
+/**
+ * @param variant Not <code>NULL</code>.
+ */
+ROX_INTERNAL bool variant_is_double(RoxStringBase *variant);
+
+/**
+ * @param variant Not <code>NULL</code>.
+ */
+ROX_INTERNAL RoxList *variant_get_options(RoxStringBase *variant);
 
 /**
  * The returned value must be freed after use by the caller, if not <code>NULL</code>.
  *
  * @param variant Not <code>NULL</code>.
  * @param context May be <code>NULL</code>
- * @return Current value or <code>default_value</code> passed to <code>create_variant()</code>, if the value is not defined.
+ * @return Current value or <code>default_value</code> passed to <code>create_variant()</code>, if variant's value is not defined.
  */
-ROX_INTERNAL char *variant_get_value_or_default(RoxVariant *variant, RoxContext *context);
+ROX_INTERNAL char *variant_get_string_or_default(RoxStringBase *variant, RoxContext *context);
+
+/**
+ * The returned value must be freed after use by the caller, if not <code>NULL</code>.
+ *
+ * @param variant Not <code>NULL</code>.
+ * @param context May be <code>NULL</code>
+ * @return Current value or <code>NULL</code>, if variant's value is not defined.
+ */
+ROX_INTERNAL char *variant_get_string_or_null(RoxStringBase *variant, RoxContext *context);
 
 /**
  * The returned value must be freed after use by the caller, if not <code>NULL</code>.
@@ -78,51 +118,67 @@ ROX_INTERNAL char *variant_get_value_or_default(RoxVariant *variant, RoxContext 
  * @param variant Not <code>NULL</code>.
  * @param default_value May be <code>NULL</code>
  * @param context May be <code>NULL</code>
- * @return Current value or <code>default_value</code>, if the value is not defined.
+ * @return Current value or <code>default_value</code>, if variant's value is not defined.
  */
-ROX_INTERNAL char *variant_get_value_or(RoxVariant *variant, RoxContext *context, const char *default_value);
-
-/**
- * The returned value must be freed after use by the caller, if not <code>NULL</code>.
- *
- * @param variant Not <code>NULL</code>.
- * @param context May be <code>NULL</code>
- * @return Current value or <code>NULL</code>, if the value is not defined.
- */
-ROX_INTERNAL char *variant_get_value_or_null(RoxVariant *variant, RoxContext *context);
+ROX_INTERNAL char *variant_get_string_or(RoxStringBase *variant, RoxContext *context, const char *default_value);
 
 /**
  * @param variant Not <code>NULL</code>.
  * @param context May be <code>NULL</code>.
  */
-ROX_INTERNAL bool flag_is_enabled(RoxVariant *variant, RoxContext *context);
-
-/**
- * @param variant Not <code>NULL</code>.
- * @param context May be <code>NULL</code>.
- * @return <code>true</code> or <code>false</code> or <code>NULL</code>.
- */
-ROX_INTERNAL const bool *flag_is_enabled_or_null(RoxVariant *variant, RoxContext *context);
+ROX_INTERNAL bool flag_is_enabled(RoxStringBase *variant, RoxContext *context);
 
 /**
  * @param variant Not <code>NULL</code>.
  * @param context May be <code>NULL</code>.
  */
-ROX_INTERNAL bool flag_is_enabled_or(RoxVariant *variant, RoxContext *context, bool default_value);
+ROX_INTERNAL bool flag_is_enabled_or(RoxStringBase *variant, RoxContext *context, bool default_value);
 
 /**
  * @param variant Not <code>NULL</code>.
  * @param context May be <code>NULL</code>
+ * @param target May be <code>NULL</code>
  * @param action Not <code>NULL</code>.
  */
-ROX_INTERNAL void flag_enabled_do(RoxVariant *variant, RoxContext *context, rox_flag_action action);
+ROX_INTERNAL void flag_enabled_do(RoxStringBase *variant, RoxContext *context, void *target, rox_flag_action action);
 
 /**
  * @param variant Not <code>NULL</code>.
  * @param context May be <code>NULL</code>
+ * @param target May be <code>NULL</code>
  * @param action Not <code>NULL</code>.
  */
-ROX_INTERNAL void flag_disabled_do(RoxVariant *variant, RoxContext *context, rox_flag_action action);
+ROX_INTERNAL void flag_disabled_do(RoxStringBase *variant, RoxContext *context, void *target, rox_flag_action action);
+
+/**
+ * @param variant Not <code>NULL</code>.
+ * @param context May be <code>NULL</code>
+ * @return Current value or <code>default_value</code> passed to <code>variant_create_xxx()</code>, if variant's value is not defined.
+ */
+ROX_INTERNAL int variant_get_int_or_default(RoxStringBase *variant, RoxContext *context);
+
+/**
+ * @param variant Not <code>NULL</code>.
+ * @param default_value May be <code>NULL</code>
+ * @param context May be <code>NULL</code>
+ * @return Current value or <code>default_value</code>, if variant's value is not defined.
+ */
+ROX_INTERNAL int variant_get_int_or(RoxStringBase *variant, RoxContext *context, int default_value);
+
+/**
+ * @param variant Not <code>NULL</code>.
+ * @param context May be <code>NULL</code>
+ * @return Current value or <code>default_value</code> passed to <code>variant_create_xxx()</code>, if variant's value is not defined.
+ */
+ROX_INTERNAL double variant_get_double_or_default(RoxStringBase *variant, RoxContext *context);
+
+/**
+ * @param variant Not <code>NULL</code>.
+ * @param default_value May be <code>NULL</code>
+ * @param context May be <code>NULL</code>
+ * @return Current value or <code>default_value</code>, if variant's value is not defined.
+ */
+ROX_INTERNAL double variant_get_double_or(RoxStringBase *variant, RoxContext *context, double default_value);
 
 /**
  * Ownership on <code>parser</code>, <code>experiment</code>,
@@ -134,7 +190,7 @@ ROX_INTERNAL void flag_disabled_do(RoxVariant *variant, RoxContext *context, rox
  * @param impression_invoker May be <code>NULL</code>. The ownership is NOT delegated.
  */
 ROX_INTERNAL void variant_set_for_evaluation(
-        RoxVariant *variant,
+        RoxStringBase *variant,
         Parser *parser,
         ExperimentModel *experiment,
         ImpressionInvoker *impression_invoker);
@@ -142,26 +198,26 @@ ROX_INTERNAL void variant_set_for_evaluation(
 /**
  * Ownership on <code>context</code> is hold by the caller.
  * @param variant Not <code>NULL</code>.
- * @param context Not <code>NULL</code>.
+ * @param context May be <code>NULL</code>.
  */
-ROX_INTERNAL void variant_set_context(RoxVariant *variant, RoxContext *context);
+ROX_INTERNAL void variant_set_context(RoxStringBase *variant, RoxContext *context);
 
 /**
  * @param variant Not <code>NULL</code>.
  * @param name Not <code>NULL</code>. The given string is copied internally.
  */
-ROX_INTERNAL void variant_set_name(RoxVariant *variant, const char *name);
+ROX_INTERNAL void variant_set_name(RoxStringBase *variant, const char *name);
 
 /**
  * @param variant Not <code>NULL</code>.
  * @param condition Not <code>NULL</code>. The given string is copied internally.
  */
-ROX_INTERNAL void variant_set_condition(RoxVariant *variant, const char *condition);
+ROX_INTERNAL void variant_set_condition(RoxStringBase *variant, const char *condition);
 
 /**
  * @param variant Not <code>NULL</code>.
  */
-ROX_INTERNAL void variant_free(RoxVariant *variant);
+ROX_INTERNAL void variant_free(RoxStringBase *variant);
 
 //
 // Flag
@@ -175,14 +231,14 @@ ROX_INTERNAL extern const char *FLAG_FALSE_VALUE;
  * The returned object must be freed after use by calling <code>variant_free()</code>.
  * @return Not <code>NULL</code>.
  */
-ROX_INTERNAL RoxVariant *variant_create_flag();
+ROX_INTERNAL RoxStringBase *variant_create_flag();
 
 /**
  * Creates flag with the given <code>default_value</code>.
  * The returned object must be freed after use by calling <code>variant_free()</code>.
  * @return Not <code>NULL</code>.
  */
-ROX_INTERNAL RoxVariant *variant_create_flag_with_default(bool default_value);
+ROX_INTERNAL RoxStringBase *variant_create_flag_with_default(bool default_value);
 
 //
 // FlagSetter
@@ -235,7 +291,7 @@ ROX_INTERNAL EntitiesProvider *entities_provider_create();
  * @param  provider Not <code>NULL</code>.
  * @return Not <code>NULL</code>.
  */
-ROX_INTERNAL RoxVariant *entities_provider_create_flag(EntitiesProvider *provider, bool default_value);
+ROX_INTERNAL RoxStringBase *entities_provider_create_flag(EntitiesProvider *provider, bool default_value);
 
 /**
  * @param provider Not <code>NULL</code>.
@@ -243,9 +299,31 @@ ROX_INTERNAL RoxVariant *entities_provider_create_flag(EntitiesProvider *provide
  * @param options List of strings. May be <code>NULL</code>. Ownership of this list is delegated to the <code>provider</code>.
  * @return Not <code>NULL</code>.
  */
-ROX_INTERNAL RoxVariant *entities_provider_create_variant(
+ROX_INTERNAL RoxStringBase *entities_provider_create_string(
         EntitiesProvider *provider,
         const char *defaultValue,
+        RoxList *options);
+
+/**
+ * @param provider Not <code>NULL</code>.
+ * @param defaultValue  May be <code>NULL</code>.
+ * @param options List of ints. May be <code>NULL</code>. Ownership of this list is delegated to the <code>provider</code>.
+ * @return Not <code>NULL</code>.
+ */
+ROX_INTERNAL RoxStringBase *entities_provider_create_int(
+        EntitiesProvider *provider,
+        int defaultValue,
+        RoxList *options);
+
+/**
+ * @param provider Not <code>NULL</code>.
+ * @param defaultValue  May be <code>NULL</code>.
+ * @param options List of doubles. May be <code>NULL</code>. Ownership of this list is delegated to the <code>provider</code>.
+ * @return Not <code>NULL</code>.
+ */
+ROX_INTERNAL RoxStringBase *entities_provider_create_double(
+        EntitiesProvider *provider,
+        double defaultValue,
         RoxList *options);
 
 /**

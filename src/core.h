@@ -1,6 +1,6 @@
 #pragma once
 
-#include "rollout.h"
+#include "rox/server.h"
 #include "core/client.h"
 #include "core/network.h"
 
@@ -32,7 +32,7 @@ ROX_INTERNAL void rox_core_fetch(RoxCore *core, bool is_source_pushing);
 
 /**
  * @param core Not <code>NULL</code>.
- * @param context Not <code>NULL</code>.
+ * @param context May be <code>NULL</code>.
  */
 ROX_INTERNAL void rox_core_set_context(RoxCore *core, RoxContext *context);
 
@@ -41,7 +41,7 @@ ROX_INTERNAL void rox_core_set_context(RoxCore *core, RoxContext *context);
  * @param flag Not <code>NULL</code>.
  * @param name Not <code>NULL</code>. Flag name <em>including namespace prefix</em>.
  */
-ROX_INTERNAL void rox_core_add_flag(RoxCore *core, RoxVariant *flag, const char *name);
+ROX_INTERNAL void rox_core_add_flag(RoxCore *core, RoxStringBase *flag, const char *name);
 
 /**
  * @param core Not <code>NULL</code>.

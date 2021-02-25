@@ -60,7 +60,7 @@ ROX_INTERNAL size_t rox_env_get_api_path(char *buffer, size_t buffer_size) {
     return _rox_env_return_value_using_mode_env(
             buffer, buffer_size,
             "http://127.0.0.1:8557/device/get_configuration",
-            "https://qax.rollout.io/device/get_configuration",
+            "https://qa-api.rollout.io/device/get_configuration",
             "https://x-api.rollout.io/device/get_configuration");
 }
 
@@ -80,7 +80,7 @@ ROX_INTERNAL size_t rox_env_get_state_api_path(char *buffer, size_t buffer_size)
     return _rox_env_return_value_using_mode_env(
             buffer, buffer_size,
             "http://127.0.0.1:8557/device/update_state_store",
-            "https://qax.rollout.io/device/update_state_store",
+            "https://qa-api.rollout.io/device/update_state_store",
             "https://x-api.rollout.io/device/update_state_store");
 }
 

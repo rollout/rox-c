@@ -32,13 +32,12 @@ set(ROX_SRC
         vendor/md5.c
         vendor/semver.c
         vendor/strrep.c
-        api.cpp
         collections.c
         core.c
         device.c
         dynamic.c
-        rollout.c
         server.c
+        server.cpp
         util.c)
 
 if (APPLE)
@@ -55,7 +54,7 @@ add_library(rollout SHARED ${ROX_SRC})
 target_link_libraries(rollout ${ROX_EXTERNAL_LIBS})
 
 set_target_properties(rollout PROPERTIES
-        PUBLIC_HEADER "../include/rollout.h;../include/rollout.hpp"
+        PUBLIC_HEADER "../include/rox/server.h;../include/rox/server.hpp"
         C_VISIBILITY_PRESET hidden
         COMPILE_DEFINITIONS "ROX_LIB_VERSION=\"${ROX_VERSION_STRING}\";ROX_DLL;ROX_DLL_EXPORTS"
         VERSION ${ROX_VERSION_STRING}
