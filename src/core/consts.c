@@ -9,7 +9,7 @@
 
 ROX_INTERNAL const char *ROX_PLATFORM_C = "C";
 ROX_INTERNAL const char *ROX_PLATFORM_CXX = "C++";
-ROX_INTERNAL const char *ROX_API_VERSION = "1.8.0";
+ROX_INTERNAL const char *ROX_API_VERSION = "1.9.0";
 ROX_INTERNAL const char *ROX_ENV_MODE_KEY = "ROLLOUT_MODE";
 ROX_INTERNAL const char *ROX_ENV_MODE_QA = "QA";
 ROX_INTERNAL const char *ROX_ENV_MODE_LOCAL = "LOCAL";
@@ -110,7 +110,6 @@ ROX_INTERNAL size_t rox_env_get_notifications_path(char *buffer, size_t buffer_s
 
 ROX_INTERNAL const PropertyType ROX_PROPERTY_TYPE_CACHE_MISS_RELATIVE_URL = {1, "cache_miss_relative_url"};
 ROX_INTERNAL const PropertyType ROX_PROPERTY_TYPE_LIB_VERSION = {4, "lib_version"};
-ROX_INTERNAL const PropertyType ROX_PROPERTY_TYPE_ROLLOUT_BUILD = {5, "rollout_build"};
 ROX_INTERNAL const PropertyType ROX_PROPERTY_TYPE_API_VERSION = {6, "api_version"};
 ROX_INTERNAL const PropertyType ROX_PROPERTY_TYPE_BUID = {7, "buid"};
 ROX_INTERNAL const PropertyType ROX_PROPERTY_TYPE_BUID_GENERATORS_LIST = {8, "buid_generators_list"};

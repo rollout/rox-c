@@ -238,8 +238,6 @@ ROX_INTERNAL DeviceProperties *device_properties_create(
 
     RoxMap *map = rox_map_create();
     rox_map_add(map, ROX_PROPERTY_TYPE_LIB_VERSION.name, mem_copy_str(ROX_LIB_VERSION));
-    rox_map_add(map, ROX_PROPERTY_TYPE_ROLLOUT_BUILD.name,
-                mem_copy_str("50")); // TODO: fix the build number
     rox_map_add(map, ROX_PROPERTY_TYPE_API_VERSION.name, mem_copy_str(ROX_API_VERSION));
     rox_map_add(map, ROX_PROPERTY_TYPE_APP_RELEASE.name,
                 mem_copy_str(rox_options_get_version(rox_options))); // used for the version filter
@@ -350,7 +348,7 @@ ROX_API char *rox_dynamic_api_get_string_ctx(
         variant = entities_provider_create_string(api->entities_provider, default_value, options);
         flag_repository_add_flag(api->flag_repository, variant, name);
     }
-    return variant_get_string_or(variant, context, default_value);
+    return variant_get_string(variant, context, default_value);
 }
 
 ROX_API int rox_dynamic_api_get_int(

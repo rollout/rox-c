@@ -107,20 +107,11 @@ ROX_INTERNAL char *variant_get_string_or_default(RoxStringBase *variant, RoxCont
  * The returned value must be freed after use by the caller, if not <code>NULL</code>.
  *
  * @param variant Not <code>NULL</code>.
- * @param context May be <code>NULL</code>
- * @return Current value or <code>NULL</code>, if variant's value is not defined.
- */
-ROX_INTERNAL char *variant_get_string_or_null(RoxStringBase *variant, RoxContext *context);
-
-/**
- * The returned value must be freed after use by the caller, if not <code>NULL</code>.
- *
- * @param variant Not <code>NULL</code>.
  * @param default_value May be <code>NULL</code>
  * @param context May be <code>NULL</code>
  * @return Current value or <code>default_value</code>, if variant's value is not defined.
  */
-ROX_INTERNAL char *variant_get_string_or(RoxStringBase *variant, RoxContext *context, const char *default_value);
+ROX_INTERNAL char *variant_get_string(RoxStringBase *variant, RoxContext *context, const char *default_value);
 
 /**
  * @param variant Not <code>NULL</code>.

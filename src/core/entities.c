@@ -403,15 +403,10 @@ static RoxDynamicValue *variant_get_value(
 
 ROX_INTERNAL char *variant_get_string_or_default(RoxStringBase *variant, RoxContext *context) {
     assert(variant);
-    return variant_get_string_or(variant, context, variant->default_value);
+    return variant_get_string(variant, context, variant->default_value);
 }
 
-ROX_INTERNAL char *variant_get_string_or_null(RoxStringBase *variant, RoxContext *context) {
-    assert(variant);
-    return variant_get_string_or(variant, context, NULL);
-}
-
-ROX_INTERNAL char *variant_get_string_or(RoxStringBase *variant, RoxContext *context, const char *default_value) {
+ROX_INTERNAL char *variant_get_string(RoxStringBase *variant, RoxContext *context, const char *default_value) {
     assert(variant);
     FlagEvaluationContext *eval_context = flag_eval_context_create_string(default_value);
     RoxDynamicValue *value = variant_get_value(variant, context, eval_context);
