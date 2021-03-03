@@ -23,14 +23,14 @@ typedef struct ParserExtensionsTestContext {
     const char *property_context_key;
 } ParserExtensionsTestContext;
 
-static RoxDynamicValue *_parser_extensions_custom_property_generator(void *target, RoxContext *context) {
+static RoxDynamicValue *parser_extensions_custom_property_generator(void *target, RoxContext *context) {
     ParserExtensionsTestContext *test_context = (ParserExtensionsTestContext *) target;
     assert(test_context);
     assert(test_context->property_context_key);
     return rox_context_get(context, test_context->property_context_key);
 }
 
-static void _parser_extensions_impression_handler(
+static void parser_extensions_impression_handler(
         void *target,
         RoxReportingValue *value,
         RoxExperiment *experiment,
@@ -53,7 +53,7 @@ static ParserExtensionsTestContext *parser_extensions_test_context_create() {
     context->impression_invoker = impression_invoker_create();
     context->impressions = rox_list_create();
     impression_invoker_register(context->impression_invoker, context,
-                                &_parser_extensions_impression_handler);
+                                &parser_extensions_impression_handler);
     parser_add_experiments_extensions(context->parser,
                                       context->target_groups_repository,
                                       context->flag_repository,
@@ -64,7 +64,7 @@ static ParserExtensionsTestContext *parser_extensions_test_context_create() {
     return context;
 }
 
-static void _impression_arg_free(ImpressionArgs *args) {
+static void impression_arg_free(ImpressionArgs *args) {
     assert(args);
     free(args->name);
     if (args->value) {
@@ -81,7 +81,7 @@ static void parser_extensions_test_context_free(ParserExtensionsTestContext *con
     custom_property_repository_free(context->custom_property_repository);
     dynamic_properties_free(context->dynamic_properties);
     parser_free(context->parser);
-    rox_list_free_cb(context->impressions, &_impression_arg_free);
+    rox_list_free_cb(context->impressions, &impression_arg_free);
     impression_invoker_free(context->impression_invoker);
     free(context);
 }
@@ -166,6 +166,14 @@ START_TEST (test_flag_value_flag_evaluation_default) {
 }
 
 END_TEST
+
+static char *variant_get_string_or_default(RoxStringBase *variant, RoxContext *context) {
+    const char *default_value = variant_get_default_value(variant);
+    EvaluationContext *eval_context = eval_context_create(variant, context);
+    char *result = variant_get_string(variant, default_value, eval_context);
+    eval_context_free(eval_context);
+    return result;
+}
 
 START_TEST (test_flag_dependency_value) {
     ParserExtensionsTestContext *context = parser_extensions_test_context_create();
@@ -308,7 +316,7 @@ START_TEST (test_flag_dependency_with_context) {
             context->custom_property_repository,
             custom_property_create("prop",
                                    &ROX_CUSTOM_PROPERTY_TYPE_BOOL,
-                                   context, &_parser_extensions_custom_property_generator));
+                                   context, &parser_extensions_custom_property_generator));
 
     RoxStringBase *flag1 = variant_create_flag();
     variant_set_for_evaluation(flag1, context->parser, NULL, NULL);
@@ -342,7 +350,7 @@ START_TEST (test_flag_dependency_with_context_used_on_experiment_with_no_flag) {
             context->custom_property_repository,
             custom_property_create("prop",
                                    &ROX_CUSTOM_PROPERTY_TYPE_BOOL,
-                                   context, &_parser_extensions_custom_property_generator));
+                                   context, &parser_extensions_custom_property_generator));
 
     RoxStringBase *flag3 = variant_create_flag();
     variant_set_for_evaluation(flag3, context->parser, NULL, NULL);
@@ -377,7 +385,7 @@ START_TEST (test_flag_dependency_with_context2_level_mid_level_no_flag_eval_expe
             context->custom_property_repository,
             custom_property_create("prop",
                                    &ROX_CUSTOM_PROPERTY_TYPE_BOOL,
-                                   context, &_parser_extensions_custom_property_generator));
+                                   context, &parser_extensions_custom_property_generator));
 
     RoxStringBase *flag1 = variant_create_flag();
     variant_set_for_evaluation(flag1, context->parser, NULL, NULL);
@@ -418,10 +426,12 @@ START_TEST (test_roxx_properties_extensions_string) {
                     "testKey", &ROX_CUSTOM_PROPERTY_TYPE_STRING,
                     rox_dynamic_value_create_string_copy("test")));
 
+    EvaluationContext *eval_context = eval_context_create(NULL, NULL);
     EvaluationResult *result = parser_evaluate_expression(
-            context->parser, "eq(\"test\", property(\"testKey\"))", NULL);
+            context->parser, "eq(\"test\", property(\"testKey\"))", eval_context);
     ck_assert(*result_get_boolean(result));
     result_free(result);
+    eval_context_free(eval_context);
 
     parser_extensions_test_context_free(context);
 }
@@ -437,10 +447,12 @@ START_TEST (test_roxx_properties_extensions_int) {
                     "testKey", &ROX_CUSTOM_PROPERTY_TYPE_INT,
                     rox_dynamic_value_create_int(3)));
 
+    EvaluationContext *eval_context = eval_context_create(NULL, NULL);
     EvaluationResult *result = parser_evaluate_expression(
-            context->parser, "eq(3, property(\"testKey\"))", NULL);
+            context->parser, "eq(3, property(\"testKey\"))", eval_context);
     ck_assert(*result_get_boolean(result));
     result_free(result);
+    eval_context_free(eval_context);
 
     parser_extensions_test_context_free(context);
 }
@@ -456,10 +468,12 @@ START_TEST (test_roxx_properties_extensions_double) {
                     "testKey", &ROX_CUSTOM_PROPERTY_TYPE_DOUBLE,
                     rox_dynamic_value_create_double(3.3)));
 
+    EvaluationContext *eval_context = eval_context_create(NULL, NULL);
     EvaluationResult *result = parser_evaluate_expression(
-            context->parser, "eq(3.3, property(\"testKey\"))", NULL);
+            context->parser, "eq(3.3, property(\"testKey\"))", eval_context);
     ck_assert(*result_get_boolean(result));
     result_free(result);
+    eval_context_free(eval_context);
 
     parser_extensions_test_context_free(context);
 }
@@ -475,16 +489,18 @@ START_TEST (test_roxx_properties_extensions_with_context_string) {
             custom_property_create(
                     "CustomPropertyTestKey",
                     &ROX_CUSTOM_PROPERTY_TYPE_STRING,
-                    context, &_parser_extensions_custom_property_generator));
+                    context, &parser_extensions_custom_property_generator));
 
     RoxContext *ctx = rox_context_create_from_map(ROX_MAP(
                                                           mem_copy_str("ContextTestKey"),
                                                           rox_dynamic_value_create_string_copy("test")));
 
+    EvaluationContext *eval_context = eval_context_create(NULL, ctx);
     EvaluationResult *result = parser_evaluate_expression(
-            context->parser, "eq(\"test\", property(\"CustomPropertyTestKey\"))", ctx);
+            context->parser, "eq(\"test\", property(\"CustomPropertyTestKey\"))", eval_context);
     ck_assert(*result_get_boolean(result));
     result_free(result);
+    eval_context_free(eval_context);
     rox_context_free(ctx);
 
     parser_extensions_test_context_free(context);
@@ -501,16 +517,18 @@ START_TEST (test_roxx_properties_extensions_with_context_int) {
             custom_property_create(
                     "CustomPropertyTestKey",
                     &ROX_CUSTOM_PROPERTY_TYPE_INT,
-                    context, &_parser_extensions_custom_property_generator));
+                    context, &parser_extensions_custom_property_generator));
 
     RoxContext *ctx = rox_context_create_from_map(ROX_MAP(
                                                           mem_copy_str("ContextTestKey"),
                                                           rox_dynamic_value_create_int(3)));
 
+    EvaluationContext *eval_context = eval_context_create(NULL, ctx);
     EvaluationResult *result = parser_evaluate_expression(
-            context->parser, "eq(3, property(\"CustomPropertyTestKey\"))", ctx);
+            context->parser, "eq(3, property(\"CustomPropertyTestKey\"))", eval_context);
     ck_assert(*result_get_boolean(result));
     result_free(result);
+    eval_context_free(eval_context);
     rox_context_free(ctx);
 
     parser_extensions_test_context_free(context);
@@ -527,16 +545,18 @@ START_TEST (test_roxx_properties_extensions_with_context_int_with_string) {
             custom_property_create(
                     "CustomPropertyTestKey",
                     &ROX_CUSTOM_PROPERTY_TYPE_INT,
-                    context, &_parser_extensions_custom_property_generator));
+                    context, &parser_extensions_custom_property_generator));
 
     RoxContext *ctx = rox_context_create_from_map(ROX_MAP(
                                                           mem_copy_str("ContextTestKey"),
                                                           rox_dynamic_value_create_int(3)));
 
+    EvaluationContext *eval_context = eval_context_create(NULL, ctx);
     EvaluationResult *result = parser_evaluate_expression(
-            context->parser, "eq(\"3\", property(\"CustomPropertyTestKey\"))", ctx);
+            context->parser, "eq(\"3\", property(\"CustomPropertyTestKey\"))", eval_context);
     ck_assert(!*result_get_boolean(result));
     result_free(result);
+    eval_context_free(eval_context);
     rox_context_free(ctx);
 
     parser_extensions_test_context_free(context);
@@ -553,16 +573,18 @@ START_TEST (test_roxx_properties_extensions_with_context_int_not_equal) {
             custom_property_create(
                     "CustomPropertyTestKey",
                     &ROX_CUSTOM_PROPERTY_TYPE_INT,
-                    context, &_parser_extensions_custom_property_generator));
+                    context, &parser_extensions_custom_property_generator));
 
     RoxContext *ctx = rox_context_create_from_map(ROX_MAP(
                                                           mem_copy_str("ContextTestKey"),
                                                           rox_dynamic_value_create_int(3)));
 
+    EvaluationContext *eval_context = eval_context_create(NULL, ctx);
     EvaluationResult *result = parser_evaluate_expression(
-            context->parser, "eq(4, property(\"CustomPropertyTestKey\"))", ctx);
+            context->parser, "eq(4, property(\"CustomPropertyTestKey\"))", eval_context);
     ck_assert(!*result_get_boolean(result));
     result_free(result);
+    eval_context_free(eval_context);
     rox_context_free(ctx);
 
     parser_extensions_test_context_free(context);
@@ -580,17 +602,19 @@ START_TEST (test_unknown_property) {
                     &ROX_CUSTOM_PROPERTY_TYPE_STRING,
                     rox_dynamic_value_create_string_copy("test")));
 
+    EvaluationContext *eval_context = eval_context_create(NULL, NULL);
     EvaluationResult *result = parser_evaluate_expression(
-            context->parser, "eq(\"test\", property(\"testKey1\"))", NULL);
+            context->parser, "eq(\"test\", property(\"testKey1\"))", eval_context);
     ck_assert(!*result_get_boolean(result));
     result_free(result);
+    eval_context_free(eval_context);
 
     parser_extensions_test_context_free(context);
 }
 
 END_TEST
 
-static RoxDynamicValue *_test_get_null_from_context(void *target, RoxContext *context) {
+static RoxDynamicValue *test_get_null_from_context(void *target, RoxContext *context) {
     return NULL;
 }
 
@@ -602,17 +626,19 @@ START_TEST (test_null_property) {
             custom_property_create(
                     "testKey",
                     &ROX_CUSTOM_PROPERTY_TYPE_STRING,
-                    NULL, &_test_get_null_from_context));
+                    NULL, &test_get_null_from_context));
 
+    EvaluationContext *eval_context = eval_context_create(NULL, NULL);
     EvaluationResult *result = parser_evaluate_expression(
-            context->parser, "eq(undefined, property(\"testKey\"))", NULL);
+            context->parser, "eq(undefined, property(\"testKey\"))", eval_context);
     ck_assert(*result_get_boolean(result));
     result_free(result);
+    eval_context_free(eval_context);
 
     parser_extensions_test_context_free(context);
 }
 
-static RoxDynamicValue *_test_get_null_value_from_context(void *target, RoxContext *context) {
+static RoxDynamicValue *test_get_null_value_from_context(void *target, RoxContext *context) {
     return rox_dynamic_value_create_null();
 }
 
@@ -624,12 +650,14 @@ START_TEST (test_null_value_property) {
             custom_property_create(
                     "testKey",
                     &ROX_CUSTOM_PROPERTY_TYPE_STRING,
-                    NULL, &_test_get_null_value_from_context));
+                    NULL, &test_get_null_value_from_context));
 
+    EvaluationContext *eval_context = eval_context_create(NULL, NULL);
     EvaluationResult *result = parser_evaluate_expression(
-            context->parser, "eq(undefined, property(\"testKey\"))", NULL);
+            context->parser, "eq(undefined, property(\"testKey\"))", eval_context);
     ck_assert(*result_get_boolean(result));
     result_free(result);
+    eval_context_free(eval_context);
 
     parser_extensions_test_context_free(context);
 }
@@ -643,10 +671,12 @@ START_TEST (test_default_dynamic_rule) {
                                                           mem_copy_str("testKeyRule"),
                                                           rox_dynamic_value_create_string_copy("test")));
 
+    EvaluationContext *eval_context = eval_context_create(NULL, ctx);
     EvaluationResult *result = parser_evaluate_expression(
-            context->parser, "eq(\"test\", property(\"testKeyRule\"))", ctx);
+            context->parser, "eq(\"test\", property(\"testKeyRule\"))", eval_context);
     ck_assert(*result_get_boolean(result));
     result_free(result);
+    eval_context_free(eval_context);
     rox_context_free(ctx);
 
     parser_extensions_test_context_free(context);
@@ -654,7 +684,7 @@ START_TEST (test_default_dynamic_rule) {
 
 END_TEST
 
-static RoxDynamicValue *_test_inc_value(const char *property_name, void *target, RoxContext *context) {
+static RoxDynamicValue *test_inc_value(const char *property_name, void *target, RoxContext *context) {
     RoxDynamicValue *value = rox_context_get(context, property_name);
     int i = rox_dynamic_value_get_int(value);
     rox_dynamic_value_free(value);
@@ -663,16 +693,18 @@ static RoxDynamicValue *_test_inc_value(const char *property_name, void *target,
 
 START_TEST (test_custom_dynamic_rule) {
     ParserExtensionsTestContext *context = parser_extensions_test_context_create();
-    dynamic_properties_set_rule(context->dynamic_properties, NULL, &_test_inc_value);
+    dynamic_properties_set_rule(context->dynamic_properties, NULL, &test_inc_value);
 
     RoxContext *ctx = rox_context_create_from_map(ROX_MAP(
                                                           mem_copy_str("testKeyRule"),
                                                           rox_dynamic_value_create_int(5)));
 
+    EvaluationContext *eval_context = eval_context_create(NULL, ctx);
     EvaluationResult *result = parser_evaluate_expression(
-            context->parser, "eq(6, property(\"testKeyRule\"))", ctx);
+            context->parser, "eq(6, property(\"testKeyRule\"))", eval_context);
     ck_assert(*result_get_boolean(result));
     result_free(result);
+    eval_context_free(eval_context);
     rox_context_free(ctx);
 
     parser_extensions_test_context_free(context);
@@ -687,10 +719,12 @@ START_TEST (test_dynamic_rule_returns_null) {
                                                           mem_copy_str("testKeyRule"),
                                                           NULL));
 
+    EvaluationContext *eval_context = eval_context_create(NULL, ctx);
     EvaluationResult *result = parser_evaluate_expression(
-            context->parser, "eq(undefined, property(\"testKeyRule\"))", ctx);
+            context->parser, "eq(undefined, property(\"testKeyRule\"))", eval_context);
     ck_assert(*result_get_boolean(result));
     result_free(result);
+    eval_context_free(eval_context);
     rox_context_free(ctx);
 
     parser_extensions_test_context_free(context);
@@ -708,23 +742,26 @@ START_TEST (test_dynamic_rule_returns_supported_type) {
                     mem_copy_str("testKeyRule3"), rox_dynamic_value_create_double(3.9999),
                     mem_copy_str("testKeyRule4"), rox_dynamic_value_create_int(100)));
 
+    EvaluationContext *eval_context = eval_context_create(NULL, ctx);
+
     EvaluationResult *result = parser_evaluate_expression(
-            context->parser, "eq(\"test1\", property(\"testKeyRule\"))", ctx);
+            context->parser, "eq(\"test1\", property(\"testKeyRule\"))", eval_context);
     ck_assert(*result_get_boolean(result));
     result_free(result);
 
-    result = parser_evaluate_expression(context->parser, "eq(true, property(\"testKeyRule2\"))", ctx);
+    result = parser_evaluate_expression(context->parser, "eq(true, property(\"testKeyRule2\"))", eval_context);
     ck_assert(*result_get_boolean(result));
     result_free(result);
 
-    result = parser_evaluate_expression(context->parser, "eq(3.9999, property(\"testKeyRule3\"))", ctx);
+    result = parser_evaluate_expression(context->parser, "eq(3.9999, property(\"testKeyRule3\"))", eval_context);
     ck_assert(*result_get_boolean(result));
     result_free(result);
 
-    result = parser_evaluate_expression(context->parser, "eq(100, property(\"testKeyRule4\"))", ctx);
+    result = parser_evaluate_expression(context->parser, "eq(100, property(\"testKeyRule4\"))", eval_context);
     ck_assert(*result_get_boolean(result));
     result_free(result);
 
+    eval_context_free(eval_context);
     rox_context_free(ctx);
     parser_extensions_test_context_free(context);
 }
@@ -740,10 +777,12 @@ START_TEST (test_dynamic_rule_return_unsupported_type) {
                     mem_copy_str("testKeyRule"),
                     rox_dynamic_value_create_map(map)));
 
+    EvaluationContext *eval_context = eval_context_create(NULL, ctx);
     EvaluationResult *result = parser_evaluate_expression(
-            context->parser, "eq(undefined, property(\"testKeyRule\"))", ctx);
+            context->parser, "eq(undefined, property(\"testKeyRule\"))", eval_context);
     ck_assert(*result_get_boolean(result));
     result_free(result);
+    eval_context_free(eval_context);
     rox_context_free(ctx);
 
     parser_extensions_test_context_free(context);

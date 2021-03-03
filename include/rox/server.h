@@ -1,42 +1,12 @@
 ﻿#pragma once
 
+#include "rox/api.h"
+#include "rox/collections.h"
+#include "rox/dynamic.h"
+
 #include <stdlib.h>
 #include <stdbool.h>
 #include <float.h>
-
-// Generic helper definitions for shared library support.
-// (see https://gcc.gnu.org/wiki/Visibility/)
-#if defined _WIN32 || defined __CYGWIN__
-    #define ROX_HELPER_DLL_IMPORT __declspec(dllimport)
-    #define ROX_HELPER_DLL_EXPORT __declspec(dllexport)
-    #define ROX_HELPER_DLL_LOCAL
-#else
-#if __GNUC__ >= 4
-    #define ROX_HELPER_DLL_IMPORT __attribute__ ((visibility ("default")))
-    #define ROX_HELPER_DLL_EXPORT __attribute__ ((visibility ("default")))
-    #define ROX_HELPER_DLL_LOCAL  __attribute__ ((visibility ("hidden")))
-#else
-    #define ROX_HELPER_DLL_IMPORT
-    #define ROX_HELPER_DLL_EXPORT
-    #define ROX_HELPER_DLL_LOCAL
-#endif // __GNUC__ >= 4
-#endif // defined _WIN32 || defined __CYGWIN__
-
-// Now we use the generic helper definitions above to define ROX_API and ROX_INTERNAL.
-// ROX_API is used for the public API symbols. It either DLL imports or DLL exports (or does nothing for static build)
-// ROX_INTERNAL is used for non-api symbols.
-
-#ifdef ROX_DLL // defined if ROX is compiled as a DLL
-#ifdef ROX_DLL_EXPORTS // defined if we are building the ROX DLL (instead of using it)
-    #define ROX_API ROX_HELPER_DLL_EXPORT
-#else
-    #define ROX_API ROX_HELPER_DLL_IMPORT
-#endif // ROX_DLL_EXPORTS
-    #define ROX_INTERNAL ROX_HELPER_DLL_LOCAL
-#else // ROX_DLL is not defined: this means ROX is a static lib.
-    #define ROX_API
-    #define ROX_INTERNAL
-#endif // ROX_DLL
 
 #ifdef __cplusplus
 extern "C"
@@ -76,48 +46,6 @@ typedef struct RoxLoggingConfig {
 
 ROX_API void rox_logging_init(RoxLoggingConfig *config);
 
-// Collections
-
-typedef struct RoxMap RoxMap;
-
-typedef struct RoxList RoxList;
-
-typedef struct RoxSet RoxSet;
-
-ROX_API RoxList *rox_list_create_va(void *skip, ...);
-
-ROX_API RoxList *rox_list_create_str_va(void *skip, ...);
-
-ROX_API RoxList *rox_list_create_int_va(void *skip, ...);
-
-ROX_API RoxList *rox_list_create_double_va(void *skip, ...);
-
-ROX_API RoxSet *rox_set_create_va(void *skip, ...);
-
-ROX_API RoxMap *rox_map_create_va(void *skip, ...);
-
-ROX_API char *mem_copy_str(const char *ptr);
-
-#define ROX_LIST(...) rox_list_create_va(NULL, __VA_ARGS__, NULL)
-
-#define ROX_EMPTY_LIST ROX_LIST(NULL)
-
-#define ROX_LIST_COPY_STR(...) rox_list_create_str_va(NULL, __VA_ARGS__, NULL)
-
-#define ROX_INT_LIST(...) rox_list_create_int_va(NULL, __VA_ARGS__, INT_MIN)
-
-#define ROX_DBL_LIST(...) rox_list_create_double_va(NULL, __VA_ARGS__, DBL_MIN)
-
-#define ROX_SET(...) rox_set_create_va(NULL, __VA_ARGS__, NULL)
-
-#define ROX_EMPTY_SET ROX_SET(NULL)
-
-#define ROX_COPY(str) mem_copy_str(str)
-
-#define ROX_MAP(...) rox_map_create_va(NULL, __VA_ARGS__, NULL)
-
-#define ROX_EMPTY_MAP ROX_MAP(NULL)
-
 //
 // RoxReportingValue
 //
@@ -137,87 +65,6 @@ typedef struct RoxExperiment {
     char *stickiness_property;
 } RoxExperiment;
 
-//
-// DynamicValue
-//
-
-typedef struct RoxDynamicValue RoxDynamicValue;
-
-ROX_API RoxDynamicValue *rox_dynamic_value_create_int(int value);
-
-ROX_API RoxDynamicValue *rox_dynamic_value_create_int_ptr(int *value);
-
-ROX_API RoxDynamicValue *rox_dynamic_value_create_double(double value);
-
-ROX_API RoxDynamicValue *rox_dynamic_value_create_double_ptr(double *value);
-
-ROX_API RoxDynamicValue *rox_dynamic_value_create_boolean(bool value);
-
-/**
- * Note: the given string will be copied internally.
- * The caller is responsible for freeing it after use.
- */
-ROX_API RoxDynamicValue *rox_dynamic_value_create_string_copy(const char *value);
-
-/**
- * Note: the given string will be destroyed in <code>dynamic_value_free()</code>.
- */
-ROX_API RoxDynamicValue *rox_dynamic_value_create_string_ptr(char *value);
-
-/**
- * Note: the ownership of the list is delegated to the dynamic value
- * so all the memory will be freed by <code>dynamic_value_free</code>.
- *
- * @param value List of <code>RoxDynamicValue*</code>
- */
-ROX_API RoxDynamicValue *rox_dynamic_value_create_list(RoxList *value);
-
-/**
- * Note: the ownership of the map is delegated to the dynamic value
- * so all the memory including both keys and values
- * will be freed by <code>dynamic_value_free</code>.
- *
- * @param value Keys are <code>char *</code>s and values are <code>RoxDynamicValue*</code>s.
- */
-ROX_API RoxDynamicValue *rox_dynamic_value_create_map(RoxMap *value);
-
-ROX_API RoxDynamicValue *rox_dynamic_value_create_null();
-
-ROX_API RoxDynamicValue *rox_dynamic_value_create_undefined();
-
-ROX_API RoxDynamicValue *rox_dynamic_value_create_copy(RoxDynamicValue *value);
-
-ROX_API bool rox_dynamic_value_is_int(RoxDynamicValue *value);
-
-ROX_API bool rox_dynamic_value_is_double(RoxDynamicValue *value);
-
-ROX_API bool rox_dynamic_value_is_boolean(RoxDynamicValue *value);
-
-ROX_API bool rox_dynamic_value_is_string(RoxDynamicValue *value);
-
-ROX_API bool rox_dynamic_value_is_list(RoxDynamicValue *value);
-
-ROX_API bool rox_dynamic_value_is_map(RoxDynamicValue *value);
-
-ROX_API bool rox_dynamic_value_is_undefined(RoxDynamicValue *value);
-
-ROX_API bool rox_dynamic_value_is_null(RoxDynamicValue *value);
-
-ROX_API int rox_dynamic_value_get_int(RoxDynamicValue *value);
-
-ROX_API double rox_dynamic_value_get_double(RoxDynamicValue *value);
-
-ROX_API bool rox_dynamic_value_get_boolean(RoxDynamicValue *value);
-
-ROX_API char *rox_dynamic_value_get_string(RoxDynamicValue *value);
-
-ROX_API RoxList *rox_dynamic_value_get_list(RoxDynamicValue *value);
-
-ROX_API RoxMap *rox_dynamic_value_get_map(RoxDynamicValue *value);
-
-ROX_API bool rox_dynamic_value_equals(RoxDynamicValue *v1, RoxDynamicValue *v2);
-
-ROX_API void rox_dynamic_value_free(RoxDynamicValue *value);
 
 //
 // Context

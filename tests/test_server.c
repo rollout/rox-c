@@ -24,12 +24,13 @@ static void test_impression_handler(
     if (ctx->last_impression_value) {
         free(ctx->last_impression_value);
     }
+    if (ctx->imp_context_value) {
+        rox_dynamic_value_free(ctx->imp_context_value);
+        ctx->imp_context_value = NULL;
+    }
     ctx->last_impression_value = mem_copy_str(value->value);
     if (ctx->imp_context_key) {
-        RoxDynamicValue *context_value = rox_context_get(context, ctx->imp_context_key);
-        if (context_value) {
-            ctx->imp_context_value = rox_dynamic_value_create_copy(context_value);
-        }
+        ctx->imp_context_value = rox_context_get(context, ctx->imp_context_key);
     }
 }
 
@@ -87,6 +88,10 @@ static void variant_test_context_free(VariantTestContext *ctx) {
         free(ctx->last_impression_value);
         ctx->last_impression_value = NULL;
     }
+    if (ctx->imp_context_value) {
+        rox_dynamic_value_free(ctx->imp_context_value);
+        ctx->imp_context_value = NULL;
+    }
     free(ctx);
     rox_shutdown();
 }
@@ -116,9 +121,10 @@ END_TEST
 START_TEST (test_flag_with_experiment_expression_value) {
     VariantTestContext *ctx = variant_test_context_create();
     RoxStringBase *flag = rox_add_flag("name", false);
-    variant_test_context_set_experiment(ctx, flag, "and(true, true)");
+    ExperimentModel *experiment = variant_test_context_set_experiment(ctx, flag, "and(true, true)");
     ck_assert(rox_flag_is_enabled(flag));
     check_impression(ctx, "true");
+    experiment_model_free(experiment);
     variant_test_context_free(ctx);
 }
 
@@ -127,9 +133,10 @@ END_TEST
 START_TEST (test_flag_with_experiment_returns_undefined) {
     VariantTestContext *ctx = variant_test_context_create();
     RoxStringBase *flag = rox_add_flag("name", true);
-    variant_test_context_set_experiment(ctx, flag, "undefined");
+    ExperimentModel *experiment = variant_test_context_set_experiment(ctx, flag, "undefined");
     ck_assert(rox_flag_is_enabled(flag));
     check_impression(ctx, "true");
+    experiment_model_free(experiment);
     variant_test_context_free(ctx);
 }
 
@@ -138,9 +145,10 @@ END_TEST
 START_TEST (test_flag_with_experiment_wrong_type) {
     VariantTestContext *ctx = variant_test_context_create();
     RoxStringBase *flag = rox_add_flag("name", true);
-    variant_test_context_set_experiment(ctx, flag, "0");
+    ExperimentModel *experiment = variant_test_context_set_experiment(ctx, flag, "0");
     ck_assert(rox_flag_is_enabled(flag));
     check_impression(ctx, "true");
+    experiment_model_free(experiment);
     variant_test_context_free(ctx);
 }
 
@@ -150,13 +158,14 @@ START_TEST (test_flag_will_use_context) {
     VariantTestContext *ctx = variant_test_context_create();
     ctx->imp_context_key = "key";
     RoxStringBase *flag = rox_add_flag("name", false);
-    variant_test_context_set_experiment(ctx, flag, "true");
+    ExperimentModel *experiment = variant_test_context_set_experiment(ctx, flag, "true");
     RoxContext *context = rox_context_create_from_map(
             ROX_MAP(mem_copy_str("key"), rox_dynamic_value_create_int(55)));
     ck_assert(rox_flag_is_enabled_ctx(flag, context));
     ck_assert_int_eq(55, rox_dynamic_value_get_int(ctx->imp_context_value));
     check_impression(ctx, "true");
     variant_test_context_free(ctx);
+    experiment_model_free(experiment);
     rox_context_free(context);
 }
 
@@ -417,7 +426,7 @@ END_TEST
 
 START_TEST (test_double_will_not_add_default_to_options_if_exists) {
     VariantTestContext *ctx = variant_test_context_create();
-    RoxStringBase *variant = rox_add_double_with_options("name", 1.1, ROX_DBL_LIST(1.1, 2, 3));
+    RoxStringBase *variant = rox_add_double_with_options("name", 1.1, ROX_DBL_LIST(1.1, 2., 3.));
     RoxList *list = variant_get_options(variant);
     ck_assert_int_eq(rox_list_size(list), 3);
     ck_assert(str_in_list("1.1", list));
@@ -428,7 +437,7 @@ END_TEST
 
 START_TEST (test_double_will_add_default_to_options_if_not_exists) {
     VariantTestContext *ctx = variant_test_context_create();
-    RoxStringBase *variant = rox_add_double_with_options("name", 1.1, ROX_DBL_LIST(2, 3));
+    RoxStringBase *variant = rox_add_double_with_options("name", 1.1, ROX_DBL_LIST(2., 3.));
     RoxList *list = variant_get_options(variant);
     ck_assert_int_eq(rox_list_size(list), 3);
     ck_assert(str_in_list("1.1", list));
@@ -497,7 +506,7 @@ START_TEST (test_double_will_use_context) {
     VariantTestContext *ctx = variant_test_context_create();
     ctx->imp_context_key = "key";
 
-    RoxStringBase *variant = rox_add_double_with_options("name", 1.1, ROX_DBL_LIST(2, 3));
+    RoxStringBase *variant = rox_add_double_with_options("name", 1.1, ROX_DBL_LIST(2., 3.));
     ExperimentModel *experiment = variant_test_context_set_experiment(ctx, variant, "2.2");
 
     RoxContext *context = rox_context_create_from_map(

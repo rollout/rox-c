@@ -1,8 +1,41 @@
 #pragma once
 
-#include "rox/server.h"
 #include "core/impression.h"
+#include "core/eval.h"
 #include "roxx/parser.h"
+
+typedef void *(*variant_free_data_func)(void *data);
+
+typedef struct VariantConfig {
+    void *data;
+    variant_free_data_func free_data_func;
+} VariantConfig;
+
+/**
+ * @param variant Not <code>NULL</code>.
+ * @param config Not <code>NULL</code>.
+ */
+ROX_INTERNAL void variant_set_config(RoxStringBase *variant, VariantConfig *config);
+
+/**
+ * @param variant Not <code>NULL</code>.
+ * @param config Not <code>NULL</code>.
+ * @return May be <code>NULL</code>.
+ */
+ROX_INTERNAL void *variant_get_data(RoxStringBase *variant);
+
+/**
+ * @param variant Not <code>NULL</code>.
+ * @param default_value May be <code>NULL</code>. Variant's default value will be used in this case.
+ * @param eval_context May be <code>NULL</code>.
+ * @param converter Not <code>NULL</code>.
+ * @return May be <code>NULL</code>.
+ */
+ROX_INTERNAL RoxDynamicValue *variant_get_value(
+        RoxStringBase *variant,
+        const char *default_value,
+        EvaluationContext *eval_context,
+        FlagValueConverter *converter);
 
 //
 // String
@@ -98,78 +131,36 @@ ROX_INTERNAL RoxList *variant_get_options(RoxStringBase *variant);
  * The returned value must be freed after use by the caller, if not <code>NULL</code>.
  *
  * @param variant Not <code>NULL</code>.
- * @param context May be <code>NULL</code>
- * @return Current value or <code>default_value</code> passed to <code>create_variant()</code>, if variant's value is not defined.
- */
-ROX_INTERNAL char *variant_get_string_or_default(RoxStringBase *variant, RoxContext *context);
-
-/**
- * The returned value must be freed after use by the caller, if not <code>NULL</code>.
- *
- * @param variant Not <code>NULL</code>.
- * @param default_value May be <code>NULL</code>
- * @param context May be <code>NULL</code>
+ * @param default_value May be <code>NULL</code>. Variant's default value will be used in this case.
+ * @param eval_context May be <code>NULL</code>.
  * @return Current value or <code>default_value</code>, if variant's value is not defined.
  */
-ROX_INTERNAL char *variant_get_string(RoxStringBase *variant, RoxContext *context, const char *default_value);
+ROX_INTERNAL char *
+variant_get_string(RoxStringBase *variant, const char *default_value, EvaluationContext *eval_context);
 
 /**
  * @param variant Not <code>NULL</code>.
- * @param context May be <code>NULL</code>.
- */
-ROX_INTERNAL bool flag_is_enabled(RoxStringBase *variant, RoxContext *context);
-
-/**
- * @param variant Not <code>NULL</code>.
- * @param context May be <code>NULL</code>.
- */
-ROX_INTERNAL bool flag_is_enabled_or(RoxStringBase *variant, RoxContext *context, bool default_value);
-
-/**
- * @param variant Not <code>NULL</code>.
- * @param context May be <code>NULL</code>
- * @param target May be <code>NULL</code>
- * @param action Not <code>NULL</code>.
- */
-ROX_INTERNAL void flag_enabled_do(RoxStringBase *variant, RoxContext *context, void *target, rox_flag_action action);
-
-/**
- * @param variant Not <code>NULL</code>.
- * @param context May be <code>NULL</code>
- * @param target May be <code>NULL</code>
- * @param action Not <code>NULL</code>.
- */
-ROX_INTERNAL void flag_disabled_do(RoxStringBase *variant, RoxContext *context, void *target, rox_flag_action action);
-
-/**
- * @param variant Not <code>NULL</code>.
- * @param context May be <code>NULL</code>
+ * @param default_value May be <code>NULL</code>. Variant's default value will be used in this case.
+ * @param eval_context May be <code>NULL</code>.
  * @return Current value or <code>default_value</code> passed to <code>variant_create_xxx()</code>, if variant's value is not defined.
  */
-ROX_INTERNAL int variant_get_int_or_default(RoxStringBase *variant, RoxContext *context);
+ROX_INTERNAL int variant_get_int(RoxStringBase *variant, const char *default_value, EvaluationContext *eval_context);
 
 /**
  * @param variant Not <code>NULL</code>.
- * @param default_value May be <code>NULL</code>
- * @param context May be <code>NULL</code>
- * @return Current value or <code>default_value</code>, if variant's value is not defined.
- */
-ROX_INTERNAL int variant_get_int_or(RoxStringBase *variant, RoxContext *context, int default_value);
-
-/**
- * @param variant Not <code>NULL</code>.
- * @param context May be <code>NULL</code>
+ * @param default_value May be <code>NULL</code>. Variant's default value will be used in this case.
+ * @param eval_context May be <code>NULL</code>.
  * @return Current value or <code>default_value</code> passed to <code>variant_create_xxx()</code>, if variant's value is not defined.
  */
-ROX_INTERNAL double variant_get_double_or_default(RoxStringBase *variant, RoxContext *context);
+ROX_INTERNAL double
+variant_get_double(RoxStringBase *variant, const char *default_value, EvaluationContext *eval_context);
 
 /**
  * @param variant Not <code>NULL</code>.
- * @param default_value May be <code>NULL</code>
- * @param context May be <code>NULL</code>
- * @return Current value or <code>default_value</code>, if variant's value is not defined.
+ * @param default_value May be <code>NULL</code>. Variant's default value will be used in this case.
+ * @param eval_context May be <code>NULL</code>.
  */
-ROX_INTERNAL double variant_get_double_or(RoxStringBase *variant, RoxContext *context, double default_value);
+ROX_INTERNAL bool variant_get_bool(RoxStringBase *variant, const char *default_value, EvaluationContext *eval_context);
 
 /**
  * Ownership on <code>parser</code>, <code>experiment</code>,

@@ -85,7 +85,7 @@ START_TEST (test_is_enabled) {
     ck_assert_str_eq(ctx->last_impression_value, "true");
     ck_assert_int_eq(ctx->impressions, 1);
 
-    ck_assert(flag_is_enabled(flag_repository_get_flag(ctx->flag_repo, "default.newFlag"), NULL));
+    ck_assert(variant_get_bool(flag_repository_get_flag(ctx->flag_repo, "default.newFlag"), NULL, NULL));
     ck_assert_str_eq(ctx->last_impression_value, "true");
     ck_assert_int_eq(ctx->impressions, 2);
 
@@ -131,7 +131,7 @@ START_TEST (test_is_enabled_different_type_call) {
     ck_assert_int_eq(ctx->impressions, 2);
     ck_assert_str_eq(ctx->last_impression_value, "3.4");
 
-    ck_assert_str_eq("true", rox_dynamic_api_get_string(ctx->api, "default.newVariant", "1"));
+    rox_check_and_free(rox_dynamic_api_get_string(ctx->api, "default.newVariant", "1"), "true");
     ck_assert_int_eq(ctx->impressions, 3);
     ck_assert_str_eq(ctx->last_impression_value, "true");
 
@@ -168,7 +168,7 @@ START_TEST (test_get_string) {
     ck_assert_int_eq(ctx->impressions, 1);
 
     RoxStringBase *flag = flag_repository_get_flag(ctx->flag_repo, "default.newVariant");
-    rox_check_and_free(variant_get_string_or_default(flag, NULL), "A");
+    rox_check_and_free(variant_get_string(flag, NULL, NULL), "A");
     ck_assert_str_eq(ctx->last_impression_value, "A");
     ck_assert_int_eq(ctx->impressions, 2);
 
@@ -200,7 +200,7 @@ START_TEST (test_get_string_ignore_variation_null_when_variant_exists) {
     rox_check_and_free(rox_dynamic_api_get_string_ctx(ctx->api, "default.newVariant", "A", options, NULL), "A");
     ck_assert_int_eq(ctx->impressions, 2);
     ck_assert_str_eq(ctx->last_impression_value, "A");
-    rox_list_free(options);
+    rox_list_free_cb(options, free);
 
     client_test_context_free(ctx);
 }
@@ -276,7 +276,7 @@ START_TEST (test_get_int_different_type_call) {
     ck_assert_int_eq(ctx->impressions, 2);
     ck_assert_str_eq(ctx->last_impression_value, "2");
 
-    ck_assert_str_eq("2", rox_dynamic_api_get_string(ctx->api, "default.newVariant", "1"));
+    rox_check_and_free(rox_dynamic_api_get_string(ctx->api, "default.newVariant", "1"), "2");
     ck_assert_int_eq(ctx->impressions, 3);
     ck_assert_str_eq(ctx->last_impression_value, "2");
 
@@ -346,7 +346,7 @@ START_TEST (test_get_double_different_type_call) {
     ck_assert_int_eq(ctx->impressions, 2);
     ck_assert_str_eq(ctx->last_impression_value, "1");
 
-    ck_assert_str_eq("3.3", rox_dynamic_api_get_string(ctx->api, "default.newVariant", "1"));
+    rox_check_and_free(rox_dynamic_api_get_string(ctx->api, "default.newVariant", "1"), "3.3");
     ck_assert_int_eq(ctx->impressions, 3);
     ck_assert_str_eq(ctx->last_impression_value, "3.3");
 

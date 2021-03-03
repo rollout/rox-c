@@ -3,12 +3,11 @@
 #include "rox/server.h"
 #include "stack.h"
 #include "core/context.h"
+#include "core/eval.h"
 
 typedef struct Parser Parser;
 
-typedef struct EvaluationResult EvaluationResult;
-
-typedef void (*parser_operation)(void *target, Parser *parser, CoreStack *stack, RoxContext *context);
+typedef void (*parser_operation)(void *target, Parser *parser, CoreStack *stack, EvaluationContext *eval_context);
 
 typedef void (*parser_disposal_handler)(void *target, Parser *parser);
 
@@ -73,7 +72,10 @@ ROX_INTERNAL void parser_add_operator(Parser *parser, const char *name, void *ta
  * @param context Can be NULL.
  * @return Can be NULL.
  */
-ROX_INTERNAL EvaluationResult *parser_evaluate_expression(Parser *parser, const char *expression, RoxContext *context);
+ROX_INTERNAL EvaluationResult *parser_evaluate_expression(
+        Parser *parser,
+        const char *expression,
+        EvaluationContext *eval_context);
 
 //
 // Get value from evaluation result. If actual value type is different

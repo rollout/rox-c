@@ -60,7 +60,7 @@ struct EvaluationResult {
     bool is_undefined;
 };
 
-ROX_INTERNAL EvaluationResult *_create_result_from_stack_item(StackItem *item, RoxContext *context) {
+static EvaluationResult *create_result_from_stack_item(StackItem *item, RoxContext *context) {
     EvaluationResult *result = NULL;
 
     if (!item || rox_stack_is_null(item)) {
@@ -185,68 +185,68 @@ ROX_INTERNAL RoxDynamicValue *node_get_value(ParserNode *node) {
     return node->value;
 }
 
-ROX_INTERNAL ParserNode *_node_create_empty(NodeType type) {
+static ParserNode *node_create_empty(NodeType type) {
     ParserNode *node = (ParserNode *) calloc(1, sizeof(ParserNode));
     node->type = type;
     return node;
 }
 
-ROX_INTERNAL ParserNode *node_create_str_ptr(NodeType type, char *str) {
+static ParserNode *node_create_str_ptr(NodeType type, char *str) {
     assert(str);
-    ParserNode *node = _node_create_empty(type);
+    ParserNode *node = node_create_empty(type);
     node->value = rox_dynamic_value_create_string_ptr(str);
     return node;
 }
 
-ROX_INTERNAL ParserNode *node_create_str_copy(NodeType type, const char *str) {
+static ParserNode *node_create_str_copy(NodeType type, const char *str) {
     assert(str);
     return node_create_str_ptr(type, mem_copy_str(str));
 }
 
-ROX_INTERNAL ParserNode *node_create_double_ptr(NodeType type, double *value) {
-    ParserNode *node = _node_create_empty(type);
+static ParserNode *node_create_double_ptr(NodeType type, double *value) {
+    ParserNode *node = node_create_empty(type);
     node->value = rox_dynamic_value_create_double_ptr(value);
     return node;
 }
 
-ROX_INTERNAL ParserNode *node_create_double(NodeType type, double value) {
+static ParserNode *node_create_double(NodeType type, double value) {
     return node_create_double_ptr(type, mem_copy_double(value));
 }
 
-ROX_INTERNAL ParserNode *node_create_int_ptr(NodeType type, int *value) {
-    ParserNode *node = _node_create_empty(type);
+static ParserNode *node_create_int_ptr(NodeType type, int *value) {
+    ParserNode *node = node_create_empty(type);
     node->value = rox_dynamic_value_create_int_ptr(value);
     return node;
 }
 
-ROX_INTERNAL ParserNode *node_create_bool(NodeType type, bool value) {
-    ParserNode *node = _node_create_empty(type);
+static ParserNode *node_create_bool(NodeType type, bool value) {
+    ParserNode *node = node_create_empty(type);
     node->value = rox_dynamic_value_create_boolean(value);
     return node;
 }
 
-ROX_INTERNAL ParserNode *node_create_list(NodeType type, RoxList *value) {
+static ParserNode *node_create_list(NodeType type, RoxList *value) {
     assert(value);
-    ParserNode *node = _node_create_empty(type);
+    ParserNode *node = node_create_empty(type);
     node->value = rox_dynamic_value_create_list(value);
     return node;
 }
 
-ROX_INTERNAL ParserNode *node_create_map(NodeType type, RoxMap *value) {
+static ParserNode *node_create_map(NodeType type, RoxMap *value) {
     assert(value);
-    ParserNode *node = _node_create_empty(type);
+    ParserNode *node = node_create_empty(type);
     node->value = rox_dynamic_value_create_map(value);
     return node;
 }
 
-ROX_INTERNAL ParserNode *node_create_null(NodeType type) {
-    ParserNode *node = _node_create_empty(type);
+static ParserNode *node_create_null(NodeType type) {
+    ParserNode *node = node_create_empty(type);
     node->value = rox_dynamic_value_create_null();
     return node;
 }
 
-ROX_INTERNAL ParserNode *node_create_undefined(NodeType type) {
-    ParserNode *node = _node_create_empty(type);
+static ParserNode *node_create_undefined(NodeType type) {
+    ParserNode *node = node_create_empty(type);
     node->value = rox_dynamic_value_create_undefined();
     return node;
 }
@@ -273,7 +273,7 @@ typedef struct StringTokenizer {
     int max_delim_code_point;
 } StringTokenizer;
 
-ROX_INTERNAL void _tokenizer_set_max_delim_code_point(StringTokenizer *tokenizer) {
+static void tokenizer_set_max_delim_code_point(StringTokenizer *tokenizer) {
     assert(tokenizer);
     int m = 0;
     int c;
@@ -288,7 +288,7 @@ ROX_INTERNAL void _tokenizer_set_max_delim_code_point(StringTokenizer *tokenizer
     tokenizer->max_delim_code_point = m;
 }
 
-ROX_INTERNAL StringTokenizer *tokenizer_create(const char *str, const char *delim, bool return_delims) {
+static StringTokenizer *tokenizer_create(const char *str, const char *delim, bool return_delims) {
     assert(str);
     assert(delim);
 
@@ -301,19 +301,19 @@ ROX_INTERNAL StringTokenizer *tokenizer_create(const char *str, const char *deli
     tokenizer->delimiters = mem_copy_str(delim);
     tokenizer->ret_delims = return_delims;
 
-    _tokenizer_set_max_delim_code_point(tokenizer);
+    tokenizer_set_max_delim_code_point(tokenizer);
 
     return tokenizer;
 }
 
-ROX_INTERNAL void tokenizer_free(StringTokenizer *tokenizer) {
+static void tokenizer_free(StringTokenizer *tokenizer) {
     assert(tokenizer);
     free(tokenizer->delimiters);
     free(tokenizer->str);
     free(tokenizer);
 }
 
-ROX_INTERNAL int _tokenizer_skip_delimiters(StringTokenizer *tokenizer, int star_pos) {
+static int tokenizer_skip_delimiters(StringTokenizer *tokenizer, int star_pos) {
     assert(tokenizer);
     assert(tokenizer->delimiters);
 
@@ -327,7 +327,7 @@ ROX_INTERNAL int _tokenizer_skip_delimiters(StringTokenizer *tokenizer, int star
     return position;
 }
 
-ROX_INTERNAL int _tokenizer_scan_token(StringTokenizer *tokenizer, int startPos) {
+static int tokenizer_scan_token(StringTokenizer *tokenizer, int startPos) {
     assert(tokenizer);
     int position = startPos;
     while (position < tokenizer->max_position) {
@@ -344,20 +344,20 @@ ROX_INTERNAL int _tokenizer_scan_token(StringTokenizer *tokenizer, int startPos)
     return position;
 }
 
-ROX_INTERNAL bool tokenizer_has_more_tokens(StringTokenizer *tokenizer) {
+static bool tokenizer_has_more_tokens(StringTokenizer *tokenizer) {
     assert(tokenizer);
-    tokenizer->new_position = _tokenizer_skip_delimiters(tokenizer, tokenizer->current_position);
+    tokenizer->new_position = tokenizer_skip_delimiters(tokenizer, tokenizer->current_position);
     return (tokenizer->new_position < tokenizer->max_position);
 }
 
 /**
  * NOTE: THE RETURNED POINTER MUST BE FREED AFTER USAGE.
  */
-ROX_INTERNAL void tokenizer_next_token(StringTokenizer *tokenizer, char *buffer, int *ret_len) {
+static void tokenizer_next_token(StringTokenizer *tokenizer, char *buffer, int *ret_len) {
     assert(tokenizer);
     tokenizer->current_position = (tokenizer->new_position >= 0 && !tokenizer->delims_changed) ?
-                                  tokenizer->new_position : _tokenizer_skip_delimiters(tokenizer,
-                                                                                       tokenizer->current_position);
+                                  tokenizer->new_position : tokenizer_skip_delimiters(tokenizer,
+                                                                                      tokenizer->current_position);
 
     /* Reset these anyway */
     tokenizer->delims_changed = false;
@@ -372,13 +372,13 @@ ROX_INTERNAL void tokenizer_next_token(StringTokenizer *tokenizer, char *buffer,
     }
 
     int start = tokenizer->current_position;
-    tokenizer->current_position = _tokenizer_scan_token(tokenizer, tokenizer->current_position);
+    tokenizer->current_position = tokenizer_scan_token(tokenizer, tokenizer->current_position);
     int len = tokenizer->current_position - start;
     str_substring_b(tokenizer->str, start, len, buffer);
     *ret_len = len;
 }
 
-ROX_INTERNAL void
+static void
 tokenizer_next_token_with_delim(StringTokenizer *tokenizer, const char *delim, char *buffer, int *ret_len) {
     assert(tokenizer);
     assert(delim);
@@ -390,7 +390,7 @@ tokenizer_next_token_with_delim(StringTokenizer *tokenizer, const char *delim, c
     /* delimiter string specified, so set the appropriate flag. */
     tokenizer->delims_changed = true;
 
-    _tokenizer_set_max_delim_code_point(tokenizer);
+    tokenizer_set_max_delim_code_point(tokenizer);
     tokenizer_next_token(tokenizer, buffer, ret_len);
 }
 
@@ -414,7 +414,7 @@ typedef struct TokenizedExpression {
     char *dict_key;
 } TokenizedExpression;
 
-ROX_INTERNAL void tokenized_expression_free(TokenizedExpression *expr) {
+static void tokenized_expression_free(TokenizedExpression *expr) {
     assert(expr);
     if (expr->array_accumulator) {
         ROX_WARN("Unclosed array literal in roxx expression");
@@ -433,7 +433,7 @@ ROX_INTERNAL void tokenized_expression_free(TokenizedExpression *expr) {
     free(expr);
 }
 
-ROX_INTERNAL void _tokenized_expression_push_node(TokenizedExpression *expr, ParserNode *node, RoxList *node_list) {
+static void tokenized_expression_push_node(TokenizedExpression *expr, ParserNode *node, RoxList *node_list) {
     assert(expr);
     assert(node);
     assert(node_list);
@@ -458,7 +458,7 @@ ROX_INTERNAL void _tokenized_expression_push_node(TokenizedExpression *expr, Par
     }
 }
 
-ROX_INTERNAL ParserNode *_tokenized_expression_node_from_token(NodeType nodeType, const char *token) {
+static ParserNode *tokenized_expression_node_from_token(NodeType nodeType, const char *token) {
     assert(token);
     ParserTokenType token_type = get_token_type_from_token(token);
     if (str_equals(token, ROXX_TRUE)) {
@@ -524,7 +524,7 @@ ROX_INTERNAL RoxList *tokenized_expression_get_tokens(const char *expression, Ro
         } else if (!in_string && str_equals(token, DICT_END_DELIMITER)) {
             RoxMap *dict_result = expr->dict_accumulator;
             expr->dict_accumulator = NULL;
-            _tokenized_expression_push_node(
+            tokenized_expression_push_node(
                     expr,
                     node_create_map(NodeTypeRand, dict_result),  // NOTE: dict_result must be freed in node_free
                     result_list);
@@ -538,13 +538,13 @@ ROX_INTERNAL RoxList *tokenized_expression_get_tokens(const char *expression, Ro
         } else if (!in_string && str_equals(token, ARRAY_END_DELIMITER)) {
             RoxList *array_result = expr->array_accumulator;
             expr->array_accumulator = NULL;
-            _tokenized_expression_push_node(
+            tokenized_expression_push_node(
                     expr,
                     node_create_list(NodeTypeRand, array_result), // NOTE: array_result must be freed in node_free
                     result_list);
         } else if (str_equals(token, STRING_DELIMITER)) {
             if (prev_token_len > 0 && str_equals(prev_token, STRING_DELIMITER)) {
-                _tokenized_expression_push_node(
+                tokenized_expression_push_node(
                         expr,
                         node_create_str_copy(NodeTypeRand, ROXX_EMPTY_STRING),
                         result_list);
@@ -555,15 +555,15 @@ ROX_INTERNAL RoxList *tokenized_expression_get_tokens(const char *expression, Ro
         } else {
             if (str_equals(delimiters_to_use, STRING_DELIMITER)) {
                 char *escaped_token = mem_str_replace(token, ESCAPED_QUOTE_PLACEHOLDER, ESCAPED_QUOTE);
-                _tokenized_expression_push_node(
+                tokenized_expression_push_node(
                         expr,
                         node_create_str_ptr(NodeTypeRand, escaped_token),
                         result_list);
             } else if (!strstr(TOKEN_DELIMITERS, token) && !str_equals(token, PRE_POST_STRING_CHAR)) {
                 ParserNode *node = rox_map_contains_key(operators, token)
                                    ? node_create_str_copy(NodeTypeRator, token)
-                                   : _tokenized_expression_node_from_token(NodeTypeRand, token);
-                _tokenized_expression_push_node(expr, node, result_list);
+                                   : tokenized_expression_node_from_token(NodeTypeRand, token);
+                tokenized_expression_push_node(expr, node, result_list);
             }
         }
     }
@@ -595,7 +595,7 @@ typedef struct ParserOperator {
     parser_operation operation;
 } ParserOperator;
 
-int _parser_compare_stack_items(StackItem *item, StackItem *item2) {
+static int parser_compare_stack_items(StackItem *item, StackItem *item2) {
     assert(item);
     assert(item2);
 
@@ -626,21 +626,22 @@ int _parser_compare_stack_items(StackItem *item, StackItem *item2) {
     return ret_value;
 }
 
-ROX_INTERNAL void _parser_operator_is_undefined(void *target, Parser *parser, CoreStack *stack, RoxContext *context) {
+static void
+parser_operator_is_undefined(void *target, Parser *parser, CoreStack *stack, EvaluationContext *eval_context) {
     assert(parser);
     assert(stack);
     StackItem *item = rox_stack_pop(stack);
     rox_stack_push_boolean(stack, item && rox_stack_is_undefined(item));
 }
 
-ROX_INTERNAL void _parser_operator_now(void *target, Parser *parser, CoreStack *stack, RoxContext *context) {
+static void parser_operator_now(void *target, Parser *parser, CoreStack *stack, EvaluationContext *eval_context) {
     assert(parser);
     assert(stack);
     double time = current_time_millis();
     rox_stack_push_double(stack, time);
 }
 
-ROX_INTERNAL bool _rox_stack_pop_boolean(CoreStack *stack) {
+static bool rox_stack_pop_boolean(CoreStack *stack) {
     StackItem *item = rox_stack_pop(stack);
     assert(item);
     if (rox_stack_is_boolean(item)) {
@@ -649,56 +650,56 @@ ROX_INTERNAL bool _rox_stack_pop_boolean(CoreStack *stack) {
     return false;
 }
 
-ROX_INTERNAL void _parser_operator_and(void *target, Parser *parser, CoreStack *stack, RoxContext *context) {
+static void parser_operator_and(void *target, Parser *parser, CoreStack *stack, EvaluationContext *eval_context) {
     assert(parser);
     assert(stack);
-    bool b1 = _rox_stack_pop_boolean(stack);
-    bool b2 = _rox_stack_pop_boolean(stack);
+    bool b1 = rox_stack_pop_boolean(stack);
+    bool b2 = rox_stack_pop_boolean(stack);
     rox_stack_push_boolean(stack, b1 && b2);
 }
 
-ROX_INTERNAL void _parser_operator_or(void *target, Parser *parser, CoreStack *stack, RoxContext *context) {
+static void parser_operator_or(void *target, Parser *parser, CoreStack *stack, EvaluationContext *eval_context) {
     assert(parser);
     assert(stack);
-    bool b1 = _rox_stack_pop_boolean(stack);
-    bool b2 = _rox_stack_pop_boolean(stack);
+    bool b1 = rox_stack_pop_boolean(stack);
+    bool b2 = rox_stack_pop_boolean(stack);
     rox_stack_push_boolean(stack, b1 || b2);
 }
 
-ROX_INTERNAL void _parser_operator_ne(void *target, Parser *parser, CoreStack *stack, RoxContext *context) {
+static void parser_operator_ne(void *target, Parser *parser, CoreStack *stack, EvaluationContext *eval_context) {
     assert(parser);
     assert(stack);
     StackItem *item1 = rox_stack_pop(stack);
     StackItem *item2 = rox_stack_pop(stack);
-    bool equal = _parser_compare_stack_items(item1, item2) == 0;
+    bool equal = parser_compare_stack_items(item1, item2) == 0;
     rox_stack_push_boolean(stack, !equal);
 }
 
-ROX_INTERNAL void _parser_operator_eq(void *target, Parser *parser, CoreStack *stack, RoxContext *context) {
+static void parser_operator_eq(void *target, Parser *parser, CoreStack *stack, EvaluationContext *eval_context) {
     assert(parser);
     assert(stack);
     StackItem *item1 = rox_stack_pop(stack);
     StackItem *item2 = rox_stack_pop(stack);
-    bool equal = _parser_compare_stack_items(item1, item2) == 0;
+    bool equal = parser_compare_stack_items(item1, item2) == 0;
     rox_stack_push_boolean(stack, equal);
 }
 
-ROX_INTERNAL void _parser_operator_not(void *target, Parser *parser, CoreStack *stack, RoxContext *context) {
+static void parser_operator_not(void *target, Parser *parser, CoreStack *stack, EvaluationContext *eval_context) {
     assert(parser);
     assert(stack);
-    rox_stack_push_boolean(stack, !_rox_stack_pop_boolean(stack));
+    rox_stack_push_boolean(stack, !rox_stack_pop_boolean(stack));
 }
 
-ROX_INTERNAL void _parser_operator_if_then(void *target, Parser *parser, CoreStack *stack, RoxContext *context) {
+static void parser_operator_if_then(void *target, Parser *parser, CoreStack *stack, EvaluationContext *eval_context) {
     assert(parser);
     assert(stack);
-    bool b = _rox_stack_pop_boolean(stack);
+    bool b = rox_stack_pop_boolean(stack);
     StackItem *trueExpression = rox_stack_pop(stack);
     StackItem *falseExpression = rox_stack_pop(stack);
     rox_stack_push_item_copy(stack, b ? trueExpression : falseExpression);
 }
 
-ROX_INTERNAL void _parser_operator_in_array(void *target, Parser *parser, CoreStack *stack, RoxContext *context) {
+static void parser_operator_in_array(void *target, Parser *parser, CoreStack *stack, EvaluationContext *eval_context) {
     assert(parser);
     assert(stack);
     StackItem *op1 = rox_stack_pop(stack);
@@ -719,7 +720,7 @@ ROX_INTERNAL void _parser_operator_in_array(void *target, Parser *parser, CoreSt
     rox_stack_push_boolean(stack, false);
 }
 
-ROX_INTERNAL void _parser_operator_md5(void *target, Parser *parser, CoreStack *stack, RoxContext *context) {
+static void parser_operator_md5(void *target, Parser *parser, CoreStack *stack, EvaluationContext *eval_context) {
     assert(parser);
     assert(stack);
     StackItem *item = rox_stack_pop(stack);
@@ -731,7 +732,7 @@ ROX_INTERNAL void _parser_operator_md5(void *target, Parser *parser, CoreStack *
     rox_stack_push_string_ptr(stack, mem_md5_str(s));
 }
 
-ROX_INTERNAL void _parser_operator_concat(void *target, Parser *parser, CoreStack *stack, RoxContext *context) {
+static void parser_operator_concat(void *target, Parser *parser, CoreStack *stack, EvaluationContext *eval_context) {
     assert(parser);
     assert(stack);
     StackItem *i1 = rox_stack_pop(stack);
@@ -745,7 +746,7 @@ ROX_INTERNAL void _parser_operator_concat(void *target, Parser *parser, CoreStac
     rox_stack_push_string_ptr(stack, mem_str_concat(s1, s2));
 }
 
-ROX_INTERNAL void _parser_operator_b64d(void *target, Parser *parser, CoreStack *stack, RoxContext *context) {
+static void parser_operator_b64d(void *target, Parser *parser, CoreStack *stack, EvaluationContext *eval_context) {
     assert(parser);
     assert(stack);
     StackItem *item = rox_stack_pop(stack);
@@ -759,8 +760,8 @@ ROX_INTERNAL void _parser_operator_b64d(void *target, Parser *parser, CoreStack 
 
 typedef bool (*parser_comparison_op)(double d1, double d2);
 
-ROX_INTERNAL void
-_parser_operator_cmp_dbl(Parser *parser, CoreStack *stack, RoxContext *context, parser_comparison_op cmp) {
+static void
+parser_operator_cmp_dbl(Parser *parser, CoreStack *stack, EvaluationContext *eval_context, parser_comparison_op cmp) {
     assert(parser);
     assert(stack);
     StackItem *op1 = rox_stack_pop(stack);
@@ -776,50 +777,50 @@ _parser_operator_cmp_dbl(Parser *parser, CoreStack *stack, RoxContext *context, 
     rox_stack_push_boolean(stack, result);
 }
 
-bool _parser_cmp_dbl_lt(double d1, double d2) {
+bool parser_cmp_dbl_lt(double d1, double d2) {
     return d2 - d1 > DBL_EPSILON;
 }
 
-bool _parser_cmp_dbl_lte(double d1, double d2) {
-    return _parser_cmp_dbl_lt(d1, d2) || (fabs(d1 - d2) < DBL_EPSILON);
+bool parser_cmp_dbl_lte(double d1, double d2) {
+    return parser_cmp_dbl_lt(d1, d2) || (fabs(d1 - d2) < DBL_EPSILON);
 }
 
-bool _parser_cmp_dbl_gt(double d1, double d2) {
+bool parser_cmp_dbl_gt(double d1, double d2) {
     return d1 - d2 > DBL_EPSILON;
 }
 
-bool _parser_cmp_dbl_gte(double d1, double d2) {
-    return _parser_cmp_dbl_gt(d1, d2) || (fabs(d1 - d2) < DBL_EPSILON);
+bool parser_cmp_dbl_gte(double d1, double d2) {
+    return parser_cmp_dbl_gt(d1, d2) || (fabs(d1 - d2) < DBL_EPSILON);
 }
 
-ROX_INTERNAL void _parser_operator_lt(void *target, Parser *parser, CoreStack *stack, RoxContext *context) {
+static void parser_operator_lt(void *target, Parser *parser, CoreStack *stack, EvaluationContext *eval_context) {
     assert(parser);
     assert(stack);
-    _parser_operator_cmp_dbl(parser, stack, context, &_parser_cmp_dbl_lt);
+    parser_operator_cmp_dbl(parser, stack, eval_context, &parser_cmp_dbl_lt);
 }
 
-ROX_INTERNAL void _parser_operator_lte(void *target, Parser *parser, CoreStack *stack, RoxContext *context) {
+static void parser_operator_lte(void *target, Parser *parser, CoreStack *stack, EvaluationContext *eval_context) {
     assert(parser);
     assert(stack);
-    _parser_operator_cmp_dbl(parser, stack, context, &_parser_cmp_dbl_lte);
+    parser_operator_cmp_dbl(parser, stack, eval_context, &parser_cmp_dbl_lte);
 }
 
-ROX_INTERNAL void _parser_operator_gt(void *target, Parser *parser, CoreStack *stack, RoxContext *context) {
+static void parser_operator_gt(void *target, Parser *parser, CoreStack *stack, EvaluationContext *eval_context) {
     assert(parser);
     assert(stack);
-    _parser_operator_cmp_dbl(parser, stack, context, &_parser_cmp_dbl_gt);
+    parser_operator_cmp_dbl(parser, stack, eval_context, &parser_cmp_dbl_gt);
 }
 
-ROX_INTERNAL void _parser_operator_gte(void *target, Parser *parser, CoreStack *stack, RoxContext *context) {
+static void parser_operator_gte(void *target, Parser *parser, CoreStack *stack, EvaluationContext *eval_context) {
     assert(parser);
     assert(stack);
-    _parser_operator_cmp_dbl(parser, stack, context, &_parser_cmp_dbl_gte);
+    parser_operator_cmp_dbl(parser, stack, eval_context, &parser_cmp_dbl_gte);
 }
 
-typedef int (*_parser_cmp_semver)(semver_t x, semver_t y);
+typedef int (*parser_cmp_semver)(semver_t x, semver_t y);
 
-ROX_INTERNAL int _parser_operator_semver_cmp(
-        Parser *parser, CoreStack *stack, RoxContext *context, _parser_cmp_semver cmp) {
+static int parser_operator_semver_cmp(
+        Parser *parser, CoreStack *stack, EvaluationContext *eval_context, parser_cmp_semver cmp) {
     assert(parser);
     assert(stack);
     StackItem *item1 = rox_stack_pop(stack);
@@ -844,44 +845,45 @@ ROX_INTERNAL int _parser_operator_semver_cmp(
     return 0;
 }
 
-ROX_INTERNAL void _parser_operator_semver_ne(void *target, Parser *parser, CoreStack *stack, RoxContext *context) {
+static void parser_operator_semver_ne(void *target, Parser *parser, CoreStack *stack, EvaluationContext *eval_context) {
     assert(parser);
     assert(stack);
-    _parser_operator_semver_cmp(parser, stack, context, &semver_neq);
+    parser_operator_semver_cmp(parser, stack, eval_context, &semver_neq);
 }
 
-
-ROX_INTERNAL void _parser_operator_semver_eq(void *target, Parser *parser, CoreStack *stack, RoxContext *context) {
+static void parser_operator_semver_eq(void *target, Parser *parser, CoreStack *stack, EvaluationContext *eval_context) {
     assert(parser);
     assert(stack);
-    _parser_operator_semver_cmp(parser, stack, context, &semver_eq);
+    parser_operator_semver_cmp(parser, stack, eval_context, &semver_eq);
 }
 
-ROX_INTERNAL void _parser_operator_semver_lt(void *target, Parser *parser, CoreStack *stack, RoxContext *context) {
+static void parser_operator_semver_lt(void *target, Parser *parser, CoreStack *stack, EvaluationContext *eval_context) {
     assert(parser);
     assert(stack);
-    _parser_operator_semver_cmp(parser, stack, context, &semver_lt);
+    parser_operator_semver_cmp(parser, stack, eval_context, &semver_lt);
 }
 
-ROX_INTERNAL void _parser_operator_semver_lte(void *target, Parser *parser, CoreStack *stack, RoxContext *context) {
+static void
+parser_operator_semver_lte(void *target, Parser *parser, CoreStack *stack, EvaluationContext *eval_context) {
     assert(parser);
     assert(stack);
-    _parser_operator_semver_cmp(parser, stack, context, &semver_lte);
+    parser_operator_semver_cmp(parser, stack, eval_context, &semver_lte);
 }
 
-ROX_INTERNAL void _parser_operator_semver_gt(void *target, Parser *parser, CoreStack *stack, RoxContext *context) {
+static void parser_operator_semver_gt(void *target, Parser *parser, CoreStack *stack, EvaluationContext *eval_context) {
     assert(parser);
     assert(stack);
-    _parser_operator_semver_cmp(parser, stack, context, &semver_gt);
+    parser_operator_semver_cmp(parser, stack, eval_context, &semver_gt);
 }
 
-ROX_INTERNAL void _parser_operator_semver_gte(void *target, Parser *parser, CoreStack *stack, RoxContext *context) {
+static void
+parser_operator_semver_gte(void *target, Parser *parser, CoreStack *stack, EvaluationContext *eval_context) {
     assert(parser);
     assert(stack);
-    _parser_operator_semver_cmp(parser, stack, context, &semver_gte);
+    parser_operator_semver_cmp(parser, stack, eval_context, &semver_gte);
 }
 
-ROX_INTERNAL void _parser_operator_match(void *target, Parser *parser, CoreStack *stack, RoxContext *context) {
+static void parser_operator_match(void *target, Parser *parser, CoreStack *stack, EvaluationContext *eval_context) {
     assert(parser);
     assert(stack);
     StackItem *op1 = rox_stack_pop(stack);
@@ -923,44 +925,44 @@ ROX_INTERNAL void _parser_operator_match(void *target, Parser *parser, CoreStack
     rox_stack_push_boolean(stack, match);
 }
 
-ROX_INTERNAL void _parser_set_basic_operators(Parser *parser) {
+static void parser_set_basic_operators(Parser *parser) {
     assert(parser);
 
     // basic functions
-    parser_add_operator(parser, "isUndefined", NULL, &_parser_operator_is_undefined);
-    parser_add_operator(parser, "now", NULL, &_parser_operator_now);
-    parser_add_operator(parser, "and", NULL, &_parser_operator_and);
-    parser_add_operator(parser, "or", NULL, &_parser_operator_or);
-    parser_add_operator(parser, "ne", NULL, &_parser_operator_ne);
-    parser_add_operator(parser, "eq", NULL, &_parser_operator_eq);
-    parser_add_operator(parser, "not", NULL, &_parser_operator_not);
-    parser_add_operator(parser, "ifThen", NULL, &_parser_operator_if_then);
-    parser_add_operator(parser, "inArray", NULL, &_parser_operator_in_array);
-    parser_add_operator(parser, "md5", NULL, &_parser_operator_md5);
-    parser_add_operator(parser, "concat", NULL, &_parser_operator_concat);
-    parser_add_operator(parser, "b64d", NULL, &_parser_operator_b64d);
+    parser_add_operator(parser, "isUndefined", NULL, &parser_operator_is_undefined);
+    parser_add_operator(parser, "now", NULL, &parser_operator_now);
+    parser_add_operator(parser, "and", NULL, &parser_operator_and);
+    parser_add_operator(parser, "or", NULL, &parser_operator_or);
+    parser_add_operator(parser, "ne", NULL, &parser_operator_ne);
+    parser_add_operator(parser, "eq", NULL, &parser_operator_eq);
+    parser_add_operator(parser, "not", NULL, &parser_operator_not);
+    parser_add_operator(parser, "ifThen", NULL, &parser_operator_if_then);
+    parser_add_operator(parser, "inArray", NULL, &parser_operator_in_array);
+    parser_add_operator(parser, "md5", NULL, &parser_operator_md5);
+    parser_add_operator(parser, "concat", NULL, &parser_operator_concat);
+    parser_add_operator(parser, "b64d", NULL, &parser_operator_b64d);
 
     // value compare functions
-    parser_add_operator(parser, "lt", NULL, &_parser_operator_lt);
-    parser_add_operator(parser, "lte", NULL, &_parser_operator_lte);
-    parser_add_operator(parser, "gt", NULL, &_parser_operator_gt);
-    parser_add_operator(parser, "gte", NULL, &_parser_operator_gte);
-    parser_add_operator(parser, "semverNe", NULL, &_parser_operator_semver_ne);
-    parser_add_operator(parser, "semverEq", NULL, &_parser_operator_semver_eq);
-    parser_add_operator(parser, "semverLt", NULL, &_parser_operator_semver_lt);
-    parser_add_operator(parser, "semverLte", NULL, &_parser_operator_semver_lte);
-    parser_add_operator(parser, "semverGt", NULL, &_parser_operator_semver_gt);
-    parser_add_operator(parser, "semverGte", NULL, &_parser_operator_semver_gte);
+    parser_add_operator(parser, "lt", NULL, &parser_operator_lt);
+    parser_add_operator(parser, "lte", NULL, &parser_operator_lte);
+    parser_add_operator(parser, "gt", NULL, &parser_operator_gt);
+    parser_add_operator(parser, "gte", NULL, &parser_operator_gte);
+    parser_add_operator(parser, "semverNe", NULL, &parser_operator_semver_ne);
+    parser_add_operator(parser, "semverEq", NULL, &parser_operator_semver_eq);
+    parser_add_operator(parser, "semverLt", NULL, &parser_operator_semver_lt);
+    parser_add_operator(parser, "semverLte", NULL, &parser_operator_semver_lte);
+    parser_add_operator(parser, "semverGt", NULL, &parser_operator_semver_gt);
+    parser_add_operator(parser, "semverGte", NULL, &parser_operator_semver_gte);
 
     // regular expression functions
-    parser_add_operator(parser, "match", NULL, &_parser_operator_match);
+    parser_add_operator(parser, "match", NULL, &parser_operator_match);
 }
 
 ROX_INTERNAL Parser *parser_create() {
     Parser *parser = calloc(1, sizeof(Parser));
     parser->disposal_handlers = rox_list_create();
     parser->operators_map = rox_map_create();
-    _parser_set_basic_operators(parser);
+    parser_set_basic_operators(parser);
     return parser;
 }
 
@@ -1000,7 +1002,11 @@ ROX_INTERNAL void parser_add_operator(Parser *parser, const char *name, void *ta
     rox_map_add(parser->operators_map, (void *) mem_copy_str(name), operator);
 }
 
-ROX_INTERNAL EvaluationResult *parser_evaluate_expression(Parser *parser, const char *expression, RoxContext *context) {
+ROX_INTERNAL EvaluationResult *parser_evaluate_expression(
+        Parser *parser,
+        const char *expression,
+        EvaluationContext *eval_context) {
+
     assert(parser);
     assert(expression);
 
@@ -1010,6 +1016,7 @@ ROX_INTERNAL EvaluationResult *parser_evaluate_expression(Parser *parser, const 
     RoxList *tokens = tokenized_expression_get_tokens(expression, parser->operators_map);
     rox_list_reverse(tokens);
 
+    RoxContext *context = eval_context ? eval_context_get_context(eval_context) : NULL;
     RoxListIter *i = rox_list_iter_create();
     rox_list_iter_init(i, tokens);
     ParserNode *node;
@@ -1020,10 +1027,10 @@ ROX_INTERNAL EvaluationResult *parser_evaluate_expression(Parser *parser, const 
             assert(rox_dynamic_value_is_string(node->value));
             ParserOperator *op;
             if (rox_map_get(parser->operators_map, rox_dynamic_value_get_string(node->value), (void **) &op)) {
-                op->operation(op->target, parser, stack, context);
+                op->operation(op->target, parser, stack, eval_context);
             }
         } else {
-            result = _create_result_from_stack_item(NULL, context);
+            result = create_result_from_stack_item(NULL, context);
         }
     }
 
@@ -1031,7 +1038,7 @@ ROX_INTERNAL EvaluationResult *parser_evaluate_expression(Parser *parser, const 
 
     if (!result) {
         item = rox_stack_pop(stack);
-        result = _create_result_from_stack_item(item, context);
+        result = create_result_from_stack_item(item, context);
     }
 
     rox_list_free_cb(tokens, (void (*)(void *)) &node_free); // here all the inner lists and maps should be freed

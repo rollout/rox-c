@@ -5,6 +5,7 @@
 #include <pcre2.h>
 #include <stdio.h>
 #include <stdarg.h>
+#include <string.h>
 #include <ctype.h>
 
 #include "util.h"

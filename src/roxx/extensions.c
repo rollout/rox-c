@@ -1,6 +1,5 @@
 #include <assert.h>
 #include <math.h>
-#include "core/entities.h"
 #include "extensions.h"
 #include "util.h"
 
@@ -10,7 +9,7 @@ typedef struct ExperimentExtensionsContext {
     ExperimentRepository *experiment_repository;
 } ExperimentExtensionsContext;
 
-ROX_INTERNAL void _parser_extensions_disposal_handler(void *target, Parser *parser) {
+static void parser_extensions_disposal_handler(void *target, Parser *parser) {
     assert(target);
     assert(parser);
     free(target);
@@ -29,7 +28,8 @@ ROX_INTERNAL double experiment_extensions_get_bucket(const char *seed) {
     return bucket;
 }
 
-ROX_INTERNAL void _parser_operator_merge_seed(void *target, Parser *parser, CoreStack *stack, RoxContext *context) {
+static void
+parser_operator_merge_seed(void *target, Parser *parser, CoreStack *stack, EvaluationContext *eval_context) {
     assert(parser);
     assert(stack);
     StackItem *item1 = rox_stack_pop(stack);
@@ -40,8 +40,8 @@ ROX_INTERNAL void _parser_operator_merge_seed(void *target, Parser *parser, Core
     rox_stack_push_string_ptr(stack, merged);
 }
 
-ROX_INTERNAL void
-_parser_operator_is_in_percentage(void *target, Parser *parser, CoreStack *stack, RoxContext *context) {
+static void
+parser_operator_is_in_percentage(void *target, Parser *parser, CoreStack *stack, EvaluationContext *eval_context) {
     assert(parser);
     assert(stack);
     StackItem *item1 = rox_stack_pop(stack);
@@ -53,8 +53,8 @@ _parser_operator_is_in_percentage(void *target, Parser *parser, CoreStack *stack
     rox_stack_push_boolean(stack, is_in_percentage);
 }
 
-ROX_INTERNAL void
-_parser_operator_is_in_percentage_range(void *target, Parser *parser, CoreStack *stack, RoxContext *context) {
+static void parser_operator_is_in_percentage_range(void *target, Parser *parser, CoreStack *stack,
+                                                   EvaluationContext *eval_context) {
     assert(parser);
     assert(stack);
     StackItem *item1 = rox_stack_pop(stack);
@@ -68,7 +68,11 @@ _parser_operator_is_in_percentage_range(void *target, Parser *parser, CoreStack 
     rox_stack_push_boolean(stack, is_in_percentage);
 }
 
-ROX_INTERNAL void _parser_operator_flag_value(void *target, Parser *parser, CoreStack *stack, RoxContext *context) {
+static void parser_operator_flag_value(
+        void *target,
+        Parser *parser,
+        CoreStack *stack,
+        EvaluationContext *eval_context) {
     assert(parser);
     assert(stack);
     ExperimentExtensionsContext *extensions = (ExperimentExtensionsContext *) target;
@@ -78,14 +82,14 @@ ROX_INTERNAL void _parser_operator_flag_value(void *target, Parser *parser, Core
     char *result = NULL;
     RoxStringBase *variant = flag_repository_get_flag(extensions->flags_repository, feature_flag_identifier);
     if (variant) {
-        result = variant_get_string_or_default(variant, context);
+        result = variant_get_string(variant, NULL, eval_context);
         value_set = true;
     } else {
         ExperimentModel *flags_experiment = experiment_repository_get_experiment_by_flag(
                 extensions->experiment_repository, feature_flag_identifier);
         if (flags_experiment && !str_is_empty(flags_experiment->condition)) {
             EvaluationResult *evaluation_result = parser_evaluate_expression(
-                    parser, flags_experiment->condition, context);
+                    parser, flags_experiment->condition, eval_context);
             char *result_str = result_get_string(evaluation_result);
             if (!str_is_empty(result_str)) {
                 result = mem_copy_str(result_str);
@@ -100,8 +104,8 @@ ROX_INTERNAL void _parser_operator_flag_value(void *target, Parser *parser, Core
     rox_stack_push_string_ptr(stack, result);
 }
 
-ROX_INTERNAL void
-_parser_operator_is_in_target_group(void *target, Parser *parser, CoreStack *stack, RoxContext *context) {
+static void
+parser_operator_is_in_target_group(void *target, Parser *parser, CoreStack *stack, EvaluationContext *eval_context) {
     assert(parser);
     assert(stack);
     ExperimentExtensionsContext *extensions = (ExperimentExtensionsContext *) target;
@@ -113,7 +117,7 @@ _parser_operator_is_in_target_group(void *target, Parser *parser, CoreStack *sta
         rox_stack_push_boolean(stack, false);
         return;
     }
-    EvaluationResult *result = parser_evaluate_expression(parser, target_group->condition, context);
+    EvaluationResult *result = parser_evaluate_expression(parser, target_group->condition, eval_context);
     bool *bool_result = result_get_boolean(result);
     rox_stack_push_boolean(stack, bool_result ? *bool_result : false);
     result_free(result);
@@ -136,12 +140,12 @@ ROX_INTERNAL void parser_add_experiments_extensions(
     context->experiment_repository = experiment_repository;
 
     // dispose this context when parser is destroyed
-    parser_add_disposal_handler(parser, context, &_parser_extensions_disposal_handler);
-    parser_add_operator(parser, "mergeSeed", context, &_parser_operator_merge_seed);
-    parser_add_operator(parser, "isInPercentage", context, &_parser_operator_is_in_percentage);
-    parser_add_operator(parser, "isInPercentageRange", context, &_parser_operator_is_in_percentage_range);
-    parser_add_operator(parser, "flagValue", context, &_parser_operator_flag_value);
-    parser_add_operator(parser, "isInTargetGroup", context, &_parser_operator_is_in_target_group);
+    parser_add_disposal_handler(parser, context, &parser_extensions_disposal_handler);
+    parser_add_operator(parser, "mergeSeed", context, &parser_operator_merge_seed);
+    parser_add_operator(parser, "isInPercentage", context, &parser_operator_is_in_percentage);
+    parser_add_operator(parser, "isInPercentageRange", context, &parser_operator_is_in_percentage_range);
+    parser_add_operator(parser, "flagValue", context, &parser_operator_flag_value);
+    parser_add_operator(parser, "isInTargetGroup", context, &parser_operator_is_in_target_group);
 }
 
 typedef struct PropertiesExtensionsContext {
@@ -149,7 +153,7 @@ typedef struct PropertiesExtensionsContext {
     DynamicProperties *dynamic_properties;
 } PropertiesExtensionsContext;
 
-ROX_INTERNAL void _parser_operator_property(void *target, Parser *parser, CoreStack *stack, RoxContext *context) {
+static void parser_operator_property(void *target, Parser *parser, CoreStack *stack, EvaluationContext *eval_context) {
     assert(parser);
     assert(stack);
 
@@ -157,6 +161,7 @@ ROX_INTERNAL void _parser_operator_property(void *target, Parser *parser, CoreSt
 
     StackItem *item = rox_stack_pop(stack);
     const char *prop_name = rox_stack_get_string(item);
+    RoxContext *context = eval_context ? eval_context_get_context(eval_context) : NULL;
     CustomProperty *property = custom_property_repository_get_custom_property(
             extensions->custom_property_repository, prop_name);
 
@@ -212,6 +217,6 @@ ROX_INTERNAL void parser_add_properties_extensions(
     context->dynamic_properties = dynamic_properties;
 
     // dispose this context when parser is destroyed
-    parser_add_disposal_handler(parser, context, &_parser_extensions_disposal_handler);
-    parser_add_operator(parser, "property", context, &_parser_operator_property);
+    parser_add_disposal_handler(parser, context, &parser_extensions_disposal_handler);
+    parser_add_operator(parser, "property", context, &parser_operator_property);
 }

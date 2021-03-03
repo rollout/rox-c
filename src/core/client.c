@@ -323,7 +323,10 @@ ROX_API bool rox_dynamic_api_is_enabled_ctx(
         variant = entities_provider_create_flag(api->entities_provider, default_value);
         flag_repository_add_flag(api->flag_repository, variant, name);
     }
-    return flag_is_enabled_or(variant, context, default_value);
+    EvaluationContext *eval_context = eval_context_create(variant, context);
+    bool result = variant_get_bool(variant, default_value ? FLAG_TRUE_VALUE : FLAG_FALSE_VALUE, eval_context);
+    eval_context_free(eval_context);
+    return result;
 }
 
 ROX_API char *rox_dynamic_api_get_string(
@@ -348,7 +351,10 @@ ROX_API char *rox_dynamic_api_get_string_ctx(
         variant = entities_provider_create_string(api->entities_provider, default_value, options);
         flag_repository_add_flag(api->flag_repository, variant, name);
     }
-    return variant_get_string(variant, context, default_value);
+    EvaluationContext *eval_context = eval_context_create(variant, context);
+    char *result = variant_get_string(variant, default_value, eval_context);
+    eval_context_free(eval_context);
+    return result;
 }
 
 ROX_API int rox_dynamic_api_get_int(
@@ -373,7 +379,12 @@ ROX_API int rox_dynamic_api_get_int_ctx(
         variant = entities_provider_create_int(api->entities_provider, default_value, options);
         flag_repository_add_flag(api->flag_repository, variant, name);
     }
-    return variant_get_int_or(variant, context, default_value);
+    char *default_value_str = mem_int_to_str(default_value);
+    EvaluationContext *eval_context = eval_context_create(variant, context);
+    int result = variant_get_int(variant, default_value_str, eval_context);
+    eval_context_free(eval_context);
+    free(default_value_str);
+    return result;
 }
 
 ROX_API double rox_dynamic_api_get_double(
@@ -398,7 +409,12 @@ ROX_API double rox_dynamic_api_get_double_ctx(
         variant = entities_provider_create_double(api->entities_provider, default_value, options);
         flag_repository_add_flag(api->flag_repository, variant, name);
     }
-    return variant_get_double_or(variant, context, default_value);
+    char *default_value_str = mem_double_to_str(default_value);
+    EvaluationContext *eval_context = eval_context_create(variant, context);
+    double result = variant_get_double(variant, default_value_str, eval_context);
+    eval_context_free(eval_context);
+    free(default_value_str);
+    return result;
 }
 
 ROX_API void rox_dynamic_api_free(RoxDynamicApi *api) {
@@ -435,7 +451,9 @@ ROX_INTERNAL bool internal_flags_is_enabled(InternalFlags *flags, const char *fl
     if (!internal_experiment) {
         return false;
     }
-    EvaluationResult *value = parser_evaluate_expression(flags->parser, internal_experiment->condition, NULL);
+    EvaluationContext *eval_context = eval_context_create(NULL, NULL);
+    EvaluationResult *value = parser_evaluate_expression(flags->parser, internal_experiment->condition, eval_context);
+    eval_context_free(eval_context);
     char *str_result = result_get_string(value);
     bool enabled = str_result && str_equals(FLAG_TRUE_VALUE, str_result);
     result_free(value);
@@ -450,7 +468,9 @@ ROX_INTERNAL int *internal_flags_get_int_value(InternalFlags *flags, const char 
     if (!internal_experiment) {
         return NULL;
     }
-    EvaluationResult *value = parser_evaluate_expression(flags->parser, internal_experiment->condition, NULL);
+    EvaluationContext *eval_context = eval_context_create(NULL, NULL);
+    EvaluationResult *value = parser_evaluate_expression(flags->parser, internal_experiment->condition, eval_context);
+    eval_context_free(eval_context);
     int *result = result_get_int(value);
     if (!result) {
         result_free(value);

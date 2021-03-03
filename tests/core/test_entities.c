@@ -1,7 +1,6 @@
 #include <check.h>
 #include <core/repositories.h>
 #include "roxtests.h"
-#include "core/entities.h"
 #include "util.h"
 
 //
@@ -27,12 +26,13 @@ static void test_impression_handler(
     if (ctx->last_impression_value) {
         free(ctx->last_impression_value);
     }
+    if (ctx->imp_context_value) {
+        rox_dynamic_value_free(ctx->imp_context_value);
+        ctx->imp_context_value = NULL;
+    }
     ctx->last_impression_value = mem_copy_str(value->value);
     if (ctx->imp_context_key) {
-        RoxDynamicValue *context_value = rox_context_get(context, ctx->imp_context_key);
-        if (context_value) {
-            ctx->imp_context_value = rox_dynamic_value_create_copy(context_value);
-        }
+        ctx->imp_context_value = rox_context_get(context, ctx->imp_context_key);
     }
 }
 
@@ -82,15 +82,21 @@ static void variant_test_context_free(VariantTestContext *ctx) {
 }
 
 static void check_variant_value_eq(RoxStringBase *variant, const char *expected_value) {
-    char *string = variant_get_string_or_default(variant, NULL);
+    const char *default_value = variant_get_default_value(variant);
+    EvaluationContext *eval_context = eval_context_create(variant, NULL);
+    char *string = variant_get_string(variant, default_value, eval_context);
     ck_assert_str_eq(string, expected_value);
     free(string);
+    eval_context_free(eval_context);
 }
 
 static void check_variant_value_ctx_eq(RoxStringBase *variant, RoxContext *context, const char *expected_value) {
-    char *string = variant_get_string_or_default(variant, context);
+    const char *default_value = variant_get_default_value(variant);
+    EvaluationContext *eval_context = eval_context_create(variant, context);
+    char *string = variant_get_string(variant, default_value, eval_context);;
     ck_assert_str_eq(string, expected_value);
     free(string);
+    eval_context_free(eval_context);
 }
 
 START_TEST (test_will_add_default_to_options_when_no_options) {
@@ -238,42 +244,20 @@ END_TEST
 
 START_TEST (test_flag_without_default_value) {
     RoxStringBase *flag = variant_create_flag();
-    ck_assert(!flag_is_enabled(flag, NULL));
+    EvaluationContext *eval_context = eval_context_create(flag, NULL);
+    ck_assert(!variant_get_bool(flag, NULL, eval_context));
     variant_free(flag);
+    eval_context_free(eval_context);
 }
 
 END_TEST
 
 START_TEST (test_flag_with_default_value) {
     RoxStringBase *flag = variant_create_flag_with_default(true);
-    ck_assert(flag_is_enabled(flag, NULL));
+    EvaluationContext *eval_context = eval_context_create(flag, NULL);
+    ck_assert(variant_get_bool(flag, NULL, eval_context));
     variant_free(flag);
-}
-
-END_TEST
-
-static bool test_flag_action_called = false;
-
-void test_flag_action() {
-    test_flag_action_called = true;
-}
-
-START_TEST (test_will_invoke_enabled_action) {
-    test_flag_action_called = false;
-    RoxStringBase *flag = variant_create_flag_with_default(true);
-    flag_enabled_do(flag, NULL, NULL, &test_flag_action);
-    ck_assert(test_flag_action_called);
-    variant_free(flag);
-}
-
-END_TEST
-
-START_TEST (test_will_invoke_disabled_action) {
-    test_flag_action_called = false;
-    RoxStringBase *flag = variant_create_flag();
-    flag_disabled_do(flag, NULL, NULL, &test_flag_action);
-    ck_assert(test_flag_action_called);
-    variant_free(flag);
+    eval_context_free(eval_context);
 }
 
 END_TEST
@@ -478,8 +462,6 @@ ROX_TEST_SUITE(
 // FlagTests
         ROX_TEST_CASE(test_flag_without_default_value),
         ROX_TEST_CASE(test_flag_with_default_value),
-        ROX_TEST_CASE(test_will_invoke_enabled_action),
-        ROX_TEST_CASE(test_will_invoke_disabled_action),
 // FlagSetterTests
         ROX_TEST_CASE(test_will_set_flag_data),
         ROX_TEST_CASE(test_will_not_set_for_other_flag),

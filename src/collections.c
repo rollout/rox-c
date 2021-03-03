@@ -1,6 +1,7 @@
 #include "collections.h"
 #include <stdarg.h>
 #include <assert.h>
+#include <math.h>
 #include <collectc/list.h>
 #include <collectc/hashset.h>
 #include <collectc/hashtable.h>
@@ -332,7 +333,7 @@ ROX_API RoxList *rox_list_create_double_va(void *skip, ...) {
 
     RoxList *list = rox_list_create();
     double num = va_arg(args, double);
-    while (num != DBL_MIN) {
+    while (fabs(num - DBL_MIN) > DBL_EPSILON) {
         rox_list_add(list, mem_double_to_str(num));
         num = va_arg(args, double);
     };
