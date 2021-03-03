@@ -666,6 +666,26 @@ static void parser_operator_or(void *target, Parser *parser, CoreStack *stack, E
     rox_stack_push_boolean(stack, b1 || b2);
 }
 
+static bool is_number_operand(StackItem *item, double *num) {
+    if (rox_stack_is_undefined(item)) {
+        return false;
+    }
+    if (rox_stack_is_numeric(item)) {
+        *num = rox_stack_get_number(item);
+        return true;
+    }
+    if (rox_stack_is_string(item)) {
+        char *string = rox_stack_get_string(item);
+        double *parsed = mem_str_to_double(string);
+        if (parsed) {
+            *num = *parsed;
+            free(parsed);
+            return true;
+        }
+    }
+    return false;
+}
+
 static void parser_operator_ne(void *target, Parser *parser, CoreStack *stack, EvaluationContext *eval_context) {
     assert(parser);
     assert(stack);
@@ -675,6 +695,20 @@ static void parser_operator_ne(void *target, Parser *parser, CoreStack *stack, E
     rox_stack_push_boolean(stack, !equal);
 }
 
+static void parser_operator_numne(void *target, Parser *parser, CoreStack *stack, EvaluationContext *eval_context) {
+    assert(parser);
+    assert(stack);
+    StackItem *item1 = rox_stack_pop(stack);
+    StackItem *item2 = rox_stack_pop(stack);
+    bool result = false;
+    double dec1, dec2;
+    if (is_number_operand(item1, &dec1) &&
+        is_number_operand(item2, &dec2)) {
+        result = fabs(dec1 - dec2) > DBL_EPSILON;
+    }
+    rox_stack_push_boolean(stack, result);
+}
+
 static void parser_operator_eq(void *target, Parser *parser, CoreStack *stack, EvaluationContext *eval_context) {
     assert(parser);
     assert(stack);
@@ -682,6 +716,20 @@ static void parser_operator_eq(void *target, Parser *parser, CoreStack *stack, E
     StackItem *item2 = rox_stack_pop(stack);
     bool equal = parser_compare_stack_items(item1, item2) == 0;
     rox_stack_push_boolean(stack, equal);
+}
+
+static void parser_operator_numeq(void *target, Parser *parser, CoreStack *stack, EvaluationContext *eval_context) {
+    assert(parser);
+    assert(stack);
+    StackItem *item1 = rox_stack_pop(stack);
+    StackItem *item2 = rox_stack_pop(stack);
+    bool result = false;
+    double dec1, dec2;
+    if (is_number_operand(item1, &dec1) &&
+        is_number_operand(item2, &dec2)) {
+        result = fabs(dec1 - dec2) <= DBL_EPSILON;
+    }
+    rox_stack_push_boolean(stack, result);
 }
 
 static void parser_operator_not(void *target, Parser *parser, CoreStack *stack, EvaluationContext *eval_context) {
@@ -934,7 +982,9 @@ static void parser_set_basic_operators(Parser *parser) {
     parser_add_operator(parser, "and", NULL, &parser_operator_and);
     parser_add_operator(parser, "or", NULL, &parser_operator_or);
     parser_add_operator(parser, "ne", NULL, &parser_operator_ne);
+    parser_add_operator(parser, "numne", NULL, &parser_operator_numne);
     parser_add_operator(parser, "eq", NULL, &parser_operator_eq);
+    parser_add_operator(parser, "numeq", NULL, &parser_operator_numeq);
     parser_add_operator(parser, "not", NULL, &parser_operator_not);
     parser_add_operator(parser, "ifThen", NULL, &parser_operator_if_then);
     parser_add_operator(parser, "inArray", NULL, &parser_operator_in_array);

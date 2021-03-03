@@ -161,6 +161,40 @@ START_TEST (test_simple_expression_evaluation) {
 
 END_TEST
 
+START_TEST (test_numeq_expressions_evaluation) {
+    Parser *parser = parser_create();
+    eval_assert_boolean_result(parser, "numeq(\"la la\", \"la la\")", false);
+    eval_assert_boolean_result(parser, "numeq(\"la la\", \"la,la\")", false);
+    eval_assert_boolean_result(parser, "numeq(\"lala\", \"lala\")", false);
+
+    eval_assert_boolean_result(parser, "numeq(\"10\", \"10\")", true);
+    eval_assert_boolean_result(parser, "numeq(\"10\", 10)", true);
+    eval_assert_boolean_result(parser, "numeq(10, \"10\")", true);
+    eval_assert_boolean_result(parser, "numeq(10, 10)", true);
+
+    eval_assert_boolean_result(parser, "numeq(\"10\", \"11\")", false);
+    eval_assert_boolean_result(parser, "numeq(\"10\", 11)", false);
+    eval_assert_boolean_result(parser, "numeq(10, \"11\")", false);
+    eval_assert_boolean_result(parser, "numeq(10, 11)", false);
+
+    eval_assert_boolean_result(parser, "numne(\"la la\", \"la la\")", false);
+    eval_assert_boolean_result(parser, "numne(\"la la\", \"la,la\")", false);
+    eval_assert_boolean_result(parser, "numne(\"lala\", \"lala\")", false);
+
+    eval_assert_boolean_result(parser, "numne(\"10\", \"10\")", false);
+    eval_assert_boolean_result(parser, "numne(\"10\", 10)", false);
+    eval_assert_boolean_result(parser, "numne(10, \"10\")", false);
+    eval_assert_boolean_result(parser, "numne(10, 10)", false);
+
+    eval_assert_boolean_result(parser, "numne(\"10\", \"11\")", true);
+    eval_assert_boolean_result(parser, "numne(\"10\", 11)", true);
+    eval_assert_boolean_result(parser, "numne(10, \"11\")", true);
+    eval_assert_boolean_result(parser, "numne(10, 11)", true);
+    parser_free(parser);
+}
+
+END_TEST
+
 START_TEST (test_eq_expressions_evaluation) {
     Parser *parser = parser_create();
     eval_assert_boolean_result(parser, "eq(\"la la\", \"la la\")", true);
@@ -407,6 +441,7 @@ ROX_TEST_SUITE(
         ROX_TEST_CASE(test_simple_tokenization),
         ROX_TEST_CASE(test_token_type),
         ROX_TEST_CASE(test_simple_expression_evaluation),
+        ROX_TEST_CASE(test_numeq_expressions_evaluation),
         ROX_TEST_CASE(test_eq_expressions_evaluation),
         ROX_TEST_CASE(test_comparison_expressions_evaluation),
         ROX_TEST_CASE(test_semver_comparison_evaluation),
