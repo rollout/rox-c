@@ -123,13 +123,23 @@ START_TEST (test_str_to_double_nan) {
 END_TEST
 
 START_TEST (test_str_to_double_valid_number) {
-    char *strs[] = {"0", "1", "-1", "1.2", "-1.2", "123a", "-123a", "123.4a", "-123.4a"};
+    char *strs[] = {"0", "1", "-1", "1.2", "-1.2"};
     double nums[] = {0, 1, -1, 1.2, -1.2, 123, -123, 123.4, -123.4};
     for (int i = 0, n = sizeof(strs) / sizeof(char *); i < n; ++i) {
         double *p = mem_str_to_double(strs[i]);
         ck_assert_ptr_nonnull(p);
         ck_assert_double_eq(*p, nums[i]);
         free(p);
+    }
+}
+
+END_TEST
+
+START_TEST (test_str_to_double_invalid_number) {
+    char *strs[] = {"", "a", "1a", "a1", "123a", "-123a", "123.4a", "-123.4a", "-a234"};
+    for (int i = 0, n = sizeof(strs) / sizeof(char *); i < n; ++i) {
+        double *p = mem_str_to_double(strs[i]);
+        ck_assert_ptr_null(p);
     }
 }
 
@@ -348,6 +358,7 @@ ROX_TEST_SUITE(
 // mem_str_to_double
         ROX_TEST_CASE(test_str_to_double_nan),
         ROX_TEST_CASE(test_str_to_double_valid_number),
+        ROX_TEST_CASE(test_str_to_double_invalid_number),
 
 // str_matches
         ROX_TEST_CASE(test_matches_empty_strings),

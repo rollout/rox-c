@@ -83,8 +83,9 @@ ROX_INTERNAL int *mem_str_to_int(const char *str) {
 
 ROX_INTERNAL double *mem_str_to_double(const char *str) {
     assert(str);
-    double num = strtod(str, NULL);
-    if (num == 0 && str[0] != '0') {
+    char *end;
+    double num = strtod(str, &end);
+    if ((num == 0 && str[0] != '0') || *end != '\0') {
         return NULL;
     }
     return mem_copy_double(num);

@@ -200,6 +200,9 @@ START_TEST (test_eq_expressions_evaluation) {
     eval_assert_boolean_result(parser, "eq(\"la la\", \"la la\")", true);
     eval_assert_boolean_result(parser, "eq(\"la la\", \"la,la\")", false);
     eval_assert_boolean_result(parser, "eq(\"lala\", \"lala\")", true);
+    eval_assert_boolean_result(parser, "eq(\"10\", \"10\")", true);
+    eval_assert_boolean_result(parser, "eq(\"10\", 10)", false);
+    eval_assert_boolean_result(parser, "eq(10, 10)", true);
     eval_assert_boolean_result(parser, "ne(100.123, 100.321)", true);
     eval_assert_boolean_result(parser, "not(eq(undefined, undefined))", false);
     eval_assert_boolean_result(parser, "not(eq(not(undefined), undefined))", true);
@@ -218,12 +221,23 @@ START_TEST (test_comparison_expressions_evaluation) {
     eval_assert_boolean_result(parser, "lt(500, 100)", false);
     eval_assert_boolean_result(parser, "lt(500, 500)", false);
     eval_assert_boolean_result(parser, "lt(500, 500.54)", true);
+    eval_assert_boolean_result(parser, "lt(500, \"500.54\")", true);
+    eval_assert_boolean_result(parser, "lt(500, \"500.54a\")", false);
+
     eval_assert_boolean_result(parser, "lte(500, 500)", true);
+    eval_assert_boolean_result(parser, "lte(\"500\", 501)", true);
+    eval_assert_boolean_result(parser, "lte(\"501\", \"500\")", false);
+
     eval_assert_boolean_result(parser, "gt(500, 100)", true);
     eval_assert_boolean_result(parser, "gt(500, 500)", false);
+    eval_assert_boolean_result(parser, "gt(500, \"500\")", false);
     eval_assert_boolean_result(parser, "gt(500.54, 500)", true);
+    eval_assert_boolean_result(parser, "gt(\"500.54\", 500)", true);
+    eval_assert_boolean_result(parser, "gt(\"50a\", 500)", false);
+
     eval_assert_boolean_result(parser, "gte(500, 500)", true);
-    eval_assert_boolean_result(parser, "gte(\"500\", 500)", false);
+    eval_assert_boolean_result(parser, "gte(\"500\", 500)", true);
+    eval_assert_boolean_result(parser, "gte(\"505a\", 500)", false);
     parser_free(parser);
 }
 

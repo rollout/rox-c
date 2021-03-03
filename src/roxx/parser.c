@@ -814,14 +814,12 @@ parser_operator_cmp_dbl(Parser *parser, CoreStack *stack, EvaluationContext *eva
     assert(stack);
     StackItem *op1 = rox_stack_pop(stack);
     StackItem *op2 = rox_stack_pop(stack);
-    if (!rox_stack_is_numeric(op1) ||
-        !rox_stack_is_numeric(op2)) {
-        rox_stack_push_boolean(stack, false);
-        return;
+    bool result = false;
+    double dec1, dec2;
+    if (is_number_operand(op1, &dec1) &&
+        is_number_operand(op2, &dec2)) {
+        result = cmp(dec1, dec2);
     }
-    double d1 = rox_stack_get_number(op1);
-    double d2 = rox_stack_get_number(op2);
-    bool result = cmp(d1, d2);
     rox_stack_push_boolean(stack, result);
 }
 
