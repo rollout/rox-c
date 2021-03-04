@@ -53,6 +53,7 @@ ROX_API void rox_logging_init(RoxLoggingConfig *config);
 typedef struct RoxReportingValue {
     const char *name;
     const char *value;
+    bool targeting;
 } RoxReportingValue;
 
 // RoxExperiment

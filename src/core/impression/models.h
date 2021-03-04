@@ -39,7 +39,7 @@ ROX_INTERNAL void experiment_free(RoxExperiment *experiment);
  * @param value May be <code>NULL</code>.
  * @return Not <code>NULL</code>.
  */
-ROX_INTERNAL RoxReportingValue *reporting_value_create(const char *name, const char *value);
+ROX_INTERNAL RoxReportingValue *reporting_value_create(const char *name, const char *value, bool targeting);
 
 /**
  * @param value Not <code>NULL</code>.

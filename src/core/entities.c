@@ -380,7 +380,10 @@ ROX_INTERNAL RoxDynamicValue *variant_get_value(
     }
     if (variant->impression_invoker) {
         char *string_value = converter->to_string(ret_val);
-        RoxReportingValue *reporting_value = reporting_value_create(variant->name, string_value);
+        RoxReportingValue *reporting_value = reporting_value_create(
+                variant->name,
+                string_value,
+                variant->experiment != NULL);
         impression_invoker_invoke(
                 variant->impression_invoker,
                 reporting_value,

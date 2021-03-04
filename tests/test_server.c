@@ -9,6 +9,7 @@ typedef struct VariantTestContext {
     ImpressionInvoker *imp_invoker;
     bool test_impression_raised;
     char *last_impression_value;
+    bool last_impression_targeting;
     const char *imp_context_key;
     RoxDynamicValue *imp_context_value;
     bool test_flag_action_called;
@@ -28,6 +29,7 @@ static void test_impression_handler(
         ctx->imp_context_value = NULL;
     }
     ctx->last_impression_value = mem_copy_str(value->value);
+    ctx->last_impression_targeting = value->targeting;
     if (ctx->imp_context_key) {
         ctx->imp_context_value = rox_context_get(context, ctx->imp_context_key);
     }
@@ -78,6 +80,15 @@ static void check_impression(VariantTestContext *ctx, const char *value) {
     ctx->test_impression_raised = false;
     free(ctx->last_impression_value);
     ctx->last_impression_value = NULL;
+}
+
+static void check_impression_ex(VariantTestContext *ctx, const char *value, bool targeting) {
+    check_impression(ctx, value);
+    if (targeting) {
+        ck_assert(ctx->last_impression_targeting);
+    } else {
+        ck_assert(!ctx->last_impression_targeting);
+    }
 }
 
 static void variant_test_context_free(VariantTestContext *ctx) {
@@ -459,7 +470,7 @@ START_TEST (test_double_will_return_default_when_no_experiment_after_setup) {
     RoxStringBase *variant = rox_add_double("name", 1.1);
     variant_test_context_apply(ctx, variant);
     ck_assert_double_eq(1.1, rox_get_double(variant));
-    check_impression(ctx, "1.1");
+    check_impression_ex(ctx, "1.1", false);
     variant_test_context_free(ctx);
 }
 
@@ -470,7 +481,7 @@ START_TEST (test_double_will_return_default_when_experiment_returns_undefined) {
     RoxStringBase *variant = rox_add_double("name", 1.1);
     ExperimentModel *experiment = variant_test_context_set_experiment(ctx, variant, "undefined");
     ck_assert_double_eq(1.1, rox_get_double(variant));
-    check_impression(ctx, "1.1");
+    check_impression_ex(ctx, "1.1", true);
     experiment_model_free(experiment);
     variant_test_context_free(ctx);
 }
@@ -494,7 +505,7 @@ START_TEST (test_double_will_return_default_when_experiment_wrong_type) {
     RoxStringBase *variant = rox_add_double("name", 1.1);
     ExperimentModel *experiment = variant_test_context_set_experiment(ctx, variant, "2ss");
     ck_assert_double_eq(1.1, rox_get_double(variant));
-    check_impression(ctx, "1.1");
+    check_impression_ex(ctx, "1.1", true);
     experiment_model_free(experiment);
     variant_test_context_free(ctx);
 }
@@ -514,7 +525,7 @@ START_TEST (test_double_will_use_context) {
     ck_assert_double_eq(2.2, rox_get_double_ctx(variant, context));
     ck_assert(ctx->imp_context_value);
     ck_assert_int_eq(55, rox_dynamic_value_get_int(ctx->imp_context_value));
-    check_impression(ctx, "2.2");
+    check_impression_ex(ctx, "2.2", true);
 
     rox_context_free(context);
     experiment_model_free(experiment);

@@ -175,7 +175,7 @@ END_TEST
 START_TEST (test_will_test_impression_invoker_invoke_and_parameters) {
     ImpressionInvocationTestContext *ctx = impression_test_context_create();
     RoxContext *context = rox_context_create_from_map(ROX_MAP(ROX_COPY("obj1"), rox_dynamic_value_create_int(1)));
-    RoxReportingValue *reporting_value = reporting_value_create("name", "value");
+    RoxReportingValue *reporting_value = reporting_value_create("name", "value", false);
 
     ExperimentModel *experiment = experiment_model_create(
             "id", "name", "cond", true, NULL,
@@ -220,7 +220,7 @@ START_TEST (test_experiment_constructor) {
 END_TEST
 
 START_TEST (test_reporting_value_constructor) {
-    RoxReportingValue *reporting_value = reporting_value_create("pi", "ka");
+    RoxReportingValue *reporting_value = reporting_value_create("pi", "ka", false);
     ck_assert_str_eq("pi", reporting_value->name);
     ck_assert_str_eq("ka", reporting_value->value);
     reporting_value_free(reporting_value);
@@ -231,7 +231,7 @@ END_TEST
 START_TEST (test_will_not_invoke_analytics_when_flag_is_off) {
     ImpressionInvocationTestContext *ctx = impression_test_context_create();
     RoxContext *context = rox_context_create_from_map(ROX_MAP(ROX_COPY("obj1"), rox_dynamic_value_create_int(1)));
-    RoxReportingValue *reporting_value = reporting_value_create("name", "value");
+    RoxReportingValue *reporting_value = reporting_value_create("name", "value", false);
 
     ExperimentModel *experiment = experiment_model_create(
             "id", "name", "cond", true, NULL,
@@ -254,7 +254,7 @@ END_TEST
 START_TEST (test_will_not_invoke_analytics_when_is_roxy) {
     ImpressionInvocationTestContext *ctx = impression_test_context_create_roxy();
     RoxContext *context = rox_context_create_from_map(ROX_MAP(ROX_COPY("obj1"), rox_dynamic_value_create_int(1)));
-    RoxReportingValue *reporting_value = reporting_value_create("name", "value");
+    RoxReportingValue *reporting_value = reporting_value_create("name", "value", false);
 
     ExperimentModel *experiment = experiment_model_create(
             "id", "name", "true", false, ROX_LIST_COPY_STR("rox.internal.analytics"),
@@ -277,7 +277,7 @@ END_TEST
 START_TEST (test_will_invoke_analytics) {
     ImpressionInvocationTestContext *ctx = impression_test_context_create();
     RoxContext *context = rox_context_create_from_map(ROX_MAP(ROX_COPY("obj1"), rox_dynamic_value_create_int(1)));
-    RoxReportingValue *reporting_value = reporting_value_create("name", "value");
+    RoxReportingValue *reporting_value = reporting_value_create("name", "value", false);
 
     char *name = mem_str_format("rox.%s", ROX_PROPERTY_TYPE_DISTINCT_ID.name);
     custom_property_repository_add_custom_property(
@@ -322,7 +322,7 @@ END_TEST
 START_TEST (test_will_invoke_analytics_with_stickiness_prop) {
     ImpressionInvocationTestContext *ctx = impression_test_context_create();
     RoxContext *context = rox_context_create_from_map(ROX_MAP(ROX_COPY("obj1"), rox_dynamic_value_create_int(1)));
-    RoxReportingValue *reporting_value = reporting_value_create("name", "value");
+    RoxReportingValue *reporting_value = reporting_value_create("name", "value", false);
 
     char *name = mem_str_format("rox.%s", ROX_PROPERTY_TYPE_DISTINCT_ID.name);
     custom_property_repository_add_custom_property(
@@ -375,7 +375,7 @@ END_TEST
 START_TEST (test_will_invoke_analytics_with_default_prop_when_no_stickiness_prop) {
     ImpressionInvocationTestContext *ctx = impression_test_context_create();
     RoxContext *context = rox_context_create_from_map(ROX_MAP(ROX_COPY("obj1"), rox_dynamic_value_create_int(1)));
-    RoxReportingValue *reporting_value = reporting_value_create("name", "value");
+    RoxReportingValue *reporting_value = reporting_value_create("name", "value", false);
 
     char *name = mem_str_format("rox.%s", ROX_PROPERTY_TYPE_DISTINCT_ID.name);
     custom_property_repository_add_custom_property(
@@ -428,7 +428,7 @@ END_TEST
 START_TEST (test_will_invoke_analytics_with_bad_distinct_id) {
     ImpressionInvocationTestContext *ctx = impression_test_context_create();
     RoxContext *context = rox_context_create_from_map(ROX_MAP(ROX_COPY("obj1"), rox_dynamic_value_create_int(1)));
-    RoxReportingValue *reporting_value = reporting_value_create("name", "value");
+    RoxReportingValue *reporting_value = reporting_value_create("name", "value", false);
 
     ExperimentModel *experiment = experiment_model_create(
             "id", "name", "cond", false, NULL,
