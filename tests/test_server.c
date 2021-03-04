@@ -45,6 +45,10 @@ static VariantTestContext *variant_test_context_create() {
     ctx->parser = parser_create();
     ctx->imp_invoker = impression_invoker_create();
     impression_invoker_register(ctx->imp_invoker, ctx, &test_impression_handler);
+    RoxOptions *options = rox_options_create();
+    rox_options_set_roxy_url(options, "http://site.com");
+    RoxStateCode status = rox_setup("any", options);
+    ck_assert_int_eq(RoxInitialized, status);
     return ctx;
 }
 
@@ -68,10 +72,6 @@ static ExperimentModel *variant_test_context_set_experiment(
             ROX_LIST_COPY_STR("name"), ROX_EMPTY_SET, "stam");
     variant_test_context_apply_with_experiment(ctx, variant, experiment);
     return experiment;
-}
-
-static void check_no_impression(VariantTestContext *ctx) {
-    ck_assert(!ctx->test_impression_raised);
 }
 
 static void check_impression(VariantTestContext *ctx, const char *value) {
@@ -206,7 +206,7 @@ END_TEST
 START_TEST (test_string_will_add_default_to_options_when_no_options) {
     VariantTestContext *ctx = variant_test_context_create();
     RoxStringBase *variant = rox_add_string("name", "1");
-    RoxList *list = variant_get_options(variant);
+    RoxList * list = variant_get_options(variant);
     ck_assert_int_eq(rox_list_size(list), 1);
     ck_assert(str_in_list("1", list));
     variant_test_context_free(ctx);
@@ -313,7 +313,7 @@ END_TEST
 START_TEST (test_int_will_add_default_to_options_when_no_options) {
     VariantTestContext *ctx = variant_test_context_create();
     RoxStringBase *variant = rox_add_int("name", 1);
-    RoxList *list = variant_get_options(variant);
+    RoxList * list = variant_get_options(variant);
     ck_assert_int_eq(rox_list_size(list), 1);
     ck_assert(str_in_list("1", list));
     variant_test_context_free(ctx);
@@ -324,7 +324,7 @@ END_TEST
 START_TEST (test_int_will_not_add_default_to_options_if_exists) {
     VariantTestContext *ctx = variant_test_context_create();
     RoxStringBase *variant = rox_add_int_with_options("name", 1, ROX_INT_LIST(1, 2, 3));
-    RoxList *list = variant_get_options(variant);
+    RoxList * list = variant_get_options(variant);
     ck_assert_int_eq(rox_list_size(list), 3);
     ck_assert(str_in_list("1", list));
     variant_test_context_free(ctx);
@@ -335,7 +335,7 @@ END_TEST
 START_TEST (test_int_will_add_default_to_options_if_not_exists) {
     VariantTestContext *ctx = variant_test_context_create();
     RoxStringBase *variant = rox_add_int_with_options("name", 1, ROX_INT_LIST(2, 3));
-    RoxList *list = variant_get_options(variant);
+    RoxList * list = variant_get_options(variant);
     ck_assert_int_eq(rox_list_size(list), 3);
     ck_assert(str_in_list("1", list));
     variant_test_context_free(ctx);
@@ -426,7 +426,7 @@ END_TEST
 START_TEST (test_double_will_add_default_to_options_when_no_options) {
     VariantTestContext *ctx = variant_test_context_create();
     RoxStringBase *variant = rox_add_double("name", 1.1);
-    RoxList *list = variant_get_options(variant);
+    RoxList * list = variant_get_options(variant);
     ck_assert_int_eq(rox_list_size(list), 1);
     ck_assert(str_in_list("1.1", list));
     variant_test_context_free(ctx);
@@ -437,7 +437,7 @@ END_TEST
 START_TEST (test_double_will_not_add_default_to_options_if_exists) {
     VariantTestContext *ctx = variant_test_context_create();
     RoxStringBase *variant = rox_add_double_with_options("name", 1.1, ROX_DBL_LIST(1.1, 2., 3.));
-    RoxList *list = variant_get_options(variant);
+    RoxList * list = variant_get_options(variant);
     ck_assert_int_eq(rox_list_size(list), 3);
     ck_assert(str_in_list("1.1", list));
     variant_test_context_free(ctx);
@@ -448,7 +448,7 @@ END_TEST
 START_TEST (test_double_will_add_default_to_options_if_not_exists) {
     VariantTestContext *ctx = variant_test_context_create();
     RoxStringBase *variant = rox_add_double_with_options("name", 1.1, ROX_DBL_LIST(2., 3.));
-    RoxList *list = variant_get_options(variant);
+    RoxList * list = variant_get_options(variant);
     ck_assert_int_eq(rox_list_size(list), 3);
     ck_assert(str_in_list("1.1", list));
     variant_test_context_free(ctx);

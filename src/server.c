@@ -1,9 +1,9 @@
 ﻿#include <assert.h>
 #include <core/consts.h>
+#include <pthread.h>
 #include "core/logging.h"
 #include "core.h"
 #include "util.h"
-#include "rox/server.h"
 
 typedef struct Rox {
     RoxCore *core;
@@ -12,15 +12,17 @@ typedef struct Rox {
     DeviceProperties *device_properties;
     EntitiesProvider *entities_provider;
     RoxOptions *options;
-    bool initialized;
+    RoxStateCode state;
 } Rox;
 
 static Rox *rox_global = NULL;
+static pthread_mutex_t startup_shutdown_lock = PTHREAD_MUTEX_INITIALIZER;
 
 static Rox *rox_get_or_create() {
     if (!rox_global) {
         rox_global = calloc(1, sizeof(Rox));
         rox_global->core = rox_core_create(NULL);
+        rox_global->state = RoxUninitialized;
     }
     return rox_global;
 }
@@ -60,26 +62,61 @@ static void create_custom_property(
     free(property_name);
 }
 
-ROX_API void rox_setup(const char *api_key, RoxOptions *options) {
+static bool is_error_state(RoxStateCode state) {
+    return state < 0;
+}
+
+static void reset_state() {
+    rox_global->state = RoxShuttingDown;
+    rox_core_free(rox_global->core);
+    if (rox_global->global_context) {
+        rox_context_free(rox_global->global_context);
+    }
+    if (rox_global->sdk_settings) {
+        sdk_settings_free(rox_global->sdk_settings);
+    }
+    if (rox_global->device_properties) {
+        device_properties_free(rox_global->device_properties);
+    }
+    if (rox_global->options) {
+        rox_options_free(rox_global->options);
+    }
+    if (rox_global->entities_provider) {
+        entities_provider_free(rox_global->entities_provider);
+    }
+    free(rox_global);
+    rox_global = NULL;
+}
+
+ROX_API RoxStateCode rox_setup(const char *api_key, RoxOptions *options) {
     assert(api_key);
 
-    if (rox_global && rox_global->initialized) {
-        ROX_ERROR("Calling rox_setup more than once");
-        return;
-    }
+    pthread_mutex_lock(&startup_shutdown_lock);
 
-    Rox *rox = rox_get_or_create();
+    if (rox_global) {
+        if ((rox_global->state != RoxUninitialized) && !is_error_state(rox_global->state)) {
+            ROX_ERROR("Calling rox_setup more than once");
+            pthread_mutex_unlock(&startup_shutdown_lock);
+            return rox_global->state;
+        }
+
+        if (is_error_state(rox_global->state)) {
+            reset_state(); // reset state in case of an error
+        }
+    }
 
     if (!options) {
         options = rox_options_create();
     }
 
+    Rox *rox = rox_get_or_create();
+    rox->state = RoxSettingUp;
     rox->options = options;
     rox->sdk_settings = sdk_settings_create(api_key, rox_options_get_dev_mode_key(options));
     rox->device_properties = device_properties_create(rox->sdk_settings, options);
     rox->entities_provider = entities_provider_create();
 
-    RoxMap *props = device_properties_get_all_properties(rox->device_properties);
+    RoxMap * props = device_properties_get_all_properties(rox->device_properties);
     create_custom_property(props, NULL, NULL, NULL, &ROX_PROPERTY_TYPE_PLATFORM, &ROX_CUSTOM_PROPERTY_TYPE_STRING);
     create_custom_property(props, NULL, NULL, NULL, &ROX_PROPERTY_TYPE_APP_RELEASE, &ROX_CUSTOM_PROPERTY_TYPE_SEMVER);
     create_custom_property(props, NULL, NULL, NULL, &ROX_PROPERTY_TYPE_DISTINCT_ID, &ROX_CUSTOM_PROPERTY_TYPE_STRING);
@@ -96,19 +133,17 @@ ROX_API void rox_setup(const char *api_key, RoxOptions *options) {
     create_custom_property(props, NULL, NULL, "internal.", &ROX_PROPERTY_TYPE_DISTINCT_ID,
                            &ROX_CUSTOM_PROPERTY_TYPE_STRING);
 
-    if (!rox_core_setup(rox->core, rox->sdk_settings, rox->device_properties, options)) {
-        ROX_ERROR("Failed in rox_setup");
-    } else {
-        rox->initialized = true;
+    rox->state = rox_core_setup(rox->core, rox->sdk_settings, rox->device_properties, options);
+    if (is_error_state(rox->state)) {
+        ROX_ERROR("Failed in rox_setup; error code is %d", rox->state);
     }
 
-    atexit(&rox_shutdown);
+    pthread_mutex_unlock(&startup_shutdown_lock);
+    return rox->state;
 }
 
 static bool check_setup_called() {
-    assert(rox_global);
-    assert(rox_global->initialized);
-    if (!rox_global || !rox_global->initialized) {
+    if (!rox_global || rox_global->state != RoxInitialized) {
         ROX_ERROR("rox_setup is not called");
         return false;
     }
@@ -362,28 +397,26 @@ ROX_API void rox_set_custom_computed_semver_property(
     add_custom_prop(name, &ROX_CUSTOM_PROPERTY_TYPE_SEMVER, target, generator);
 }
 
-ROX_API void rox_shutdown() {
+static bool is_valid_state_for_shutdown() {
     if (!rox_global) {
+        ROX_WARN("Cannot shut down; rox_setup wasn't called");
+        return false;
+    }
+    if ((rox_global->state == RoxInitialized) || is_error_state(rox_global->state)) {
+        return true;
+    }
+    ROX_WARN("Cannot shut down; current state is %d", rox_global->state);
+    return false;
+}
+
+ROX_API void rox_shutdown() {
+    pthread_mutex_lock(&startup_shutdown_lock);
+    if (!is_valid_state_for_shutdown()) {
+        pthread_mutex_unlock(&startup_shutdown_lock);
         return;
     }
-    rox_core_free(rox_global->core);
-    if (rox_global->global_context) {
-        rox_context_free(rox_global->global_context);
-    }
-    if (rox_global->sdk_settings) {
-        sdk_settings_free(rox_global->sdk_settings);
-    }
-    if (rox_global->device_properties) {
-        device_properties_free(rox_global->device_properties);
-    }
-    if (rox_global->options) {
-        rox_options_free(rox_global->options);
-    }
-    if (rox_global->entities_provider) {
-        entities_provider_free(rox_global->entities_provider);
-    }
-    free(rox_global);
-    rox_global = NULL;
+    reset_state();
+    pthread_mutex_unlock(&startup_shutdown_lock);
 }
 
 ROX_API RoxDynamicApi *rox_dynamic_api() {

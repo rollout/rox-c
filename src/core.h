@@ -1,6 +1,6 @@
 #pragma once
 
-#include "rox/server.h"
+#include "rox/errors.h"
 #include "core/client.h"
 #include "core/network.h"
 
@@ -17,9 +17,8 @@ ROX_INTERNAL RoxCore *rox_core_create(RequestConfig *request_config);
  * @param sdk_settings Not <code>NULL</code>.
  * @param device_properties Not <code>NULL</code>.
  * @param rox_options May be <code>NULL</code>.
- * @return May be <code>NULL</code> in case of an invalid input. In this case, see error logs for details.
  */
-ROX_INTERNAL bool rox_core_setup(
+ROX_INTERNAL RoxStateCode rox_core_setup(
         RoxCore *core,
         SdkSettings *sdk_settings,
         DeviceProperties *device_properties,
