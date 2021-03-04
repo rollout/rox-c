@@ -96,11 +96,10 @@ namespace Rox {
     static void RoxImpressionHandlerAdapter(
             void *target,
             RoxReportingValue *value,
-            RoxExperiment *experiment,
             RoxContext *context) {
         assert(target);
         auto *handler = (ImpressionHandlerInterface *) target;
-        handler->HandleImpression(value, experiment, context);
+        handler->HandleImpression(value, context);
     }
 
     static void RoxConfigurationFetchedHandlerAdapter(void *target, RoxConfigurationFetchedArgs *args) {

@@ -70,7 +70,6 @@ public:
     char *lastImpressionValueName;
     char *lastImpressionValue;
 
-    Rox::Experiment *lastImpressionExperiment;
     Rox::DynamicValue *lastImpressionContextValue;
 
     std::vector<Rox::CustomPropertyGeneratorInterface *> generators;
@@ -95,7 +94,7 @@ class TestImpressionHandler : public Rox::ImpressionHandlerInterface {
 public:
     explicit TestImpressionHandler(ServerTestContext *ctx) : _ctx(ctx) {}
 
-    void HandleImpression(Rox::ReportingValue *value, Rox::Experiment *experiment, Rox::Context *context) override {
+    void HandleImpression(Rox::ReportingValue *value, Rox::Context *context) override {
         if (!value) {
             return;
         }
@@ -112,17 +111,12 @@ public:
             free(_ctx->lastImpressionValueName);
         }
 
-        if (_ctx->lastImpressionExperiment) {
-            experiment_free(_ctx->lastImpressionExperiment);
-        }
-
         if (_ctx->lastImpressionContextValue) {
             rox_dynamic_value_free(_ctx->lastImpressionContextValue);
         }
 
         _ctx->lastImpressionValueName = mem_copy_str(value->name);
         _ctx->lastImpressionValue = mem_copy_str(value->value);
-        _ctx->lastImpressionExperiment = experiment ? experiment_copy(experiment) : nullptr;
         if (context) {
             _ctx->lastImpressionContextValue = rox_context_get(context, "var");
         } else {
@@ -258,7 +252,6 @@ ServerTestContext::ServerTestContext() {
     this->configurationFetchedCount = 0;
     this->lastImpressionValueName = nullptr;
     this->lastImpressionValue = nullptr;
-    this->lastImpressionExperiment = nullptr;
     this->lastImpressionContextValue = nullptr;
     this->generators = std::vector<Rox::CustomPropertyGeneratorInterface *>();
 
@@ -311,9 +304,6 @@ ServerTestContext::~ServerTestContext() {
     }
     if (this->lastImpressionValueName) {
         free(this->lastImpressionValueName);
-    }
-    if (this->lastImpressionExperiment) {
-        experiment_free(this->lastImpressionExperiment);
     }
     if (this->lastImpressionContextValue) {
         rox_dynamic_value_free(this->lastImpressionContextValue);
@@ -403,7 +393,7 @@ TEST_CASE ("testing_variant_with_global_context", "[server]") {
 
     Rox::SetContext(nullptr);
     REQUIRE(_CompareAndFree(ctx->variantWithContext->GetValue(), "red"));
-    
+
     delete ctx;
 }
 
@@ -444,10 +434,6 @@ TEST_CASE ("testing_impression_handler", "[server]") {
     REQUIRE(str_equals("true", ctx->lastImpressionValue));
     REQUIRE(flagImpressionValue);
     REQUIRE(str_equals("flagForImpressionWithExperimentAndContext", ctx->lastImpressionValueName));
-
-    REQUIRE(ctx->lastImpressionExperiment != nullptr);
-    REQUIRE(str_equals("5e6f8b274365819b98feaf06", ctx->lastImpressionExperiment->identifier));
-    REQUIRE(str_equals("flag for impression with experiment and context", ctx->lastImpressionExperiment->name));
 
     REQUIRE(ctx->lastImpressionContextValue);
     REQUIRE(rox_dynamic_value_is_string(ctx->lastImpressionContextValue));

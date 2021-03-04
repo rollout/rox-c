@@ -332,9 +332,9 @@ ROX_INTERNAL bool rox_core_setup(
                 core->custom_property_repository,
                 core->analytics_client);
 
-        impression_invoker_register(core->impression_invoker,
-                                    core->x_impression_invoker,
-                                    &x_impression_handler);
+        impression_invoker_set_delegate(core->impression_invoker,
+                                        core->x_impression_invoker,
+                                        &x_impression_handler_delegate);
     }
 
     if (rox_options) {

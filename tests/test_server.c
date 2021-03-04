@@ -17,7 +17,6 @@ typedef struct VariantTestContext {
 static void test_impression_handler(
         void *target,
         RoxReportingValue *value,
-        RoxExperiment *experiment,
         RoxContext *context) {
     VariantTestContext *ctx = (VariantTestContext *) target;
     ctx->test_impression_raised = true;
@@ -568,7 +567,6 @@ typedef struct ServerTestContext {
 
     char *lastImpressionValueName;
     char *lastImpressionValue;
-    RoxExperiment *lastImpressionExperiment;
     RoxDynamicValue *lastImpressionContextValue;
 
 } ServerTestContext;
@@ -585,7 +583,6 @@ static void test_configuration_fetched_handler(void *target, RoxConfigurationFet
 static void test_rox_impression_handler(
         void *target,
         RoxReportingValue *value,
-        RoxExperiment *experiment,
         RoxContext *context) {
 
     assert(target);
@@ -607,17 +604,12 @@ static void test_rox_impression_handler(
         free(ctx->lastImpressionValueName);
     }
 
-    if (ctx->lastImpressionExperiment) {
-        experiment_free(ctx->lastImpressionExperiment);
-    }
-
     if (ctx->lastImpressionContextValue) {
         rox_dynamic_value_free(ctx->lastImpressionContextValue);
     }
 
     ctx->lastImpressionValueName = mem_copy_str(value->name);
     ctx->lastImpressionValue = mem_copy_str(value->value);
-    ctx->lastImpressionExperiment = experiment ? experiment_copy(experiment) : NULL;
     if (context) {
         ctx->lastImpressionContextValue = rox_context_get(context, "var");
     } else {
@@ -752,9 +744,6 @@ static void server_test_context_free(ServerTestContext *ctx) {
     if (ctx->lastImpressionValueName) {
         free(ctx->lastImpressionValueName);
     }
-    if (ctx->lastImpressionExperiment) {
-        experiment_free(ctx->lastImpressionExperiment);
-    }
     if (ctx->lastImpressionContextValue) {
         rox_dynamic_value_free(ctx->lastImpressionContextValue);
     }
@@ -883,10 +872,6 @@ START_TEST (testing_impression_handler) {
     ck_assert_str_eq("true", ctx->lastImpressionValue);
     ck_assert(flag_impression_value);
     ck_assert_str_eq("flagForImpressionWithExperimentAndContext", ctx->lastImpressionValueName);
-
-    ck_assert_ptr_nonnull(ctx->lastImpressionExperiment);
-    ck_assert_str_eq("5e57a3d31d6e807bf3c307ee", ctx->lastImpressionExperiment->identifier);
-    ck_assert_str_eq("flag for impression with experiment and context", ctx->lastImpressionExperiment->name);
 
     ck_assert_ptr_nonnull(ctx->lastImpressionContextValue);
     ck_assert(rox_dynamic_value_is_string(ctx->lastImpressionContextValue));

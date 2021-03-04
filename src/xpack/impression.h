@@ -32,7 +32,7 @@ ROX_INTERNAL void x_impression_invoker_free(XImpressionInvoker *invoker);
 /**
  * @param target Not <code>NULL</code>. Pointer to <code>XImpressionInvoker*</code>.
  */
-ROX_INTERNAL void x_impression_handler(
+ROX_INTERNAL void x_impression_handler_delegate(
         void *target,
         RoxReportingValue *value,
         RoxExperiment *experiment,

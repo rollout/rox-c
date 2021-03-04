@@ -137,7 +137,6 @@ ROX_API RoxDynamicValue *rox_context_get(RoxContext *context, const char *key);
 typedef void (*rox_impression_handler)(
         void *target,
         RoxReportingValue *value,
-        RoxExperiment *experiment,
         RoxContext *context);
 
 //

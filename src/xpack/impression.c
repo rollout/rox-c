@@ -26,7 +26,7 @@ ROX_INTERNAL XImpressionInvoker *x_impression_invoker_create(
 
 #define X_IMPRESSION_HANDLER_ROX_PROPERTY_BUFFER_LENGTH 1024
 
-ROX_INTERNAL void x_impression_handler(
+ROX_INTERNAL void x_impression_handler_delegate(
         void *target,
         RoxReportingValue *value,
         RoxExperiment *experiment,

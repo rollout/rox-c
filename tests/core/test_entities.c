@@ -19,7 +19,6 @@ typedef struct VariantTestContext {
 static void test_impression_handler(
         void *target,
         RoxReportingValue *value,
-        RoxExperiment *experiment,
         RoxContext *context) {
     VariantTestContext *ctx = (VariantTestContext *) target;
     ctx->test_impression_raised = true;

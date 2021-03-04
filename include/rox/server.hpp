@@ -14,8 +14,6 @@ namespace Rox {
 
     typedef struct RoxReportingValue ReportingValue;
 
-    typedef struct RoxExperiment Experiment;
-
     typedef struct RoxConfigurationFetchedArgs ConfigurationFetchedArgs;
 
     typedef struct RoxLogMessage LogMessage;
@@ -98,9 +96,7 @@ namespace Rox {
 
     class ROX_API ImpressionHandlerInterface {
     public:
-        virtual void HandleImpression(ReportingValue *value,
-                                      Experiment *experiment,
-                                      Context *context) = 0;
+        virtual void HandleImpression(ReportingValue *value, Context *context) = 0;
 
         virtual ~ImpressionHandlerInterface() = default;
     };
