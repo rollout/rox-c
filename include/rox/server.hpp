@@ -5,7 +5,7 @@
 #include <string>
 
 extern "C" {
-#include "server.h"
+#include <rox/server.h>
 }
 
 namespace Rox {
@@ -49,7 +49,7 @@ namespace Rox {
 
         Logging &operator=(const Logging &copy) = default;
 
-        static Logging &_GetInstance() {
+        static Logging &GetInstance() {
             // The only instance
             // Guaranteed to be lazy initialized
             // Guaranteed that it will be destroyed correctly

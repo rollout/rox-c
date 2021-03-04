@@ -35,7 +35,7 @@ set(ROX_SRC
         collections.c
         core.c
         device.c
-        dynamic.c
+        values.c
         server.c
         server.cpp
         util.c)

@@ -19,7 +19,7 @@ namespace Rox {
 
     void Logging::SetLogLevel(LogLevel logLevel) {
         assert(logLevel >= RoxLogLevelDebug);
-        Logging &instance = _GetInstance();
+        Logging &instance = GetInstance();
         instance._config.min_level = logLevel;
         rox_logging_init(&instance._config);
     }
@@ -33,7 +33,7 @@ namespace Rox {
 
     void Logging::SetLogMessageHandler(LogMessageHandlerInterface *handler) {
         assert(handler);
-        Logging &instance = _GetInstance();
+        Logging &instance = GetInstance();
         instance._config.target = handler;
         instance._config.handler = &RoxLoggingHandlerAdapter;
         rox_logging_init(&instance._config);
@@ -194,7 +194,7 @@ namespace Rox {
     ROX_API String *
     String::Create(const char *name, const char *defaultValue, const std::vector<std::string> &options) {
         assert(name);
-        RoxList * list = ROX_EMPTY_LIST;
+        RoxList *list = ROX_EMPTY_LIST;
         for (auto &option : options) {
             rox_list_add(list, ROX_COPY(option.data()));
         }
@@ -225,7 +225,7 @@ namespace Rox {
 
     ROX_API Int *Int::Create(const char *name, int defaultValue, const std::vector<int> &options) {
         assert(name);
-        RoxList * list = ROX_EMPTY_LIST;
+        RoxList *list = ROX_EMPTY_LIST;
         for (auto it = options.begin(); it != options.end(); it++) {
             rox_list_add(list, mem_int_to_str(*it));
         }
@@ -251,7 +251,7 @@ namespace Rox {
 
     ROX_API Double *Double::Create(const char *name, double defaultValue, const std::vector<double> &options) {
         assert(name);
-        RoxList * list = ROX_EMPTY_LIST;
+        RoxList *list = ROX_EMPTY_LIST;
         for (auto it = options.begin(); it != options.end(); it++) {
             rox_list_add(list, mem_double_to_str(*it));
         }
@@ -419,7 +419,7 @@ namespace Rox {
                                         const std::vector<std::string> &options,
                                         Context *context) {
         assert(name);
-        RoxList * list = ROX_EMPTY_LIST;
+        RoxList *list = ROX_EMPTY_LIST;
         for (auto &option : options) {
             rox_list_add(list, ROX_COPY(option.data()));
         }
@@ -431,7 +431,7 @@ namespace Rox {
     }
 
     int DynamicApi::GetInt(const char *name, int default_value, const std::vector<int> &options, Context *context) {
-        RoxList * list = ROX_EMPTY_LIST;
+        RoxList *list = ROX_EMPTY_LIST;
         for (auto it = options.begin(); it != options.end(); it++) {
             rox_list_add(list, mem_int_to_str(*it));
         }
@@ -444,7 +444,7 @@ namespace Rox {
 
     double DynamicApi::GetDouble(const char *name, double default_value, const std::vector<double> &options,
                                  Context *context) {
-        RoxList * list = ROX_EMPTY_LIST;
+        RoxList *list = ROX_EMPTY_LIST;
         for (auto it = options.begin(); it != options.end(); it++) {
             rox_list_add(list, mem_double_to_str(*it));
         }

@@ -1,87 +1,115 @@
 #pragma once
 
-#include "rox/api.h"
-#include "rox/collections.h"
-#include <stdbool.h>
+#include <rox/macros.h>
 
-//
-// DynamicValue
-//
-
-typedef struct RoxDynamicValue RoxDynamicValue;
-
-ROX_API RoxDynamicValue *rox_dynamic_value_create_int(int value);
-
-ROX_API RoxDynamicValue *rox_dynamic_value_create_int_ptr(int *value);
-
-ROX_API RoxDynamicValue *rox_dynamic_value_create_double(double value);
-
-ROX_API RoxDynamicValue *rox_dynamic_value_create_double_ptr(double *value);
-
-ROX_API RoxDynamicValue *rox_dynamic_value_create_boolean(bool value);
+typedef struct RoxDynamicApi RoxDynamicApi;
 
 /**
- * Note: the given string will be copied internally.
- * The caller is responsible for freeing it after use.
+ * @param api Not <code>NULL</code>.
+ * @param name Not <code>NULL</code>.
  */
-ROX_API RoxDynamicValue *rox_dynamic_value_create_string_copy(const char *value);
+ROX_API bool rox_dynamic_api_is_enabled(
+        RoxDynamicApi *api,
+        const char *name,
+        bool default_value);
 
 /**
- * Note: the given string will be destroyed in <code>dynamic_value_free()</code>.
+ * @param api Not <code>NULL</code>.
+ * @param name Not <code>NULL</code>.
+ * @param context May be <code>NULL</code>.
  */
-ROX_API RoxDynamicValue *rox_dynamic_value_create_string_ptr(char *value);
+ROX_API bool rox_dynamic_api_is_enabled_ctx(
+        RoxDynamicApi *api,
+        const char *name,
+        bool default_value,
+        RoxContext *context);
 
 /**
- * Note: the ownership of the list is delegated to the dynamic value
- * so all the memory will be freed by <code>dynamic_value_free</code>.
+ * The returned value, if not <code>NULL</code>, must be freed after use by the caller.
  *
- * @param value List of <code>RoxDynamicValue*</code>
+ * @param api Not <code>NULL</code>.
+ * @param name Not <code>NULL</code>.
+ * @param default_value May be <code>NULL</code>.
+ * @param context May be <code>NULL</code>.
+ * @param options May be <code>NULL</code>.
  */
-ROX_API RoxDynamicValue *rox_dynamic_value_create_list(RoxList *value);
+ROX_API char *rox_dynamic_api_get_string(
+        RoxDynamicApi *api,
+        const char *name,
+        char *default_value);
 
 /**
- * Note: the ownership of the map is delegated to the dynamic value
- * so all the memory including both keys and values
- * will be freed by <code>dynamic_value_free</code>.
+ * The returned value, if not <code>NULL</code>, must be freed after use by the caller.
  *
- * @param value Keys are <code>char *</code>s and values are <code>RoxDynamicValue*</code>s.
+ * @param api Not <code>NULL</code>.
+ * @param name Not <code>NULL</code>.
+ * @param default_value May be <code>NULL</code>.
+ * @param context May be <code>NULL</code>.
+ * @param options May be <code>NULL</code>.
  */
-ROX_API RoxDynamicValue *rox_dynamic_value_create_map(RoxMap *value);
+ROX_API char *rox_dynamic_api_get_string_ctx(
+        RoxDynamicApi *api,
+        const char *name,
+        char *default_value,
+        RoxList *options,
+        RoxContext *context);
 
-ROX_API RoxDynamicValue *rox_dynamic_value_create_null();
+/**
+ * @param api Not <code>NULL</code>.
+ * @param name Not <code>NULL</code>.
+ * @param default_value Default flag value.
+ */
+ROX_API int rox_dynamic_api_get_int(
+        RoxDynamicApi *api,
+        const char *name,
+        int default_value);
 
-ROX_API RoxDynamicValue *rox_dynamic_value_create_undefined();
+/**
+ * @param api Not <code>NULL</code>.
+ * @param name Not <code>NULL</code>.
+ * @param default_value Default flag value.
+ * @param context May be <code>NULL</code>.
+ * @param options May be <code>NULL</code>.
+ */
+ROX_API int rox_dynamic_api_get_int_ctx(
+        RoxDynamicApi *api,
+        const char *name,
+        int default_value,
+        RoxList *options,
+        RoxContext *context);
 
-ROX_API RoxDynamicValue *rox_dynamic_value_create_copy(RoxDynamicValue *value);
+/**
+ * @param api Not <code>NULL</code>.
+ * @param name Not <code>NULL</code>.
+ * @param default_value Default flag value.
+ */
+ROX_API double rox_dynamic_api_get_double(
+        RoxDynamicApi *api,
+        const char *name,
+        double default_value);
 
-ROX_API bool rox_dynamic_value_is_int(RoxDynamicValue *value);
+/**
+ * @param api Not <code>NULL</code>.
+ * @param name Not <code>NULL</code>.
+ * @param default_value Default flag value.
+ * @param context May be <code>NULL</code>.
+ * @param options May be <code>NULL</code>.
+ */
+ROX_API double rox_dynamic_api_get_double_ctx(
+        RoxDynamicApi *api,
+        const char *name,
+        double default_value,
+        RoxList *options,
+        RoxContext *context);
 
-ROX_API bool rox_dynamic_value_is_double(RoxDynamicValue *value);
+/**
+ * @param api Not <code>NULL</code>.
+ */
+ROX_API void rox_dynamic_api_free(RoxDynamicApi *api);
 
-ROX_API bool rox_dynamic_value_is_boolean(RoxDynamicValue *value);
-
-ROX_API bool rox_dynamic_value_is_string(RoxDynamicValue *value);
-
-ROX_API bool rox_dynamic_value_is_list(RoxDynamicValue *value);
-
-ROX_API bool rox_dynamic_value_is_map(RoxDynamicValue *value);
-
-ROX_API bool rox_dynamic_value_is_undefined(RoxDynamicValue *value);
-
-ROX_API bool rox_dynamic_value_is_null(RoxDynamicValue *value);
-
-ROX_API int rox_dynamic_value_get_int(RoxDynamicValue *value);
-
-ROX_API double rox_dynamic_value_get_double(RoxDynamicValue *value);
-
-ROX_API bool rox_dynamic_value_get_boolean(RoxDynamicValue *value);
-
-ROX_API char *rox_dynamic_value_get_string(RoxDynamicValue *value);
-
-ROX_API RoxList *rox_dynamic_value_get_list(RoxDynamicValue *value);
-
-ROX_API RoxMap *rox_dynamic_value_get_map(RoxDynamicValue *value);
-
-ROX_API bool rox_dynamic_value_equals(RoxDynamicValue *v1, RoxDynamicValue *v2);
-
-ROX_API void rox_dynamic_value_free(RoxDynamicValue *value);
+/**
+ * Note the returned pointer must be freed after use by calling <code>rox_dynamic_api_free</code>.
+ *
+ * @return Not <code>NULL</code>.
+ */
+ROX_API RoxDynamicApi *rox_dynamic_api();

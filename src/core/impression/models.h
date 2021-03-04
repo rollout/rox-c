@@ -7,6 +7,14 @@
 // RoxExperiment
 //
 
+typedef struct RoxExperiment {
+    char *name;
+    char *identifier;
+    bool archived;
+    RoxSet *labels;
+    char *stickiness_property;
+} RoxExperiment;
+
 /**
  * The data is NOT copied internally, instead it copies the pointers.
  * This means that the caller is still responsible for freeing data after use
