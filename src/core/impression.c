@@ -1,9 +1,10 @@
 #include <assert.h>
+#include <stdlib.h>
 #include "impression.h"
 #include "collections.h"
 
 struct ImpressionInvoker {
-    void* delegate_target;
+    void *delegate_target;
     impression_invoker_delegate delegate;
     RoxList *handlers;
 };

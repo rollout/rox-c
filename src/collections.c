@@ -1,6 +1,7 @@
 #include "collections.h"
 #include <stdarg.h>
 #include <assert.h>
+#include <stdlib.h>
 #include <math.h>
 #include <collectc/list.h>
 #include <collectc/hashset.h>

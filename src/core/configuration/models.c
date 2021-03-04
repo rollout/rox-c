@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <stdlib.h>
 #include "models.h"
 #include "collections.h"
 

@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <stdlib.h>
 #include "configuration.h"
 #include "notifications.h"
 #include "core/consts.h"

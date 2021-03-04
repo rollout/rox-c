@@ -3,7 +3,7 @@
 #include <catch2/catch.hpp>
 #include <cassert>
 
-#include "rox/server.hpp"
+#include "roxx/server.h"
 
 extern "C" {
 #include "core/impression/models.h"

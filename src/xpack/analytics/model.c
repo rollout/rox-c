@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <stdlib.h>
 #include "model.h"
 
 ROX_INTERNAL AnalyticsEvent *analytics_event_create(const char *flag, const char *value, const char *distinct_id) {

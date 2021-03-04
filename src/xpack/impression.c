@@ -1,5 +1,6 @@
 #include <assert.h>
-#include <core/consts.h>
+#include <stdlib.h>
+#include "core/consts.h"
 #include "impression.h"
 #include "util.h"
 

@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <stdlib.h>
 #include "util.h"
 #include "repositories.h"
 #include "collections.h"

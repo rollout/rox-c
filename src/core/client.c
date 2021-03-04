@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <stdlib.h>
 #include "client.h"
 #include "consts.h"
 #include "util.h"

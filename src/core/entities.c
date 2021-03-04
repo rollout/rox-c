@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <stdlib.h>
 #include "core/configuration/models.h"
 #include "roxx/parser.h"
 #include "entities.h"

@@ -85,7 +85,7 @@ END_TEST
 
 START_TEST (test_str_to_int_valid_number) {
     char *strs[] = {"0", "1", "-1"};
-    double nums[] = {0, 1, -1};
+    int nums[] = {0, 1, -1};
     for (int i = 0, n = sizeof(strs) / sizeof(char *); i < n; ++i) {
         int *p = mem_str_to_int(strs[i]);
         ck_assert_ptr_nonnull(p);

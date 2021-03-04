@@ -36,9 +36,18 @@ set(ROX_SRC
         core.c
         device.c
         values.c
-        server.c
-        server.cpp
         util.c)
+
+set(ROX_SERVER_SRC ${ROX_SRC} server.c server.cpp)
+set(ROX_CLIENT_SRC ${ROX_SRC} client.c client.cpp)
+
+set(ROX_SERVER_HEADERS
+        ../include/rox/server.h
+        ../include/roxx/server.h)
+
+set(ROX_CLIENT_HEADERS
+        ../include/rox/client.h
+        ../include/roxx/client.hpp)
 
 if (APPLE)
     find_library(CoreFoundation CoreFoundation)
@@ -47,14 +56,14 @@ if (APPLE)
     list(APPEND ROX_EXTERNAL_LIBS ${IOKit})
 endif ()
 
-add_library(rollout_static STATIC ${ROX_SRC})
+add_library(rollout_static STATIC ${ROX_SERVER_SRC})
 target_link_libraries(rollout_static ${ROX_EXTERNAL_LIBS})
 
-add_library(rollout SHARED ${ROX_SRC})
+add_library(rollout SHARED ${ROX_SERVER_SRC})
 target_link_libraries(rollout ${ROX_EXTERNAL_LIBS})
 
 set_target_properties(rollout PROPERTIES
-        PUBLIC_HEADER "../include/rox/server.h;../include/rox/server.hpp"
+        PUBLIC_HEADER "${ROX_SERVER_HEADERS}"
         C_VISIBILITY_PRESET hidden
         COMPILE_DEFINITIONS "ROX_LIB_VERSION=\"${ROX_VERSION_STRING}\";ROX_DLL;ROX_DLL_EXPORTS"
         VERSION ${ROX_VERSION_STRING}

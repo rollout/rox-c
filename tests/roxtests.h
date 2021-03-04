@@ -1,5 +1,6 @@
 #pragma once
 
+#include <stdlib.h>
 #include <stdarg.h>
 #include <check.h>
 #include <core/properties.h>

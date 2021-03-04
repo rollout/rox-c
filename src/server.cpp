@@ -2,14 +2,14 @@
 #include <vector>
 #include <string>
 
-#include "rox/server.hpp"
-
 extern "C" {
 #include "core/client.h"
 #include "core/logging.h"
 #include "collections.h"
 #include "util.h"
 }
+
+#include <roxx/server.h>
 
 namespace Rox {
 
@@ -356,13 +356,13 @@ namespace Rox {
     // Setup/Shutdown
     //
 
-    ROX_API void Setup(const char *api_key, Options *options) {
+    ROX_API StateCode Setup(const char *api_key, Options *options) {
         assert(api_key);
         if (!options) {
             options = rox_options_create();
         }
         rox_options_set_cxx(options);
-        rox_setup(api_key, options);
+        return rox_setup(api_key, options);
     }
 
     ROX_API void Shutdown() {

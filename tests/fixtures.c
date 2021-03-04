@@ -1,6 +1,7 @@
 #include <assert.h>
 #include <check.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include "fixtures.h"
 #include "util.h"
 #include "collections.h"

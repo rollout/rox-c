@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <rox/macros.h>
 #include <rox/collections.h>
@@ -12,3 +12,5 @@
 #include <rox/dynamic.h>
 #include <rox/setup.h>
 #include <rox/flags.h>
+#include <rox/freeze.h>
+#include <rox/overrides.h>
