@@ -672,7 +672,11 @@ static RoxDynamicValue *test_computed_int_property(void *target, RoxContext *con
     return rox_dynamic_value_create_int(28);
 }
 
-static ServerTestContext *server_test_context_create() {
+typedef struct ServerTestContextConfig {
+    RoxContext *context;
+} ServerTestContextConfig;
+
+static ServerTestContext *server_test_context_create_cfg(ServerTestContextConfig *config) {
     ServerTestContext *ctx = calloc(1, sizeof(ServerTestContext));
     ctx->logging = logging_test_fixture_create(RoxLogLevelDebug);
 
@@ -680,6 +684,14 @@ static ServerTestContext *server_test_context_create() {
     rox_options_set_configuration_fetched_handler(options, ctx, &test_configuration_fetched_handler);
     rox_options_set_impression_handler(options, ctx, &test_rox_impression_handler);
     rox_options_set_dev_mode_key(options, "37d6265f591155bb00ffb4e2");
+
+    bool setup_called = false;
+    const char *app_key = "5e579ecfc45c395c43b42893";
+    if (config && config->context) {
+        rox_setup(app_key, options);
+        rox_set_context(config->context);
+        setup_called = true;
+    }
 
     ctx->simpleFlag = rox_add_flag("simpleFlag", true);
     ctx->simpleFlagOverwritten = rox_add_flag("simpleFlagOverwritten", true);
@@ -740,9 +752,15 @@ static ServerTestContext *server_test_context_create() {
             &ctx->isPropForTargetGroupForDependency,
             &test_computed_boolean_property_using_value);
 
-    rox_setup("5e579ecfc45c395c43b42893", options);
+    if (!setup_called) {
+        rox_setup(app_key, options);
+    }
 
     return ctx;
+}
+
+static ServerTestContext *server_test_context_create() {
+    return server_test_context_create_cfg(NULL);
 }
 
 static void server_test_context_free(ServerTestContext *ctx) {
@@ -838,6 +856,19 @@ START_TEST (testing_variant_with_global_context) {
             ROX_MAP(ROX_COPY("isDuckAndCover"), rox_dynamic_value_create_boolean(true)));
     rox_check_and_free(rox_get_string(ctx->variantWithContext), "red");
     rox_set_context(some_positive_context);
+    rox_check_and_free(rox_get_string(ctx->variantWithContext), "blue");
+    rox_set_context(NULL);
+    rox_check_and_free(rox_get_string(ctx->variantWithContext), "red");
+    server_test_context_free(ctx);
+}
+
+END_TEST
+
+START_TEST (testing_variant_with_global_context_set_before) {
+    RoxContext *some_positive_context = rox_context_create_from_map(
+            ROX_MAP(ROX_COPY("isDuckAndCover"), rox_dynamic_value_create_boolean(true)));
+    ServerTestContextConfig config = {some_positive_context};
+    ServerTestContext *ctx = server_test_context_create_cfg(&config);
     rox_check_and_free(rox_get_string(ctx->variantWithContext), "blue");
     rox_set_context(NULL);
     rox_check_and_free(rox_get_string(ctx->variantWithContext), "red");
@@ -988,6 +1019,7 @@ ROX_TEST_SUITE(
         ROX_TEST_CASE(testing_fetch_within_timeout),
         ROX_TEST_CASE(testing_variant_with_context),
         ROX_TEST_CASE(testing_variant_with_global_context),
+        ROX_TEST_CASE(testing_variant_with_global_context_set_before),
         ROX_TEST_CASE(testing_target_groups_all_any_none),
         ROX_TEST_CASE(testing_impression_handler),
         ROX_TEST_CASE(testing_flag_dependency),

@@ -116,6 +116,7 @@ struct RoxCore {
     ConfigurationFetchResult *last_configuration;
     pthread_mutex_t fetch_lock;
     bool stopped;
+    RoxContext *global_context;
 };
 
 ROX_INTERNAL RoxCore *rox_core_create(RequestConfig *request_config) {
@@ -387,6 +388,7 @@ ROX_INTERNAL bool rox_core_setup(
 
 ROX_INTERNAL void rox_core_set_context(RoxCore *core, RoxContext *context) {
     assert(core);
+    core->global_context = context;
     RoxMap *flags = flag_repository_get_all_flags(core->flag_repository);
     ROX_MAP_FOREACH(key, value, flags, {
         RoxStringBase *flag = (RoxStringBase *) value;
@@ -403,6 +405,9 @@ ROX_INTERNAL void rox_core_add_flag(RoxCore *core, RoxStringBase *flag, const ch
         return;
     }
     flag_repository_add_flag(core->flag_repository, flag, name);
+    if (core->global_context) {
+        variant_set_context(flag, core->global_context);
+    }
 }
 
 ROX_INTERNAL void rox_core_add_custom_property(RoxCore *core, CustomProperty *property) {
