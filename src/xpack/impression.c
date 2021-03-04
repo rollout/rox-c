@@ -60,8 +60,7 @@ ROX_INTERNAL void x_impression_handler_delegate(
         AnalyticsEvent *event = analytics_event_create(
                 value->name,
                 value->value,
-                distinct_id ? distinct_id : "(null_distinct_id",
-                experiment->identifier);
+                distinct_id ? distinct_id : "(null_distinct_id");
         if (distinct_id) {
             free(distinct_id);
         }

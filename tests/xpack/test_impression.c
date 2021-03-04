@@ -307,8 +307,6 @@ START_TEST (test_will_invoke_analytics) {
     AnalyticsEvent *event;
     rox_list_get_at(ctx->analytics_events, 0, (void **) &event);
     ck_assert_str_eq(event->distinct_id, "stam");
-    ck_assert_str_eq(event->experiment_id, "id");
-    ck_assert_str_eq(event->experiment_version, "0");
     ck_assert_str_eq(event->flag, "name");
     ck_assert_str_eq(event->value, "value");
     ck_assert_str_eq(event->type, "IMPRESSION");
@@ -362,8 +360,6 @@ START_TEST (test_will_invoke_analytics_with_stickiness_prop) {
     AnalyticsEvent *event;
     rox_list_get_at(ctx->analytics_events, 0, (void **) &event);
     ck_assert_str_eq(event->distinct_id, "stamStick");
-    ck_assert_str_eq(event->experiment_id, "id");
-    ck_assert_str_eq(event->experiment_version, "0");
     ck_assert_str_eq(event->flag, "name");
     ck_assert_str_eq(event->value, "value");
     ck_assert_str_eq(event->type, "IMPRESSION");
@@ -417,8 +413,6 @@ START_TEST (test_will_invoke_analytics_with_default_prop_when_no_stickiness_prop
     AnalyticsEvent *event;
     rox_list_get_at(ctx->analytics_events, 0, (void **) &event);
     ck_assert_str_eq(event->distinct_id, "stamDist");
-    ck_assert_str_eq(event->experiment_id, "id");
-    ck_assert_str_eq(event->experiment_version, "0");
     ck_assert_str_eq(event->flag, "name");
     ck_assert_str_eq(event->value, "value");
     ck_assert_str_eq(event->type, "IMPRESSION");
@@ -456,8 +450,6 @@ START_TEST (test_will_invoke_analytics_with_bad_distinct_id) {
     AnalyticsEvent *event;
     rox_list_get_at(ctx->analytics_events, 0, (void **) &event);
     ck_assert_str_eq(event->distinct_id, "(null_distinct_id");
-    ck_assert_str_eq(event->experiment_id, "id");
-    ck_assert_str_eq(event->experiment_version, "0");
     ck_assert_str_eq(event->flag, "name");
     ck_assert_str_eq(event->value, "value");
     ck_assert_str_eq(event->type, "IMPRESSION");
