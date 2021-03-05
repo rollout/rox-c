@@ -1,7 +1,7 @@
 #pragma once
 
 extern "C" {
-#include <rox/macros.h>
+#include <rox/defs.h>
 }
 
 #include <vector>

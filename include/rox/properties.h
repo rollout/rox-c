@@ -1,6 +1,6 @@
 #pragma once
 
-#include <rox/macros.h>
+#include <rox/defs.h>
 #include <rox/values.h>
 
 typedef RoxDynamicValue *(*rox_custom_property_value_generator)(void *target, RoxContext *context);

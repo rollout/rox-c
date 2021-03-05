@@ -1,6 +1,6 @@
 #pragma once
 
-#include <rox/macros.h>
+#include <rox/defs.h>
 #include <rox/values.h>
 #include <rox/impression.h>
 #include <rox/configuration.h>

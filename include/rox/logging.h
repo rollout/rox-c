@@ -1,6 +1,6 @@
 #pragma once
 
-#include <rox/macros.h>
+#include <rox/defs.h>
 
 typedef enum RoxLogLevel {
     RoxLogLevelTrace = 1,

@@ -3,7 +3,7 @@
 #include <limits.h>
 #include <float.h>
 
-#include "rox/macros.h"
+#include "rox/defs.h"
 
 typedef struct RoxMap RoxMap;
 

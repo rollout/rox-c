@@ -1,6 +1,6 @@
 #pragma once
 
-#include "rox/macros.h"
+#include "rox/defs.h"
 #include "rox/collections.h"
 #include <stdbool.h>
 

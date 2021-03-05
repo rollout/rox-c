@@ -1,6 +1,6 @@
 #pragma once
 
-#include <rox/macros.h>
+#include <rox/defs.h>
 #include <rox/context.h>
 #include <rox/options.h>
 #include <rox/errors.h>

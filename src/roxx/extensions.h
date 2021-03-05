@@ -1,6 +1,6 @@
 #pragma once
 
-#include "rox/macros.h"
+#include "rox/defs.h"
 #include "parser.h"
 #include "core/repositories.h"
 #include "core/properties.h"
