@@ -35,7 +35,15 @@ directory specified in the command. So it would look something
 like `/path/to/install/dir/rollout-sdk`.
 
 Please note that parameter `-d` is optional. If omitted, SDK will be installed 
-into `/usr/local/rollout-sdk` (which requires superuser privileges). 
+into `/usr/local/rollout-sdk` (which requires superuser privileges).
+
+By default, server SDK is built and installed which has no flag freeze
+and flag overrides features. To install client SDK version containing these features,
+add `-C` argument to the command:
+
+```
+./install.sh -C -d /path/to/install/dir
+```
 
 ## Windows 
 

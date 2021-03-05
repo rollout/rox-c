@@ -16,14 +16,18 @@ BUILD_TYPE=Release
 BUILD_SUBDIR=release
 SKIP_BUILDING_THIRD_PARTY_LIBS=0
 TEST_TIMEOUT_SECONDS=60
+SDK_VERSION=SERVER
 
-while getopts ":SscITd:lt:" opt; do
+while getopts ":SsCcITd:lt:" opt; do
   case ${opt} in
     S ) # skip building third party libs
       SKIP_BUILDING_THIRD_PARTY_LIBS=1
       ;;
     c ) # clean build directories
       DO_CLEAN=1
+      ;;
+    C ) # client SDK
+      SDK_VERSION=CLIENT
       ;;
     I ) # skip installation step
       SKIP_INSTALL=1
@@ -85,7 +89,8 @@ cmake ../../ \
   -DCMAKE_INSTALL_PREFIX="${INSTALL_PREFIX}" \
   -DROX_SKIP_TESTS=${SKIP_TESTS} \
   -DCMAKE_BUILD_TYPE=${BUILD_TYPE} \
-  -DROX_FIND_LEAKS=${FIND_LEAKS}
+  -DROX_FIND_LEAKS=${FIND_LEAKS} \
+  -DROX_${SDK_VERSION}=Yes
 
 make
 
