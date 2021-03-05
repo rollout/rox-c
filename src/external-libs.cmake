@@ -11,7 +11,7 @@ rox_external_lib(pcre2 SHARED
 
 rox_external_lib(collectc SHARED
         # looking for preinstalled components
-        TRY_FIND Collectc COLLECTC::COLLECTC
+        TRY_FIND Collectc Collectc::Collectc
         TRY_FIND_IN_INSTALL_DIR
         # otherwise build from sources
         URL https://github.com/srdja/Collections-C.git

@@ -11,7 +11,7 @@ If Rollout C SDK is installed into `/usr/local` then just run
 Otherwise specify the full path to the installation directory:
 
 ```
-ROLLOUT_SDK_ROOT=/path/to/install/dir/rollout-sdk ./build.sh
+ROX_SDK_ROOT=/path/to/install/dir/rollout-sdk ./build.sh
 ```
 
 After building the project run:
@@ -30,7 +30,7 @@ ROX SDK is installed in custom directory.
 In case when Rollout C SDK is installed in the custom directory run:
 
 ```
-set ROLLOUT_SDK_ROOT=\path\to\rollout-sdk
+set ROX_SDK_ROOT=\path\to\rollout-sdk
 ```
 
 then in all cases run:

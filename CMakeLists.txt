@@ -22,12 +22,15 @@ link_directories(${CMAKE_SOURCE_DIR}/vendor/build/src)
 add_subdirectory(include)
 add_subdirectory(src)
 
-if (NOT ROLLOUT_SKIP_TESTS)
+set(ROX_SERVER Yes)
+set(ROX_CLIENT Yes)
+
+if (NOT ROX_SKIP_TESTS)
     enable_testing()
     add_subdirectory(tests)
 endif ()
 
-if (ROLLOUT_FIND_LEAKS)
+if (ROX_FIND_LEAKS)
     include(CTest)
     find_program(MEMORYCHECK_COMMAND valgrind)
     set(MEMORYCHECK_COMMAND_OPTIONS "--trace-children=yes --leak-check=full")

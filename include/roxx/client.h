@@ -1,7 +1,7 @@
 #pragma once
 
 extern "C" {
-#include <rox/server.h>
+#include <rox/client.h>
 }
 
 #include <roxx/dynamic.h>
@@ -14,3 +14,5 @@ extern "C" {
 #include <roxx/flags.h>
 #include <roxx/properties.h>
 #include <roxx/setup.h>
+#include <roxx/freeze.h>
+#include <roxx/overrides.h>

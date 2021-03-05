@@ -2,6 +2,8 @@
 
 include(external-libs.cmake)
 
+set(ROX_HEADERS "")
+
 set(ROX_SRC
         core/configuration/models.c
         core/impression/models.c
@@ -38,16 +40,19 @@ set(ROX_SRC
         values.c
         util.c)
 
-set(ROX_SERVER_SRC ${ROX_SRC} server.c server.cpp)
-set(ROX_CLIENT_SRC ${ROX_SRC} client.c client.cpp)
+if (ROX_SERVER)
+    list(APPEND ROX_SRC server.c server.cpp)
+    list(APPEND ROX_HEADERS ../include/rox/server.h ../include/roxx/server.h)
+endif ()
 
-set(ROX_SERVER_HEADERS
-        ../include/rox/server.h
-        ../include/roxx/server.h)
+if (ROX_CLIENT)
+    list(APPEND ROX_SRC client.c client.cpp)
+    list(APPEND ROX_HEADERS ../include/rox/client.h ../include/roxx/client.h)
+endif ()
 
-set(ROX_CLIENT_HEADERS
-        ../include/rox/client.h
-        ../include/roxx/client.hpp)
+if (NOT ROX_SERVER AND NOT ROX_CLIENT)
+    message(FATAL_ERROR "Neither ROX_SERVER nor ROX_CLIENT is defined")
+endif ()
 
 if (APPLE)
     find_library(CoreFoundation CoreFoundation)
@@ -56,14 +61,14 @@ if (APPLE)
     list(APPEND ROX_EXTERNAL_LIBS ${IOKit})
 endif ()
 
-add_library(rollout_static STATIC ${ROX_SERVER_SRC})
+add_library(rollout_static STATIC ${ROX_SRC})
 target_link_libraries(rollout_static ${ROX_EXTERNAL_LIBS})
 
-add_library(rollout SHARED ${ROX_SERVER_SRC})
+add_library(rollout SHARED ${ROX_SRC})
 target_link_libraries(rollout ${ROX_EXTERNAL_LIBS})
 
 set_target_properties(rollout PROPERTIES
-        PUBLIC_HEADER "${ROX_SERVER_HEADERS}"
+        PUBLIC_HEADER "${ROX_HEADERS}"
         C_VISIBILITY_PRESET hidden
         COMPILE_DEFINITIONS "ROX_LIB_VERSION=\"${ROX_VERSION_STRING}\";ROX_DLL;ROX_DLL_EXPORTS"
         VERSION ${ROX_VERSION_STRING}
