@@ -4,8 +4,7 @@
 #include "consts.h"
 #include "util.h"
 #include "device.h"
-#include "entities.h"
-#include "repositories.h"
+#include "options.h"
 #include "collections.h"
 
 //
@@ -44,6 +43,7 @@ struct RoxOptions {
     void *dynamic_properties_rule_target;
     rox_dynamic_properties_rule dynamic_properties_rule;
     bool cxx;
+    RoxMap *extra;
 };
 
 ROX_API RoxOptions *rox_options_create() {
@@ -51,7 +51,24 @@ ROX_API RoxOptions *rox_options_create() {
     options->dev_mod_key = mem_copy_str("stam");
     options->version = mem_copy_str("0.0");
     options->fetch_interval = 60;
+    options->extra = ROX_EMPTY_MAP;
     return options;
+}
+
+ROX_INTERNAL void rox_options_set_extra(RoxOptions *options, const char *key, void *data) {
+    assert(options);
+    assert(key);
+    rox_map_add(options->extra, (void *) key, data);
+}
+
+ROX_INTERNAL void *rox_options_get_extra(RoxOptions *options, const char *key) {
+    assert(options);
+    assert(key);
+    void *result;
+    if (rox_map_get(options->extra, (void *) key, &result)) {
+        return result;
+    }
+    return NULL;
 }
 
 ROX_API void rox_options_set_dev_mode_key(RoxOptions *options, const char *key) {
@@ -237,7 +254,7 @@ ROX_INTERNAL DeviceProperties *device_properties_create(
     assert(sdk_settings);
     assert(rox_options);
 
-    RoxMap *map = rox_map_create();
+    RoxMap * map = rox_map_create();
     rox_map_add(map, ROX_PROPERTY_TYPE_LIB_VERSION.name, mem_copy_str(ROX_LIB_VERSION));
     rox_map_add(map, ROX_PROPERTY_TYPE_API_VERSION.name, mem_copy_str(ROX_API_VERSION));
     rox_map_add(map, ROX_PROPERTY_TYPE_APP_RELEASE.name,
@@ -495,7 +512,7 @@ ROX_INTERNAL char *md5_generator_generate(RoxMap *properties, RoxList *generator
     assert(properties);
     assert(generator_list);
 
-    RoxList *values = rox_list_create();
+    RoxList * values = rox_list_create();
     ROX_LIST_FOREACH(item, generator_list, {
         PropertyType *pt = (PropertyType *) item;
         char *value;
@@ -549,13 +566,13 @@ ROX_INTERNAL char *buid_get_value(BUID *buid) {
         return buid->buid;
     }
 
-    RoxList *buid_generators = rox_list_create();
+    RoxList * buid_generators = rox_list_create();
     rox_list_add(buid_generators, (void *) &ROX_PROPERTY_TYPE_PLATFORM);
     rox_list_add(buid_generators, (void *) &ROX_PROPERTY_TYPE_APP_KEY);
     rox_list_add(buid_generators, (void *) &ROX_PROPERTY_TYPE_LIB_VERSION);
     rox_list_add(buid_generators, (void *) &ROX_PROPERTY_TYPE_API_VERSION);
 
-    RoxMap *properties = device_properties_get_all_properties(buid->device_properties);
+    RoxMap * properties = device_properties_get_all_properties(buid->device_properties);
     buid->buid = md5_generator_generate(properties, buid_generators, NULL);
     rox_list_free(buid_generators);
 

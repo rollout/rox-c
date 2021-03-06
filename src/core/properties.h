@@ -1,8 +1,9 @@
 #pragma once
 
 #include <cjson/cJSON.h>
-#include "rox/server.h"
-#include "context.h"
+#include "rox/options.h"
+#include "rox/properties.h"
+#include "rox/context.h"
 
 //
 // CustomPropertyType

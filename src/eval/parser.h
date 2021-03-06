@@ -1,9 +1,8 @@
 #pragma once
 
-#include "rox/server.h"
-#include "stack.h"
-#include "core/context.h"
+#include "rox/context.h"
 #include "core/eval.h"
+#include "stack.h"
 
 typedef struct Parser Parser;
 

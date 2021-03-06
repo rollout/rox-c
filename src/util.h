@@ -3,7 +3,7 @@
 #include <cjson/cJSON.h>
 #include <stdbool.h>
 #include <time.h>
-#include "rox/server.h"
+#include "rox/defs.h"
 
 //
 // Utility functions.

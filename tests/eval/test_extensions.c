@@ -1,9 +1,8 @@
 #include <check.h>
 #include <assert.h>
 #include "roxtests.h"
-#include "roxx/parser.h"
-#include "roxx/extensions.h"
-#include "core/repositories.h"
+#include "eval/parser.h"
+#include "eval/extensions.h"
 #include "collections.h"
 
 typedef struct ImpressionArgs {
@@ -253,7 +252,7 @@ END_TEST
 START_TEST (test_flag_dependency_unexisting_flag_but_existing_experiment) {
     ParserExtensionsTestContext *context = parser_extensions_test_context_create();
 
-    RoxList *experiment_models = ROX_LIST(
+    RoxList * experiment_models = ROX_LIST(
             experiment_model_create("exp1id", "exp1name", "ifThen(true, \"true\", \"false\")", false,
                                     ROX_LIST_COPY_STR("someFlag"), ROX_EMPTY_SET, "stam"),
             experiment_model_create("exp2id", "exp2name",
@@ -282,7 +281,7 @@ END_TEST
 START_TEST (test_flag_dependency_unexisting_flag_and_experiment_undefined) {
     ParserExtensionsTestContext *context = parser_extensions_test_context_create();
 
-    RoxList *experiment_models = ROX_LIST(
+    RoxList * experiment_models = ROX_LIST(
             experiment_model_create("exp1id", "exp1name", "undefined", false, ROX_LIST_COPY_STR("someFlag"),
                                     ROX_EMPTY_SET, "stam"),
             experiment_model_create("exp2id", "exp2name",
@@ -357,7 +356,7 @@ START_TEST (test_flag_dependency_with_context_used_on_experiment_with_no_flag) {
     variant_set_condition(flag3, "flagValue(\"flag2\")");
     flag_repository_add_flag(context->flag_repository, flag3, "flag3");
 
-    RoxList *experiment_models = ROX_LIST(
+    RoxList * experiment_models = ROX_LIST(
             experiment_model_create("exp1id", "exp1name", "property(\"prop\")", false, ROX_LIST_COPY_STR("flag2"),
                                     ROX_EMPTY_SET, "stam"));
 
@@ -397,7 +396,7 @@ START_TEST (test_flag_dependency_with_context2_level_mid_level_no_flag_eval_expe
     variant_set_condition(flag3, "flagValue(\"flag2\")");
     flag_repository_add_flag(context->flag_repository, flag3, "flag3");
 
-    RoxList *experiment_models = ROX_LIST(
+    RoxList * experiment_models = ROX_LIST(
             experiment_model_create("exp1id", "exp1name", "flagValue(\"flag1\")", false, ROX_LIST_COPY_STR("flag2"),
                                     ROX_EMPTY_SET, "stam"));
 
@@ -771,7 +770,7 @@ END_TEST
 START_TEST (test_dynamic_rule_return_unsupported_type) {
     ParserExtensionsTestContext *context = parser_extensions_test_context_create();
 
-    RoxMap *map = rox_map_create();
+    RoxMap * map = rox_map_create();
     RoxContext *ctx = rox_context_create_from_map(
             ROX_MAP(
                     mem_copy_str("testKeyRule"),

@@ -199,7 +199,7 @@ ROX_INTERNAL RoxMap *flag_repository_get_all_flags(FlagRepository *repository) {
     return repository->variants;
 }
 
-ROX_INTERNAL void flag_repository_add_flag_added_callback(
+ROX_INTERNAL void *flag_repository_add_flag_added_callback(
         FlagRepository *repository,
         void *target,
         flag_added_callback callback) {
@@ -209,6 +209,15 @@ ROX_INTERNAL void flag_repository_add_flag_added_callback(
     item->target = target;
     item->callback = callback;
     rox_list_add(repository->callbacks, item);
+    return item;
+}
+
+ROX_INTERNAL void *flag_repository_remove_flag_added_callback(
+        FlagRepository *repository,
+        void *handle) {
+    assert(repository);
+    assert(handle);
+    rox_list_remove(repository->callbacks, handle);
 }
 
 ROX_INTERNAL void flag_repository_free(FlagRepository *repository) {

@@ -1,9 +1,16 @@
 ﻿#include <assert.h>
-#include <core/consts.h>
 #include <pthread.h>
+#include "rox/server.h"
+#include "core/consts.h"
 #include "core/logging.h"
 #include "core.h"
 #include "util.h"
+
+#ifdef ROX_CLIENT
+
+    #include "client.h"
+
+#endif
 
 typedef struct Rox {
     RoxCore *core;
@@ -68,6 +75,9 @@ static bool is_error_state(RoxStateCode state) {
 
 static void reset_state() {
     rox_global->state = RoxShuttingDown;
+#ifdef ROX_CLIENT
+    rox_freeze_uninit();
+#endif
     rox_core_free(rox_global->core);
     if (rox_global->global_context) {
         rox_context_free(rox_global->global_context);
@@ -132,6 +142,10 @@ ROX_API RoxStateCode rox_setup(const char *api_key, RoxOptions *options) {
                            &ROX_CUSTOM_PROPERTY_TYPE_SEMVER);
     create_custom_property(props, NULL, NULL, "internal.", &ROX_PROPERTY_TYPE_DISTINCT_ID,
                            &ROX_CUSTOM_PROPERTY_TYPE_STRING);
+
+#ifdef ROX_CLIENT
+    rox_freeze_init(rox->core, options);
+#endif
 
     rox->state = rox_core_setup(rox->core, rox->sdk_settings, rox->device_properties, options);
     if (is_error_state(rox->state)) {

@@ -1,6 +1,6 @@
 #include <assert.h>
 #include <stdlib.h>
-#include "context.h"
+#include "rox/context.h"
 #include "collections.h"
 
 struct RoxContext {

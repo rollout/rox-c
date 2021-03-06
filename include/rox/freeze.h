@@ -4,12 +4,19 @@
 #include <rox/defs.h>
 #include <rox/collections.h>
 #include <rox/flags.h>
+#include <rox/options.h>
 
 typedef enum RoxFreeze {
     RoxFreezeUntilLaunch = 1,
     RoxFreezeUntilForeground = 2,
     RoxFreezeNone = 3
 } RoxFreeze;
+
+/**
+ * @param options Not <code>NULL</code>.
+ * @param freeze Default freeze level.
+ */
+ROX_API void rox_options_set_default_freeze(RoxOptions *options, RoxFreeze freeze);
 
 /**
  * @param name Not <code>NULL</code>. Flag name <em>including namespace prefix</em>. Value is copied internally.

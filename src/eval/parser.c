@@ -417,17 +417,17 @@ typedef struct TokenizedExpression {
 static void tokenized_expression_free(TokenizedExpression *expr) {
     assert(expr);
     if (expr->array_accumulator) {
-        ROX_WARN("Unclosed array literal in roxx expression");
+        ROX_WARN("Unclosed array literal in eval expression");
         rox_list_free_cb(expr->array_accumulator,
                          (void (*)(void *)) &rox_dynamic_value_free);
     }
     if (expr->dict_accumulator) {
-        ROX_WARN("Unclosed dictionary literal in roxx expression");
+        ROX_WARN("Unclosed dictionary literal in eval expression");
         rox_map_free_with_keys_and_values_cb(expr->dict_accumulator,
                                              &free, (void (*)(void *)) &rox_dynamic_value_free);
     }
     if (expr->dict_key) {
-        ROX_WARN("Unclosed dictionary literal in roxx expression");
+        ROX_WARN("Unclosed dictionary literal in eval expression");
         free(expr->dict_key);
     }
     free(expr);

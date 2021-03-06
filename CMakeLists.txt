@@ -22,9 +22,6 @@ link_directories(${CMAKE_SOURCE_DIR}/vendor/build/src)
 add_subdirectory(include)
 add_subdirectory(src)
 
-set(ROX_SERVER Yes)
-set(ROX_CLIENT Yes)
-
 if (NOT ROX_SKIP_TESTS)
     enable_testing()
     add_subdirectory(tests)

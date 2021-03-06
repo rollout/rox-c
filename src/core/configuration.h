@@ -2,7 +2,8 @@
 
 #include <cjson/cJSON.h>
 
-#include "rox/server.h"
+#include "rox/configuration.h"
+#include "rox/collections.h"
 #include "security.h"
 #include "reporting.h"
 
@@ -119,11 +120,20 @@ ROX_INTERNAL void configuration_fetched_invoker_invoke_error(
  * @param invoker Not <code>NULL</code>.
  * @param target May be <code>NULL</code>.
  * @param handler Not <code>NULL</code>.
+ * @return Callback handle. Not <code>NULL</code>.
  */
-ROX_INTERNAL void configuration_fetched_invoker_register_handler(
+ROX_INTERNAL void *configuration_fetched_invoker_register_handler(
         ConfigurationFetchedInvoker *invoker,
         void *target,
         rox_configuration_fetched_handler handler);
+
+/**
+ * @param invoker Not <code>NULL</code>.
+ * @param handle Callback handle previously returned by <code>configuration_fetched_invoker_register_handler</code>. Not <code>NULL</code>.
+ */
+ROX_INTERNAL void configuration_fetched_invoker_unregister_handler(
+        ConfigurationFetchedInvoker *invoker,
+        void *handle);
 
 //
 // ConfigurationParser

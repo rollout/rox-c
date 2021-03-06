@@ -1,7 +1,7 @@
 #pragma once
 
 #include <stdbool.h>
-#include "rox/server.h"
+#include "rox/defs.h"
 
 //
 // SignatureVerifier

@@ -2,13 +2,14 @@
 
 #include "core/impression.h"
 #include "core/eval.h"
-#include "roxx/parser.h"
+#include "eval/parser.h"
 
 typedef void *(*variant_free_data_func)(void *data);
 
 typedef struct VariantConfig {
     void *data;
     variant_free_data_func free_data_func;
+    variant_eval_func eval_func;
 } VariantConfig;
 
 /**
@@ -23,6 +24,12 @@ ROX_INTERNAL void variant_set_config(RoxStringBase *variant, VariantConfig *conf
  * @return May be <code>NULL</code>.
  */
 ROX_INTERNAL void *variant_get_data(RoxStringBase *variant);
+
+/**
+ * @param variant Not <code>NULL</code>.
+ * @return Not <code>NULL</code>.
+ */
+ROX_INTERNAL variant_eval_func variant_get_eval_func(RoxStringBase *variant);
 
 /**
  * @param variant Not <code>NULL</code>.

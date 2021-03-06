@@ -2,7 +2,9 @@
 
 include(external-libs.cmake)
 
-set(ROX_HEADERS "")
+set(ROX_HEADERS
+        ../include/rox/server.h
+        ../include/roxx/server.h)
 
 set(ROX_SRC
         core/configuration/models.c
@@ -19,9 +21,9 @@ set(ROX_SRC
         core/reporting.c
         core/repositories.c
         core/security.c
-        roxx/extensions.c
-        roxx/parser.c
-        roxx/stack.c
+        eval/extensions.c
+        eval/parser.c
+        eval/stack.c
         xpack/analytics/client.c
         xpack/analytics/model.c
         xpack/configuration.c
@@ -38,20 +40,29 @@ set(ROX_SRC
         core.c
         device.c
         values.c
-        util.c)
+        util.c
+        server.c
+        server.cpp)
 
-if (ROX_SERVER)
-    list(APPEND ROX_SRC server.c server.cpp)
-    list(APPEND ROX_HEADERS ../include/rox/server.h ../include/roxx/server.h)
-endif ()
+set(ROX_COMPILE_DEFINITIONS
+        ROX_LIB_VERSION="${ROX_VERSION_STRING}")
 
 if (ROX_CLIENT)
-    list(APPEND ROX_SRC client.c client.cpp)
+    list(APPEND ROX_SRC
+            freeze.c
+            overrides.c
+            storage.c
+            client.c
+            client.cpp)
     list(APPEND ROX_HEADERS ../include/rox/client.h ../include/roxx/client.h)
 endif ()
 
 if (NOT ROX_SERVER AND NOT ROX_CLIENT)
     message(FATAL_ERROR "Neither ROX_SERVER nor ROX_CLIENT is defined")
+endif ()
+
+if (ROX_CLIENT)
+    list(APPEND ROX_COMPILE_DEFINITIONS ROX_CLIENT)
 endif ()
 
 if (APPLE)
@@ -70,12 +81,12 @@ target_link_libraries(rollout ${ROX_EXTERNAL_LIBS})
 set_target_properties(rollout PROPERTIES
         PUBLIC_HEADER "${ROX_HEADERS}"
         C_VISIBILITY_PRESET hidden
-        COMPILE_DEFINITIONS "ROX_LIB_VERSION=\"${ROX_VERSION_STRING}\";ROX_DLL;ROX_DLL_EXPORTS"
+        COMPILE_DEFINITIONS "${ROX_COMPILE_DEFINITIONS};ROX_DLL;ROX_DLL_EXPORTS"
         VERSION ${ROX_VERSION_STRING}
         SOVERSION ${ROX_VERSION_MAJOR})
 
 set_target_properties(rollout_static PROPERTIES
-        COMPILE_DEFINITIONS "ROX_LIB_VERSION=\"${ROX_VERSION_STRING}\"")
+        COMPILE_DEFINITIONS "${ROX_COMPILE_DEFINITIONS}")
 
 INSTALL(TARGETS rollout rollout_static
         RUNTIME DESTINATION bin

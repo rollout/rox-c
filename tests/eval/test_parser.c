@@ -4,17 +4,16 @@
 #include <core/repositories.h>
 
 #include "roxtests.h"
-#include "roxx/parser.h"
-#include "roxx/extensions.h"
+#include "eval/extensions.h"
 #include "collections.h"
 
 START_TEST (test_simple_tokenization) {
 
-    RoxMap *operators = rox_map_create();
+    RoxMap * operators = rox_map_create();
     rox_map_add(operators, "eq", "true");
     rox_map_add(operators, "lt", "true");
 
-    RoxList *tokens = tokenized_expression_get_tokens("eq(false, lt(-123, \"123\"))", operators);
+    RoxList * tokens = tokenized_expression_get_tokens("eq(false, lt(-123, \"123\"))", operators);
     ck_assert_int_eq(rox_list_size(tokens), 5);
 
     ParserNode *node;

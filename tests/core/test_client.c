@@ -2,7 +2,7 @@
 #include <core/consts.h>
 #include <assert.h>
 #include "roxtests.h"
-#include "roxx/parser.h"
+#include "eval/parser.h"
 #include "core/repositories.h"
 #include "core/client.h"
 #include "core/entities.h"

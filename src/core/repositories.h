@@ -153,11 +153,20 @@ typedef void (*flag_added_callback)(void *target, RoxStringBase *variant);
  * @param repository Not <code>NULL</code>.
  * @param target May be <code>NULL</code>.
  * @param callback Not <code>NULL</code>.
+ * @return Callback handle. Not <code>NULL</code>.
  */
-ROX_INTERNAL void flag_repository_add_flag_added_callback(
+ROX_INTERNAL void *flag_repository_add_flag_added_callback(
         FlagRepository *repository,
         void *target,
         flag_added_callback callback);
+
+/**
+ * @param repository Not <code>NULL</code>.
+ * @param handle Callback handle previously returned by <code>flag_repository_add_flag_added_callback</code>.Not <code>NULL</code>.
+ */
+ROX_INTERNAL void *flag_repository_remove_flag_added_callback(
+        FlagRepository *repository,
+        void *handle);
 
 /**
  * @param repository Not <code>NULL</code>.

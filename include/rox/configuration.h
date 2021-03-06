@@ -1,5 +1,7 @@
 #pragma once
 
+#include <stdbool.h>
+
 typedef enum RoxFetchStatus {
     AppliedFromEmbedded = 1,
     AppliedFromLocalStorage,

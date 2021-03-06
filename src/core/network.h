@@ -1,7 +1,7 @@
 #pragma once
 
 #include <cjson/cJSON.h>
-#include "rox/server.h"
+#include "rox/defs.h"
 #include "properties.h"
 #include "client.h"
 #include "configuration.h"

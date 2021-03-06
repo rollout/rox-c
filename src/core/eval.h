@@ -1,5 +1,7 @@
 #pragma once
 
+#include "rox/flags.h"
+
 // EvaluationContext
 
 typedef struct EvaluationResult EvaluationResult;
@@ -30,17 +32,6 @@ typedef RoxDynamicValue *(*variant_eval_func)(
  * @return Not <code>NULL</code>.
  */
 ROX_INTERNAL EvaluationContext *eval_context_create(RoxStringBase *variant, RoxContext *context);
-
-/**
- * @param variant May be <code>NULL</code>.
- * @param context May be <code>NULL</code>.
- * @param eval_func Not <code>NULL</code>.
- * @return Not <code>NULL</code>.
- */
-ROX_INTERNAL EvaluationContext *eval_context_create_custom(
-        RoxStringBase *variant,
-        RoxContext *context,
-        variant_eval_func eval_func);
 
 ROX_INTERNAL RoxContext *eval_context_get_context(EvaluationContext *eval_context);
 

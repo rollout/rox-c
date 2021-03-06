@@ -3,6 +3,7 @@
 #include "rox/errors.h"
 #include "core/client.h"
 #include "core/network.h"
+#include "core/configuration.h"
 
 typedef struct RoxCore RoxCore;
 
@@ -67,3 +68,15 @@ ROX_INTERNAL RoxDynamicApi *rox_core_create_dynamic_api(RoxCore *core, EntitiesP
  * @param core Not <code>NULL</code>.
  */
 ROX_INTERNAL void rox_core_free(RoxCore *core);
+
+/**
+ * @param core Not <code>NULL</code>.
+ * @return Not <code>NULL</code>.
+ */
+ROX_INTERNAL FlagRepository *rox_core_get_flag_repository(RoxCore *core);
+
+/**
+ * @param core Not <code>NULL</code>.
+ * @return Not <code>NULL</code>.
+ */
+ROX_INTERNAL ConfigurationFetchedInvoker *rox_core_get_configuration_fetched_invoker(RoxCore *core);

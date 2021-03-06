@@ -1,7 +1,5 @@
 #include <check.h>
 #include "roxtests.h"
-#include "core/properties.h"
-#include "core/context.h"
 #include "util.h"
 
 //

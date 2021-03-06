@@ -3,15 +3,12 @@
 #include <pcre2.h>
 #include <errno.h>
 #include <xpack/network.h>
-#include <xpack/security.h>
 #include "core.h"
 #include "core/logging.h"
-#include "roxx/extensions.h"
+#include "eval/extensions.h"
 #include "xpack/reporting.h"
 #include "xpack/configuration.h"
 #include "xpack/impression.h"
-#include "util.h"
-#include "collections.h"
 #include "os.h"
 
 //
@@ -507,4 +504,14 @@ ROX_INTERNAL void rox_core_free(RoxCore *core) {
     }
 
     free(core);
+}
+
+ROX_INTERNAL FlagRepository *rox_core_get_flag_repository(RoxCore *core) {
+    assert(core);
+    return core->flag_repository;
+}
+
+ROX_INTERNAL ConfigurationFetchedInvoker *rox_core_get_configuration_fetched_invoker(RoxCore *core) {
+    assert(core);
+    return core->configuration_fetched_invoker;
 }

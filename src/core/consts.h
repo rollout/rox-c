@@ -1,6 +1,6 @@
 #pragma once
 
-#include "rox/server.h"
+#include "rox/defs.h"
 
 //
 // Build

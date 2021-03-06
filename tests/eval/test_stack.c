@@ -1,6 +1,6 @@
 #include <check.h>
 
-#include "roxx/stack.h"
+#include "eval/stack.h"
 #include "roxtests.h"
 
 START_TEST (test_will_push_into_stack_string) {
