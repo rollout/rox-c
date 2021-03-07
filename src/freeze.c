@@ -6,12 +6,13 @@
 #include "core/configuration.h"
 #include "core/options.h"
 #include "core.h"
+#include "freeze.h"
 #include "util.h"
 
 typedef struct FreezeContext {
     RoxFreeze freeze;
     bool frozen;
-    RoxDynamicValue *frozen_value;
+    char *frozen_value;
     bool use_default_freeze;
     variant_eval_func original_eval_func;
 } FreezeContext;
@@ -30,15 +31,14 @@ static void flag_freeze_added_callback(void *target, RoxStringBase *variant) {
 
 static void unfreeze_configuration_fetched_handler(void *target, RoxConfigurationFetchedArgs *args) {
     // Unfreeze on the very first conf fetched event, regardless on the fetch status
-    ConfigurationFetchedInvoker *invoker = target;
-    configuration_fetched_invoker_unregister_handler(invoker, configuration_fetched_callback_handle);
+    configuration_fetched_invoker_unregister_handler(target, configuration_fetched_callback_handle);
     configuration_fetched_callback_handle = NULL;
     rox_unfreeze();
 }
 
 ROX_API void rox_options_set_default_freeze(RoxOptions *options, RoxFreeze freeze) {
     assert(options);
-    rox_options_set_extra(options, FREEZE_OPTIONS_KEY, &freeze);
+    rox_options_set_extra(options, FREEZE_OPTIONS_KEY, mem_copy_int(freeze), free);
 }
 
 ROX_INTERNAL void rox_freeze_init(RoxCore *core, RoxOptions *options) {
@@ -48,14 +48,14 @@ ROX_INTERNAL void rox_freeze_init(RoxCore *core, RoxOptions *options) {
     RoxFreeze *freeze = rox_options_get_extra(options, FREEZE_OPTIONS_KEY);
     if (freeze) {
         default_freeze = *freeze;
-        RoxMap * all_flags = flag_repository_get_all_flags(flag_repository);
+        flag_added_callback_handle = flag_repository_add_flag_added_callback(
+                flag_repository, NULL,
+                flag_freeze_added_callback);
+        RoxMap *all_flags = flag_repository_get_all_flags(flag_repository);
         ROX_MAP_FOREACH(key, value, all_flags, {
             RoxStringBase *flag = (RoxStringBase *) value;
             rox_freeze_flag(flag, default_freeze);
         })
-        flag_added_callback_handle = flag_repository_add_flag_added_callback(
-                flag_repository, NULL,
-                flag_freeze_added_callback);
     }
 
     conf_fetched_invoker = rox_core_get_configuration_fetched_invoker(core);
@@ -90,6 +90,9 @@ ROX_INTERNAL void rox_freeze_uninit() {
 
 static void freeze_context_free(FreezeContext *context) {
     assert(context);
+    if (context->frozen_value) {
+        free(context->frozen_value);
+    }
     free(context);
 }
 
@@ -109,9 +112,11 @@ static RoxDynamicValue *freezable_flag_eval_func(
     }
     if (!context->frozen) {
         context->frozen = true;
-        context->frozen_value = context->original_eval_func(variant, default_value, eval_context, converter);
+        RoxDynamicValue *value = context->original_eval_func(variant, default_value, eval_context, converter);
+        context->frozen_value = converter->to_string(value);
+        rox_dynamic_value_free(value);
     }
-    return context->frozen_value;
+    return converter->from_string(context->frozen_value);
 }
 
 static FreezeContext *get_freeze_context(RoxStringBase *flag) {
@@ -119,6 +124,7 @@ static FreezeContext *get_freeze_context(RoxStringBase *flag) {
     FreezeContext *context = variant_get_data(flag);
     if (!context) {
         context = calloc(1, sizeof(FreezeContext));
+        context->frozen = false;
         context->freeze = RoxFreezeNone;
         context->use_default_freeze = true;
         context->original_eval_func = variant_get_eval_func(flag);
@@ -189,12 +195,6 @@ ROX_API RoxStringBase *rox_add_double_with_freeze_and_options(
     return add_freeze(rox_add_double_with_options(name, default_value, options), freeze);
 }
 
-static RoxFreeze get_freeze(RoxStringBase *flag) {
-    assert(flag);
-    FreezeContext *context = get_freeze_context(flag);
-    return context->freeze;
-}
-
 ROX_API void rox_freeze_flag(RoxStringBase *flag, RoxFreeze freeze) {
     assert(flag);
     FreezeContext *context = get_freeze_context(flag);
@@ -206,9 +206,13 @@ ROX_API void rox_freeze_flag(RoxStringBase *flag, RoxFreeze freeze) {
 
 ROX_API void rox_unfreeze_flag(RoxStringBase *flag, RoxFreeze freeze) {
     assert(flag);
-    FreezeContext *context = get_freeze_context(flag);
-    if (freeze <= context->freeze) {
+    FreezeContext *context = variant_get_data(flag);
+    if (context && freeze <= context->freeze) {
         context->frozen = false;
+        if (context->frozen_value) {
+            free(context->frozen_value);
+            context->frozen_value = NULL;
+        }
     }
 }
 
@@ -216,7 +220,7 @@ ROX_API void rox_unfreeze() {
     if (!flag_repository) {
         return;
     }
-    RoxMap * all_flags = flag_repository_get_all_flags(flag_repository);
+    RoxMap *all_flags = flag_repository_get_all_flags(flag_repository);
     ROX_MAP_FOREACH(key, value, all_flags, {
         RoxStringBase *flag = (RoxStringBase *) value;
         rox_unfreeze_flag(flag, RoxFreezeUntilLaunch);
@@ -233,11 +237,21 @@ ROX_API void rox_unfreeze_ns(const char *ns) {
     if (!flag_repository) {
         return;
     }
-    RoxMap * all_flags = flag_repository_get_all_flags(flag_repository);
+    RoxMap *all_flags = flag_repository_get_all_flags(flag_repository);
     ROX_MAP_FOREACH(key, value, all_flags, {
         RoxStringBase *flag = (RoxStringBase *) value;
         if (is_flag_in_namespace(flag, ns)) {
             rox_unfreeze_flag(flag, RoxFreezeUntilLaunch);
         }
     })
+}
+
+ROX_INTERNAL bool rox_flag_is_frozen(RoxStringBase *flag) {
+    FreezeContext *context = variant_get_data(flag);
+    return context ? context->frozen : false;
+}
+
+ROX_INTERNAL RoxFreeze rox_flag_get_freeze(RoxStringBase *flag) {
+    FreezeContext *context = variant_get_data(flag);
+    return context ? context->freeze : RoxFreezeNone;
 }

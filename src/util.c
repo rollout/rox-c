@@ -5,7 +5,6 @@
 #include <pcre2.h>
 #include <stdio.h>
 #include <stdarg.h>
-#include <string.h>
 #include <ctype.h>
 
 #include "util.h"
@@ -211,6 +210,27 @@ ROX_INTERNAL bool str_eq_n(const char *str, int start, int end, const char *anot
 
 ROX_INTERNAL bool str_is_empty(const char *str) {
     return !str || str_equals(str, "");
+}
+
+ROX_INTERNAL double str_to_double(const char *str, double fallback) {
+    assert(str);
+    char *end;
+    double num = strtod(str, &end);
+    if ((num == 0 && str[0] != '0') || *end != '\0') {
+        return fallback;
+    }
+    return num;
+}
+
+ROX_INTERNAL int str_to_int(const char *str, int fallback) {
+    if (str_contains(str, '.')) {
+        return fallback;
+    }
+    long num = strtol(str, NULL, 0);
+    if (num == 0 && str[0] != '0') {
+        return fallback;
+    }
+    return num;
 }
 
 ROX_INTERNAL char *str_to_upper(char *str) {

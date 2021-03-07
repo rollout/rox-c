@@ -85,7 +85,7 @@ START_TEST (test_will_check_invalid_api_key) {
 END_TEST
 
 START_TEST (test_will_check_core_setup_when_options_with_roxy) {
-    CoreTestContext *ctx = core_test_context_create("doesn't matter", "http://site.com");
+    CoreTestContext *ctx = core_test_context_create("doesn't matter", "http://localhost");
     RoxStateCode status = rox_core_setup(ctx->core, ctx->sdk_settings, ctx->device_properties, ctx->rox_options);
     ck_assert_int_eq(RoxInitialized, status);
     core_test_context_free(ctx);

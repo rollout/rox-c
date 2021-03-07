@@ -91,6 +91,8 @@ typedef struct RequestConfig {
     int request_timeout;
 } RequestConfig;
 
+#define DEFAULT_REQUEST_CONFIG_INITIALIZER {NULL, NULL, NULL, NULL, 0};
+
 /**
  * @param config May be <code>NULL</code>. Clients are responsible for freeing the memory.
  * @return Not <code>NULL</code>.

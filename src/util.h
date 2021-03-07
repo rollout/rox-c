@@ -50,6 +50,18 @@ ROX_INTERNAL bool str_eq_n(const char *str, int start, int end, const char *anot
 ROX_INTERNAL bool str_is_empty(const char *str);
 
 /**
+ * @param str Not <code>NULL</code>.
+ * @return Parsed value of <code>fallback</code> in case of parse error.
+ */
+ROX_INTERNAL double str_to_double(const char *str, double fallback);
+
+/**
+ * @param str Not <code>NULL</code>.
+ * @return Parsed value of <code>fallback</code> in case of parse error.
+ */
+ROX_INTERNAL int str_to_int(const char *str, int fallback);
+
+/**
  * Note the passed <code>str</code> is modified in-place, without creating new strings.
  *
  * @param str Not <code>NULL</code>.

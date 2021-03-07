@@ -5,6 +5,7 @@
 #include "core/logging.h"
 #include "core.h"
 #include "util.h"
+#include "server.h"
 
 #ifdef ROX_CLIENT
 
@@ -24,11 +25,21 @@ typedef struct Rox {
 
 static Rox *rox_global = NULL;
 static pthread_mutex_t startup_shutdown_lock = PTHREAD_MUTEX_INITIALIZER;
+static RequestConfig default_request_config = DEFAULT_REQUEST_CONFIG_INITIALIZER;
+
+ROX_INTERNAL void rox_set_default_request_config(RequestConfig *config) {
+    if (config) {
+        default_request_config = *config;
+        return;
+    }
+    RequestConfig default_config = DEFAULT_REQUEST_CONFIG_INITIALIZER;
+    default_request_config = default_config;
+}
 
 static Rox *rox_get_or_create() {
     if (!rox_global) {
         rox_global = calloc(1, sizeof(Rox));
-        rox_global->core = rox_core_create(NULL);
+        rox_global->core = rox_core_create(&default_request_config);
         rox_global->state = RoxUninitialized;
     }
     return rox_global;
@@ -126,7 +137,7 @@ ROX_API RoxStateCode rox_setup(const char *api_key, RoxOptions *options) {
     rox->device_properties = device_properties_create(rox->sdk_settings, options);
     rox->entities_provider = entities_provider_create();
 
-    RoxMap * props = device_properties_get_all_properties(rox->device_properties);
+    RoxMap *props = device_properties_get_all_properties(rox->device_properties);
     create_custom_property(props, NULL, NULL, NULL, &ROX_PROPERTY_TYPE_PLATFORM, &ROX_CUSTOM_PROPERTY_TYPE_STRING);
     create_custom_property(props, NULL, NULL, NULL, &ROX_PROPERTY_TYPE_APP_RELEASE, &ROX_CUSTOM_PROPERTY_TYPE_SEMVER);
     create_custom_property(props, NULL, NULL, NULL, &ROX_PROPERTY_TYPE_DISTINCT_ID, &ROX_CUSTOM_PROPERTY_TYPE_STRING);
@@ -271,7 +282,7 @@ ROX_API double rox_get_double_ctx(RoxStringBase *variant, RoxContext *context) {
     return result;
 }
 
-ROX_API bool rox_flag_is_enabled(RoxStringBase *variant) {
+ROX_API bool rox_is_enabled(RoxStringBase *variant) {
     assert(variant);
     EvaluationContext *eval_context = eval_context_create(variant, NULL);
     bool result = variant_get_bool(variant, NULL, eval_context);
@@ -279,7 +290,7 @@ ROX_API bool rox_flag_is_enabled(RoxStringBase *variant) {
     return result;
 }
 
-ROX_API bool rox_flag_is_enabled_ctx(RoxStringBase *variant, RoxContext *context) {
+ROX_API bool rox_is_enabled_ctx(RoxStringBase *variant, RoxContext *context) {
     assert(variant);
     assert(context);
     EvaluationContext *eval_context = eval_context_create(variant, context);
@@ -288,38 +299,37 @@ ROX_API bool rox_flag_is_enabled_ctx(RoxStringBase *variant, RoxContext *context
     return result;
 }
 
-ROX_API void rox_flag_enabled_do(RoxStringBase *variant, void *target, rox_flag_action action) {
+ROX_API void rox_enabled_do(RoxStringBase *variant, void *target, rox_flag_action action) {
     assert(variant);
     assert(action);
-    if (rox_flag_is_enabled(variant)) {
+    if (rox_is_enabled(variant)) {
         action(target);
     }
 }
 
 ROX_API void
-rox_flag_enabled_do_ctx(RoxStringBase *variant, RoxContext *context, void *target, rox_flag_action action) {
+rox_enabled_do_ctx(RoxStringBase *variant, RoxContext *context, void *target, rox_flag_action action) {
     assert(variant);
     assert(action);
     assert(context);
-    if (rox_flag_is_enabled_ctx(variant, context)) {
+    if (rox_is_enabled_ctx(variant, context)) {
         action(target);
     }
 }
 
-ROX_API void rox_flag_disabled_do(RoxStringBase *variant, void *target, rox_flag_action action) {
+ROX_API void rox_disabled_do(RoxStringBase *variant, void *target, rox_flag_action action) {
     assert(variant);
     assert(action);
-    if (!rox_flag_is_enabled(variant)) {
+    if (!rox_is_enabled(variant)) {
         action(target);
     }
 }
 
-ROX_API void
-rox_flag_disabled_do_ctx(RoxStringBase *variant, RoxContext *context, void *target, rox_flag_action action) {
+ROX_API void rox_disabled_do_ctx(RoxStringBase *variant, RoxContext *context, void *target, rox_flag_action action) {
     assert(variant);
     assert(action);
     assert(context);
-    if (!rox_flag_is_enabled_ctx(variant, context)) {
+    if (!rox_is_enabled_ctx(variant, context)) {
         action(target);
     }
 }

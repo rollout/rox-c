@@ -27,7 +27,6 @@ typedef struct ClientTestContext {
 static void test_impression_handler_func(
         void *target,
         RoxReportingValue *value,
-        RoxExperiment *experiment,
         RoxContext *context) {
     ClientTestContext *handler = (ClientTestContext *) target;
     if (handler->last_impression_value) {

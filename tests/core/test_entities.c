@@ -1,84 +1,12 @@
 #include <check.h>
 #include <core/repositories.h>
 #include "roxtests.h"
+#include "fixtures.h"
 #include "util.h"
 
 //
 // VariantTests
 //
-
-typedef struct VariantTestContext {
-    Parser *parser;
-    ImpressionInvoker *imp_invoker;
-    bool test_impression_raised;
-    char *last_impression_value;
-    const char *imp_context_key;
-    RoxDynamicValue *imp_context_value;
-} VariantTestContext;
-
-static void test_impression_handler(
-        void *target,
-        RoxReportingValue *value,
-        RoxContext *context) {
-    VariantTestContext *ctx = (VariantTestContext *) target;
-    ctx->test_impression_raised = true;
-    if (ctx->last_impression_value) {
-        free(ctx->last_impression_value);
-    }
-    if (ctx->imp_context_value) {
-        rox_dynamic_value_free(ctx->imp_context_value);
-        ctx->imp_context_value = NULL;
-    }
-    ctx->last_impression_value = mem_copy_str(value->value);
-    if (ctx->imp_context_key) {
-        ctx->imp_context_value = rox_context_get(context, ctx->imp_context_key);
-    }
-}
-
-static VariantTestContext *variant_test_context_create() {
-    VariantTestContext *ctx = calloc(1, sizeof(VariantTestContext));
-    ctx->parser = parser_create();
-    ctx->imp_invoker = impression_invoker_create();
-    impression_invoker_register(ctx->imp_invoker, ctx, &test_impression_handler);
-    return ctx;
-}
-
-static void variant_test_context_apply(VariantTestContext *ctx, RoxStringBase *variant) {
-    variant_set_for_evaluation(variant, ctx->parser, NULL, ctx->imp_invoker);
-}
-
-static void variant_test_context_apply_with_experiment(
-        VariantTestContext *ctx,
-        RoxStringBase *variant,
-        ExperimentModel *experiment) {
-    variant_set_for_evaluation(variant, ctx->parser, experiment, ctx->imp_invoker);
-}
-
-static void check_no_impression(VariantTestContext *ctx) {
-    ck_assert(!ctx->test_impression_raised);
-}
-
-static void check_impression(VariantTestContext *ctx, const char *value) {
-    ck_assert(ctx->test_impression_raised);
-    ck_assert_str_eq(value, ctx->last_impression_value);
-    ctx->test_impression_raised = false;
-    free(ctx->last_impression_value);
-    ctx->last_impression_value = NULL;
-}
-
-static void variant_test_context_free(VariantTestContext *ctx) {
-    impression_invoker_free(ctx->imp_invoker);
-    parser_free(ctx->parser);
-    if (ctx->last_impression_value) {
-        free(ctx->last_impression_value);
-        ctx->last_impression_value = NULL;
-    }
-    if (ctx->imp_context_value) {
-        rox_dynamic_value_free(ctx->imp_context_value);
-        ctx->imp_context_value = NULL;
-    }
-    free(ctx);
-}
 
 static void check_variant_value_eq(RoxStringBase *variant, const char *expected_value) {
     const char *default_value = variant_get_default_value(variant);
@@ -92,7 +20,7 @@ static void check_variant_value_eq(RoxStringBase *variant, const char *expected_
 static void check_variant_value_ctx_eq(RoxStringBase *variant, RoxContext *context, const char *expected_value) {
     const char *default_value = variant_get_default_value(variant);
     EvaluationContext *eval_context = eval_context_create(variant, context);
-    char *string = variant_get_string(variant, default_value, eval_context);;
+    char *string = variant_get_string(variant, default_value, eval_context);
     ck_assert_str_eq(string, expected_value);
     free(string);
     eval_context_free(eval_context);
@@ -136,73 +64,56 @@ START_TEST (test_will_set_name) {
 END_TEST
 
 START_TEST (test_will_return_default_value_when_no_parser_or_condition) {
-    VariantTestContext *ctx = variant_test_context_create();
-
     RoxStringBase *variant = variant_create_string("1", ROX_LIST_COPY_STR("2", "3"));
-    variant_set_for_evaluation(variant, NULL, NULL, ctx->imp_invoker);
+    variant_set_for_evaluation(variant, NULL, NULL, NULL);
     check_variant_value_eq(variant, "1");
-    check_impression(ctx, "1");
 
-    variant_set_for_evaluation(variant, ctx->parser, NULL, ctx->imp_invoker);
+    Parser *parser = parser_create();
+    variant_set_for_evaluation(variant, parser, NULL, NULL);
     check_variant_value_eq(variant, "1");
-    check_impression(ctx, "1");
+    parser_free(parser);
 
     ExperimentModel *experiment = experiment_model_create(
             "id", "name", "123", false,
             ROX_LIST_COPY_STR("1"), ROX_EMPTY_SET,
             "stam");
-    variant_set_for_evaluation(variant, NULL, experiment, ctx->imp_invoker);
+    variant_set_for_evaluation(variant, NULL, experiment, NULL);
     check_variant_value_eq(variant, "1");
-    check_impression(ctx, "1");
 
     variant_free(variant);
     experiment_model_free(experiment);
-    variant_test_context_free(ctx);
 }
 
 END_TEST
 
 START_TEST (test_will_expression_value_when_result_not_in_options) {
-    VariantTestContext *ctx = variant_test_context_create();
-
-    RoxStringBase *variant = variant_create_string("1", ROX_LIST_COPY_STR("2", "3"));
-    ExperimentModel *experiment = experiment_model_create("id", "name", "\"xxx\"", false, ROX_LIST_COPY_STR("1"),
-                                                          ROX_EMPTY_SET, "stam");
-    variant_test_context_apply_with_experiment(ctx, variant, experiment);
+    FlagTestFixture *ctx = flag_test_fixture_create();
+    RoxStringBase *variant = rox_add_string_with_options("name", "1", ROX_LIST_COPY_STR("2", "3"));
+    flag_test_fixture_set_experiments(ctx, ROX_MAP("name", "\"xxx\""));
     check_variant_value_eq(variant, "xxx");
     check_impression(ctx, "xxx");
-
-    variant_free(variant);
-    experiment_model_free(experiment);
-    variant_test_context_free(ctx);
+    flag_test_fixture_free(ctx);
 }
 
 END_TEST
 
 START_TEST (test_will_return_value_when_on_evaluation) {
-    VariantTestContext *ctx = variant_test_context_create();
-    RoxStringBase *variant = variant_create_string("1", ROX_LIST_COPY_STR("2", "3"));
-    ExperimentModel *experiment = experiment_model_create("id", "name", "\"2\"", false, ROX_LIST_COPY_STR("1"),
-                                                          ROX_EMPTY_SET, "stam");
-    variant_set_for_evaluation(variant, ctx->parser, experiment, ctx->imp_invoker);
+    FlagTestFixture *ctx = flag_test_fixture_create();
+    RoxStringBase *variant = rox_add_string_with_options("name", "1", ROX_LIST_COPY_STR("2", "3"));
+    flag_test_fixture_set_experiments(ctx, ROX_MAP("name", "\"2\""));
     check_variant_value_eq(variant, "2");
     check_impression(ctx, "2");
-
-    variant_free(variant);
-    experiment_model_free(experiment);
-    variant_test_context_free(ctx);
+    flag_test_fixture_free(ctx);
 }
 
 END_TEST
 
 START_TEST (test_will_use_context) {
-    VariantTestContext *ctx = variant_test_context_create();
+    FlagTestFixture *ctx = flag_test_fixture_create();
     ctx->imp_context_key = "key";
 
-    RoxStringBase *variant = variant_create_string("1", ROX_LIST_COPY_STR("2", "3"));
-    ExperimentModel *experiment = experiment_model_create("id", "name", "\"2\"", false, ROX_LIST_COPY_STR("flag"),
-                                                          ROX_EMPTY_SET, "stam");
-    variant_test_context_apply_with_experiment(ctx, variant, experiment);
+    RoxStringBase *variant = rox_add_string_with_options("name", "1", ROX_LIST_COPY_STR("2", "3"));
+    flag_test_fixture_set_experiments(ctx, ROX_MAP("name", "\"2\""));
 
     RoxContext *context = rox_context_create_from_map(
             ROX_MAP(mem_copy_str("key"), rox_dynamic_value_create_int(55)));
@@ -213,26 +124,18 @@ START_TEST (test_will_use_context) {
     ck_assert_int_eq(55, rox_dynamic_value_get_int(ctx->imp_context_value));
 
     rox_context_free(context);
-    variant_free(variant);
-    experiment_model_free(experiment);
-    variant_test_context_free(ctx);
+    flag_test_fixture_free(ctx);
 }
 
 END_TEST
 
 START_TEST (test_will_raise_impression) {
-    VariantTestContext *ctx = variant_test_context_create();
-
-    RoxStringBase *variant = variant_create_string("1", ROX_LIST_COPY_STR("2", "3"));
-    ExperimentModel *experiment = experiment_model_create("id", "name", "\"2\"", false, ROX_LIST_COPY_STR("1"),
-                                                          ROX_EMPTY_SET, "stam");
-    variant_test_context_apply_with_experiment(ctx, variant, experiment);
+    FlagTestFixture *ctx = flag_test_fixture_create();
+    RoxStringBase *variant = rox_add_string_with_options("name", "1", ROX_LIST_COPY_STR("2", "3"));
+    flag_test_fixture_set_experiments(ctx, ROX_MAP("name", "\"2\""));
     check_variant_value_eq(variant, "2");
     check_impression(ctx, "2");
-
-    variant_free(variant);
-    experiment_model_free(experiment);
-    variant_test_context_free(ctx);
+    flag_test_fixture_free(ctx);
 }
 
 END_TEST

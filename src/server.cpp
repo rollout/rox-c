@@ -214,8 +214,8 @@ namespace Rox {
 
     ROX_API bool Flag::IsEnabled(Context *context) {
         return context == nullptr
-               ? rox_flag_is_enabled(_variant)
-               : rox_flag_is_enabled_ctx(_variant, context);
+               ? rox_is_enabled(_variant)
+               : rox_is_enabled_ctx(_variant, context);
     }
 
     ROX_API Int *Int::Create(const char *name, int defaultValue) {

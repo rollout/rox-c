@@ -80,13 +80,13 @@ ROX_API char *rox_get_string_ctx(RoxStringBase *variant, RoxContext *context);
 /**
  * @param variant Not <code>NULL</code>.
  */
-ROX_API bool rox_flag_is_enabled(RoxStringBase *variant);
+ROX_API bool rox_is_enabled(RoxStringBase *variant);
 
 /**
  * @param variant Not <code>NULL</code>.
  * @param context Not <code>NULL</code>.
  */
-ROX_API bool rox_flag_is_enabled_ctx(RoxStringBase *variant, RoxContext *context);
+ROX_API bool rox_is_enabled_ctx(RoxStringBase *variant, RoxContext *context);
 
 typedef void (*rox_flag_action)(void *target);
 
@@ -95,7 +95,7 @@ typedef void (*rox_flag_action)(void *target);
  * @param target May be <code>NULL</code>.
  * @param action Not <code>NULL</code>.
  */
-ROX_API void rox_flag_enabled_do(RoxStringBase *variant, void *target, rox_flag_action action);
+ROX_API void rox_enabled_do(RoxStringBase *variant, void *target, rox_flag_action action);
 
 /**
  * @param variant Not <code>NULL</code>.
@@ -103,14 +103,14 @@ ROX_API void rox_flag_enabled_do(RoxStringBase *variant, void *target, rox_flag_
  * @param target May be <code>NULL</code>.
  * @param action Not <code>NULL</code>.
  */
-ROX_API void rox_flag_enabled_do_ctx(RoxStringBase *variant, RoxContext *context, void *target, rox_flag_action action);
+ROX_API void rox_enabled_do_ctx(RoxStringBase *variant, RoxContext *context, void *target, rox_flag_action action);
 
 /**
  * @param variant Not <code>NULL</code>.
  * @param target May be <code>NULL</code>.
  * @param action Not <code>NULL</code>.
  */
-ROX_API void rox_flag_disabled_do(RoxStringBase *variant, void *target, rox_flag_action action);
+ROX_API void rox_disabled_do(RoxStringBase *variant, void *target, rox_flag_action action);
 
 /**
  * @param variant Not <code>NULL</code>.
@@ -118,8 +118,7 @@ ROX_API void rox_flag_disabled_do(RoxStringBase *variant, void *target, rox_flag
  * @param target May be <code>NULL</code>.
  * @param action Not <code>NULL</code>.
  */
-ROX_API void rox_flag_disabled_do_ctx(
-        RoxStringBase *variant, RoxContext *context, void *target, rox_flag_action action);
+ROX_API void rox_disabled_do_ctx(RoxStringBase *variant, RoxContext *context, void *target, rox_flag_action action);
 
 /**
  * @param variant Not <code>NULL</code>.

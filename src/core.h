@@ -80,3 +80,4 @@ ROX_INTERNAL FlagRepository *rox_core_get_flag_repository(RoxCore *core);
  * @return Not <code>NULL</code>.
  */
 ROX_INTERNAL ConfigurationFetchedInvoker *rox_core_get_configuration_fetched_invoker(RoxCore *core);
+

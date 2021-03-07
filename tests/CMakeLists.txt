@@ -16,6 +16,10 @@ target_link_libraries(roxtest ${LIBS})
 
 list(APPEND LIBS roxtest)
 
+if (NOT ROX_CLIENT)
+    set(ROX_SKIP_TESTS test_freeze)
+endif ()
+
 rox_add_tests(".c" "${LIBS}")
 rox_add_tests(".cpp" "${LIBS}")
 

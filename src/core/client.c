@@ -31,6 +31,11 @@ ROX_INTERNAL void sdk_settings_free(SdkSettings *sdk_settings) {
 // RoxOptions
 //
 
+typedef struct RoxOptionsExtraEntry {
+    void *data;
+    rox_options_free_extra_func free_data_func;
+} RoxOptionsExtraEntry;
+
 struct RoxOptions {
     char *version;
     char *dev_mod_key;
@@ -55,10 +60,17 @@ ROX_API RoxOptions *rox_options_create() {
     return options;
 }
 
-ROX_INTERNAL void rox_options_set_extra(RoxOptions *options, const char *key, void *data) {
+ROX_INTERNAL void rox_options_set_extra(
+        RoxOptions *options,
+        const char *key,
+        void *data,
+        rox_options_free_extra_func free_func) {
     assert(options);
     assert(key);
-    rox_map_add(options->extra, (void *) key, data);
+    RoxOptionsExtraEntry *entry = calloc(1, sizeof(RoxOptionsExtraEntry));
+    entry->data = data;
+    entry->free_data_func = free_func;
+    rox_map_add(options->extra, (void *) key, entry);
 }
 
 ROX_INTERNAL void *rox_options_get_extra(RoxOptions *options, const char *key) {
@@ -66,7 +78,8 @@ ROX_INTERNAL void *rox_options_get_extra(RoxOptions *options, const char *key) {
     assert(key);
     void *result;
     if (rox_map_get(options->extra, (void *) key, &result)) {
-        return result;
+        RoxOptionsExtraEntry *entry = result;
+        return entry->data;
     }
     return NULL;
 }
@@ -201,6 +214,13 @@ ROX_INTERNAL void rox_options_free(RoxOptions *options) {
     if (options->roxy_url) {
         free(options->roxy_url);
     }
+    ROX_MAP_FOREACH(key, value, options->extra, {
+        RoxOptionsExtraEntry *entry = value;
+        if (entry->free_data_func) {
+            entry->free_data_func(entry->data);
+        }
+    })
+    rox_map_free_with_values_cb(options->extra, free);
     free(options);
 }
 
@@ -254,7 +274,7 @@ ROX_INTERNAL DeviceProperties *device_properties_create(
     assert(sdk_settings);
     assert(rox_options);
 
-    RoxMap * map = rox_map_create();
+    RoxMap *map = rox_map_create();
     rox_map_add(map, ROX_PROPERTY_TYPE_LIB_VERSION.name, mem_copy_str(ROX_LIB_VERSION));
     rox_map_add(map, ROX_PROPERTY_TYPE_API_VERSION.name, mem_copy_str(ROX_API_VERSION));
     rox_map_add(map, ROX_PROPERTY_TYPE_APP_RELEASE.name,
@@ -512,7 +532,7 @@ ROX_INTERNAL char *md5_generator_generate(RoxMap *properties, RoxList *generator
     assert(properties);
     assert(generator_list);
 
-    RoxList * values = rox_list_create();
+    RoxList *values = rox_list_create();
     ROX_LIST_FOREACH(item, generator_list, {
         PropertyType *pt = (PropertyType *) item;
         char *value;
@@ -566,13 +586,13 @@ ROX_INTERNAL char *buid_get_value(BUID *buid) {
         return buid->buid;
     }
 
-    RoxList * buid_generators = rox_list_create();
+    RoxList *buid_generators = rox_list_create();
     rox_list_add(buid_generators, (void *) &ROX_PROPERTY_TYPE_PLATFORM);
     rox_list_add(buid_generators, (void *) &ROX_PROPERTY_TYPE_APP_KEY);
     rox_list_add(buid_generators, (void *) &ROX_PROPERTY_TYPE_LIB_VERSION);
     rox_list_add(buid_generators, (void *) &ROX_PROPERTY_TYPE_API_VERSION);
 
-    RoxMap * properties = device_properties_get_all_properties(buid->device_properties);
+    RoxMap *properties = device_properties_get_all_properties(buid->device_properties);
     buid->buid = md5_generator_generate(properties, buid_generators, NULL);
     rox_list_free(buid_generators);
 

@@ -5,6 +5,9 @@
 #include "fixtures.h"
 #include "util.h"
 #include "collections.h"
+#include "server.h"
+
+// Network
 
 static HttpResponseMessage *_test_request_send_get_func(void *target, Request *request, RequestData *data) {
     assert(target);
@@ -172,4 +175,157 @@ ROX_INTERNAL void logging_test_fixture_check_log_message(
         }
     })
     ck_assert(false); // no log record found
+}
+
+// Flag integration tests
+
+static void test_impression_handler(
+        void *target,
+        RoxReportingValue *value,
+        RoxContext *context) {
+    FlagTestFixture *ctx = (FlagTestFixture *) target;
+    ctx->test_impression_raised = true;
+    if (ctx->last_impression_value) {
+        free(ctx->last_impression_value);
+    }
+    if (ctx->imp_context_value) {
+        rox_dynamic_value_free(ctx->imp_context_value);
+        ctx->imp_context_value = NULL;
+    }
+    ctx->last_impression_value = mem_copy_str(value->value);
+    ctx->last_impression_targeting = value->targeting;
+    if (ctx->imp_context_key) {
+        ctx->imp_context_value = rox_context_get(context, ctx->imp_context_key);
+    }
+}
+
+static void test_flag_action(void *target) {
+    FlagTestFixture *ctx = (FlagTestFixture *) target;
+    ctx->test_flag_action_called = true;
+}
+
+ROX_INTERNAL FlagTestFixture *flag_test_fixture_create_with_options(RoxOptions *options) {
+    FlagTestFixture *ctx = calloc(1, sizeof(FlagTestFixture));
+    ctx->request = request_test_fixture_create();
+    ctx->logging = logging_test_fixture_create(RoxLogLevelDebug);
+    rox_set_default_request_config(&ctx->request->config);
+    rox_options_set_impression_handler(options, ctx, &test_impression_handler);
+    rox_options_set_roxy_url(options, "http://localhost");
+    RoxStateCode status = rox_setup("any", options);
+    ck_assert_int_eq(RoxInitialized, status);
+    return ctx;
+}
+
+ROX_INTERNAL FlagTestFixture *flag_test_fixture_create() {
+    return flag_test_fixture_create_with_options(rox_options_create());
+}
+
+ROX_INTERNAL void flag_test_fixture_handle_enabled_callback(
+        FlagTestFixture *ctx,
+        RoxStringBase *flag) {
+    rox_enabled_do(flag, ctx, &test_flag_action);
+}
+
+ROX_INTERNAL void flag_test_fixture_handle_disable_callback(
+        FlagTestFixture *ctx,
+        RoxStringBase *flag) {
+    rox_disabled_do(flag, ctx, &test_flag_action);
+}
+
+ROX_INTERNAL void flag_test_fixture_set_experiments(FlagTestFixture *ctx, RoxMap *conditions) {
+    assert(ctx);
+    assert(conditions);
+
+    cJSON *experiment_arr = ROX_EMPTY_JSON_ARRAY;
+
+    ROX_MAP_FOREACH(key, value, conditions, {
+        cJSON_AddItemToArray(experiment_arr, ROX_JSON_OBJECT(
+                "_id", ROX_JSON_STRING(key),
+                "name", ROX_JSON_STRING(key),
+                "archived", ROX_JSON_FALSE,
+                "featureFlags", ROX_JSON_ARRAY(ROX_JSON_OBJECT("name", ROX_JSON_STRING(key))),
+                "deploymentConfiguration", ROX_JSON_OBJECT("condition", ROX_JSON_STRING(value)),
+                "labels", ROX_EMPTY_JSON_ARRAY,
+                "stickinessProperty", ROX_JSON_STRING("rox.distinct_id")
+        ));
+    })
+
+    cJSON *data_json = ROX_JSON_OBJECT(
+            "api_version", ROX_JSON_STRING("1.9.0"),
+            "creation_date", ROX_JSON_STRING("2021-02-25T05:22:35.363Z"),
+            "platform", ROX_JSON_STRING("C"),
+            "application", ROX_JSON_STRING("test"),
+            "remoteVariables", ROX_EMPTY_JSON_ARRAY,
+            "targetGroups", ROX_EMPTY_JSON_ARRAY,
+            "experiments", experiment_arr);
+
+    char *data_json_str = ROX_JSON_SERIALIZE(data_json);
+
+    cJSON *json = ROX_JSON_OBJECT(
+            "data", ROX_JSON_STRING(data_json_str),
+            "signature_v0", ROX_JSON_STRING("12345"),
+            "signed_date", ROX_JSON_STRING("2021-02-25T05:22:35.370Z"));
+
+    if (ctx->request->data_to_return_to_get) {
+        free(ctx->request->data_to_return_to_get);
+    }
+
+    ctx->request->status_to_return_to_get = 200;
+    ctx->request->data_to_return_to_get = ROX_JSON_SERIALIZE(json);
+
+    cJSON_Delete(data_json);
+    cJSON_Delete(json);
+    rox_map_free(conditions);
+    free(data_json_str);
+
+    rox_fetch();
+}
+
+ROX_INTERNAL void flag_test_fixture_set_flag_experiment(
+        FlagTestFixture *ctx,
+        RoxStringBase *flag,
+        const char *condition) {
+
+    flag_test_fixture_set_experiments(ctx, ROX_MAP(
+            variant_get_name(flag),
+            condition));
+}
+
+ROX_INTERNAL void check_no_impression(FlagTestFixture *ctx) {
+    ck_assert(!ctx->test_impression_raised);
+    ck_assert_ptr_null(ctx->last_impression_value);
+}
+
+ROX_INTERNAL void check_impression(FlagTestFixture *ctx, const char *value) {
+    ck_assert(ctx->test_impression_raised);
+    ck_assert_str_eq(value, ctx->last_impression_value);
+    ctx->test_impression_raised = false;
+    free(ctx->last_impression_value);
+    ctx->last_impression_value = NULL;
+}
+
+ROX_INTERNAL void check_impression_ex(FlagTestFixture *ctx, const char *value, bool targeting) {
+    check_impression(ctx, value);
+    if (targeting) {
+        ck_assert(ctx->last_impression_targeting);
+    } else {
+        ck_assert(!ctx->last_impression_targeting);
+    }
+}
+
+ROX_INTERNAL void flag_test_fixture_free(FlagTestFixture *ctx) {
+    free(ctx->request->data_to_return_to_get);
+    rox_set_default_request_config(NULL);
+    request_test_fixture_free(ctx->request);
+    logging_test_fixture_free(ctx->logging);
+    if (ctx->last_impression_value) {
+        free(ctx->last_impression_value);
+        ctx->last_impression_value = NULL;
+    }
+    if (ctx->imp_context_value) {
+        rox_dynamic_value_free(ctx->imp_context_value);
+        ctx->imp_context_value = NULL;
+    }
+    free(ctx);
+    rox_shutdown();
 }

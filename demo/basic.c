@@ -13,7 +13,7 @@ int main(int argc, char **argv) {
 
     char c = 'Y';
     while (c != 'n' && c != 'N') {
-        printf("Demo flag is %s\n", rox_flag_is_enabled(demo_flag) ? "ON" : "OFF");
+        printf("Demo flag is %s\n", rox_is_enabled(demo_flag) ? "ON" : "OFF");
         printf("Continue? (Y/n):");
         c = fgetc(stdin);
         if ((c == '\n' || c == EOF)) { // Enter key pressed

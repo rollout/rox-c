@@ -218,6 +218,7 @@ ROX_INTERNAL void *flag_repository_remove_flag_added_callback(
     assert(repository);
     assert(handle);
     rox_list_remove(repository->callbacks, handle);
+    free(handle);
 }
 
 ROX_INTERNAL void flag_repository_free(FlagRepository *repository) {

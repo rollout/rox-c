@@ -1,5 +1,7 @@
 #pragma once
 
+#include <stddef.h>
+
 #include "rox/defs.h"
 
 //

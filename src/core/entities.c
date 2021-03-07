@@ -453,7 +453,9 @@ variant_get_string(RoxStringBase *variant, const char *default_value, Evaluation
     assert(variant);
     variant_eval_func eval_func = variant->eval_func;
     RoxDynamicValue *value = eval_func(variant, default_value, eval_context, &STRING_CONVERTER);
-    char *return_value = mem_copy_str(rox_dynamic_value_get_string(value));
+    char *return_value = rox_dynamic_value_is_string(value)
+                         ? mem_copy_str(rox_dynamic_value_get_string(value))
+                         : mem_copy_str(default_value);
     rox_dynamic_value_free(value);
     return return_value;
 }
@@ -462,7 +464,14 @@ ROX_INTERNAL int variant_get_int(RoxStringBase *variant, const char *default_val
     assert(variant);
     variant_eval_func eval_func = variant->eval_func;
     RoxDynamicValue *value = eval_func(variant, default_value, eval_context, &INT_CONVERTER);
-    int return_value = rox_dynamic_value_get_int(value);
+    if (!value) {
+        return 0;
+    }
+    int return_value = rox_dynamic_value_is_int(value)
+                       ? rox_dynamic_value_get_int(value)
+                       : default_value != NULL
+                         ? str_to_int(default_value, 0)
+                         : 0;
     rox_dynamic_value_free(value);
     return return_value;
 }
@@ -472,7 +481,14 @@ variant_get_double(RoxStringBase *variant, const char *default_value, Evaluation
     assert(variant);
     variant_eval_func eval_func = variant->eval_func;
     RoxDynamicValue *value = eval_func(variant, default_value, eval_context, &DOUBLE_CONVERTER);
-    double return_value = rox_dynamic_value_get_double(value);
+    if (!value) {
+        return 0.0;
+    }
+    double return_value = rox_dynamic_value_is_double(value)
+                          ? rox_dynamic_value_get_double(value)
+                          : default_value != NULL
+                            ? str_to_double(default_value, 0.0)
+                            : 0.0;
     rox_dynamic_value_free(value);
     return return_value;
 }
@@ -525,8 +541,8 @@ ROX_INTERNAL FlagSetter *flag_setter_create(
 ROX_INTERNAL void flag_setter_set_experiments(FlagSetter *flag_setter) {
     assert(flag_setter != NULL);
 
-    RoxSet * flags_with_condition = rox_set_create();
-    RoxList * experiments = experiment_repository_get_all_experiments(flag_setter->experiment_repository);
+    RoxSet *flags_with_condition = rox_set_create();
+    RoxList *experiments = experiment_repository_get_all_experiments(flag_setter->experiment_repository);
 
     ROX_LIST_FOREACH(exp, experiments, {
         ExperimentModel *model = (ExperimentModel *) exp;
@@ -543,7 +559,7 @@ ROX_INTERNAL void flag_setter_set_experiments(FlagSetter *flag_setter) {
         rox_list_iter_free(flag_iter);
     })
 
-    RoxMap * all_flags = flag_repository_get_all_flags(flag_setter->flag_repository);
+    RoxMap *all_flags = flag_repository_get_all_flags(flag_setter->flag_repository);
     ROX_MAP_FOREACH(key, value, all_flags, {
         RoxStringBase *flag = value;
         if (!rox_set_contains(flags_with_condition, flag->name)) {

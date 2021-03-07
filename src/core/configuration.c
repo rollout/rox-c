@@ -186,6 +186,7 @@ ROX_INTERNAL void configuration_fetched_invoker_unregister_handler(
     assert(invoker);
     assert(handle);
     rox_list_remove(invoker->handlers, handle);
+    free(handle);
 }
 
 ROX_INTERNAL void configuration_fetched_invoker_free(ConfigurationFetchedInvoker *invoker) {
@@ -299,7 +300,7 @@ static RoxList *_configuration_parser_parse_experiments(ConfigurationParser *par
         return NULL;
     }
 
-    RoxList * result = rox_list_create();
+    RoxList *result = rox_list_create();
     for (int i = 0, n = cJSON_GetArraySize(experiments_json); i < n; ++i) {
         cJSON *exp_json = cJSON_GetArrayItem(experiments_json, i);
         cJSON *deployment_configuration_json = cJSON_GetObjectItem(exp_json, "deploymentConfiguration");
@@ -326,7 +327,7 @@ static RoxList *_configuration_parser_parse_experiments(ConfigurationParser *par
             return NULL;
         }
 
-        RoxSet * labels = rox_set_create();
+        RoxSet *labels = rox_set_create();
         if (labels_json) {
             for (int j = 0, k = cJSON_GetArraySize(labels_json); j < k; ++j) {
                 cJSON *label_json = cJSON_GetArrayItem(labels_json, j);
@@ -336,7 +337,7 @@ static RoxList *_configuration_parser_parse_experiments(ConfigurationParser *par
             }
         }
 
-        RoxList * flags = rox_list_create();
+        RoxList *flags = rox_list_create();
         if (feature_flags_json) {
             for (int j = 0, k = cJSON_GetArraySize(feature_flags_json); j < k; ++j) {
                 cJSON *flag_json = cJSON_GetArrayItem(feature_flags_json, j);
@@ -373,7 +374,7 @@ static RoxList *_configuration_parser_parse_target_groups(ConfigurationParser *p
         return NULL;
     }
 
-    RoxList * result = rox_list_create();
+    RoxList *result = rox_list_create();
     for (int i = 0, n = cJSON_GetArraySize(target_groups_json); i < n; ++i) {
         cJSON *group_json = cJSON_GetArrayItem(target_groups_json, i);
         cJSON *id_json = cJSON_GetObjectItem(group_json, "_id");
@@ -446,8 +447,8 @@ ROX_INTERNAL Configuration *configuration_parser_parse(
         return NULL;
     }
 
-    RoxList * experiments = _configuration_parser_parse_experiments(parser, internal_data_object);
-    RoxList * target_groups = _configuration_parser_parse_target_groups(parser, internal_data_object);
+    RoxList *experiments = _configuration_parser_parse_experiments(parser, internal_data_object);
+    RoxList *target_groups = _configuration_parser_parse_target_groups(parser, internal_data_object);
     cJSON_Delete(internal_data_object);
 
     if (experiments == NULL || target_groups == NULL) {

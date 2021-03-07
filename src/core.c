@@ -386,7 +386,7 @@ ROX_INTERNAL RoxStateCode rox_core_setup(
 ROX_INTERNAL void rox_core_set_context(RoxCore *core, RoxContext *context) {
     assert(core);
     core->global_context = context;
-    RoxMap * flags = flag_repository_get_all_flags(core->flag_repository);
+    RoxMap *flags = flag_repository_get_all_flags(core->flag_repository);
     ROX_MAP_FOREACH(key, value, flags, {
         RoxStringBase *flag = (RoxStringBase *) value;
         variant_set_context(flag, context);
