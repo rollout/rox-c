@@ -28,7 +28,7 @@ namespace Rox {
         const char *GetName();
     };
 
-    class ROX_API String : BaseFlag {
+    class ROX_API String : protected BaseFlag {
     protected:
         explicit String(RoxStringBase *variant) : BaseFlag(variant) {}
 
@@ -43,7 +43,7 @@ namespace Rox {
         static String *Create(const char *name, const char *defaultValue, const std::vector<std::string> &options);
     };
 
-    class ROX_API Flag : BaseFlag {
+    class ROX_API Flag : protected BaseFlag {
     protected:
         explicit Flag(RoxStringBase *variant) : BaseFlag(variant) {}
 
@@ -56,7 +56,7 @@ namespace Rox {
         static Flag *Create(const char *name, bool defaultValue = false);
     };
 
-    class ROX_API Int : BaseFlag {
+    class ROX_API Int : protected BaseFlag {
     protected:
         explicit Int(RoxStringBase *variant) : BaseFlag(variant) {}
 
@@ -71,7 +71,7 @@ namespace Rox {
         static Int *Create(const char *name, int defaultValue, const std::vector<int> &options);
     };
 
-    class ROX_API Double : BaseFlag {
+    class ROX_API Double : protected BaseFlag {
     protected:
         explicit Double(RoxStringBase *variant) : BaseFlag(variant) {}
 

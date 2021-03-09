@@ -34,7 +34,7 @@ namespace Rox {
 
         Options *Build();
 
-    private:
+    protected:
         RoxOptions *_options;
     };
 }
