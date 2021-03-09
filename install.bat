@@ -24,7 +24,7 @@ echo Building %PROJECT_NAME%.
 if not exist .\build\release mkdir .\build\release
 cd .\build\release
 
-cmake ..\.. -G "NMake Makefiles" -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%" -DCMAKE_BUILD_TYPE=Release
+cmake ..\.. -G "NMake Makefiles" -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%" -DCMAKE_BUILD_TYPE=Release -DROX_CLIENT=Yes
 if %errorlevel% neq 0 exit /b %errorlevel%
 
 nmake

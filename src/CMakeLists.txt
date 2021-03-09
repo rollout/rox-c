@@ -2,10 +2,6 @@
 
 include(external-libs.cmake)
 
-set(ROX_HEADERS
-        ../include/rox/server.h
-        ../include/roxx/server.h)
-
 set(ROX_SRC
         core/configuration/models.c
         core/impression/models.c
@@ -54,11 +50,6 @@ if (ROX_CLIENT)
             storage.c
             client.c
             client.cpp)
-    list(APPEND ROX_HEADERS ../include/rox/client.h ../include/roxx/client.h)
-endif ()
-
-if (NOT ROX_SERVER AND NOT ROX_CLIENT)
-    message(FATAL_ERROR "Neither ROX_SERVER nor ROX_CLIENT is defined")
 endif ()
 
 if (ROX_CLIENT)
@@ -79,7 +70,6 @@ add_library(rollout SHARED ${ROX_SRC})
 target_link_libraries(rollout ${ROX_EXTERNAL_LIBS})
 
 set_target_properties(rollout PROPERTIES
-        PUBLIC_HEADER "${ROX_HEADERS}"
         C_VISIBILITY_PRESET hidden
         COMPILE_DEFINITIONS "${ROX_COMPILE_DEFINITIONS};ROX_DLL;ROX_DLL_EXPORTS"
         VERSION ${ROX_VERSION_STRING}
@@ -91,8 +81,7 @@ set_target_properties(rollout_static PROPERTIES
 INSTALL(TARGETS rollout rollout_static
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
-        ARCHIVE DESTINATION lib
-        PUBLIC_HEADER DESTINATION include)
+        ARCHIVE DESTINATION lib)
 
 if (WIN32)
     set(ROX_RUNTIME_DIR bin)
@@ -101,3 +90,11 @@ else ()
 endif ()
 
 INSTALL(FILES ${ROX_EXTERNAL_LIB_RUNTIME_FILES} DESTINATION ${ROX_RUNTIME_DIR})
+
+if (ROX_CLIENT)
+    INSTALL(DIRECTORY "../include/rox" DESTINATION include)
+    INSTALL(DIRECTORY "../include/roxx" DESTINATION include)
+else ()
+    INSTALL(DIRECTORY "../include/rox" DESTINATION include PATTERN "client.h" EXCLUDE)
+    INSTALL(DIRECTORY "../include/roxx" DESTINATION include PATTERN "client.h" EXCLUDE)
+endif ()
