@@ -11,7 +11,6 @@ else ()
 endif ()
 
 FIND_PATH(ROX_INCLUDE_DIR rox/server.h)
-FIND_PATH(ROX_INCLUDE_DIR2 roxx/server.hpp)
 FIND_LIBRARY(ROX_LIBRARY NAMES rollout)
 SET(ROX_TARGET_NAME ROX::SDK)
 
@@ -27,7 +26,7 @@ if (ROX_FOUND)
     if (NOT TARGET ${ROX_TARGET_NAME})
         add_library(${ROX_TARGET_NAME} UNKNOWN IMPORTED)
         set_target_properties(${ROX_TARGET_NAME} PROPERTIES
-                INTERFACE_INCLUDE_DIRECTORIES "${ROX_INCLUDE_DIR} ${ROX_INCLUDE_DIR2}"
+                INTERFACE_INCLUDE_DIRECTORIES "${ROX_INCLUDE_DIR}"
                 IMPORTED_LOCATION "${ROX_LIBRARY}")
     endif ()
 else (ROX_FOUND)

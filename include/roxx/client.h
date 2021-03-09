@@ -22,7 +22,7 @@ namespace Rox {
 
         typedef enum RoxFreeze Freeze;
 
-        class ROX_API OptionsBuilder : Rox::OptionsBuilder {
+        class ROX_API OptionsBuilder : public Rox::OptionsBuilder {
         public:
 
             explicit OptionsBuilder() : Rox::OptionsBuilder() {}
@@ -37,7 +37,7 @@ namespace Rox {
          */
         ROX_API void Unfreeze(const char *ns = nullptr);
 
-        class ROX_API String : Rox::String {
+        class ROX_API String : public Rox::String {
         protected:
             explicit String(RoxStringBase *variant) : Rox::String(variant) {}
 
@@ -49,13 +49,14 @@ namespace Rox {
 
             void Unfreeze(::Rox::Client::Freeze freeze = RoxFreezeUntilLaunch);
 
-            static String *Create(const char *name, const char *defaultValue, ::Rox::Client::Freeze freeze);
+            static String *Create(const char *name, const char *defaultValue,
+                                  ::Rox::Client::Freeze freeze = RoxFreezeNone);
 
             static String *Create(const char *name, const char *defaultValue, const std::vector<std::string> &options,
-                                  ::Rox::Client::Freeze freeze);
+                                  ::Rox::Client::Freeze freeze = RoxFreezeNone);
         };
 
-        class ROX_API Flag : Rox::Flag {
+        class ROX_API Flag : public Rox::Flag {
         protected:
             explicit Flag(RoxStringBase *variant) : Rox::Flag(variant) {}
 
@@ -71,7 +72,7 @@ namespace Rox {
                                 ::Rox::Client::Freeze freeze = RoxFreezeNone);
         };
 
-        class ROX_API Int : Rox::Int {
+        class ROX_API Int : public Rox::Int {
         protected:
             explicit Int(RoxStringBase *variant) : Rox::Int(variant) {}
 
@@ -83,13 +84,14 @@ namespace Rox {
 
             void Unfreeze(::Rox::Client::Freeze freeze = RoxFreezeUntilLaunch);
 
-            static Int *Create(const char *name, int defaultValue, ::Rox::Client::Freeze freeze = RoxFreezeNone);
+            static Int *Create(const char *name, int defaultValue,
+                               ::Rox::Client::Freeze freeze = RoxFreezeNone);
 
             static Int *Create(const char *name, int defaultValue, const std::vector<int> &options,
                                ::Rox::Client::Freeze freeze = RoxFreezeNone);
         };
 
-        class ROX_API Double : Rox::Double {
+        class ROX_API Double : public Rox::Double {
         protected:
             explicit Double(RoxStringBase *variant) : Rox::Double(variant) {}
 
@@ -101,7 +103,8 @@ namespace Rox {
 
             void Unfreeze(::Rox::Client::Freeze freeze = RoxFreezeUntilLaunch);
 
-            static Double *Create(const char *name, double defaultValue, ::Rox::Client::Freeze freeze = RoxFreezeNone);
+            static Double *Create(const char *name, double defaultValue,
+                                  ::Rox::Client::Freeze freeze = RoxFreezeNone);
 
             static Double *Create(const char *name, double defaultValue, const std::vector<double> &options,
                                   ::Rox::Client::Freeze freeze = RoxFreezeNone);
