@@ -33,6 +33,20 @@ typedef RoxDynamicValue *(*variant_eval_func)(
  */
 ROX_INTERNAL EvaluationContext *eval_context_create(RoxStringBase *variant, RoxContext *context);
 
+typedef struct EvalContextConfig {
+    RoxStringBase *variant;
+    RoxContext *context;
+    bool invoke_impression;
+    bool use_freeze;
+    bool use_overrides;
+} EvalContextConfig;
+
+ROX_INTERNAL EvaluationContext *eval_context_create_custom(EvalContextConfig *config);
+
 ROX_INTERNAL RoxContext *eval_context_get_context(EvaluationContext *eval_context);
+
+ROX_INTERNAL bool eval_context_is_use_freeze(EvaluationContext *eval_context);
+
+ROX_INTERNAL bool eval_context_is_use_overrides(EvaluationContext *eval_context);
 
 ROX_INTERNAL void eval_context_free(EvaluationContext *context);

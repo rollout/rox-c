@@ -174,12 +174,31 @@ ROX_INTERNAL struct timespec get_current_timespec();
 ROX_INTERNAL struct timespec get_future_timespec(int ms);
 
 /**
+ * @param path Not <code>NULL</code>.
+ * @return Whether the given directory exists.
+ */
+ROX_INTERNAL bool mkdirs(const char *path);
+
+/**
  * @param file_path Path to the file to read. Not <code>NULL</code>.
  * @param buffer Not <code>NULL</code>.
  * @param buffer_size Not negative.
  * @return Number of bytes read or -1 in case of an error.
  */
 ROX_INTERNAL size_t rox_file_read_b(const char *file_path, unsigned char *buffer, size_t buffer_size);
+
+/**
+ * @param file_path Path to the file to read. Not <code>NULL</code>.
+ * @return May be <code>NULL</code>. Otherwise must be freed by the caller.
+ */
+ROX_INTERNAL char *mem_file_read(const char *file_path);
+
+/**
+ * @param file_path Path to the file to write to. Not <code>NULL</code>.
+ * @param data Not <code>NULL</code>.
+ * @return Whether the write operation was successful.
+ */
+ROX_INTERNAL bool str_to_file(const char *file_path, const char *data);
 
 ROX_INTERNAL cJSON *rox_json_create_object(void *skip, ...);
 

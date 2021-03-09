@@ -14,6 +14,11 @@
 ROX_INTERNAL const char *FLAG_TRUE_VALUE = "true";
 ROX_INTERNAL const char *FLAG_FALSE_VALUE = "false";
 
+typedef struct FlagExtraData {
+    void *data;
+    variant_free_data_func free_data_func;
+} FlagExtraData;
+
 struct RoxStringBase {
     char *default_value;
     RoxList *options;
@@ -28,8 +33,7 @@ struct RoxStringBase {
     bool is_int;
     bool is_double;
     variant_eval_func eval_func;
-    void *data;
-    variant_free_data_func free_data_func;
+    RoxMap *extra;
 };
 
 static RoxStringBase *variant_create_ptr(char *default_value, RoxList *options) {
@@ -43,6 +47,7 @@ static RoxStringBase *variant_create_ptr(char *default_value, RoxList *options) 
     if (variant->default_value && !str_in_list(variant->default_value, variant->options)) {
         rox_list_add(variant->options, mem_copy_str(variant->default_value));
     }
+    variant->extra = ROX_EMPTY_MAP;
     return variant;
 }
 
@@ -193,6 +198,13 @@ ROX_INTERNAL void variant_set_condition(RoxStringBase *variant, const char *cond
 
 ROX_INTERNAL void variant_free(RoxStringBase *variant) {
     assert(variant);
+    ROX_MAP_FOREACH(key, val, variant->extra, {
+        FlagExtraData *extra = val;
+        if (extra->data && extra->free_data_func) {
+            extra->free_data_func(extra->data);
+        }
+    })
+    rox_map_free_with_values_cb(variant->extra, free);
     variant_reset_evaluation_context(variant);
     if (variant->name) {
         free(variant->name);
@@ -205,9 +217,6 @@ ROX_INTERNAL void variant_free(RoxStringBase *variant) {
     }
     if (variant->experiment) {
         experiment_model_free(variant->experiment);
-    }
-    if (variant->data) {
-        variant->free_data_func(variant->data);
     }
     free(variant);
 }
@@ -334,21 +343,41 @@ static RoxDynamicValue *result_to_bool_value(EvaluationResult *result) {
 struct EvaluationContext {
     RoxStringBase *variant;
     RoxContext *context;
+    bool invoke_impression;
+    bool use_freeze;
+    bool use_overrides;
 };
 
 ROX_INTERNAL void variant_set_config(RoxStringBase *variant, VariantConfig *config) {
     assert(variant != NULL);
     assert(config != NULL);
-    variant->data = config->data;
-    variant->free_data_func = config->free_data_func;
     if (config->eval_func) {
         variant->eval_func = config->eval_func;
     }
 }
 
-ROX_INTERNAL void *variant_get_data(RoxStringBase *variant) {
+ROX_INTERNAL void variant_add_data(
+        RoxStringBase *variant,
+        const char *key,
+        void *data,
+        variant_free_data_func free_data_func) {
+    assert(variant);
+    assert(key);
+    assert(data);
+    FlagExtraData *entry = calloc(1, sizeof(FlagExtraData));
+    entry->data = data;
+    entry->free_data_func = free_data_func;
+    rox_map_add(variant->extra, (void *) key, entry);
+}
+
+ROX_INTERNAL void *variant_get_data(RoxStringBase *variant, const char *key) {
     assert(variant != NULL);
-    return variant->data;
+    void *p;
+    if (rox_map_get(variant->extra, key, &p)) {
+        FlagExtraData *entry = p;
+        return entry->data;
+    }
+    return NULL;
 }
 
 ROX_INTERNAL variant_eval_func variant_get_eval_func(RoxStringBase *variant) {
@@ -388,7 +417,7 @@ ROX_INTERNAL RoxDynamicValue *variant_get_value(
     if (!ret_val) {
         ret_val = converter->from_string(default_value);
     }
-    if (variant->impression_invoker) {
+    if ((!eval_context || eval_context->invoke_impression) && variant->impression_invoker) {
         char *string_value = converter->to_string(ret_val);
         RoxReportingValue *reporting_value = reporting_value_create(
                 variant->name,
@@ -409,12 +438,38 @@ ROX_INTERNAL EvaluationContext *eval_context_create(RoxStringBase *variant, RoxC
     EvaluationContext *ctx = calloc(1, sizeof(EvaluationContext));
     ctx->variant = variant;
     ctx->context = variant ? rox_context_create_merged(variant->global_context, context) : context;
+    ctx->invoke_impression = true;
+    ctx->use_freeze = true;
+    ctx->use_overrides = true;
+    return ctx;
+}
+
+ROX_INTERNAL EvaluationContext *eval_context_create_custom(EvalContextConfig *config) {
+    assert(config != NULL);
+    EvaluationContext *ctx = calloc(1, sizeof(EvaluationContext));
+    ctx->variant = config->variant;
+    ctx->context = config->variant
+                   ? rox_context_create_merged(config->variant->global_context, config->context)
+                   : config->context;
+    ctx->invoke_impression = config->invoke_impression;
+    ctx->use_freeze = config->use_freeze;
+    ctx->use_overrides = config->use_overrides;
     return ctx;
 }
 
 ROX_INTERNAL RoxContext *eval_context_get_context(EvaluationContext *eval_context) {
     assert(eval_context);
     return eval_context->context;
+}
+
+ROX_INTERNAL bool eval_context_is_use_freeze(EvaluationContext *eval_context) {
+    assert(eval_context);
+    return eval_context->use_freeze;
+}
+
+ROX_INTERNAL bool eval_context_is_use_overrides(EvaluationContext *eval_context) {
+    assert(eval_context);
+    return eval_context->use_overrides;
 }
 
 ROX_INTERNAL void eval_context_free(EvaluationContext *context) {
@@ -500,6 +555,31 @@ ROX_INTERNAL bool variant_get_bool(RoxStringBase *variant, const char *default_v
     bool return_value = rox_dynamic_value_get_boolean(value);
     rox_dynamic_value_free(value);
     return return_value;
+}
+
+ROX_INTERNAL char *variant_get_value_as_string(RoxStringBase *variant, EvaluationContext *eval_context) {
+    assert(variant);
+    assert(eval_context);
+    FlagValueConverter *converter;
+    RoxDynamicValue *value;
+    if (variant->is_flag) {
+        value = rox_dynamic_value_create_boolean(variant_get_bool(variant, variant->default_value, eval_context));
+        converter = &BOOL_CONVERTER;
+    } else if (variant->is_int) {
+        value = rox_dynamic_value_create_int(variant_get_int(variant, variant->default_value, eval_context));
+        converter = &INT_CONVERTER;
+    } else if (variant->is_double) {
+        value = rox_dynamic_value_create_double(variant_get_double(variant, variant->default_value, eval_context));
+        converter = &DOUBLE_CONVERTER;
+    } else if (variant->is_string) {
+        value = rox_dynamic_value_create_string_ptr(variant_get_string(variant, variant->default_value, eval_context));
+        converter = &STRING_CONVERTER;
+    } else {
+        return NULL;
+    }
+    char *result = converter->to_string(value);
+    rox_dynamic_value_free(value);
+    return result;
 }
 
 //

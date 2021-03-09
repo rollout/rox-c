@@ -20,8 +20,8 @@ ROX_API bool rox_has_override(FlagOverrides *overrides, const char *name);
 
 /**
  * @param overrides Not <code>NULL</code>.
- * @param name Not <code>NULL</code>.
- * @param value Not <code>NULL</code>.
+ * @param name Not <code>NULL</code>. Value is copied internally.
+ * @param value Not <code>NULL</code>. Value is copied internally.
  */
 ROX_API void rox_set_override(FlagOverrides *overrides, const char *name, const char *value);
 

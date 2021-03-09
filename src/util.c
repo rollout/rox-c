@@ -20,6 +20,7 @@
 
 #else
 #include <unistd.h>
+#include <sys/stat.h>
 #endif
 
 #ifdef ROX_APPLE
@@ -397,6 +398,75 @@ ROX_INTERNAL struct timespec get_future_timespec(int ms) {
     return due;
 }
 
+#ifdef ROX_WINDOWS
+static const char SEP = '\\';
+#else
+static const char SEP = '/';
+#endif
+
+static char *mem_os_path(const char *path) {
+    assert(path);
+#ifdef ROX_WINDOWS
+    return mem_str_replace(path, "/", "\\");
+#else
+    return mem_str_replace(path, "\\", "/");
+#endif
+}
+
+static bool mkdir(const char *path) {
+#ifdef ROX_WINDOWS
+    if (CreateDirectory(path, NULL) == FALSE) {
+        if (GetLastError() != ERROR_ALREADY_EXISTS) {
+            return false;
+        }
+    }
+#else
+    if (mkdir(temp, 0774) != 0) {
+        if (errno != EEXIST) {
+            return false;
+        }
+    }
+#endif
+    return true;
+}
+
+ROX_INTERNAL bool mkdirs(const char *path) {
+
+    char *os_path = mem_os_path(path);
+    char *p;
+    char *temp;
+
+    temp = calloc(1, strlen(os_path) + 1);
+    /* Skip Windows drive letter. */
+    if ((p = strchr(os_path, ':') != NULL)) {
+        p += 2;
+    } else {
+        p = os_path + 1;
+    }
+
+    while ((p = strchr(p, SEP)) != NULL) {
+        /* Skip empty elements. Could be a Windows UNC path or
+           just multiple separators which is okay. */
+        if (p != os_path && *(p - 1) == SEP) {
+            p++;
+            continue;
+        }
+        /* Put the path up to this point into a temporary to
+           pass to the make directory function. */
+        memcpy(temp, os_path, p - os_path);
+        temp[p - os_path] = '\0';
+        p++;
+        if (!mkdir(temp)) {
+            return false;
+        }
+    }
+    free(temp);
+
+    bool ret = mkdir(os_path);
+    free(os_path);
+    return ret;
+}
+
 ROX_INTERNAL size_t rox_file_read_b(const char *file_path, unsigned char *buffer, size_t buffer_size) {
     FILE *fp;
     if (!(fp = (fopen(file_path, "rb")))) {
@@ -425,6 +495,59 @@ ROX_INTERNAL size_t rox_file_read_b(const char *file_path, unsigned char *buffer
     }
     fclose(fp);
     return file_size;
+}
+
+ROX_INTERNAL char *mem_file_read(const char *file_path) {
+    assert(file_path);
+
+    FILE *fp;
+    if (fopen_s(&fp, file_path, "rb") != 0) {
+        ROX_WARN("failed to open file %s for read", file_path);
+        return NULL;
+    }
+
+    fseek(fp, 0L, SEEK_END);
+    long size = ftell(fp);
+    rewind(fp);
+
+    char *buffer = malloc(size + 1);
+    if (!buffer) {
+        ROX_WARN("failed to read file %s: memory alloc fails", file_path);
+        return NULL;
+    }
+
+    if (size != fread(buffer, size, 1, fp)) {
+        ROX_WARN("Problem reading file %s", file_path);
+        fclose(fp);
+        free(buffer);
+        return NULL;
+    }
+
+    fclose(fp);
+    buffer[size] = 0;
+    return buffer;
+}
+
+ROX_INTERNAL bool str_to_file(const char *file_path, const char *data) {
+    assert(file_path);
+    assert(data);
+
+
+    FILE *fp;
+    if (fopen_s(&fp, file_path, "w") != 0) {
+        ROX_WARN("Failed to open file %s for write", file_path);
+        return false;
+    }
+
+    size_t size = strlen(data);
+    if (fwrite(data, sizeof(char), size, fp) != size) {
+        ROX_WARN("Problem writing file %s", file_path);
+        fclose(fp);
+        return false;
+    }
+
+    fclose(fp);
+    return true;
 }
 
 // calculate the size of 'output' buffer required for a 'input' buffer of length x during Base64 encoding operation

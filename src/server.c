@@ -9,7 +9,8 @@
 
 #ifdef ROX_CLIENT
 
-    #include "client.h"
+#include "freeze.h"
+#include "overrides.h"
 
 #endif
 
@@ -87,6 +88,7 @@ static bool is_error_state(RoxStateCode state) {
 static void reset_state() {
     rox_global->state = RoxShuttingDown;
 #ifdef ROX_CLIENT
+    rox_overrides_uninit();
     rox_freeze_uninit();
 #endif
     rox_core_free(rox_global->core);
@@ -155,7 +157,11 @@ ROX_API RoxStateCode rox_setup(const char *api_key, RoxOptions *options) {
                            &ROX_CUSTOM_PROPERTY_TYPE_STRING);
 
 #ifdef ROX_CLIENT
+    // NOTE: the order is important here because first we must check if the flag value
+    // is overridden, and then use the frozen value. If applying in reverse order,
+    // it will make flag freeze check first.
     rox_freeze_init(rox->core, options);
+    rox_overrides_init(rox->core, options);
 #endif
 
     rox->state = rox_core_setup(rox->core, rox->sdk_settings, rox->device_properties, options);

@@ -7,8 +7,6 @@
 typedef void *(*variant_free_data_func)(void *data);
 
 typedef struct VariantConfig {
-    void *data;
-    variant_free_data_func free_data_func;
     variant_eval_func eval_func;
 } VariantConfig;
 
@@ -20,10 +18,22 @@ ROX_INTERNAL void variant_set_config(RoxStringBase *variant, VariantConfig *conf
 
 /**
  * @param variant Not <code>NULL</code>.
- * @param config Not <code>NULL</code>.
+ * @param key Not <code>NULL</code>.
+ * @param data Not <code>NULL</code>.
+ * @param free_data_func May be <code>NULL</code>.
+ */
+ROX_INTERNAL void variant_add_data(
+        RoxStringBase *variant,
+        const char *key,
+        void *data,
+        variant_free_data_func free_data_func);
+
+/**
+ * @param variant Not <code>NULL</code>.
+ * @param key Not <code>NULL</code>.
  * @return May be <code>NULL</code>.
  */
-ROX_INTERNAL void *variant_get_data(RoxStringBase *variant);
+ROX_INTERNAL void *variant_get_data(RoxStringBase *variant, const char *key);
 
 /**
  * @param variant Not <code>NULL</code>.
@@ -168,6 +178,19 @@ variant_get_double(RoxStringBase *variant, const char *default_value, Evaluation
  * @param eval_context May be <code>NULL</code>.
  */
 ROX_INTERNAL bool variant_get_bool(RoxStringBase *variant, const char *default_value, EvaluationContext *eval_context);
+
+/**
+ * Returns the string representation of the value, using the value's type defined in
+ * its constructor. It first evaluates to the type-specific value, and then converted
+ * to string using the type converted. This is needed for flag overrides mostly.
+ *
+ * The returned value must be freed by the caller.
+ *
+ * @param variant Not <code>NULL</code>.
+ * @param eval_context May be <code>NULL</code>.
+ * @return May be <code>NULL</code> if the flag value is <code>NULL</code>.
+ */
+ROX_INTERNAL char *variant_get_value_as_string(RoxStringBase *variant, EvaluationContext *eval_context);
 
 /**
  * Ownership on <code>parser</code>, <code>experiment</code>,

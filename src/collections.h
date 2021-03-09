@@ -50,6 +50,14 @@ ROX_INTERNAL bool rox_map_add(RoxMap *map, void *key, void *val);
 
 ROX_INTERNAL bool rox_map_remove(RoxMap *map, void *key, void **out);
 
+ROX_INTERNAL bool rox_map_remove_cb(RoxMap *map, void *key, void (*cb)(void *));
+
+ROX_INTERNAL bool rox_map_remove_key_value_cb(
+        RoxMap *map,
+        void *key,
+        void (*f_key)(void *),
+        void (*f_value)(void *));
+
 ROX_INTERNAL bool rox_map_contains_key(RoxMap *map, void *key);
 
 ROX_INTERNAL bool rox_map_get(RoxMap *map, void *key, void **out);

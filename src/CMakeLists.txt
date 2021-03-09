@@ -92,9 +92,22 @@ endif ()
 INSTALL(FILES ${ROX_EXTERNAL_LIB_RUNTIME_FILES} DESTINATION ${ROX_RUNTIME_DIR})
 
 if (ROX_CLIENT)
+
     INSTALL(DIRECTORY "../include/rox" DESTINATION include)
     INSTALL(DIRECTORY "../include/roxx" DESTINATION include)
+
 else ()
-    INSTALL(DIRECTORY "../include/rox" DESTINATION include PATTERN "client.h" EXCLUDE)
-    INSTALL(DIRECTORY "../include/roxx" DESTINATION include PATTERN "client.h" EXCLUDE)
+
+    INSTALL(DIRECTORY "../include/rox" DESTINATION include
+            PATTERN "client.h" EXCLUDE
+            PATTERN "freeze.h" EXCLUDE
+            PATTERN "overrides.h" EXCLUDE
+            PATTERN "storage.h" EXCLUDE)
+
+    INSTALL(DIRECTORY "../include/roxx" DESTINATION include
+            PATTERN "client.h" EXCLUDE
+            PATTERN "freeze.h" EXCLUDE
+            PATTERN "overrides.h" EXCLUDE
+            PATTERN "storage.h" EXCLUDE)
+
 endif ()
