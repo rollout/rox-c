@@ -65,7 +65,16 @@ typedef struct FlagTestFixture {
     bool test_flag_action_called;
     RequestTestFixture *request;
     LoggingTestFixture *logging;
+    RoxMap *storage_values;
 } FlagTestFixture;
+
+#ifdef ROX_CLIENT
+ROX_INTERNAL FlagTestFixture *flag_test_fixture_create_with_options_and_storage(
+        RoxOptions *options,
+        const char* data);
+
+ROX_INTERNAL FlagTestFixture *flag_test_fixture_create_with_storage(const char *data);
+#endif
 
 ROX_INTERNAL FlagTestFixture *flag_test_fixture_create_with_options(RoxOptions *options);
 
@@ -86,9 +95,9 @@ ROX_INTERNAL void flag_test_fixture_set_flag_experiment(
         RoxStringBase *flag,
         const char *condition);
 
-ROX_INTERNAL void check_no_impression(FlagTestFixture *ctx);
+ROX_INTERNAL void flag_test_fixture_check_no_impression(FlagTestFixture *ctx);
 
-ROX_INTERNAL void check_impression(FlagTestFixture *ctx, const char *value);
+ROX_INTERNAL void flag_test_fixture_check_impression(FlagTestFixture *ctx, const char *value);
 
 ROX_INTERNAL void check_impression_ex(FlagTestFixture *ctx, const char *value, bool targeting);
 

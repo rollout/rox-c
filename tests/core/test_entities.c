@@ -91,7 +91,7 @@ START_TEST (test_will_expression_value_when_result_not_in_options) {
     RoxStringBase *variant = rox_add_string_with_options("name", "1", ROX_LIST_COPY_STR("2", "3"));
     flag_test_fixture_set_experiments(ctx, ROX_MAP("name", "\"xxx\""));
     check_variant_value_eq(variant, "xxx");
-    check_impression(ctx, "xxx");
+    flag_test_fixture_check_impression(ctx, "xxx");
     flag_test_fixture_free(ctx);
 }
 
@@ -102,7 +102,7 @@ START_TEST (test_will_return_value_when_on_evaluation) {
     RoxStringBase *variant = rox_add_string_with_options("name", "1", ROX_LIST_COPY_STR("2", "3"));
     flag_test_fixture_set_experiments(ctx, ROX_MAP("name", "\"2\""));
     check_variant_value_eq(variant, "2");
-    check_impression(ctx, "2");
+    flag_test_fixture_check_impression(ctx, "2");
     flag_test_fixture_free(ctx);
 }
 
@@ -119,7 +119,7 @@ START_TEST (test_will_use_context) {
             ROX_MAP(mem_copy_str("key"), rox_dynamic_value_create_int(55)));
 
     check_variant_value_ctx_eq(variant, context, "2");
-    check_impression(ctx, "2");
+    flag_test_fixture_check_impression(ctx, "2");
     ck_assert(ctx->imp_context_value);
     ck_assert_int_eq(55, rox_dynamic_value_get_int(ctx->imp_context_value));
 
@@ -134,7 +134,7 @@ START_TEST (test_will_raise_impression) {
     RoxStringBase *variant = rox_add_string_with_options("name", "1", ROX_LIST_COPY_STR("2", "3"));
     flag_test_fixture_set_experiments(ctx, ROX_MAP("name", "\"2\""));
     check_variant_value_eq(variant, "2");
-    check_impression(ctx, "2");
+    flag_test_fixture_check_impression(ctx, "2");
     flag_test_fixture_free(ctx);
 }
 

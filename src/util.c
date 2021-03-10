@@ -21,6 +21,7 @@
 #else
 #include <unistd.h>
 #include <sys/stat.h>
+#include <errno.h>
 #endif
 
 #ifdef ROX_APPLE
@@ -413,7 +414,7 @@ static char *mem_os_path(const char *path) {
 #endif
 }
 
-static bool mkdir(const char *path) {
+static bool ensure_directory_exists(const char *path) {
 #ifdef ROX_WINDOWS
     if (CreateDirectory(path, NULL) == FALSE) {
         if (GetLastError() != ERROR_ALREADY_EXISTS) {
@@ -421,7 +422,7 @@ static bool mkdir(const char *path) {
         }
     }
 #else
-    if (mkdir(temp, 0774) != 0) {
+    if (mkdir(path, 0774) != 0) {
         if (errno != EEXIST) {
             return false;
         }
@@ -456,13 +457,13 @@ ROX_INTERNAL bool mkdirs(const char *path) {
         memcpy(temp, os_path, p - os_path);
         temp[p - os_path] = '\0';
         p++;
-        if (!mkdir(temp)) {
+        if (!ensure_directory_exists(temp)) {
             return false;
         }
     }
     free(temp);
 
-    bool ret = mkdir(os_path);
+    bool ret = ensure_directory_exists(os_path);
     free(os_path);
     return ret;
 }
@@ -500,8 +501,8 @@ ROX_INTERNAL size_t rox_file_read_b(const char *file_path, unsigned char *buffer
 ROX_INTERNAL char *mem_file_read(const char *file_path) {
     assert(file_path);
 
-    FILE *fp;
-    if (fopen_s(&fp, file_path, "rb") != 0) {
+    FILE *fp = fopen(file_path, "rb");
+    if (!fp) {
         ROX_WARN("failed to open file %s for read", file_path);
         return NULL;
     }
@@ -516,7 +517,7 @@ ROX_INTERNAL char *mem_file_read(const char *file_path) {
         return NULL;
     }
 
-    if (size != fread(buffer, size, 1, fp)) {
+    if (size != fread(buffer, sizeof(char), size, fp)) {
         ROX_WARN("Problem reading file %s", file_path);
         fclose(fp);
         free(buffer);
@@ -533,8 +534,8 @@ ROX_INTERNAL bool str_to_file(const char *file_path, const char *data) {
     assert(data);
 
 
-    FILE *fp;
-    if (fopen_s(&fp, file_path, "w") != 0) {
+    FILE *fp = fopen(file_path, "w");
+    if (!fp) {
         ROX_WARN("Failed to open file %s for write", file_path);
         return false;
     }
@@ -690,7 +691,7 @@ ROX_INTERNAL cJSON *rox_json_create_array(void *skip, ...) {
     return arr;
 }
 
-#define ROX_JSON_PRINT_BUFFER_SIZE 10240
+#define ROX_JSON_PRINT_BUFFER_SIZE 20480
 
 ROX_INTERNAL char *rox_json_print(cJSON *json, unsigned int flags) {
     char *buffer = malloc(ROX_JSON_PRINT_BUFFER_SIZE);

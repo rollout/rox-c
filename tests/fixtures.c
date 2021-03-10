@@ -7,12 +7,18 @@
 #include "collections.h"
 #include "server.h"
 
+#ifdef ROX_CLIENT
+
+#include "rox/storage.h"
+
+#endif
+
 // Network
 
-static HttpResponseMessage *_test_request_send_get_func(void *target, Request *request, RequestData *data) {
+static HttpResponseMessage *test_request_send_get_func(void *target, Request *request, RequestData *data) {
     assert(target);
     assert(request);
-    assert(data);
+    assert(data != NULL);
     RequestTestFixture *ctx = (RequestTestFixture *) target;
     ++ctx->times_get_sent;
     if (ctx->last_get_uri) {
@@ -33,10 +39,10 @@ static HttpResponseMessage *_test_request_send_get_func(void *target, Request *r
             : NULL);
 }
 
-static HttpResponseMessage *_test_request_send_post_func(void *target, Request *request, RequestData *data) {
+static HttpResponseMessage *test_request_send_post_func(void *target, Request *request, RequestData *data) {
     assert(target);
     assert(request);
-    assert(data);
+    assert(data != NULL);
     RequestTestFixture *ctx = (RequestTestFixture *) target;
     ++ctx->times_post_sent;
     if (ctx->last_post_uri) {
@@ -58,7 +64,7 @@ static HttpResponseMessage *_test_request_send_post_func(void *target, Request *
 }
 
 static HttpResponseMessage *
-_test_request_send_post_json_func(void *target, Request *request, const char *uri, cJSON *json) {
+test_request_send_post_json_func(void *target, Request *request, const char *uri, cJSON *json) {
     assert(target);
     assert(request);
     assert(uri);
@@ -80,8 +86,8 @@ _test_request_send_post_json_func(void *target, Request *request, const char *ur
 
 ROX_INTERNAL RequestTestFixture *request_test_fixture_create() {
     RequestTestFixture *ctx = calloc(1, sizeof(RequestTestFixture));
-    RequestConfig config = {ctx, _test_request_send_get_func, &_test_request_send_post_func,
-                            &_test_request_send_post_json_func};
+    RequestConfig config = {ctx, test_request_send_get_func, &test_request_send_post_func,
+                            &test_request_send_post_json_func};
     ctx->config = config;
     ctx->request = request_create(&ctx->config);
     return ctx;
@@ -112,13 +118,13 @@ ROX_INTERNAL void request_test_fixture_free(RequestTestFixture *ctx) {
 // Logging
 //
 
-static void _log_record_free(LogRecord *record) {
+static void log_record_free(LogRecord *record) {
     assert(record);
     free(record->message);
     free(record);
 }
 
-static void _test_logging_handler(void *target, RoxLogMessage *message) {
+static void test_logging_handler(void *target, RoxLogMessage *message) {
     assert(target);
     LoggingTestFixture *fixture = (LoggingTestFixture *) target;
     LogRecord *record = calloc(1, sizeof(LogRecord));
@@ -140,14 +146,14 @@ static void _test_logging_handler(void *target, RoxLogMessage *message) {
 ROX_INTERNAL LoggingTestFixture *logging_test_fixture_create(RoxLogLevel log_level) {
     LoggingTestFixture *fixture = calloc(1, sizeof(LoggingTestFixture));
     fixture->log_records = rox_list_create();
-    RoxLoggingConfig cfg = {log_level, fixture, &_test_logging_handler, true};
+    RoxLoggingConfig cfg = {log_level, fixture, &test_logging_handler, true};
     rox_logging_init(&cfg);
     return fixture;
 }
 
 ROX_INTERNAL void logging_test_fixture_free(LoggingTestFixture *fixture) {
     assert(fixture);
-    rox_list_free_cb(fixture->log_records, (void (*)(void *)) &_log_record_free);
+    rox_list_free_cb(fixture->log_records, (void (*)(void *)) &log_record_free);
     free(fixture);
 }
 
@@ -204,16 +210,72 @@ static void test_flag_action(void *target) {
     ctx->test_flag_action_called = true;
 }
 
-ROX_INTERNAL FlagTestFixture *flag_test_fixture_create_with_options(RoxOptions *options) {
-    FlagTestFixture *ctx = calloc(1, sizeof(FlagTestFixture));
-    ctx->request = request_test_fixture_create();
-    ctx->logging = logging_test_fixture_create(RoxLogLevelDebug);
-    rox_set_default_request_config(&ctx->request->config);
-    rox_options_set_impression_handler(options, ctx, &test_impression_handler);
+static FlagTestFixture *flag_test_fixture_create_new() {
+    FlagTestFixture *fixture = calloc(1, sizeof(FlagTestFixture));
+    fixture->request = request_test_fixture_create();
+    fixture->logging = logging_test_fixture_create(RoxLogLevelDebug);
+    fixture->storage_values = ROX_EMPTY_MAP;
+    rox_set_default_request_config(&fixture->request->config);
+    return fixture;
+}
+
+static void flag_test_fixture_setup_with_options(FlagTestFixture *fixture, RoxOptions *options) {
+    rox_options_set_impression_handler(options, fixture, &test_impression_handler);
     rox_options_set_roxy_url(options, "http://localhost");
     RoxStateCode status = rox_setup("any", options);
     ck_assert_int_eq(RoxInitialized, status);
-    return ctx;
+}
+
+#ifdef ROX_CLIENT
+
+static void in_memory_storage_write(void *target, RoxStorageEntry *entry, const char *data) {
+    rox_storage_entry_set_meta_data(entry, mem_copy_str(data), free);
+}
+
+static char *in_memory_storage_read(void *target, RoxStorageEntry *entry) {
+    void *data = rox_storage_entry_get_meta_data(entry);
+    if (!data) {
+        FlagTestFixture *fixture = target;
+        const char *name = rox_storage_entry_get_name(entry);
+        rox_map_get(fixture->storage_values, (void *) name, &data);
+        if (data) {
+            return mem_copy_str(data);
+        }
+    }
+    return data;
+}
+
+ROX_INTERNAL FlagTestFixture *flag_test_fixture_create_with_options_and_storage(
+        RoxOptions *options,
+        const char *data) {
+    FlagTestFixture *fixture = flag_test_fixture_create_new();
+    if (data) {
+        rox_map_add(fixture->storage_values, "overrides", data);
+    }
+    RoxStorageConfig storage_config = {
+            NULL,
+            fixture,
+            NULL,
+            NULL,
+            in_memory_storage_write,
+            in_memory_storage_read,
+            NULL
+    };
+    rox_options_set_storage_config(options, &storage_config);
+    flag_test_fixture_setup_with_options(fixture, options);
+    return fixture;
+}
+
+ROX_INTERNAL FlagTestFixture *flag_test_fixture_create_with_storage(const char *data) {
+    return flag_test_fixture_create_with_options_and_storage(rox_options_create(), data);
+}
+
+#endif
+
+ROX_INTERNAL FlagTestFixture *flag_test_fixture_create_with_options(RoxOptions *options) {
+    FlagTestFixture *fixture = flag_test_fixture_create_new();
+    flag_test_fixture_setup_with_options(fixture, options);
+    return fixture;
 }
 
 ROX_INTERNAL FlagTestFixture *flag_test_fixture_create() {
@@ -268,6 +330,7 @@ ROX_INTERNAL void flag_test_fixture_set_experiments(FlagTestFixture *ctx, RoxMap
 
     if (ctx->request->data_to_return_to_get) {
         free(ctx->request->data_to_return_to_get);
+        ctx->request->data_to_return_to_get = NULL;
     }
 
     ctx->request->status_to_return_to_get = 200;
@@ -291,12 +354,12 @@ ROX_INTERNAL void flag_test_fixture_set_flag_experiment(
             condition));
 }
 
-ROX_INTERNAL void check_no_impression(FlagTestFixture *ctx) {
+ROX_INTERNAL void flag_test_fixture_check_no_impression(FlagTestFixture *ctx) {
     ck_assert(!ctx->test_impression_raised);
     ck_assert_ptr_null(ctx->last_impression_value);
 }
 
-ROX_INTERNAL void check_impression(FlagTestFixture *ctx, const char *value) {
+ROX_INTERNAL void flag_test_fixture_check_impression(FlagTestFixture *ctx, const char *value) {
     ck_assert(ctx->test_impression_raised);
     ck_assert_str_eq(value, ctx->last_impression_value);
     ctx->test_impression_raised = false;
@@ -305,7 +368,7 @@ ROX_INTERNAL void check_impression(FlagTestFixture *ctx, const char *value) {
 }
 
 ROX_INTERNAL void check_impression_ex(FlagTestFixture *ctx, const char *value, bool targeting) {
-    check_impression(ctx, value);
+    flag_test_fixture_check_impression(ctx, value);
     if (targeting) {
         ck_assert(ctx->last_impression_targeting);
     } else {
@@ -314,7 +377,10 @@ ROX_INTERNAL void check_impression_ex(FlagTestFixture *ctx, const char *value, b
 }
 
 ROX_INTERNAL void flag_test_fixture_free(FlagTestFixture *ctx) {
-    free(ctx->request->data_to_return_to_get);
+    if (ctx->request->data_to_return_to_get) {
+        free(ctx->request->data_to_return_to_get);
+    }
+    rox_map_free(ctx->storage_values);
     rox_set_default_request_config(NULL);
     request_test_fixture_free(ctx->request);
     logging_test_fixture_free(ctx->logging);

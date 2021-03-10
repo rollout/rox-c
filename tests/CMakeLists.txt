@@ -14,10 +14,17 @@ set(ROX_TEST_SRC fixtures.c)
 add_library(roxtest ${ROX_TEST_SRC})
 target_link_libraries(roxtest ${LIBS})
 
+if (ROX_CLIENT)
+    set_target_properties(roxtest PROPERTIES COMPILE_DEFINITIONS "ROX_CLIENT")
+endif ()
+
 list(APPEND LIBS roxtest)
 
 if (NOT ROX_CLIENT)
-    set(ROX_SKIP_TESTS test_freeze)
+    set(ROX_SKIP_TESTS
+            test_freeze
+            test_overrides
+            test_storage)
 endif ()
 
 rox_add_tests(".c" "${LIBS}")

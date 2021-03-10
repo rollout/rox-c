@@ -8,21 +8,21 @@
 #include "core/logging.h"
 #include "storage.h"
 
-struct FlagOverrides {
+struct RoxFlagOverrides {
     RoxMap *values;
-    StorageEntry *storage_entry;
+    RoxStorageEntry *storage_entry;
 };
 
 static const char *FLAG_DATA_KEY = "overrides";
 static const char *STORAGE_ENTRY_KEY = "overrides";
 
-static Storage *storage = NULL;
-static FlagOverrides *global_overrides = NULL;
-static FlagRepository *flag_repository = NULL;
-static void *flag_added_callback_handle = NULL;
+static RoxStorage *global_storage = NULL;
+static RoxFlagOverrides *global_overrides = NULL;
+static FlagRepository *global_flag_repository = NULL;
+static void *global_flag_added_callback_handle = NULL;
 
-static FlagOverrides *flag_overrides_create(StorageEntry *entry) {
-    FlagOverrides *overrides = calloc(1, sizeof(FlagOverrides));
+static RoxFlagOverrides *flag_overrides_create(RoxStorageEntry *entry) {
+    RoxFlagOverrides *overrides = calloc(1, sizeof(RoxFlagOverrides));
     overrides->storage_entry = entry;
     if (entry) {
         overrides->values = storage_read_string_key_value_map(entry);
@@ -33,18 +33,20 @@ static FlagOverrides *flag_overrides_create(StorageEntry *entry) {
     return overrides;
 }
 
-static void flag_overrides_free(FlagOverrides *overrides) {
+static void flag_overrides_free(RoxFlagOverrides *overrides) {
     assert(overrides);
-    rox_map_free_with_keys_and_values_cb(overrides->values, free, free);
+    if (overrides->values) {
+        rox_map_free_with_keys_and_values_cb(overrides->values, free, free);
+    }
     free(overrides);
 }
 
 typedef struct OverrideFlagData {
-    FlagOverrides *overrides;
+    RoxFlagOverrides *overrides;
     variant_eval_func original_eval_func;
 } OverrideFlagData;
 
-static OverrideFlagData *override_flag_data_create(RoxStringBase *variant, FlagOverrides *overrides) {
+static OverrideFlagData *override_flag_data_create(RoxStringBase *variant, RoxFlagOverrides *overrides) {
     assert(variant);
     assert(overrides);
     OverrideFlagData *data = calloc(1, sizeof(OverrideFlagData));
@@ -84,7 +86,7 @@ static RoxDynamicValue *override_flag_eval_func(
             eval_context, converter);
 }
 
-static void init_flag_overrides(RoxStringBase *variant, FlagOverrides *overrides) {
+static void init_flag_overrides(RoxStringBase *variant, RoxFlagOverrides *overrides) {
     assert(variant);
     OverrideFlagData *data = override_flag_data_create(variant, overrides);
     VariantConfig config = {override_flag_eval_func};
@@ -95,7 +97,7 @@ static void init_flag_overrides(RoxStringBase *variant, FlagOverrides *overrides
 static void override_flag_added_callback(void *target, RoxStringBase *variant) {
     assert(variant);
     assert(target);
-    FlagOverrides *overrides = target;
+    RoxFlagOverrides *overrides = target;
     init_flag_overrides(variant, overrides);
 }
 
@@ -105,19 +107,28 @@ ROX_INTERNAL void rox_overrides_init(RoxCore *core, RoxOptions *options) {
 
     rox_overrides_uninit(); // free all existing data, if any
 
-    StorageConfig *storage_config = get_storage_config_from_options(options);
-    storage = storage_create(storage_config);
+    RoxStorageConfig *storage_config = get_storage_config_from_options(options);
+    if (storage_config) {
+        global_storage = storage_create(storage_config);
+    } else {
+        char *location = get_storage_location_from_options(options);
+        if (location) {
+            global_storage = storage_create_with_location(location);
+        } else {
+            global_storage = storage_create(NULL);
+        }
+    }
 
-    StorageEntry *storage_entry = storage_get_entry(storage, STORAGE_ENTRY_KEY);
-    FlagOverrides *overrides = flag_overrides_create(storage_entry);
+    RoxStorageEntry *storage_entry = storage_get_entry(global_storage, STORAGE_ENTRY_KEY);
+    RoxFlagOverrides *overrides = flag_overrides_create(storage_entry);
     global_overrides = overrides;
 
-    flag_repository = rox_core_get_flag_repository(core);
-    flag_added_callback_handle = flag_repository_add_flag_added_callback(
-            flag_repository, overrides,
+    global_flag_repository = rox_core_get_flag_repository(core);
+    global_flag_added_callback_handle = flag_repository_add_flag_added_callback(
+            global_flag_repository, overrides,
             override_flag_added_callback);
 
-    RoxMap *all_flags = flag_repository_get_all_flags(flag_repository);
+    RoxMap *all_flags = flag_repository_get_all_flags(global_flag_repository);
     ROX_MAP_FOREACH(key, value, all_flags, {
         RoxStringBase *flag = (RoxStringBase *) value;
         init_flag_overrides(flag, overrides);
@@ -126,12 +137,12 @@ ROX_INTERNAL void rox_overrides_init(RoxCore *core, RoxOptions *options) {
 
 ROX_INTERNAL void rox_overrides_uninit() {
 
-    if (flag_repository) {
-        if (flag_added_callback_handle) {
-            flag_repository_remove_flag_added_callback(flag_repository, flag_added_callback_handle);
-            flag_added_callback_handle = NULL;
+    if (global_flag_repository) {
+        if (global_flag_added_callback_handle) {
+            flag_repository_remove_flag_added_callback(global_flag_repository, global_flag_added_callback_handle);
+            global_flag_added_callback_handle = NULL;
         }
-        flag_repository = NULL;
+        global_flag_repository = NULL;
     }
 
     if (global_overrides) {
@@ -139,13 +150,13 @@ ROX_INTERNAL void rox_overrides_uninit() {
         global_overrides = NULL;
     }
 
-    if (storage) {
-        storage_free(storage);
-        storage = NULL;
+    if (global_storage) {
+        storage_free(global_storage);
+        global_storage = NULL;
     }
 }
 
-ROX_API FlagOverrides *rox_get_overrides() {
+ROX_API RoxFlagOverrides *rox_get_overrides() {
     if (!global_overrides) {
         ROX_WARN("rox_get_overrides is called before rox_setup");
         global_overrides = flag_overrides_create(NULL);
@@ -153,13 +164,22 @@ ROX_API FlagOverrides *rox_get_overrides() {
     return global_overrides;
 }
 
-ROX_API bool rox_has_override(FlagOverrides *overrides, const char *name) {
+static void unfreeze_flag(const char *name) {
+    if (global_flag_repository) {
+        RoxStringBase *flag = flag_repository_get_flag(global_flag_repository, name);
+        if (flag) {
+            rox_unfreeze_flag(flag, RoxFreezeUntilLaunch);
+        }
+    }
+}
+
+ROX_API bool rox_has_override(RoxFlagOverrides *overrides, const char *name) {
     assert(overrides);
     assert(name);
     return rox_map_contains_key(overrides->values, (void *) name);
 }
 
-ROX_API void rox_set_override(FlagOverrides *overrides, const char *name, const char *value) {
+ROX_API void rox_set_override(RoxFlagOverrides *overrides, const char *name, const char *value) {
     assert(overrides);
     assert(name);
     assert(value);
@@ -167,9 +187,10 @@ ROX_API void rox_set_override(FlagOverrides *overrides, const char *name, const 
         rox_map_remove_key_value_cb(overrides->values, (void *) name, free, free);
     }
     rox_map_add(overrides->values, mem_copy_str(name), mem_copy_str(value));
+    unfreeze_flag(name);
 }
 
-ROX_API const char *rox_get_override(FlagOverrides *overrides, const char *name) {
+ROX_API const char *rox_get_override(RoxFlagOverrides *overrides, const char *name) {
     assert(overrides);
     assert(name);
     void *data;
@@ -179,21 +200,16 @@ ROX_API const char *rox_get_override(FlagOverrides *overrides, const char *name)
     return NULL;
 }
 
-ROX_API void rox_clear_override(FlagOverrides *overrides, const char *name) {
+ROX_API void rox_clear_override(RoxFlagOverrides *overrides, const char *name) {
     assert(overrides);
     if (rox_map_contains_key(overrides->values, (void *) name)) {
         rox_map_remove_key_value_cb(overrides->values, (void *) name, free, free);
         storage_write_string_key_value_map(overrides->storage_entry, overrides->values);
-        if (flag_repository) {
-            RoxStringBase *flag = flag_repository_get_flag(flag_repository, name);
-            if (flag) {
-                rox_unfreeze_flag(flag, RoxFreezeUntilLaunch);
-            }
-        }
+        unfreeze_flag(name);
     }
 }
 
-ROX_API void rox_clear_overrides(FlagOverrides *overrides) {
+ROX_API void rox_clear_overrides(RoxFlagOverrides *overrides) {
     assert(overrides != NULL);
     storage_delete_entry(overrides->storage_entry);
     RoxMap *old_values = overrides->values;

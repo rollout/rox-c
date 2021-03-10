@@ -39,7 +39,7 @@ ROX_INTERNAL int _rox_run_tests(Suite *suite) {
 }
 
 ROX_INTERNAL void rox_check_and_free(char *str, const char *expected_value) {
-    ck_assert_str_eq(str, expected_value);
+    ck_assert_str_eq(expected_value, str);
     if (str) {
         free(str);
     }

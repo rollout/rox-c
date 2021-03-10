@@ -76,7 +76,7 @@ while getopts ":SsCcITd:lt:" opt; do
   esac
 done
 
-if [ ! -w "${INSTALL_DIR}" ]; then
+if [ "${SKIP_INSTALL}" -ne "1" ] && [ ! -w "${INSTALL_DIR}" ]; then
   echo "Directory ${INSTALL_DIR} is not writable. Trying to install into system directory by non-root user?"
   exit 1
 fi

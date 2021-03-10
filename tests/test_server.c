@@ -19,7 +19,7 @@ START_TEST (test_flag_with_default_value_after_setup) {
     FlagTestFixture *ctx = flag_test_fixture_create();
     RoxStringBase *flag = rox_add_flag("name", false);
     ck_assert(!rox_is_enabled(flag));
-    check_impression(ctx, "false");
+    flag_test_fixture_check_impression(ctx, "false");
     flag_test_fixture_free(ctx);
 }
 
@@ -30,7 +30,7 @@ START_TEST (test_flag_with_experiment_expression_value) {
     RoxStringBase *flag = rox_add_flag("name", false);
     flag_test_fixture_set_experiments(ctx, ROX_MAP("name", "and(true, true)"));
     ck_assert(rox_is_enabled(flag));
-    check_impression(ctx, "true");
+    flag_test_fixture_check_impression(ctx, "true");
     flag_test_fixture_free(ctx);
 }
 
@@ -41,7 +41,7 @@ START_TEST (test_flag_with_experiment_returns_undefined) {
     RoxStringBase *flag = rox_add_flag("name", true);
     flag_test_fixture_set_experiments(ctx, ROX_MAP("name", "undefined"));
     ck_assert(rox_is_enabled(flag));
-    check_impression(ctx, "true");
+    flag_test_fixture_check_impression(ctx, "true");
     flag_test_fixture_free(ctx);
 }
 
@@ -52,7 +52,7 @@ START_TEST (test_flag_with_experiment_wrong_type) {
     RoxStringBase *flag = rox_add_flag("name", true);
     flag_test_fixture_set_experiments(ctx, ROX_MAP("name", "0"));
     ck_assert(rox_is_enabled(flag));
-    check_impression(ctx, "true");
+    flag_test_fixture_check_impression(ctx, "true");
     flag_test_fixture_free(ctx);
 }
 
@@ -67,7 +67,7 @@ START_TEST (test_flag_will_use_context) {
             ROX_MAP(mem_copy_str("key"), rox_dynamic_value_create_int(55)));
     ck_assert(rox_is_enabled_ctx(flag, context));
     ck_assert_int_eq(55, rox_dynamic_value_get_int(ctx->imp_context_value));
-    check_impression(ctx, "true");
+    flag_test_fixture_check_impression(ctx, "true");
     flag_test_fixture_free(ctx);
     rox_context_free(context);
 }
@@ -148,7 +148,7 @@ START_TEST (test_string_will_default_after_setup) {
     FlagTestFixture *ctx = flag_test_fixture_create();
     RoxStringBase *variant = rox_add_string("name", "val");
     rox_check_and_free(rox_get_string(variant), "val");
-    check_impression(ctx, "val");
+    flag_test_fixture_check_impression(ctx, "val");
     flag_test_fixture_free(ctx);
 }
 
@@ -159,7 +159,7 @@ START_TEST (test_string_with_experiment) {
     RoxStringBase *variant = rox_add_string("name", "val");
     flag_test_fixture_set_experiments(ctx, ROX_MAP("name", "\"dif\""));
     rox_check_and_free(rox_get_string(variant), "dif");
-    check_impression(ctx, "dif");
+    flag_test_fixture_check_impression(ctx, "dif");
     flag_test_fixture_free(ctx);
 }
 
@@ -170,7 +170,7 @@ START_TEST (test_string_with_experiment_returns_undefined) {
     RoxStringBase *variant = rox_add_string("name", "val");
     flag_test_fixture_set_experiments(ctx, ROX_MAP("name", "undefined"));
     rox_check_and_free(rox_get_string(variant), "val");
-    check_impression(ctx, "val");
+    flag_test_fixture_check_impression(ctx, "val");
     flag_test_fixture_free(ctx);
 }
 
@@ -187,7 +187,7 @@ START_TEST (test_string_will_use_context) {
             ROX_MAP(mem_copy_str("key"), rox_dynamic_value_create_int(55)));
 
     rox_check_and_free(rox_get_string_ctx(variant, context), "dif");
-    check_impression(ctx, "dif");
+    flag_test_fixture_check_impression(ctx, "dif");
     ck_assert(ctx->imp_context_value);
     ck_assert_int_eq(55, rox_dynamic_value_get_int(ctx->imp_context_value));
 
@@ -245,7 +245,7 @@ START_TEST (test_int_will_return_default_when_no_experiment_after_setup) {
     FlagTestFixture *ctx = flag_test_fixture_create();
     RoxStringBase *variant = rox_add_int("name", 3);
     ck_assert_int_eq(3, rox_get_int(variant));
-    check_impression(ctx, "3");
+    flag_test_fixture_check_impression(ctx, "3");
     flag_test_fixture_free(ctx);
 }
 
@@ -256,7 +256,7 @@ START_TEST (test_int_will_return_default_when_experiment_returns_undefined) {
     RoxStringBase *variant = rox_add_int("name", 3);
     flag_test_fixture_set_experiments(ctx, ROX_MAP("name", "undefined"));
     ck_assert_int_eq(3, rox_get_int(variant));
-    check_impression(ctx, "3");
+    flag_test_fixture_check_impression(ctx, "3");
     flag_test_fixture_free(ctx);
 }
 
@@ -267,7 +267,7 @@ START_TEST (test_int_will_return_experiment_expression_value) {
     RoxStringBase *variant = rox_add_int("name", 1);
     flag_test_fixture_set_experiments(ctx, ROX_MAP("name", "2"));
     ck_assert_int_eq(2, rox_get_int(variant));
-    check_impression(ctx, "2");
+    flag_test_fixture_check_impression(ctx, "2");
     flag_test_fixture_free(ctx);
 }
 
@@ -278,7 +278,7 @@ START_TEST (test_int_will_return_default_when_wrong_experiment_type) {
     RoxStringBase *variant = rox_add_int("name", 4);
     flag_test_fixture_set_experiments(ctx, ROX_MAP("name", "1.44"));
     ck_assert_int_eq(4, rox_get_int(variant));
-    check_impression(ctx, "4");
+    flag_test_fixture_check_impression(ctx, "4");
     flag_test_fixture_free(ctx);
 }
 
@@ -297,7 +297,7 @@ START_TEST (test_int_will_use_context) {
     ck_assert_int_eq(2, rox_get_int_ctx(variant, context));
     ck_assert(ctx->imp_context_value);
     ck_assert_int_eq(55, rox_dynamic_value_get_int(ctx->imp_context_value));
-    check_impression(ctx, "2");
+    flag_test_fixture_check_impression(ctx, "2");
 
     rox_context_free(context);
     flag_test_fixture_free(ctx);
@@ -375,7 +375,7 @@ START_TEST (test_double_will_return_experiment_expression_value) {
     RoxStringBase *variant = rox_add_double("name", 1.1);
     flag_test_fixture_set_experiments(ctx, ROX_MAP("name", "2.2"));
     ck_assert_double_eq(2.2, rox_get_double(variant));
-    check_impression(ctx, "2.2");
+    flag_test_fixture_check_impression(ctx, "2.2");
     flag_test_fixture_free(ctx);
 }
 

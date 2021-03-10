@@ -1,4 +1,4 @@
-#include <rox/freeze.h>
+#define ROX_CLIENT
 #include "roxtests.h"
 #include "fixtures.h"
 #include "freeze.h"
@@ -159,12 +159,12 @@ END_TEST
 START_TEST (test_dynamic_api_is_enabled_with_freeze) {
     FlagTestFixture *ctx = flag_test_fixture_create();
 
-    RoxStringBase *flag = rox_add_string_with_freeze("test", "val", RoxFreezeUntilLaunch);
+    rox_add_string_with_freeze("test", "val", RoxFreezeUntilLaunch);
     flag_test_fixture_set_experiments(ctx, ROX_MAP("test", "ifThen(true, \"true\", \"false\")"));
 
     RoxDynamicApi *api = rox_dynamic_api();
     ck_assert(rox_dynamic_api_is_enabled(api, "test", false)); // freezes the value
-    check_impression(ctx, "true");
+    flag_test_fixture_check_impression(ctx, "true");
     rox_check_and_free(rox_dynamic_api_get_string(api, "test", "str"), "true");
     ck_assert_double_eq(0, rox_dynamic_api_get_double(api, "test", 1.2));
     ck_assert_int_eq(0, rox_dynamic_api_get_int(api, "test", 4));
@@ -178,16 +178,16 @@ END_TEST
 START_TEST (test_dynamic_api_get_string_with_freeze) {
     FlagTestFixture *ctx = flag_test_fixture_create();
 
-    RoxStringBase *flag = rox_add_string_with_freeze("test", "val", RoxFreezeUntilLaunch);
+    rox_add_string_with_freeze("test", "val", RoxFreezeUntilLaunch);
     flag_test_fixture_set_experiments(ctx, ROX_MAP("test", "ifThen(true, \"B\", \"A\")"));
 
     RoxDynamicApi *api = rox_dynamic_api();
     rox_check_and_free(rox_dynamic_api_get_string(api, "test", "A"), "B"); // freezes the value
-    check_impression(ctx, "B");
+    flag_test_fixture_check_impression(ctx, "B");
     ck_assert(!rox_dynamic_api_is_enabled(api, "test", false));
     ck_assert_double_eq(0, rox_dynamic_api_get_double(api, "test", 1.2));
     ck_assert_int_eq(0, rox_dynamic_api_get_int(api, "test", 4));
-    check_no_impression(ctx);
+    flag_test_fixture_check_no_impression(ctx);
 
     rox_dynamic_api_free(api);
     flag_test_fixture_free(ctx);
@@ -198,16 +198,16 @@ END_TEST
 START_TEST (test_dynamic_api_get_int_with_freeze) {
     FlagTestFixture *ctx = flag_test_fixture_create();
 
-    RoxStringBase *flag = rox_add_int_with_freeze("test", 8, RoxFreezeUntilLaunch);
+    rox_add_int_with_freeze("test", 8, RoxFreezeUntilLaunch);
     flag_test_fixture_set_experiments(ctx, ROX_MAP("test", "ifThen(true, \"13\", \"5\")"));
 
     RoxDynamicApi *api = rox_dynamic_api();
     ck_assert_int_eq(13, rox_dynamic_api_get_int(api, "test", 8)); // freezes the value
-    check_impression(ctx, "13");
+    flag_test_fixture_check_impression(ctx, "13");
     ck_assert(!rox_dynamic_api_is_enabled(api, "test", true));
     ck_assert_double_eq(13, rox_dynamic_api_get_double(api, "test", 1.2));
     rox_check_and_free(rox_dynamic_api_get_string(api, "test", "str"), "13");
-    check_no_impression(ctx);
+    flag_test_fixture_check_no_impression(ctx);
 
     rox_dynamic_api_free(api);
     flag_test_fixture_free(ctx);
@@ -218,16 +218,16 @@ END_TEST
 START_TEST (test_dynamic_api_get_double_with_freeze) {
     FlagTestFixture *ctx = flag_test_fixture_create();
 
-    RoxStringBase *flag = rox_add_double_with_freeze("test", 6.1, RoxFreezeUntilLaunch);
+    rox_add_double_with_freeze("test", 6.1, RoxFreezeUntilLaunch);
     flag_test_fixture_set_experiments(ctx, ROX_MAP("test", "ifThen(true, \"0.01\", \"19341\")"));
 
     RoxDynamicApi *api = rox_dynamic_api();
     ck_assert_double_eq(0.01, rox_dynamic_api_get_double(api, "test", 2.2)); // freezes the value
-    check_impression(ctx, "0.01");
+    flag_test_fixture_check_impression(ctx, "0.01");
     ck_assert(!rox_dynamic_api_is_enabled(api, "test", true));
     ck_assert_double_eq(0, rox_dynamic_api_get_int(api, "test", 1));
     rox_check_and_free(rox_dynamic_api_get_string(api, "test", "str"), "0.01");
-    check_no_impression(ctx);
+    flag_test_fixture_check_no_impression(ctx);
 
     rox_dynamic_api_free(api);
     flag_test_fixture_free(ctx);
@@ -244,11 +244,11 @@ START_TEST (test_freeze_double_flag_with_experiment_wrong_type) {
     flag_test_fixture_set_experiments(ctx, ROX_MAP("test", "\"3.34\""));
 
     ck_assert_double_eq(3.34, rox_get_double(flag));
-    check_impression(ctx, "3.34");
+    flag_test_fixture_check_impression(ctx, "3.34");
     ck_assert_int_eq(0, rox_get_int(flag));
     ck_assert(!rox_is_enabled(flag));
     rox_check_and_free(rox_get_string(flag), "3.34");
-    check_no_impression(ctx);
+    flag_test_fixture_check_no_impression(ctx);
 
     flag_test_fixture_set_experiments(ctx, ROX_MAP("test", "\"true\""));
 
@@ -256,26 +256,26 @@ START_TEST (test_freeze_double_flag_with_experiment_wrong_type) {
     ck_assert_int_eq(0, rox_get_int(flag));
     ck_assert(!rox_is_enabled(flag));
     rox_check_and_free(rox_get_string(flag), "3.34");
-    check_no_impression(ctx);
+    flag_test_fixture_check_no_impression(ctx);
 
     rox_unfreeze();
 
     ck_assert_double_eq(1.1, rox_get_double(flag));
-    check_impression(ctx, "1.1");
+    flag_test_fixture_check_impression(ctx, "1.1");
     ck_assert_int_eq(0, rox_get_int(flag));
     ck_assert(!rox_is_enabled(flag));
     rox_check_and_free(rox_get_string(flag), "1.1");
-    check_no_impression(ctx);
+    flag_test_fixture_check_no_impression(ctx);
 
     flag_test_fixture_set_experiments(ctx, ROX_MAP("test", "\"2\""));
     rox_unfreeze();
 
     ck_assert_double_eq(2, rox_get_double(flag));
-    check_impression(ctx, "2");
+    flag_test_fixture_check_impression(ctx, "2");
     ck_assert_int_eq(2, rox_get_int(flag));
     ck_assert(!rox_is_enabled(flag));
     rox_check_and_free(rox_get_string(flag), "2");
-    check_no_impression(ctx);
+    flag_test_fixture_check_no_impression(ctx);
 
     flag_test_fixture_free(ctx);
 }
@@ -313,12 +313,6 @@ START_TEST (test_complex_double_flag_dependency_with_freeze) {
 
 END_TEST
 
-START_TEST (test_complex_double_flag_dependency_with_peek_do_not_freeze) {
-    // TODO: implement!
-}
-
-END_TEST
-
 START_TEST (double_flag_should_use_default_freeze) {
     FlagTestFixture *ctx = flag_test_fixture_create();
     RoxStringBase *flag = rox_add_double_with_freeze_and_options(
@@ -346,15 +340,15 @@ START_TEST (double_flag_should_not_freeze_value_by_default) {
     RoxStringBase *flag = rox_add_double_with_options("flag", 2.1, ROX_DBL_LIST(2.1, 3, 4.99));
     ck_assert_int_eq(rox_flag_get_freeze(flag), RoxFreezeNone);
     ck_assert_double_eq(2.1, rox_get_double(flag));
-    check_impression(ctx, "2.1");
+    flag_test_fixture_check_impression(ctx, "2.1");
 
     flag_test_fixture_set_flag_experiment(ctx, flag, "3");
     ck_assert_double_eq(3, rox_get_double(flag));
-    check_impression(ctx, "3");
+    flag_test_fixture_check_impression(ctx, "3");
 
     rox_unfreeze_flag(flag, RoxFreezeUntilLaunch);
     ck_assert_double_eq(3, rox_get_double(flag));
-    check_impression(ctx, "3");
+    flag_test_fixture_check_impression(ctx, "3");
 
     flag_test_fixture_free(ctx);
 }
@@ -369,27 +363,27 @@ START_TEST (double_flag_should_freeze_until_foreground) {
 
     flag_test_fixture_set_flag_experiment(ctx, flag, "2.1");
     ck_assert_double_eq(2.1, rox_get_double(flag));
-    check_impression(ctx, "2.1");
+    flag_test_fixture_check_impression(ctx, "2.1");
 
     flag_test_fixture_set_flag_experiment(ctx, flag, "3");
     ck_assert_double_eq(2.1, rox_get_double(flag));
-    check_no_impression(ctx);
+    flag_test_fixture_check_no_impression(ctx);
 
     rox_unfreeze_flag(flag, RoxFreezeNone);
     ck_assert_double_eq(2.1, rox_get_double(flag));
-    check_no_impression(ctx);
+    flag_test_fixture_check_no_impression(ctx);
 
     rox_unfreeze_flag(flag, RoxFreezeUntilForeground);
     ck_assert_double_eq(3, rox_get_double(flag));
-    check_impression(ctx, "3");
+    flag_test_fixture_check_impression(ctx, "3");
 
     flag_test_fixture_set_flag_experiment(ctx, flag, "4.99");
     ck_assert_double_eq(3, rox_get_double(flag));
-    check_no_impression(ctx);
+    flag_test_fixture_check_no_impression(ctx);
 
     rox_unfreeze_flag(flag, RoxFreezeUntilLaunch);
     ck_assert_double_eq(4.99, rox_get_double(flag));
-    check_impression(ctx, "4.99");
+    flag_test_fixture_check_impression(ctx, "4.99");
 
     flag_test_fixture_free(ctx);
 }
@@ -404,23 +398,23 @@ START_TEST (double_flag_should_freeze_until_launch) {
 
     flag_test_fixture_set_flag_experiment(ctx, flag, "2.1");
     ck_assert_double_eq(2.1, rox_get_double(flag));
-    check_impression(ctx, "2.1");
+    flag_test_fixture_check_impression(ctx, "2.1");
 
     flag_test_fixture_set_flag_experiment(ctx, flag, "3");
     ck_assert_double_eq(2.1, rox_get_double(flag));
-    check_no_impression(ctx);
+    flag_test_fixture_check_no_impression(ctx);
 
     rox_unfreeze_flag(flag, RoxFreezeNone);
     ck_assert_double_eq(2.1, rox_get_double(flag));
-    check_no_impression(ctx);
+    flag_test_fixture_check_no_impression(ctx);
 
     rox_unfreeze_flag(flag, RoxFreezeUntilForeground);
     ck_assert_double_eq(2.1, rox_get_double(flag));
-    check_no_impression(ctx);
+    flag_test_fixture_check_no_impression(ctx);
 
     rox_unfreeze_flag(flag, RoxFreezeUntilLaunch);
     ck_assert_double_eq(3, rox_get_double(flag));
-    check_impression(ctx, "3");
+    flag_test_fixture_check_impression(ctx, "3");
 
     flag_test_fixture_free(ctx);
 }
@@ -433,20 +427,8 @@ START_TEST (get_double_value_with_freeze_should_invoke_impression) {
             "flag", 2.1, ROX_DBL_LIST(3, 4.99), RoxFreezeUntilLaunch);
     flag_test_fixture_set_flag_experiment(ctx, flag, "3");
     ck_assert_double_eq(3, rox_get_double(flag));
-    check_impression(ctx, "3");
+    flag_test_fixture_check_impression(ctx, "3");
     flag_test_fixture_free(ctx);
-}
-
-END_TEST
-
-START_TEST (peek_current_double_value_should_return_frozen_value) {
-    // TODO: implement!
-}
-
-END_TEST
-
-START_TEST (peek_original_double_value_should_return_frozen_value) {
-    // TODO: implement!
 }
 
 END_TEST
@@ -460,19 +442,19 @@ START_TEST (test_freeze_flag_with_experiment_wrong_type) {
     flag_test_fixture_set_flag_experiment(ctx, flag, "\"3\"");
 
     ck_assert(!rox_is_enabled(flag)); // freezes the flag with false
-    check_impression(ctx, "false");
+    flag_test_fixture_check_impression(ctx, "false");
     ck_assert_int_eq(0, rox_get_int(flag));
     ck_assert_double_eq(0, rox_get_double(flag));
     rox_check_and_free(rox_get_string(flag), "false");
-    check_no_impression(ctx);
+    flag_test_fixture_check_no_impression(ctx);
 
     flag_test_fixture_set_flag_experiment(ctx, flag, "\"true\"");
     ck_assert(!rox_is_enabled(flag));
-    check_no_impression(ctx);
+    flag_test_fixture_check_no_impression(ctx);
 
     rox_unfreeze_flag(flag, RoxFreezeUntilLaunch);
     ck_assert(rox_is_enabled(flag));
-    check_impression(ctx, "true");
+    flag_test_fixture_check_impression(ctx, "true");
 
     flag_test_fixture_free(ctx);
 }
@@ -508,15 +490,15 @@ START_TEST (should_not_freeze_boolean_flag_by_default) {
 
     flag_test_fixture_set_flag_experiment(ctx, flag, "true");
     ck_assert(rox_is_enabled(flag));
-    check_impression(ctx, "true");
+    flag_test_fixture_check_impression(ctx, "true");
 
     flag_test_fixture_set_flag_experiment(ctx, flag, "false");
     ck_assert(!rox_is_enabled(flag));
-    check_impression(ctx, "false");
+    flag_test_fixture_check_impression(ctx, "false");
 
     rox_unfreeze_flag(flag, RoxFreezeUntilLaunch);
     ck_assert(!rox_is_enabled(flag));
-    check_impression(ctx, "false");
+    flag_test_fixture_check_impression(ctx, "false");
 
     flag_test_fixture_free(ctx);
 }
@@ -530,15 +512,15 @@ START_TEST (should_work_with_freeze_none_for_boolean_flag) {
 
     flag_test_fixture_set_flag_experiment(ctx, flag, "true");
     ck_assert(rox_is_enabled(flag));
-    check_impression(ctx, "true");
+    flag_test_fixture_check_impression(ctx, "true");
 
     flag_test_fixture_set_flag_experiment(ctx, flag, "false");
     ck_assert(!rox_is_enabled(flag));
-    check_impression(ctx, "false");
+    flag_test_fixture_check_impression(ctx, "false");
 
     rox_unfreeze_flag(flag, RoxFreezeUntilLaunch);
     ck_assert(!rox_is_enabled(flag));
-    check_impression(ctx, "false");
+    flag_test_fixture_check_impression(ctx, "false");
 
     flag_test_fixture_free(ctx);
 }
@@ -552,27 +534,27 @@ START_TEST (should_freeze_boolean_flag_until_foreground) {
 
     flag_test_fixture_set_flag_experiment(ctx, flag, "true");
     ck_assert(rox_is_enabled(flag));
-    check_impression(ctx, "true");
+    flag_test_fixture_check_impression(ctx, "true");
 
     flag_test_fixture_set_flag_experiment(ctx, flag, "false");
     ck_assert(rox_is_enabled(flag));
-    check_no_impression(ctx);
+    flag_test_fixture_check_no_impression(ctx);
 
     rox_unfreeze_flag(flag, RoxFreezeNone);
     ck_assert(rox_is_enabled(flag));
-    check_no_impression(ctx);
+    flag_test_fixture_check_no_impression(ctx);
 
     rox_unfreeze_flag(flag, RoxFreezeUntilForeground);
     ck_assert(!rox_is_enabled(flag));
-    check_impression(ctx, "false");
+    flag_test_fixture_check_impression(ctx, "false");
 
     flag_test_fixture_set_flag_experiment(ctx, flag, "true");
     ck_assert(!rox_is_enabled(flag));
-    check_no_impression(ctx);
+    flag_test_fixture_check_no_impression(ctx);
 
     rox_unfreeze_flag(flag, RoxFreezeUntilLaunch);
     ck_assert(rox_is_enabled(flag));
-    check_impression(ctx, "true");
+    flag_test_fixture_check_impression(ctx, "true");
 
     flag_test_fixture_free(ctx);
 }
@@ -586,23 +568,23 @@ START_TEST (should_freeze_boolean_flag_until_launch) {
 
     flag_test_fixture_set_flag_experiment(ctx, flag, "true");
     ck_assert(rox_is_enabled(flag));
-    check_impression(ctx, "true");
+    flag_test_fixture_check_impression(ctx, "true");
 
     flag_test_fixture_set_flag_experiment(ctx, flag, "false");
     ck_assert(rox_is_enabled(flag));
-    check_no_impression(ctx);
+    flag_test_fixture_check_no_impression(ctx);
 
     rox_unfreeze_flag(flag, RoxFreezeNone);
     ck_assert(rox_is_enabled(flag));
-    check_no_impression(ctx);
+    flag_test_fixture_check_no_impression(ctx);
 
     rox_unfreeze_flag(flag, RoxFreezeUntilForeground);
     ck_assert(rox_is_enabled(flag));
-    check_no_impression(ctx);
+    flag_test_fixture_check_no_impression(ctx);
 
     rox_unfreeze_flag(flag, RoxFreezeUntilLaunch);
     ck_assert(!rox_is_enabled(flag));
-    check_impression(ctx, "false");
+    flag_test_fixture_check_impression(ctx, "false");
 
     flag_test_fixture_free(ctx);
 }
@@ -615,14 +597,14 @@ START_TEST (boolean_flag_should_return_special_0_values_on_different_type_freeze
 
     flag_test_fixture_set_flag_experiment(ctx, flag, "true");
     ck_assert(rox_is_enabled(flag));
-    check_impression(ctx, "true");
+    flag_test_fixture_check_impression(ctx, "true");
 
     flag_test_fixture_set_flag_experiment(ctx, flag, "false");
     ck_assert(rox_is_enabled(flag));
     ck_assert_int_eq(0, rox_get_int(flag));
     ck_assert_double_eq(0.0, rox_get_double(flag));
     rox_check_and_free(rox_get_string(flag), "true");
-    check_no_impression(ctx);
+    flag_test_fixture_check_no_impression(ctx);
 
     flag_test_fixture_free(ctx);
 }
@@ -634,20 +616,8 @@ START_TEST (boolean_flag_is_enabled_should_invoke_impression) {
     RoxStringBase *flag = rox_add_flag_with_freeze("flag", false, RoxFreezeUntilLaunch);
     flag_test_fixture_set_flag_experiment(ctx, flag, "true");
     ck_assert(rox_is_enabled(flag));
-    check_impression(ctx, "true");
+    flag_test_fixture_check_impression(ctx, "true");
     flag_test_fixture_free(ctx);
-}
-
-END_TEST
-
-START_TEST (peek_current_boolean_value_should_return_frozen_value) {
-    // TODO: implement!
-}
-
-END_TEST
-
-START_TEST (get_original_boolean_value_should_return_frozen_value) {
-    // TODO: implement!
 }
 
 END_TEST
@@ -684,12 +654,6 @@ START_TEST (test_complex_boolean_flag_dependency_with_freeze) {
 
 END_TEST
 
-START_TEST (test_complex_boolean_flag_dependency_with_peek_do_not_freeze) {
-    // TODO: implement!
-}
-
-END_TEST
-
 // RoxIntTests
 
 START_TEST (test_freeze_int_flag_with_experiment_wrong_type) {
@@ -699,11 +663,11 @@ START_TEST (test_freeze_int_flag_with_experiment_wrong_type) {
     flag_test_fixture_set_experiments(ctx, ROX_MAP("test", "\"3\""));
 
     ck_assert_int_eq(3, rox_get_int(flag));
-    check_impression(ctx, "3");
+    flag_test_fixture_check_impression(ctx, "3");
     ck_assert_double_eq(3, rox_get_double(flag));
     ck_assert(!rox_is_enabled(flag));
     rox_check_and_free(rox_get_string(flag), "3");
-    check_no_impression(ctx);
+    flag_test_fixture_check_no_impression(ctx);
 
     flag_test_fixture_set_experiments(ctx, ROX_MAP("test", "\"true\""));
 
@@ -711,16 +675,16 @@ START_TEST (test_freeze_int_flag_with_experiment_wrong_type) {
     ck_assert_double_eq(3, rox_get_double(flag));
     ck_assert(!rox_is_enabled(flag));
     rox_check_and_free(rox_get_string(flag), "3");
-    check_no_impression(ctx);
+    flag_test_fixture_check_no_impression(ctx);
 
     rox_unfreeze_flag(flag, RoxFreezeUntilLaunch);
 
     ck_assert_int_eq(1, rox_get_int(flag));
-    check_impression(ctx, "1");
+    flag_test_fixture_check_impression(ctx, "1");
     ck_assert_double_eq(1, rox_get_double(flag));
     ck_assert(!rox_is_enabled(flag));
     rox_check_and_free(rox_get_string(flag), "1");
-    check_no_impression(ctx);
+    flag_test_fixture_check_no_impression(ctx);
 
     flag_test_fixture_free(ctx);
 }
@@ -755,12 +719,6 @@ START_TEST (test_complex_int_flag_dependency_with_freeze) {
     ck_assert_int_eq(1, rox_get_int(flag));
 
     flag_test_fixture_free(ctx);
-}
-
-END_TEST
-
-START_TEST (test_complex_int_flag_dependency_with_peek_do_not_freeze) {
-    // TODO: implement!
 }
 
 END_TEST
@@ -814,15 +772,15 @@ START_TEST (int_flag_should_work_with_freeze_none) {
 
     flag_test_fixture_set_flag_experiment(ctx, flag, "2");
     ck_assert_int_eq(2, rox_get_int(flag));
-    check_impression(ctx, "2");
+    flag_test_fixture_check_impression(ctx, "2");
 
     flag_test_fixture_set_flag_experiment(ctx, flag, "3");
     ck_assert_int_eq(3, rox_get_int(flag));
-    check_impression(ctx, "3");
+    flag_test_fixture_check_impression(ctx, "3");
 
     rox_unfreeze_flag(flag, RoxFreezeUntilLaunch);
     ck_assert_int_eq(3, rox_get_int(flag));
-    check_impression(ctx, "3");
+    flag_test_fixture_check_impression(ctx, "3");
 
     flag_test_fixture_free(ctx);
 }
@@ -838,27 +796,27 @@ START_TEST (int_flag_should_freeze_until_foreground) {
 
     flag_test_fixture_set_flag_experiment(ctx, flag, "2");
     ck_assert_int_eq(2, rox_get_int(flag));
-    check_impression(ctx, "2");
+    flag_test_fixture_check_impression(ctx, "2");
 
     flag_test_fixture_set_flag_experiment(ctx, flag, "3");
     ck_assert_int_eq(2, rox_get_int(flag));
-    check_no_impression(ctx);
+    flag_test_fixture_check_no_impression(ctx);
 
     rox_unfreeze_flag(flag, RoxFreezeNone);
     ck_assert_int_eq(2, rox_get_int(flag));
-    check_no_impression(ctx);
+    flag_test_fixture_check_no_impression(ctx);
 
     rox_unfreeze_flag(flag, RoxFreezeUntilForeground);
     ck_assert_int_eq(3, rox_get_int(flag));
-    check_impression(ctx, "3");
+    flag_test_fixture_check_impression(ctx, "3");
 
     flag_test_fixture_set_flag_experiment(ctx, flag, "2");
     ck_assert_int_eq(3, rox_get_int(flag));
-    check_no_impression(ctx);
+    flag_test_fixture_check_no_impression(ctx);
 
     rox_unfreeze_flag(flag, RoxFreezeUntilLaunch);
     ck_assert_int_eq(2, rox_get_int(flag));
-    check_impression(ctx, "2");
+    flag_test_fixture_check_impression(ctx, "2");
 
     flag_test_fixture_free(ctx);
 }
@@ -874,23 +832,23 @@ START_TEST (int_flag_should_freeze_until_launch) {
 
     flag_test_fixture_set_flag_experiment(ctx, flag, "2");
     ck_assert_int_eq(2, rox_get_int(flag));
-    check_impression(ctx, "2");
+    flag_test_fixture_check_impression(ctx, "2");
 
     flag_test_fixture_set_flag_experiment(ctx, flag, "3");
     ck_assert_int_eq(2, rox_get_int(flag));
-    check_no_impression(ctx);
+    flag_test_fixture_check_no_impression(ctx);
 
     rox_unfreeze_flag(flag, RoxFreezeNone);
     ck_assert_int_eq(2, rox_get_int(flag));
-    check_no_impression(ctx);
+    flag_test_fixture_check_no_impression(ctx);
 
     rox_unfreeze_flag(flag, RoxFreezeUntilForeground);
     ck_assert_int_eq(2, rox_get_int(flag));
-    check_no_impression(ctx);
+    flag_test_fixture_check_no_impression(ctx);
 
     rox_unfreeze_flag(flag, RoxFreezeUntilLaunch);
     ck_assert_int_eq(3, rox_get_int(flag));
-    check_impression(ctx, "3");
+    flag_test_fixture_check_impression(ctx, "3");
 
     flag_test_fixture_free(ctx);
 }
@@ -903,20 +861,8 @@ START_TEST (get_int_value_should_invoke_impression) {
             "flag", 2, ROX_DBL_LIST(3, 4), RoxFreezeUntilLaunch);
     flag_test_fixture_set_flag_experiment(ctx, flag, "3");
     ck_assert_double_eq(3, rox_get_int(flag));
-    check_impression(ctx, "3");
+    flag_test_fixture_check_impression(ctx, "3");
     flag_test_fixture_free(ctx);
-}
-
-END_TEST
-
-START_TEST (peek_current_int_value_should_return_frozen_value) {
-    // TODO: implement!
-}
-
-END_TEST
-
-START_TEST (get_original_int_value_should_return_frozen_value) {
-    // TODO: implement!
 }
 
 END_TEST
@@ -930,26 +876,26 @@ START_TEST (test_freeze_string_flag_with_experiment_various_types) {
 
     flag_test_fixture_set_flag_experiment(ctx, flag, "\"3\"");
     rox_check_and_free(rox_get_string(flag), "3");
-    check_impression(ctx, "3");
+    flag_test_fixture_check_impression(ctx, "3");
     ck_assert_double_eq(3, rox_get_double(flag));
     ck_assert_int_eq(3, rox_get_int(flag));
     ck_assert(!rox_is_enabled(flag));
-    check_no_impression(ctx);
+    flag_test_fixture_check_no_impression(ctx);
 
     flag_test_fixture_set_experiments(ctx, ROX_MAP("test", "\"true\""));
     rox_check_and_free(rox_get_string(flag), "3");
     ck_assert_double_eq(3, rox_get_double(flag));
     ck_assert_int_eq(3, rox_get_int(flag));
     ck_assert(!rox_is_enabled(flag));
-    check_no_impression(ctx);
+    flag_test_fixture_check_no_impression(ctx);
 
     rox_unfreeze_flag(flag, RoxFreezeUntilLaunch);
     rox_check_and_free(rox_get_string(flag), "true");
-    check_impression(ctx, "true");
+    flag_test_fixture_check_impression(ctx, "true");
     ck_assert_double_eq(0, rox_get_double(flag));
     ck_assert_int_eq(0, rox_get_int(flag));
     ck_assert(rox_is_enabled(flag));
-    check_no_impression(ctx);
+    flag_test_fixture_check_no_impression(ctx);
 
     flag_test_fixture_free(ctx);
 }
@@ -985,15 +931,15 @@ START_TEST (should_not_freeze_string_value_by_default) {
 
     flag_test_fixture_set_flag_experiment(ctx, flag, "\"red\"");
     rox_check_and_free(rox_get_string(flag), "red");
-    check_impression(ctx, "red");
+    flag_test_fixture_check_impression(ctx, "red");
 
     flag_test_fixture_set_flag_experiment(ctx, flag, "\"blue\"");
     rox_check_and_free(rox_get_string(flag), "blue");
-    check_impression(ctx, "blue");
+    flag_test_fixture_check_impression(ctx, "blue");
 
     rox_unfreeze_flag(flag, RoxFreezeUntilLaunch);
     rox_check_and_free(rox_get_string(flag), "blue");
-    check_impression(ctx, "blue");
+    flag_test_fixture_check_impression(ctx, "blue");
 
     flag_test_fixture_free(ctx);
 }
@@ -1010,15 +956,15 @@ START_TEST (string_flag_should_work_with_freeze_none) {
 
     flag_test_fixture_set_flag_experiment(ctx, flag, "\"red\"");
     rox_check_and_free(rox_get_string(flag), "red");
-    check_impression(ctx, "red");
+    flag_test_fixture_check_impression(ctx, "red");
 
     flag_test_fixture_set_flag_experiment(ctx, flag, "\"blue\"");
     rox_check_and_free(rox_get_string(flag), "blue");
-    check_impression(ctx, "blue");
+    flag_test_fixture_check_impression(ctx, "blue");
 
     rox_unfreeze_flag(flag, RoxFreezeUntilLaunch);
     rox_check_and_free(rox_get_string(flag), "blue");
-    check_impression(ctx, "blue");
+    flag_test_fixture_check_impression(ctx, "blue");
 
     flag_test_fixture_free(ctx);
 }
@@ -1033,27 +979,27 @@ START_TEST (string_flag_should_freeze_until_foreground) {
 
     flag_test_fixture_set_flag_experiment(ctx, flag, "\"red\"");
     rox_check_and_free(rox_get_string(flag), "red");
-    check_impression(ctx, "red");
+    flag_test_fixture_check_impression(ctx, "red");
 
     flag_test_fixture_set_flag_experiment(ctx, flag, "\"blue\"");
     rox_check_and_free(rox_get_string(flag), "red");
-    check_no_impression(ctx);
+    flag_test_fixture_check_no_impression(ctx);
 
     rox_unfreeze_flag(flag, RoxFreezeNone);
     rox_check_and_free(rox_get_string(flag), "red");
-    check_no_impression(ctx);
+    flag_test_fixture_check_no_impression(ctx);
 
     rox_unfreeze_flag(flag, RoxFreezeUntilForeground);
     rox_check_and_free(rox_get_string(flag), "blue");
-    check_impression(ctx, "blue");
+    flag_test_fixture_check_impression(ctx, "blue");
 
     flag_test_fixture_set_flag_experiment(ctx, flag, "\"red\"");
     rox_check_and_free(rox_get_string(flag), "blue");
-    check_no_impression(ctx);
+    flag_test_fixture_check_no_impression(ctx);
 
     rox_unfreeze_flag(flag, RoxFreezeUntilLaunch);
     rox_check_and_free(rox_get_string(flag), "red");
-    check_impression(ctx, "red");
+    flag_test_fixture_check_impression(ctx, "red");
 
     flag_test_fixture_free(ctx);
 }
@@ -1068,37 +1014,25 @@ START_TEST (string_flag_should_freeze_until_launch) {
 
     flag_test_fixture_set_flag_experiment(ctx, flag, "\"red\"");
     rox_check_and_free(rox_get_string(flag), "red");
-    check_impression(ctx, "red");
+    flag_test_fixture_check_impression(ctx, "red");
 
     flag_test_fixture_set_flag_experiment(ctx, flag, "\"blue\"");
     rox_check_and_free(rox_get_string(flag), "red");
-    check_no_impression(ctx);
+    flag_test_fixture_check_no_impression(ctx);
 
     rox_unfreeze_flag(flag, RoxFreezeNone);
     rox_check_and_free(rox_get_string(flag), "red");
-    check_no_impression(ctx);
+    flag_test_fixture_check_no_impression(ctx);
 
     rox_unfreeze_flag(flag, RoxFreezeUntilForeground);
     rox_check_and_free(rox_get_string(flag), "red");
-    check_no_impression(ctx);
+    flag_test_fixture_check_no_impression(ctx);
 
     rox_unfreeze_flag(flag, RoxFreezeUntilLaunch);
     rox_check_and_free(rox_get_string(flag), "blue");
-    check_impression(ctx, "blue");
+    flag_test_fixture_check_impression(ctx, "blue");
 
     flag_test_fixture_free(ctx);
-}
-
-END_TEST
-
-START_TEST (peek_current_string_value_should_return_frozen_value) {
-    // TODO: implement!
-}
-
-END_TEST
-
-START_TEST (get_original_string_value_should_return_frozen_value) {
-    // TODO: implement!
 }
 
 END_TEST
@@ -1137,12 +1071,6 @@ START_TEST (test_complex_string_flag_dependency_with_freeze) {
 
 END_TEST
 
-START_TEST (test_complex_string_flag_dependency_with_peek_do_not_freeze) {
-    // TODO: implement!
-}
-
-END_TEST
-
 ROX_TEST_SUITE(
 // FlagFreezeManagerTests
         ROX_TEST_CASE(should_not_freeze_when_registering_new_flag_if_freeze_was_not_called),
@@ -1159,15 +1087,12 @@ ROX_TEST_SUITE(
 // RoxDoubleTests
         ROX_TEST_CASE(test_freeze_double_flag_with_experiment_wrong_type),
         ROX_TEST_CASE(test_complex_double_flag_dependency_with_freeze),
-        ROX_TEST_CASE(test_complex_double_flag_dependency_with_peek_do_not_freeze),
         ROX_TEST_CASE(double_flag_should_use_default_freeze),
         ROX_TEST_CASE(should_use_given_freeze_if_none_was_provided_in_double_flag_constructor),
         ROX_TEST_CASE(double_flag_should_not_freeze_value_by_default),
         ROX_TEST_CASE(double_flag_should_freeze_until_foreground),
         ROX_TEST_CASE(double_flag_should_freeze_until_launch),
         ROX_TEST_CASE(get_double_value_with_freeze_should_invoke_impression),
-        ROX_TEST_CASE(peek_current_double_value_should_return_frozen_value),
-        ROX_TEST_CASE(peek_original_double_value_should_return_frozen_value),
 // RoxFlagTests
         ROX_TEST_CASE(test_freeze_flag_with_experiment_wrong_type),
         ROX_TEST_CASE(should_use_default_freeze_for_boolean_flag),
@@ -1178,14 +1103,10 @@ ROX_TEST_SUITE(
         ROX_TEST_CASE(should_freeze_boolean_flag_until_launch),
         ROX_TEST_CASE(boolean_flag_should_return_special_0_values_on_different_type_freeze_value),
         ROX_TEST_CASE(boolean_flag_is_enabled_should_invoke_impression),
-        ROX_TEST_CASE(peek_current_boolean_value_should_return_frozen_value),
-        ROX_TEST_CASE(get_original_boolean_value_should_return_frozen_value),
         ROX_TEST_CASE(test_complex_boolean_flag_dependency_with_freeze),
-        ROX_TEST_CASE(test_complex_boolean_flag_dependency_with_peek_do_not_freeze),
 // RoxIntTests
         ROX_TEST_CASE(test_freeze_int_flag_with_experiment_wrong_type),
         ROX_TEST_CASE(test_complex_int_flag_dependency_with_freeze),
-        ROX_TEST_CASE(test_complex_int_flag_dependency_with_peek_do_not_freeze),
         ROX_TEST_CASE(int_flag_should_use_default_freeze),
         ROX_TEST_CASE(int_flag_should_use_given_freeze_if_none_was_provided_in_constructor),
         ROX_TEST_CASE(int_flag_should_not_freeze_value_by_default),
@@ -1193,8 +1114,6 @@ ROX_TEST_SUITE(
         ROX_TEST_CASE(int_flag_should_freeze_until_foreground),
         ROX_TEST_CASE(int_flag_should_freeze_until_launch),
         ROX_TEST_CASE(get_int_value_should_invoke_impression),
-        ROX_TEST_CASE(peek_current_int_value_should_return_frozen_value),
-        ROX_TEST_CASE(get_original_int_value_should_return_frozen_value),
 // RoxStringTests
         ROX_TEST_CASE(test_freeze_string_flag_with_experiment_various_types),
         ROX_TEST_CASE(should_use_default_freeze_for_string_flag),
@@ -1203,8 +1122,5 @@ ROX_TEST_SUITE(
         ROX_TEST_CASE(string_flag_should_work_with_freeze_none),
         ROX_TEST_CASE(string_flag_should_freeze_until_foreground),
         ROX_TEST_CASE(string_flag_should_freeze_until_launch),
-        ROX_TEST_CASE(peek_current_string_value_should_return_frozen_value),
-        ROX_TEST_CASE(get_original_string_value_should_return_frozen_value),
-        ROX_TEST_CASE(test_complex_string_flag_dependency_with_freeze),
-        ROX_TEST_CASE(test_complex_string_flag_dependency_with_peek_do_not_freeze)
+        ROX_TEST_CASE(test_complex_string_flag_dependency_with_freeze)
 )

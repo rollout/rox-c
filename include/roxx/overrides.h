@@ -27,7 +27,7 @@ namespace Rox {
         void Clear();
 
     private:
-        FlagOverrides *_handle;
+        RoxFlagOverrides *_handle;
     };
 
     ROX_API Overrides *GetOverrides();

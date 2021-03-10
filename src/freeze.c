@@ -112,15 +112,19 @@ static RoxDynamicValue *freezable_flag_eval_func(
         return eval_func(variant, default_value, eval_context, converter);
     }
 
-    if ((eval_context && !eval_context_is_use_freeze(eval_context)) ||
-        context->freeze == RoxFreezeNone) {
+    if (context->freeze == RoxFreezeNone) {
         return context->original_eval_func(variant, default_value, eval_context, converter);
     }
 
     if (!context->frozen) {
-        context->frozen = true;
+        if (!eval_context || eval_context_is_use_freeze(eval_context)) {
+            context->frozen = true;
+        }
         RoxDynamicValue *value = context->original_eval_func(variant, default_value,
                                                              eval_context, converter);
+        if (context->frozen_value) {
+            free(context->frozen_value);
+        }
         context->frozen_value = converter->to_string(value);
         rox_dynamic_value_free(value);
     }

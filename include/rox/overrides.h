@@ -4,26 +4,26 @@
 #include <rox/defs.h>
 #include <rox/flags.h>
 
-typedef struct FlagOverrides FlagOverrides;
+typedef struct RoxFlagOverrides RoxFlagOverrides;
 
 /**
  * @return Not <code>NULL</code>.
  */
-ROX_API FlagOverrides *rox_get_overrides();
+ROX_API RoxFlagOverrides *rox_get_overrides();
 
 /**
  * @param overrides Not <code>NULL</code>.
  * @param name Not <code>NULL</code>.
  * @return Whether flag with name <code>name</code> has overridden value.
  */
-ROX_API bool rox_has_override(FlagOverrides *overrides, const char *name);
+ROX_API bool rox_has_override(RoxFlagOverrides *overrides, const char *name);
 
 /**
  * @param overrides Not <code>NULL</code>.
  * @param name Not <code>NULL</code>. Value is copied internally.
  * @param value Not <code>NULL</code>. Value is copied internally.
  */
-ROX_API void rox_set_override(FlagOverrides *overrides, const char *name, const char *value);
+ROX_API void rox_set_override(RoxFlagOverrides *overrides, const char *name, const char *value);
 
 /**
  * Returns the overridden value for the given flag name.
@@ -33,18 +33,18 @@ ROX_API void rox_set_override(FlagOverrides *overrides, const char *name, const 
  * @param name Not <code>NULL</code>.
  * @return May be <code>NULL</code>.
  */
-ROX_API const char *rox_get_override(FlagOverrides *overrides, const char *name);
+ROX_API const char *rox_get_override(RoxFlagOverrides *overrides, const char *name);
 
 /**
  * @param overrides Not <code>NULL</code>.
  * @param name Not <code>NULL</code>.
  */
-ROX_API void rox_clear_override(FlagOverrides *overrides, const char *name);
+ROX_API void rox_clear_override(RoxFlagOverrides *overrides, const char *name);
 
 /**
  * @param overrides Not <code>NULL</code>.
  */
-ROX_API void rox_clear_overrides(FlagOverrides *overrides);
+ROX_API void rox_clear_overrides(RoxFlagOverrides *overrides);
 
 /**
  * Retrieves the current flag value without freeze, and without invoking impression.
