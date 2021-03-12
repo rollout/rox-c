@@ -45,6 +45,29 @@ START_TEST (flag_overrides_should_override_flag) {
 
 END_TEST
 
+START_TEST (clear_overrides_can_be_called_second_time) {
+    FlagTestFixture *fixture = flag_test_fixture_create();
+
+    RoxStringBase *demo_flag = rox_add_flag("demo.demoFlag", false);
+    RoxStringBase *demo_int = rox_add_int_with_options("demo.demoInt", 1, ROX_INT_LIST(1, 2, 3));
+    RoxStringBase *demo_double = rox_add_double_with_options("demo.demoDouble", 1.1, ROX_DBL_LIST(1.1, 2.2, 3.3));
+    RoxStringBase *demo_str = rox_add_string_with_options("demo.demoStr", "red",
+                                                          ROX_LIST_COPY_STR("red", "green", "blue"));
+
+    RoxFlagOverrides *overrides = rox_get_overrides();
+    rox_set_override(overrides, "demo.demoFlag", "true");
+    rox_set_override(overrides, "demo.demoInt", "2");
+    rox_set_override(overrides, "demo.demoDouble", "3.3");
+    rox_set_override(overrides, "demo.demoStr", "blue");
+
+    rox_clear_overrides(overrides);
+    rox_clear_overrides(overrides);
+    
+    flag_test_fixture_free(fixture);
+}
+
+END_TEST
+
 // RoxDoubleTests
 
 START_TEST (test_will_check_override_value) {
@@ -916,6 +939,7 @@ ROX_TEST_SUITE(
         ROX_TEST_CASE(flag_overrides_should_return_null_if_no_override),
         ROX_TEST_CASE(flag_overrides_should_read_overridden_values),
         ROX_TEST_CASE(flag_overrides_should_override_flag),
+        ROX_TEST_CASE(clear_overrides_can_be_called_second_time),
 // RoxDoubleTests
         ROX_TEST_CASE(test_will_check_override_value),
         ROX_TEST_CASE(test_complex_double_flag_dependency_with_override),

@@ -215,6 +215,7 @@ ROX_API void rox_clear_overrides(RoxFlagOverrides *overrides) {
     RoxMap *old_values = overrides->values;
     overrides->values = ROX_EMPTY_MAP;
     rox_map_free_with_keys_and_values_cb(old_values, free, free);
+    overrides->storage_entry = storage_get_entry(global_storage, STORAGE_ENTRY_KEY);
     rox_unfreeze();
 }
 
