@@ -319,6 +319,39 @@ ServerTestContext::AddGenerator(Rox::CustomPropertyGeneratorInterface *generator
     return generator;
 }
 
+TEST_CASE ("test_will_check_null_api_key", "[server]") {
+    try {
+        Rox::Setup(nullptr, nullptr);
+        FAIL("Rox::SetupException expected");
+    } catch (Rox::SetupException &e) {
+        REQUIRE(e.what());
+        REQUIRE(RoxErrorEmptyApiKey == e.GetCode());
+    }
+    Rox::Shutdown();
+}
+
+TEST_CASE ("test_will_check_empty_api_key", "[server]") {
+    try {
+        Rox::Setup("", nullptr);
+        FAIL("Rox::SetupException expected");
+    } catch (Rox::SetupException &e) {
+        REQUIRE(e.what());
+        REQUIRE(RoxErrorEmptyApiKey == e.GetCode());
+    }
+    Rox::Shutdown();
+}
+
+TEST_CASE ("test_will_check_invalid_api_key", "[server]") {
+    try {
+        Rox::Setup("aaaaaaaaaaaaaaaaaaaaaaag", nullptr);
+        FAIL("Rox::SetupException expected");
+    } catch (Rox::SetupException &e) {
+        REQUIRE(e.what());
+        REQUIRE(RoxErrorInvalidApiKey == e.GetCode());
+    }
+    Rox::Shutdown();
+}
+
 TEST_CASE ("test_simple_flag", "[server]") {
     auto *ctx = new ServerTestContext();
     REQUIRE(ctx->simpleFlag->IsEnabled());

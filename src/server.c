@@ -132,6 +132,10 @@ ROX_API RoxStateCode rox_setup(const char *api_key, RoxOptions *options) {
         options = rox_options_create();
     }
 
+    if (!api_key) {
+        api_key = "";
+    }
+
     Rox *rox = rox_get_or_create();
     rox->state = RoxSettingUp;
     rox->options = options;

@@ -19,4 +19,14 @@ namespace Rox {
     ROX_API void Fetch();
 
     ROX_API void Shutdown();
+
+    class ROX_API SetupException : public std::exception {
+    private:
+        StateCode _code;
+    public:
+
+        explicit SetupException(const char *const message, StateCode code) : exception(message), _code(code) {};
+
+        StateCode GetCode() { return _code; }
+    };
 }

@@ -362,7 +362,11 @@ namespace Rox {
             options = rox_options_create();
         }
         rox_options_set_cxx(options);
-        return rox_setup(api_key, options);
+        RoxStateCode code = rox_setup(api_key, options);
+        if (code < 0) {
+            throw SetupException("Rox::Setup failed", code);
+        }
+        return code;
     }
 
     ROX_API void Shutdown() {
@@ -426,11 +430,12 @@ namespace Rox {
         return rox_dynamic_api_get_string_ctx(_handle, name, default_value, list, context);
     }
 
-    int DynamicApi::GetInt(const char *name, int default_value, Context *context) {
+    ROX_API int DynamicApi::GetInt(const char *name, int default_value, Context *context) {
         return rox_dynamic_api_get_int_ctx(_handle, name, default_value, nullptr, context);
     }
 
-    int DynamicApi::GetInt(const char *name, int default_value, const std::vector<int> &options, Context *context) {
+    ROX_API int
+    DynamicApi::GetInt(const char *name, int default_value, const std::vector<int> &options, Context *context) {
         RoxList *list = ROX_EMPTY_LIST;
         for (auto it = options.begin(); it != options.end(); it++) {
             rox_list_add(list, mem_int_to_str(*it));
@@ -438,12 +443,12 @@ namespace Rox {
         return rox_dynamic_api_get_int_ctx(_handle, name, default_value, list, context);
     }
 
-    double DynamicApi::GetDouble(const char *name, double default_value, Context *context) {
+    ROX_API double DynamicApi::GetDouble(const char *name, double default_value, Context *context) {
         return rox_dynamic_api_get_double_ctx(_handle, name, default_value, nullptr, context);
     }
 
-    double DynamicApi::GetDouble(const char *name, double default_value, const std::vector<double> &options,
-                                 Context *context) {
+    ROX_API double DynamicApi::GetDouble(const char *name, double default_value, const std::vector<double> &options,
+                                         Context *context) {
         RoxList *list = ROX_EMPTY_LIST;
         for (auto it = options.begin(); it != options.end(); it++) {
             rox_list_add(list, mem_double_to_str(*it));
