@@ -67,8 +67,8 @@ END_TEST
 START_TEST (test_will_check_empty_api_key) {
     CoreTestContext *ctx = core_test_context_create("", NULL);
     RoxStateCode status = rox_core_setup(ctx->core, ctx->sdk_settings, ctx->device_properties, ctx->rox_options);
-    ck_assert_int_eq(RoxErrorInvalidApiKey, status);
-    logging_test_fixture_check_log_message(ctx->logging, RoxLogLevelError, "Illegal rollout apikey");
+    ck_assert_int_eq(RoxErrorEmptyApiKey, status);
+    logging_test_fixture_check_log_message(ctx->logging, RoxLogLevelError, "Invalid rollout apikey");
     core_test_context_free(ctx);
 }
 

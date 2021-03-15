@@ -2,6 +2,7 @@
 #include <curl/curl.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <string.h>
 #include "core/logging.h"
 #include "network.h"
 #include "util.h"

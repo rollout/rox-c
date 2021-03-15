@@ -3,6 +3,7 @@
 #include <assert.h>
 #include <errno.h>
 #include <pthread.h>
+#include <string.h>
 #include "notifications.h"
 #include "util.h"
 #include "core/logging.h"
