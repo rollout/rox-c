@@ -503,9 +503,9 @@ END_TEST
 //
 
 START_TEST (test_will_generate_correct_md5_value) {
-    SdkSettings sdk_settings = {"test", "test"};
+    SdkSettings *sdk_settings = sdk_settings_create("test", "test");
     RoxOptions *options = rox_options_create();
-    DeviceProperties *device_props = device_properties_create_from_map(&sdk_settings, options, ROX_MAP(
+    DeviceProperties *device_props = device_properties_create_from_map(sdk_settings, options, ROX_MAP(
             "app_key", ROX_COPY("123"),
             "api_version", ROX_COPY("4.0.0"),
             "platform", ROX_COPY("plat"),
@@ -517,7 +517,7 @@ START_TEST (test_will_generate_correct_md5_value) {
     device_properties_free(device_props);
     buid_free(buid);
 
-    DeviceProperties *device_props2 = device_properties_create_from_map(&sdk_settings, options, ROX_MAP(
+    DeviceProperties *device_props2 = device_properties_create_from_map(sdk_settings, options, ROX_MAP(
             "app_key", ROX_COPY("122"),
             "api_version", ROX_COPY("4.0.0"),
             "platform", ROX_COPY("plat"),
@@ -529,6 +529,7 @@ START_TEST (test_will_generate_correct_md5_value) {
     buid_free(buid2);
     device_properties_free(device_props2);
     rox_options_free(options);
+    sdk_settings_free(sdk_settings);
 }
 
 END_TEST

@@ -26,6 +26,7 @@ ROX_INTERNAL void rox_options_set_extra(
  * FOR INTERNAL USE ONLY.
  *
  * @param options Not <code>NULL</code>.
- * @param data May be <code>NULL</code>.
+ * @param key Not <code>NULL</code>.
+ * @return May be <code>NULL</code>.
  */
 ROX_INTERNAL void *rox_options_get_extra(RoxOptions *options, const char *key);

@@ -49,7 +49,8 @@ typedef enum ConfigurationSource {
     CONFIGURATION_SOURCE_CDN = 1,
     CONFIGURATION_SOURCE_API,
     CONFIGURATION_SOURCE_ROXY,
-    CONFIGURATION_SOURCE_URL
+    CONFIGURATION_SOURCE_URL,
+    CONFIGURATION_SOURCE_LOCAL_STORAGE
 } ConfigurationSource;
 
 ROX_INTERNAL const char *configuration_source_to_str(ConfigurationSource source);

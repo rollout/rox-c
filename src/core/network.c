@@ -9,6 +9,12 @@
 #include "consts.h"
 #include "os.h"
 
+#ifdef ROX_CLIENT
+
+#include "storage.h"
+
+#endif
+
 //
 // RequestData
 //
@@ -315,6 +321,7 @@ struct ConfigurationFetcher {
     ConfigurationFetchedInvoker *invoker;
     ErrorReporter *reporter;
     char *roxy_url;
+    bool cache_read;
 };
 
 ROX_INTERNAL ConfigurationFetcher *configuration_fetcher_create(
@@ -452,6 +459,54 @@ static ConfigurationFetchResult *_configuration_fetcher_fetch_using_roxy_url(Con
     }
 }
 
+#ifdef ROX_CLIENT
+
+static const char *STORAGE_ENTRY_KEY = "config";
+static const char *STORAGE_CONFIG_DATA_KEY = "data";
+
+static ConfigurationFetchResult *_configuration_fetcher_fetch_from_cache(ConfigurationFetcher *fetcher) {
+    assert(fetcher);
+    RoxStorage *storage = storage_get_from_settings(fetcher->sdk_settings);
+    if (!storage || fetcher->cache_read) {
+        return NULL;
+    }
+    fetcher->cache_read = true;
+    RoxStorageEntry *entry = storage_get_entry(storage, STORAGE_ENTRY_KEY);
+    RoxMap *values = storage_read_string_key_value_map(entry);
+    if (!values) {
+        return NULL;
+    }
+    char *data;
+    if (!rox_map_get(values, (void *) STORAGE_CONFIG_DATA_KEY, (void **) &data)) {
+        return NULL;
+    }
+    cJSON *json = cJSON_Parse(data);
+    if (!json) {
+        ROX_WARN("Failed to deserialize cached config JSON %s", data);
+        return NULL;
+    }
+    return configuration_fetch_result_create(json, CONFIGURATION_SOURCE_LOCAL_STORAGE);
+}
+
+static void _configuration_fetcher_update_cache(
+        ConfigurationFetcher *fetcher,
+        ConfigurationFetchResult *result) {
+    assert(fetcher);
+    assert(result);
+    RoxStorage *storage = storage_get_from_settings(fetcher->sdk_settings);
+    if (!storage) {
+        return;
+    }
+    char *data = ROX_JSON_SERIALIZE(result->parsed_data);
+    RoxMap *values = ROX_MAP(STORAGE_CONFIG_DATA_KEY, data);
+    RoxStorageEntry *entry = storage_get_entry(storage, STORAGE_ENTRY_KEY);
+    storage_write_string_key_value_map(entry, values);
+    rox_map_free(values);
+    free(data);
+}
+
+#endif
+
 static RoxMap *_configuration_fetcher_prepare_props_from_device_props(ConfigurationFetcher *fetcher) {
     assert(fetcher);
     RoxMap *device_props = device_properties_get_all_properties(fetcher->device_properties);
@@ -520,9 +575,18 @@ ROX_INTERNAL ConfigurationFetchResult *configuration_fetcher_fetch(Configuration
         return _configuration_fetcher_fetch_using_roxy_url(fetcher);
     }
 
+    ConfigurationFetchResult *result = NULL;
+
+#ifdef ROX_CLIENT
+    result = _configuration_fetcher_fetch_from_cache(fetcher);
+    if (result) {
+        return result;
+    }
+#endif
+
     bool should_retry = false;
     ConfigurationSource source = CONFIGURATION_SOURCE_CDN;
-    ConfigurationFetchResult *result = NULL;
+
     RoxMap *properties = _configuration_fetcher_prepare_props_from_device_props(fetcher);
     HttpResponseMessage *message = configuration_fetcher_fetch_from_cdn(fetcher, properties);
 
@@ -560,6 +624,9 @@ ROX_INTERNAL ConfigurationFetchResult *configuration_fetcher_fetch(Configuration
             // success from cdn
             rox_map_free_with_values(properties);
             response_message_free(message);
+#ifdef ROX_CLIENT
+            _configuration_fetcher_update_cache(fetcher, result);
+#endif
             return result;
         }
     }
@@ -578,6 +645,9 @@ ROX_INTERNAL ConfigurationFetchResult *configuration_fetcher_fetch(Configuration
             rox_map_free_with_values(properties);
             result = _configuration_fetcher_create_result(fetcher, message, source);
             response_message_free(message);
+#ifdef ROX_CLIENT
+            _configuration_fetcher_update_cache(fetcher, result);
+#endif
             return result;
         }
     }

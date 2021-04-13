@@ -79,6 +79,7 @@ typedef struct ImpressionInvocationTestContext {
     InternalFlags *flags;
     CustomPropertyRepository *custom_property_repository;
     RoxOptions *rox_options;
+    SdkSettings *sdk_settings;
     DeviceProperties *device_properties;
     AnalyticsClient *client;
     XImpressionInvoker *x_invoker;
@@ -114,9 +115,8 @@ static ImpressionInvocationTestContext *impression_test_context_create_cfg(bool 
     ctx->flags = internal_flags_create(ctx->experiment_repository, ctx->parser);
     ctx->custom_property_repository = custom_property_repository_create();
     ctx->rox_options = rox_options_create();
-
-    SdkSettings sdk_settings = {"123", "123"};
-    ctx->device_properties = device_properties_create(&sdk_settings, ctx->rox_options);
+    ctx->sdk_settings = sdk_settings_create("123", "123");
+    ctx->device_properties = device_properties_create(ctx->sdk_settings, ctx->rox_options);
 
     if (!roxy) {
         AnalyticsClientConfig config;
@@ -151,6 +151,7 @@ static void impression_test_context_free(ImpressionInvocationTestContext *ctx) {
     }
     device_properties_free(ctx->device_properties);
     rox_options_free(ctx->rox_options);
+    sdk_settings_free(ctx->sdk_settings);
     custom_property_repository_free(ctx->custom_property_repository);
     internal_flags_free(ctx->flags);
     parser_free(ctx->parser);

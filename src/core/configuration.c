@@ -278,12 +278,13 @@ static bool _configuration_parser_is_api_key_verified(ConfigurationParser *parse
             parser->api_key_verifier,
             application_json->valuestring)) {
 
+        SdkSettings *settings = api_key_verifier_get_sdk_settings(parser->api_key_verifier);
         error_reporter_report(
                 parser->error_reporter,
                 __FILE__, __LINE__,
                 "Failed to parse JSON configuration - Internal Data: %s; SdkSettings: %s",
                 application_json->valuestring,
-                api_key_verifier_get_sdk_settings(parser->api_key_verifier)->api_key);
+                sdk_settings_get_api_key(settings));
 
         return false;
     }

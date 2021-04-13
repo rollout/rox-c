@@ -9,7 +9,7 @@
 
 #ifdef ROX_CLIENT
 
-#include "rox/storage.h"
+    #include "storage.h"
 
 #endif
 
@@ -214,7 +214,9 @@ static FlagTestFixture *flag_test_fixture_create_new() {
     FlagTestFixture *fixture = calloc(1, sizeof(FlagTestFixture));
     fixture->request = request_test_fixture_create();
     fixture->logging = logging_test_fixture_create(RoxLogLevelDebug);
-    fixture->storage_values = ROX_EMPTY_MAP;
+#ifdef ROX_CLIENT
+    fixture->storage = storage_create_in_memory();
+#endif
     rox_set_default_request_config(&fixture->request->config);
     return fixture;
 }
@@ -228,6 +230,11 @@ static void flag_test_fixture_setup_with_options(FlagTestFixture *fixture, RoxOp
 
 #ifdef ROX_CLIENT
 
+typedef struct InMemoryStorage {
+    RoxStorageConfig *config;
+    RoxMap *values;
+} InMemoryStorage;
+
 static void in_memory_storage_write(void *target, RoxStorageEntry *entry, const char *data) {
     rox_storage_entry_set_meta_data(entry, mem_copy_str(data), free);
 }
@@ -235,9 +242,9 @@ static void in_memory_storage_write(void *target, RoxStorageEntry *entry, const 
 static char *in_memory_storage_read(void *target, RoxStorageEntry *entry) {
     void *data = rox_storage_entry_get_meta_data(entry);
     if (!data) {
-        FlagTestFixture *fixture = target;
+        InMemoryStorage *storage = target;
         const char *name = rox_storage_entry_get_name(entry);
-        rox_map_get(fixture->storage_values, (void *) name, &data);
+        rox_map_get(storage->values, (void *) name, &data);
         if (data) {
             return mem_copy_str(data);
         }
@@ -245,29 +252,75 @@ static char *in_memory_storage_read(void *target, RoxStorageEntry *entry) {
     return data;
 }
 
-ROX_INTERNAL FlagTestFixture *flag_test_fixture_create_with_options_and_storage(
-        RoxOptions *options,
-        const char *data) {
+static void in_memory_storage_free(InMemoryStorage *storage) {
+    rox_map_free(storage->values);
+    free(storage->config);
+    free(storage);
+}
+
+static RoxStorageConfig *in_memory_storage_config_create(RoxMap *values) {
+    assert(values);
+    InMemoryStorage *storage = calloc(1, sizeof(InMemoryStorage));
+    storage->values = values;
+    storage->config = calloc(1, sizeof(RoxStorageConfig));
+    storage->config->target = storage;
+    storage->config->target_free = (rox_storage_target_free_func) in_memory_storage_free;
+    storage->config->entry_read = in_memory_storage_read;
+    storage->config->entry_write = in_memory_storage_write;
+    return storage->config;
+}
+
+ROX_INTERNAL RoxStorage *storage_create_in_memory() {
+    return storage_create(in_memory_storage_config_create(ROX_EMPTY_MAP));
+}
+
+ROX_INTERNAL FlagTestFixture *flag_test_fixture_create_with_storage(RoxMap *values) {
     FlagTestFixture *fixture = flag_test_fixture_create_new();
-    if (data) {
-        rox_map_add(fixture->storage_values, "overrides", data);
-    }
-    RoxStorageConfig storage_config = {
-            NULL,
-            fixture,
-            NULL,
-            NULL,
-            in_memory_storage_write,
-            in_memory_storage_read,
-            NULL
-    };
-    rox_options_set_storage_config(options, &storage_config);
+    RoxOptions *options = rox_options_create();
+    rox_options_set_storage_config(options, in_memory_storage_config_create(values));
     flag_test_fixture_setup_with_options(fixture, options);
     return fixture;
 }
 
-ROX_INTERNAL FlagTestFixture *flag_test_fixture_create_with_storage(const char *data) {
-    return flag_test_fixture_create_with_options_and_storage(rox_options_create(), data);
+static void dummy_storage_entry_init_func(void *target, RoxStorageEntry *entry) {
+    // Stub
+}
+
+static void dummy_storage_write_func(void *target, RoxStorageEntry *entry, const char *data) {
+    // Stub
+}
+
+static char *dummy_storage_read_func(void *target, RoxStorageEntry *entry) {
+    return NULL;
+}
+
+static void dummy_storage_entry_uninit_func(void *target, RoxStorageEntry *entry) {
+    // Stub
+}
+
+static RoxStorageConfig test_storage_config = {
+        NULL,
+        NULL,
+        NULL,
+        dummy_storage_entry_init_func,
+        dummy_storage_entry_uninit_func,
+        dummy_storage_write_func,
+        dummy_storage_read_func
+};
+
+ROX_INTERNAL void set_in_memory_storage_config(RoxOptions *options) {
+    assert(options);
+    set_in_memory_storage_config_with_values(options, ROX_EMPTY_MAP);
+}
+
+ROX_INTERNAL void set_in_memory_storage_config_with_values(RoxOptions *options, RoxMap *values) {
+    assert(options);
+    assert(values);
+    rox_options_set_storage_config(options, in_memory_storage_config_create(values));
+}
+
+ROX_INTERNAL void set_dummy_storage_config(RoxOptions *options) {
+    rox_options_set_storage_config(options, &test_storage_config);
 }
 
 #endif
@@ -380,7 +433,6 @@ ROX_INTERNAL void flag_test_fixture_free(FlagTestFixture *ctx) {
     if (ctx->request->data_to_return_to_get) {
         free(ctx->request->data_to_return_to_get);
     }
-    rox_map_free(ctx->storage_values);
     rox_set_default_request_config(NULL);
     request_test_fixture_free(ctx->request);
     logging_test_fixture_free(ctx->logging);
@@ -392,6 +444,9 @@ ROX_INTERNAL void flag_test_fixture_free(FlagTestFixture *ctx) {
         rox_dynamic_value_free(ctx->imp_context_value);
         ctx->imp_context_value = NULL;
     }
+#ifdef ROX_CLIENT
+    storage_free(ctx->storage);
+#endif
     free(ctx);
     rox_shutdown();
 }

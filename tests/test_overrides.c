@@ -18,7 +18,7 @@ START_TEST (flag_overrides_should_return_null_if_no_override) {
 END_TEST
 
 START_TEST (flag_overrides_should_read_overridden_values) {
-    FlagTestFixture *fixture = flag_test_fixture_create_with_storage("{\"key1\":\"value1\", \"key2\":\"value2\"}");
+    FlagTestFixture *fixture = flag_test_fixture_create_with_storage(ROX_MAP("overrides", "{\"key1\":\"value1\", \"key2\":\"value2\"}"));
     RoxFlagOverrides *overrides = rox_get_overrides();
     ck_assert(rox_has_override(overrides, "key1"));
     ck_assert_str_eq("value1", rox_get_override(overrides, "key1"));

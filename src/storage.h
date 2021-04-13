@@ -3,6 +3,19 @@
 #include "rox/defs.h"
 #include "rox/collections.h"
 #include "rox/storage.h"
+#include "client.h"
+
+/**
+ * @param storage Not <code>NULL</code>.
+ * @param settings Not <code>NULL</code>.
+ */
+ROX_INTERNAL void storage_init(RoxStorage *storage, SdkSettings *settings);
+
+/**
+ * @param settings Not <code>NULL</code>.
+ * @return May be <code>NULL</code>.
+ */
+ROX_INTERNAL RoxStorage *storage_get_from_settings(SdkSettings *settings);
 
 /**
  * @param options Not <code>NULL</code>.
@@ -27,6 +40,12 @@ ROX_INTERNAL RoxStorage *storage_create(RoxStorageConfig *config);
  * @return Not <code>NULL</code>.
  */
 ROX_INTERNAL RoxStorage *storage_create_with_location(const char *location);
+
+/**
+ * @param options Not <code>NULL</code>.
+ * @return Not <code>NULL</code>.
+ */
+ROX_INTERNAL RoxStorage *storage_create_from_options(RoxOptions *options);
 
 /**
  * @param storage Not <code>NULL</code>.

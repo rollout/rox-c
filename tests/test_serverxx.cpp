@@ -8,6 +8,7 @@
 extern "C" {
 #include "core/impression/models.h"
 #include "util.h"
+#include "fixtures.h"
 }
 
 // TODO: FlagTests
@@ -220,6 +221,12 @@ ServerTestContext::ServerTestContext() {
             .SetDevModeKey("f3be3b47c02bca33ae618130")
             .Build();
 
+#ifdef ROX_CLIENT
+
+    set_dummy_storage_config(options);
+
+#endif
+
     this->simpleFlag = Rox::Flag::Create("simpleFlag", true);
     this->simpleFlagOverwritten = Rox::Flag::Create("simpleFlagOverwritten", true);
     this->flagForImpression = Rox::Flag::Create("flagForImpression", false);
@@ -317,17 +324,6 @@ Rox::CustomPropertyGeneratorInterface *
 ServerTestContext::AddGenerator(Rox::CustomPropertyGeneratorInterface *generator) {
     this->generators.push_back(generator);
     return generator;
-}
-
-TEST_CASE ("test_will_check_null_api_key", "[server]") {
-    try {
-        Rox::Setup(nullptr, nullptr);
-        FAIL("Rox::SetupException expected");
-    } catch (Rox::SetupException &e) {
-        REQUIRE(e.what());
-        REQUIRE(RoxErrorEmptyApiKey == e.GetCode());
-    }
-    Rox::Shutdown();
 }
 
 TEST_CASE ("test_will_check_empty_api_key", "[server]") {

@@ -3,7 +3,6 @@
 #include "storage.h"
 #include "core/options.h"
 #include "core/logging.h"
-#include "collections.h"
 #include "util.h"
 
 struct RoxStorageEntry {
@@ -20,6 +19,7 @@ struct RoxStorage {
     RoxMap *entries;
     const char *location;
     void *target;
+    rox_storage_target_free_func target_free;
     rox_storage_entry_init_func entry_init;
     rox_storage_entry_uninit_func entry_uninit;
     rox_storage_write_func entry_write;
@@ -28,6 +28,7 @@ struct RoxStorage {
 };
 
 static const char *STORAGE_OPTIONS_KEY = "storage";
+static const char *STORAGE_SETTINGS_KEY = "storage";
 static const char *STORAGE_LOCATION_OPTIONS_KEY = "storage_location";
 
 static void storage_entry_free_meta(RoxStorageEntry *entry) {
@@ -64,6 +65,18 @@ rox_storage_entry_set_meta_data(RoxStorageEntry *entry, void *data, rox_storage_
     storage_entry_free_meta(entry);
     entry->meta = data;
     entry->free_meta_func = free_func;
+}
+
+ROX_INTERNAL void storage_init(RoxStorage *storage, SdkSettings *settings) {
+    assert(storage);
+    assert(settings);
+    sdk_settings_add_extra(settings, STORAGE_SETTINGS_KEY, storage,
+                           (sdk_settings_free_extra_func) storage_free);
+}
+
+ROX_INTERNAL RoxStorage *storage_get_from_settings(SdkSettings *settings) {
+    assert(settings);
+    return sdk_settings_get_extra(settings, STORAGE_SETTINGS_KEY);
 }
 
 ROX_INTERNAL RoxStorageConfig *get_storage_config_from_options(RoxOptions *options) {
@@ -118,6 +131,7 @@ static void default_storage_entry_uninit_func(void *target, RoxStorageEntry *ent
 static RoxStorageConfig default_storage_config = {
         ROX_DEFAULT_STORAGE_LOCATION,
         NULL,
+        NULL,
         default_storage_entry_init_func,
         default_storage_entry_uninit_func,
         default_storage_write_func,
@@ -131,6 +145,7 @@ ROX_INTERNAL RoxStorage *storage_create(RoxStorageConfig *config) {
     RoxStorage *storage = calloc(1, sizeof(RoxStorage));
     storage->location = config->location;
     storage->target = config->target;
+    storage->target_free = config->target_free;
     storage->entry_init = config->entry_init;
     storage->entry_uninit = config->entry_uninit;
     storage->entry_read = config->entry_read;
@@ -145,6 +160,21 @@ ROX_INTERNAL RoxStorage *storage_create_with_location(const char *location) {
     RoxStorageConfig config = default_storage_config;
     config.location = location;
     return storage_create(&config);
+}
+
+ROX_INTERNAL RoxStorage *storage_create_from_options(RoxOptions *options) {
+    assert(options);
+    RoxStorageConfig *storage_config = get_storage_config_from_options(options);
+    if (storage_config) {
+        return storage_create(storage_config);
+    } else {
+        char *location = get_storage_location_from_options(options);
+        if (location) {
+            return storage_create_with_location(location);
+        } else {
+            return storage_create(NULL);
+        }
+    }
 }
 
 ROX_INTERNAL RoxStorageEntry *storage_get_entry(RoxStorage *storage, const char *name) {
@@ -242,5 +272,8 @@ ROX_INTERNAL void storage_delete_entry(RoxStorageEntry *entry) {
 ROX_INTERNAL void storage_free(RoxStorage *storage) {
     assert(storage);
     rox_map_free_with_values_cb(storage->entries, storage_entry_free);
+    if (storage->target && storage->target_free) {
+        storage->target_free(storage->target);
+    }
     free(storage);
 }

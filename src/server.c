@@ -9,6 +9,7 @@
 
 #ifdef ROX_CLIENT
 
+#include "storage.h"
 #include "freeze.h"
 #include "overrides.h"
 
@@ -161,11 +162,15 @@ ROX_API RoxStateCode rox_setup(const char *api_key, RoxOptions *options) {
                            &ROX_CUSTOM_PROPERTY_TYPE_STRING);
 
 #ifdef ROX_CLIENT
+
+    RoxStorage *storage = storage_create_from_options(options);
+    storage_init(storage, rox->sdk_settings);
+
     // NOTE: the order is important here because first we must check if the flag value
     // is overridden, and then use the frozen value. If applying in reverse order,
     // it will make flag freeze check first.
     rox_freeze_init(rox->core, options);
-    rox_overrides_init(rox->core, options);
+    rox_overrides_init(rox->core, storage);
 #endif
 
     rox->state = rox_core_setup(rox->core, rox->sdk_settings, rox->device_properties, options);

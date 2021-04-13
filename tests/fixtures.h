@@ -3,6 +3,12 @@
 #include "core/network.h"
 #include "rox/server.h"
 
+#ifdef ROX_CLIENT
+
+    #include "rox/storage.h"
+
+#endif
+
 //
 // Requests
 //
@@ -65,15 +71,23 @@ typedef struct FlagTestFixture {
     bool test_flag_action_called;
     RequestTestFixture *request;
     LoggingTestFixture *logging;
-    RoxMap *storage_values;
+#ifdef ROX_CLIENT
+    RoxStorage *storage;
+#endif
 } FlagTestFixture;
 
 #ifdef ROX_CLIENT
-ROX_INTERNAL FlagTestFixture *flag_test_fixture_create_with_options_and_storage(
-        RoxOptions *options,
-        const char* data);
 
-ROX_INTERNAL FlagTestFixture *flag_test_fixture_create_with_storage(const char *data);
+ROX_INTERNAL FlagTestFixture *flag_test_fixture_create_with_storage(RoxMap *values);
+
+ROX_INTERNAL void set_in_memory_storage_config(RoxOptions *options);
+
+ROX_INTERNAL void set_in_memory_storage_config_with_values(RoxOptions *options, RoxMap *values);
+
+ROX_INTERNAL void set_dummy_storage_config(RoxOptions *options);
+
+ROX_INTERNAL RoxStorage *storage_create_in_memory();
+
 #endif
 
 ROX_INTERNAL FlagTestFixture *flag_test_fixture_create_with_options(RoxOptions *options);

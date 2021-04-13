@@ -18,9 +18,12 @@ typedef void (*rox_storage_entry_uninit_func)(void *target, RoxStorageEntry *ent
 
 typedef void (*rox_storage_entry_delete_func)(void *target, RoxStorageEntry *entry);
 
+typedef void (*rox_storage_target_free_func)(void *target);
+
 typedef struct RoxStorageConfig {
     const char *location;
     void *target;
+    rox_storage_target_free_func target_free;
     rox_storage_entry_init_func entry_init;
     rox_storage_entry_uninit_func entry_uninit;
     rox_storage_write_func entry_write;

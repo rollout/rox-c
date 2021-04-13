@@ -214,7 +214,9 @@ ROX_INTERNAL void rox_core_fetch(RoxCore *core, bool is_source_pushing) {
 
         configuration_fetched_invoker_invoke(
                 core->configuration_fetched_invoker,
-                AppliedFromNetwork,
+                result->source == CONFIGURATION_SOURCE_LOCAL_STORAGE
+                ? AppliedFromLocalStorage
+                : AppliedFromNetwork, // TODO: embedded?
                 configuration->signature_date,
                 has_changes);
 
@@ -258,10 +260,11 @@ ROX_INTERNAL RoxStateCode rox_core_setup(
     if (rox_options) {
         roxy_url = rox_options_get_roxy_url(rox_options);
         if (!roxy_url) {
-            if (!sdk_settings->api_key || !sdk_settings->api_key[0]) {
+            char *api_key = sdk_settings_get_api_key(sdk_settings);
+            if (!api_key || !api_key[0]) {
                 ROX_ERROR("Invalid rollout apikey - must be specified");
                 return RoxErrorEmptyApiKey;
-            } else if (!str_matches(sdk_settings->api_key, "^[a-f\\d]{24}$", PCRE2_CASELESS)) {
+            } else if (!str_matches(api_key, "^[a-f\\d]{24}$", PCRE2_CASELESS)) {
                 ROX_ERROR("Illegal rollout apikey");
                 return RoxErrorInvalidApiKey;
             }

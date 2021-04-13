@@ -11,19 +11,72 @@
 // SdkSettings
 //
 
+typedef struct SdkSettingsExtraEntry {
+    void *data;
+    sdk_settings_free_extra_func free_data_func;
+} SdkSettingsExtraEntry;
+
+struct SdkSettings {
+    char *api_key;
+    char *dev_mode_secret;
+    RoxMap *extra;
+};
+
 ROX_INTERNAL SdkSettings *sdk_settings_create(const char *api_key, const char *dev_mode_secret) {
     assert(api_key);
     assert(dev_mode_secret);
     SdkSettings *settings = calloc(1, sizeof(SdkSettings));
     settings->api_key = mem_copy_str(api_key);
     settings->dev_mode_secret = mem_copy_str(dev_mode_secret);
+    settings->extra = ROX_EMPTY_MAP;
     return settings;
+}
+
+ROX_INTERNAL char *sdk_settings_get_api_key(SdkSettings *settings) {
+    assert(settings);
+    return settings->api_key;
+}
+
+ROX_INTERNAL char *sdk_settings_get_dev_mode_secret(SdkSettings *settings) {
+    assert(settings);
+    return settings->dev_mode_secret;
+}
+
+ROX_INTERNAL void sdk_settings_add_extra(
+        SdkSettings *settings,
+        const char *key,
+        void *data,
+        sdk_settings_free_extra_func free_func) {
+    assert(settings);
+    assert(key);
+    SdkSettingsExtraEntry *entry = calloc(1, sizeof(SdkSettingsExtraEntry));
+    entry->data = data;
+    entry->free_data_func = free_func;
+    rox_map_add(settings->extra, (void *) key, entry);
+}
+
+ROX_INTERNAL void *sdk_settings_get_extra(SdkSettings *settings, const char *key) {
+    assert(settings);
+    assert(key);
+    void *result;
+    if (rox_map_get(settings->extra, (void *) key, &result)) {
+        SdkSettingsExtraEntry *entry = result;
+        return entry->data;
+    }
+    return NULL;
 }
 
 ROX_INTERNAL void sdk_settings_free(SdkSettings *sdk_settings) {
     assert(sdk_settings);
     free(sdk_settings->api_key);
     free(sdk_settings->dev_mode_secret);
+    ROX_MAP_FOREACH(key, value, sdk_settings->extra, {
+        SdkSettingsExtraEntry *entry = value;
+        if (entry->free_data_func) {
+            entry->free_data_func(entry->data);
+        }
+    })
+    rox_map_free_with_values_cb(sdk_settings->extra, free);
     free(sdk_settings);
 }
 

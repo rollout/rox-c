@@ -98,7 +98,7 @@ typedef struct APIKeyVerifier {
 ROX_INTERNAL bool _api_key_verifier_verify(APIKeyVerifier *key_verifier, const char *api_key) {
     assert(key_verifier);
     assert(api_key);
-    return str_equals(key_verifier->sdk_settings->api_key, api_key);
+    return str_equals(sdk_settings_get_api_key(key_verifier->sdk_settings), api_key);
 }
 
 ROX_INTERNAL APIKeyVerifier *api_key_verifier_create(APIKeyVerifierConfig *config) {
