@@ -478,9 +478,11 @@ static ConfigurationFetchResult *_configuration_fetcher_fetch_from_cache(Configu
     }
     char *data;
     if (!rox_map_get(values, (void *) STORAGE_CONFIG_DATA_KEY, (void **) &data)) {
+        rox_map_free_with_keys_and_values_cb(values, free, free);
         return NULL;
     }
     cJSON *json = cJSON_Parse(data);
+    rox_map_free_with_keys_and_values_cb(values, free, free);
     if (!json) {
         ROX_WARN("Failed to deserialize cached config JSON %s", data);
         return NULL;
