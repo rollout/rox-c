@@ -12,7 +12,7 @@ PROJECT_NAME="ROX SDK"
 DO_CLEAN=0
 FIND_LEAKS=0
 SKIP_INSTALL=0
-SKIP_TESTS=0
+SKIP_TESTS=1
 BUILD_TYPE=Release
 BUILD_SUBDIR=release
 SKIP_BUILDING_THIRD_PARTY_LIBS=0
@@ -25,17 +25,17 @@ ${SCRIPT} [OPTIONS]
 Options:
   -S        Skip building third party libs.
   -C        Skip installing client SDK.
-  -T        Skip running tests.
   -I        Skip installation step.
   -d <path> Specify installation directory.
   -s        Enable debug symbols.
   -c        Clean build directories.
   -l        Perform memory leak check using valgrind.
-  -t <sec>  Specify test timeout in seconds default is (${TEST_TIMEOUT_SECONDS}).
+  -t        Run tests.
+  -T <sec>  Specify test timeout in seconds default is (${TEST_TIMEOUT_SECONDS}).
 EOF
 )
 
-while getopts ":SsCcITd:lt:" opt; do
+while getopts ":SsCcIT:d:lt" opt; do
   case ${opt} in
   S) # skip building third party libs
     SKIP_BUILDING_THIRD_PARTY_LIBS=1
@@ -49,10 +49,10 @@ while getopts ":SsCcITd:lt:" opt; do
   I) # skip installation step
     SKIP_INSTALL=1
     ;;
-  T) # skip testing step
-    SKIP_TESTS=1
+  t) # run tests
+    SKIP_TESTS=0
     ;;
-  t) # specify test timeout
+  T) # specify test timeout
     TEST_TIMEOUT_SECONDS=$OPTARG
     ;;
   d) # specify installation directory
