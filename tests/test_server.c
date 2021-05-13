@@ -561,7 +561,10 @@ typedef struct ServerTestContextConfig {
     RoxContext *context;
 #ifdef ROX_CLIENT
     RoxMap *storage_values;
+#else
+    void* skip;
 #endif
+    bool skip_flags;
 } ServerTestContextConfig;
 
 static ServerTestContext *server_test_context_create_cfg(ServerTestContextConfig *config) {
@@ -591,28 +594,30 @@ static ServerTestContext *server_test_context_create_cfg(ServerTestContextConfig
         setup_called = true;
     }
 
-    ctx->simpleFlag = rox_add_flag("simpleFlag", true);
-    ctx->simpleFlagOverwritten = rox_add_flag("simpleFlagOverwritten", true);
-    ctx->flagForImpression = rox_add_flag("flagForImpression", false);
-    ctx->flagForImpressionWithExperimentAndContext = rox_add_flag("flagForImpressionWithExperimentAndContext",
-                                                                  false);
-    ctx->flagCustomProperties = rox_add_flag("flagCustomProperties", false);
-    ctx->flagTargetGroupsAll = rox_add_flag("flagTargetGroupsAll", false);
-    ctx->flagTargetGroupsAny = rox_add_flag("flagTargetGroupsAny", false);
-    ctx->flagTargetGroupsNone = rox_add_flag("flagTargetGroupsNone", false);
-    ctx->variantWithContext = rox_add_string_with_options("variantWithContext", "red",
-                                                          ROX_LIST_COPY_STR("red", "blue", "green"));
-    ctx->variant = rox_add_string_with_options("variant", "red", ROX_LIST_COPY_STR("red", "blue", "green"));
-    ctx->variantOverwritten = rox_add_string_with_options("variantOverwritten", "red",
-                                                          ROX_LIST_COPY_STR("red", "blue", "green"));
-    ctx->flagForDependency = rox_add_flag("flagForDependency", false);
-    ctx->flag_colors_for_dependency = rox_add_string_with_options("flagColorsForDependency", "White",
-                                                                  ROX_LIST_COPY_STR("White", "Blue", "Green",
-                                                                                    "Yellow"));
-    ctx->flagDependent = rox_add_flag("flagDependent", false);
-    ctx->flagColorDependentWithContext = rox_add_string_with_options("flagColorDependentWithContext", "White",
-                                                                     ROX_LIST_COPY_STR("White", "Blue", "Green",
-                                                                                       "Yellow"));
+    if (!config || !config->skip_flags) {
+        ctx->simpleFlag = rox_add_flag("simpleFlag", true);
+        ctx->simpleFlagOverwritten = rox_add_flag("simpleFlagOverwritten", true);
+        ctx->flagForImpression = rox_add_flag("flagForImpression", false);
+        ctx->flagForImpressionWithExperimentAndContext = rox_add_flag("flagForImpressionWithExperimentAndContext",
+                                                                      false);
+        ctx->flagCustomProperties = rox_add_flag("flagCustomProperties", false);
+        ctx->flagTargetGroupsAll = rox_add_flag("flagTargetGroupsAll", false);
+        ctx->flagTargetGroupsAny = rox_add_flag("flagTargetGroupsAny", false);
+        ctx->flagTargetGroupsNone = rox_add_flag("flagTargetGroupsNone", false);
+        ctx->variantWithContext = rox_add_string_with_options("variantWithContext", "red",
+                                                              ROX_LIST_COPY_STR("red", "blue", "green"));
+        ctx->variant = rox_add_string_with_options("variant", "red", ROX_LIST_COPY_STR("red", "blue", "green"));
+        ctx->variantOverwritten = rox_add_string_with_options("variantOverwritten", "red",
+                                                              ROX_LIST_COPY_STR("red", "blue", "green"));
+        ctx->flagForDependency = rox_add_flag("flagForDependency", false);
+        ctx->flag_colors_for_dependency = rox_add_string_with_options("flagColorsForDependency", "White",
+                                                                      ROX_LIST_COPY_STR("White", "Blue", "Green",
+                                                                                        "Yellow"));
+        ctx->flagDependent = rox_add_flag("flagDependent", false);
+        ctx->flagColorDependentWithContext = rox_add_string_with_options("flagColorDependentWithContext", "White",
+                                                                         ROX_LIST_COPY_STR("White", "Blue", "Green",
+                                                                                           "Yellow"));
+    }
 
     rox_set_custom_string_property("stringProp1", "Hello");
     rox_set_custom_computed_string_property("stringProp2", ctx, &test_computed_string_property);
@@ -765,11 +770,31 @@ END_TEST
 START_TEST (testing_variant_with_global_context_set_before) {
     RoxContext *some_positive_context = rox_context_create_from_map(
             ROX_MAP(ROX_COPY("isDuckAndCover"), rox_dynamic_value_create_boolean(true)));
-    ServerTestContextConfig config = {some_positive_context};
+    ServerTestContextConfig config = {some_positive_context, NULL, false};
     ServerTestContext *ctx = server_test_context_create_cfg(&config);
     rox_check_and_free(rox_get_string(ctx->variantWithContext), "blue");
     rox_set_context(NULL);
     rox_check_and_free(rox_get_string(ctx->variantWithContext), "red");
+    server_test_context_free(ctx);
+}
+
+END_TEST
+
+START_TEST (testing_dynamic_api_call_with_global_context_set_before) {
+    RoxContext *context = rox_context_create_from_map(
+            ROX_MAP(ROX_COPY("var"),
+                    rox_dynamic_value_create_string_copy("val")));
+
+    ServerTestContextConfig config = {context, NULL, true};
+    ServerTestContext *ctx = server_test_context_create_cfg(&config);
+
+    RoxDynamicApi *api = rox_dynamic_api();
+    ck_assert(rox_dynamic_api_is_enabled(api, "flagForImpressionWithExperimentAndContext", false));
+    ck_assert_ptr_nonnull(ctx->lastImpressionContextValue);
+    ck_assert(rox_dynamic_value_is_string(ctx->lastImpressionContextValue));
+    ck_assert_str_eq(rox_dynamic_value_get_string(ctx->lastImpressionContextValue), "val");
+    rox_dynamic_api_free(api);
+
     server_test_context_free(ctx);
 }
 
@@ -871,7 +896,7 @@ END_TEST
 START_TEST (test_will_use_local_cache) {
 #ifdef ROX_CLIENT
     const char *config_data = "{\"data\":\"{\\\"data\\\":\\\"{\\\\\\\"experiments\\\\\\\":[{\\\\\\\"_id\\\\\\\":\\\\\\\"5b322d790d81206da3055831\\\\\\\",\\\\\\\"name\\\\\\\":\\\\\\\"configuration fetched\\\\\\\",\\\\\\\"archived\\\\\\\":false,\\\\\\\"featureFlags\\\\\\\":[{\\\\\\\"name\\\\\\\":\\\\\\\"rox.internal.configurationFetched\\\\\\\"}],\\\\\\\"deploymentConfiguration\\\\\\\":{\\\\\\\"condition\\\\\\\":\\\\\\\"ifThen(and(true, true), \\\\\\\\\\\\\\\"false\\\\\\\\\\\\\\\", \\\\\\\\\\\\\\\"false\\\\\\\\\\\\\\\")\\\\\\\"},\\\\\\\"labels\\\\\\\":[],\\\\\\\"stickinessProperty\\\\\\\":\\\\\\\"rox.distinct_id\\\\\\\"},{\\\\\\\"_id\\\\\\\":\\\\\\\"5b45ce19bddf203f97fdb82a\\\\\\\",\\\\\\\"name\\\\\\\":\\\\\\\"analytics\\\\\\\",\\\\\\\"archived\\\\\\\":false,\\\\\\\"featureFlags\\\\\\\":[{\\\\\\\"name\\\\\\\":\\\\\\\"rox.internal.analytics\\\\\\\"}],\\\\\\\"deploymentConfiguration\\\\\\\":{\\\\\\\"condition\\\\\\\":\\\\\\\"ifThen(and(true, true), \\\\\\\\\\\\\\\"true\\\\\\\\\\\\\\\", \\\\\\\\\\\\\\\"false\\\\\\\\\\\\\\\")\\\\\\\"},\\\\\\\"labels\\\\\\\":[],\\\\\\\"stickinessProperty\\\\\\\":\\\\\\\"rox.internal.distinct_id\\\\\\\"},{\\\\\\\"_id\\\\\\\":\\\\\\\"5be03e1bfbb5900464c5feac\\\\\\\",\\\\\\\"name\\\\\\\":\\\\\\\"push updates\\\\\\\",\\\\\\\"archived\\\\\\\":false,\\\\\\\"featureFlags\\\\\\\":[{\\\\\\\"name\\\\\\\":\\\\\\\"rox.internal.pushUpdates\\\\\\\"}],\\\\\\\"deploymentConfiguration\\\\\\\":{\\\\\\\"condition\\\\\\\":\\\\\\\"ifThen(and(true, true), \\\\\\\\\\\\\\\"true\\\\\\\\\\\\\\\", \\\\\\\\\\\\\\\"false\\\\\\\\\\\\\\\")\\\\\\\"},\\\\\\\"labels\\\\\\\":[],\\\\\\\"stickinessProperty\\\\\\\":\\\\\\\"rox.distinct_id\\\\\\\"},{\\\\\\\"_id\\\\\\\":\\\\\\\"5e57a3d01d6e80f485c307b8\\\\\\\",\\\\\\\"name\\\\\\\":\\\\\\\"flag color dependent with context\\\\\\\",\\\\\\\"archived\\\\\\\":false,\\\\\\\"featureFlags\\\\\\\":[{\\\\\\\"name\\\\\\\":\\\\\\\"flagColorDependentWithContext\\\\\\\"}],\\\\\\\"deploymentConfiguration\\\\\\\":{\\\\\\\"condition\\\\\\\":\\\\\\\"ifThen(and(true, eq(flagValue(\\\\\\\\\\\\\\\"flagColorsForDependency\\\\\\\\\\\\\\\"), b64d(\\\\\\\\\\\\\\\"R3JlZW4=\\\\\\\\\\\\\\\"))), b64d(\\\\\\\\\\\\\\\"WWVsbG93\\\\\\\\\\\\\\\"), ifThen(and(true, true), undefined, undefined))\\\\\\\"},\\\\\\\"labels\\\\\\\":[],\\\\\\\"stickinessProperty\\\\\\\":\\\\\\\"rox.distinct_id\\\\\\\"},{\\\\\\\"_id\\\\\\\":\\\\\\\"5e57a3d11d6e8048e1c307c2\\\\\\\",\\\\\\\"name\\\\\\\":\\\\\\\"flag colors for dependency\\\\\\\",\\\\\\\"archived\\\\\\\":false,\\\\\\\"featureFlags\\\\\\\":[{\\\\\\\"name\\\\\\\":\\\\\\\"flagColorsForDependency\\\\\\\"}],\\\\\\\"deploymentConfiguration\\\\\\\":{\\\\\\\"condition\\\\\\\":\\\\\\\"ifThen(and(true, isInTargetGroup(\\\\\\\\\\\\\\\"5e57a3d11d6e8060c5c307bb\\\\\\\\\\\\\\\")), b64d(\\\\\\\\\\\\\\\"R3JlZW4=\\\\\\\\\\\\\\\"), ifThen(and(true, true), undefined, undefined))\\\\\\\"},\\\\\\\"labels\\\\\\\":[],\\\\\\\"stickinessProperty\\\\\\\":\\\\\\\"rox.distinct_id\\\\\\\"},{\\\\\\\"_id\\\\\\\":\\\\\\\"5e57a3d11d6e80d0cfc307ce\\\\\\\",\\\\\\\"name\\\\\\\":\\\\\\\"flag custom properties\\\\\\\",\\\\\\\"archived\\\\\\\":false,\\\\\\\"featureFlags\\\\\\\":[{\\\\\\\"name\\\\\\\":\\\\\\\"flagCustomProperties\\\\\\\"}],\\\\\\\"deploymentConfiguration\\\\\\\":{\\\\\\\"condition\\\\\\\":\\\\\\\"ifThen(and(true, isInTargetGroup(\\\\\\\\\\\\\\\"5e57a3d11d6e80596ac307c5\\\\\\\\\\\\\\\")), \\\\\\\\\\\\\\\"true\\\\\\\\\\\\\\\", ifThen(and(true, true), \\\\\\\\\\\\\\\"false\\\\\\\\\\\\\\\", \\\\\\\\\\\\\\\"false\\\\\\\\\\\\\\\"))\\\\\\\"},\\\\\\\"labels\\\\\\\":[],\\\\\\\"stickinessProperty\\\\\\\":\\\\\\\"rox.distinct_id\\\\\\\"},{\\\\\\\"_id\\\\\\\":\\\\\\\"5e57a3d21d6e800355c307da\\\\\\\",\\\\\\\"name\\\\\\\":\\\\\\\"flag dependent\\\\\\\",\\\\\\\"archived\\\\\\\":false,\\\\\\\"featureFlags\\\\\\\":[{\\\\\\\"name\\\\\\\":\\\\\\\"flagDependent\\\\\\\"}],\\\\\\\"deploymentConfiguration\\\\\\\":{\\\\\\\"condition\\\\\\\":\\\\\\\"ifThen(and(true, eq(flagValue(\\\\\\\\\\\\\\\"flagForDependency\\\\\\\\\\\\\\\"), b64d(\\\\\\\\\\\\\\\"dHJ1ZQ==\\\\\\\\\\\\\\\"))), \\\\\\\\\\\\\\\"false\\\\\\\\\\\\\\\", ifThen(and(true, true), \\\\\\\\\\\\\\\"true\\\\\\\\\\\\\\\", \\\\\\\\\\\\\\\"false\\\\\\\\\\\\\\\"))\\\\\\\"},\\\\\\\"labels\\\\\\\":[],\\\\\\\"stickinessProperty\\\\\\\":\\\\\\\"rox.distinct_id\\\\\\\"},{\\\\\\\"_id\\\\\\\":\\\\\\\"5e57a3d21d6e80f381c307e6\\\\\\\",\\\\\\\"name\\\\\\\":\\\\\\\"flag for dependency\\\\\\\",\\\\\\\"archived\\\\\\\":false,\\\\\\\"featureFlags\\\\\\\":[{\\\\\\\"name\\\\\\\":\\\\\\\"flagForDependency\\\\\\\"}],\\\\\\\"deploymentConfiguration\\\\\\\":{\\\\\\\"condition\\\\\\\":\\\\\\\"ifThen(and(true, isInTargetGroup(\\\\\\\\\\\\\\\"5e57a3d21d6e80022bc307dd\\\\\\\\\\\\\\\")), \\\\\\\\\\\\\\\"true\\\\\\\\\\\\\\\", ifThen(and(true, true), \\\\\\\\\\\\\\\"false\\\\\\\\\\\\\\\", \\\\\\\\\\\\\\\"false\\\\\\\\\\\\\\\"))\\\\\\\"},\\\\\\\"labels\\\\\\\":[],\\\\\\\"stickinessProperty\\\\\\\":\\\\\\\"rox.distinct_id\\\\\\\"},{\\\\\\\"_id\\\\\\\":\\\\\\\"5e57a3d31d6e807bf3c307ee\\\\\\\",\\\\\\\"name\\\\\\\":\\\\\\\"flag for impression with experiment and context\\\\\\\",\\\\\\\"archived\\\\\\\":false,\\\\\\\"featureFlags\\\\\\\":[{\\\\\\\"name\\\\\\\":\\\\\\\"flagForImpressionWithExperimentAndContext\\\\\\\"}],\\\\\\\"deploymentConfiguration\\\\\\\":{\\\\\\\"condition\\\\\\\":\\\\\\\"ifThen(and(true, true), \\\\\\\\\\\\\\\"true\\\\\\\\\\\\\\\", \\\\\\\\\\\\\\\"false\\\\\\\\\\\\\\\")\\\\\\\"},\\\\\\\"labels\\\\\\\":[],\\\\\\\"stickinessProperty\\\\\\\":\\\\\\\"rox.distinct_id\\\\\\\"},{\\\\\\\"_id\\\\\\\":\\\\\\\"5e57a3d31d6e80af19c307fc\\\\\\\",\\\\\\\"name\\\\\\\":\\\\\\\"flag target groups all\\\\\\\",\\\\\\\"archived\\\\\\\":false,\\\\\\\"featureFlags\\\\\\\":[{\\\\\\\"name\\\\\\\":\\\\\\\"flagTargetGroupsAll\\\\\\\"}],\\\\\\\"deploymentConfiguration\\\\\\\":{\\\\\\\"condition\\\\\\\":\\\\\\\"ifThen(and(true, and(isInTargetGroup(\\\\\\\\\\\\\\\"5e57a3d31d6e805829c307f1\\\\\\\\\\\\\\\"), isInTargetGroup(\\\\\\\\\\\\\\\"5e57a3d31d6e806ec6c307f3\\\\\\\\\\\\\\\"))), \\\\\\\\\\\\\\\"true\\\\\\\\\\\\\\\", ifThen(and(true, true), \\\\\\\\\\\\\\\"false\\\\\\\\\\\\\\\", \\\\\\\\\\\\\\\"false\\\\\\\\\\\\\\\"))\\\\\\\"},\\\\\\\"labels\\\\\\\":[],\\\\\\\"stickinessProperty\\\\\\\":\\\\\\\"rox.distinct_id\\\\\\\"},{\\\\\\\"_id\\\\\\\":\\\\\\\"5e57a3d41d6e805f53c30808\\\\\\\",\\\\\\\"name\\\\\\\":\\\\\\\"flag target groups any\\\\\\\",\\\\\\\"archived\\\\\\\":false,\\\\\\\"featureFlags\\\\\\\":[{\\\\\\\"name\\\\\\\":\\\\\\\"flagTargetGroupsAny\\\\\\\"}],\\\\\\\"deploymentConfiguration\\\\\\\":{\\\\\\\"condition\\\\\\\":\\\\\\\"ifThen(and(true, or(isInTargetGroup(\\\\\\\\\\\\\\\"5e57a3d31d6e805829c307f1\\\\\\\\\\\\\\\"), isInTargetGroup(\\\\\\\\\\\\\\\"5e57a3d31d6e806ec6c307f3\\\\\\\\\\\\\\\"))), \\\\\\\\\\\\\\\"true\\\\\\\\\\\\\\\", ifThen(and(true, true), \\\\\\\\\\\\\\\"false\\\\\\\\\\\\\\\", \\\\\\\\\\\\\\\"false\\\\\\\\\\\\\\\"))\\\\\\\"},\\\\\\\"labels\\\\\\\":[],\\\\\\\"stickinessProperty\\\\\\\":\\\\\\\"rox.distinct_id\\\\\\\"},{\\\\\\\"_id\\\\\\\":\\\\\\\"5e57a3d41d6e80ae51c30812\\\\\\\",\\\\\\\"name\\\\\\\":\\\\\\\"flag target groups none\\\\\\\",\\\\\\\"archived\\\\\\\":false,\\\\\\\"featureFlags\\\\\\\":[{\\\\\\\"name\\\\\\\":\\\\\\\"flagTargetGroupsNone\\\\\\\"}],\\\\\\\"deploymentConfiguration\\\\\\\":{\\\\\\\"condition\\\\\\\":\\\\\\\"ifThen(and(true, not(or(isInTargetGroup(\\\\\\\\\\\\\\\"5e57a3d31d6e805829c307f1\\\\\\\\\\\\\\\"), isInTargetGroup(\\\\\\\\\\\\\\\"5e57a3d31d6e806ec6c307f3\\\\\\\\\\\\\\\")))), \\\\\\\\\\\\\\\"true\\\\\\\\\\\\\\\", ifThen(and(true, true), \\\\\\\\\\\\\\\"false\\\\\\\\\\\\\\\", \\\\\\\\\\\\\\\"false\\\\\\\\\\\\\\\"))\\\\\\\"},\\\\\\\"labels\\\\\\\":[],\\\\\\\"stickinessProperty\\\\\\\":\\\\\\\"rox.distinct_id\\\\\\\"},{\\\\\\\"_id\\\\\\\":\\\\\\\"5e57a3d51d6e804d52c30819\\\\\\\",\\\\\\\"name\\\\\\\":\\\\\\\"simple flag overwritten\\\\\\\",\\\\\\\"archived\\\\\\\":false,\\\\\\\"featureFlags\\\\\\\":[{\\\\\\\"name\\\\\\\":\\\\\\\"simpleFlagOverwritten\\\\\\\"}],\\\\\\\"deploymentConfiguration\\\\\\\":{\\\\\\\"condition\\\\\\\":\\\\\\\"ifThen(and(true, true), \\\\\\\\\\\\\\\"false\\\\\\\\\\\\\\\", \\\\\\\\\\\\\\\"false\\\\\\\\\\\\\\\")\\\\\\\"},\\\\\\\"labels\\\\\\\":[],\\\\\\\"stickinessProperty\\\\\\\":\\\\\\\"rox.distinct_id\\\\\\\"},{\\\\\\\"_id\\\\\\\":\\\\\\\"5e57a3d51d6e807121c3081f\\\\\\\",\\\\\\\"name\\\\\\\":\\\\\\\"variant overwritten\\\\\\\",\\\\\\\"archived\\\\\\\":false,\\\\\\\"featureFlags\\\\\\\":[{\\\\\\\"name\\\\\\\":\\\\\\\"variantOverwritten\\\\\\\"}],\\\\\\\"deploymentConfiguration\\\\\\\":{\\\\\\\"condition\\\\\\\":\\\\\\\"ifThen(and(true, true), b64d(\\\\\\\\\\\\\\\"Z3JlZW4=\\\\\\\\\\\\\\\"), undefined)\\\\\\\"},\\\\\\\"labels\\\\\\\":[],\\\\\\\"stickinessProperty\\\\\\\":\\\\\\\"rox.distinct_id\\\\\\\"},{\\\\\\\"_id\\\\\\\":\\\\\\\"5e57a3d51d6e801769c30828\\\\\\\",\\\\\\\"name\\\\\\\":\\\\\\\"variant with context\\\\\\\",\\\\\\\"archived\\\\\\\":false,\\\\\\\"featureFlags\\\\\\\":[{\\\\\\\"name\\\\\\\":\\\\\\\"variantWithContext\\\\\\\"}],\\\\\\\"deploymentConfiguration\\\\\\\":{\\\\\\\"condition\\\\\\\":\\\\\\\"ifThen(and(true, isInTargetGroup(\\\\\\\\\\\\\\\"5e57a3d51d6e808ac5c30822\\\\\\\\\\\\\\\")), b64d(\\\\\\\\\\\\\\\"Ymx1ZQ==\\\\\\\\\\\\\\\"), ifThen(and(true, true), undefined, undefined))\\\\\\\"},\\\\\\\"labels\\\\\\\":[],\\\\\\\"stickinessProperty\\\\\\\":\\\\\\\"rox.distinct_id\\\\\\\"}],\\\\\\\"targetGroups\\\\\\\":[{\\\\\\\"_id\\\\\\\":\\\\\\\"5e57a3d11d6e80596ac307c5\\\\\\\",\\\\\\\"name\\\\\\\":\\\\\\\"5e57a3d11d6e80596ac307c5\\\\\\\",\\\\\\\"condition\\\\\\\":\\\\\\\"and(and(and(and(and(and(and(and(and(gte(property(b64d(\\\\\\\\\\\\\\\"aW50UHJvcDI=\\\\\\\\\\\\\\\")),0),lte(property(b64d(\\\\\\\\\\\\\\\"aW50UHJvcDE=\\\\\\\\\\\\\\\")),7)),eq(property(b64d(\\\\\\\\\\\\\\\"c3RyaW5nUHJvcDI=\\\\\\\\\\\\\\\")),b64d(\\\\\\\\\\\\\\\"V29ybGQ=\\\\\\\\\\\\\\\"))),inArray(md5(concat(\\\\\\\\\\\\\\\"d17a1259a931bf52\\\\\\\\\\\\\\\",property(b64d(\\\\\\\\\\\\\\\"c3RyaW5nUHJvcDE=\\\\\\\\\\\\\\\")))),[\\\\\\\\\\\\\\\"b590dce2c130bb3ceee8183e71839f24\\\\\\\\\\\\\\\",\\\\\\\\\\\\\\\"444b4449599b19bd321ba5b85c917ca4\\\\\\\\\\\\\\\"])),semverLt(property(b64d(\\\\\\\\\\\\\\\"c212clByb3Ay\\\\\\\\\\\\\\\")),b64d(\\\\\\\\\\\\\\\"MTAwLjAuNQ==\\\\\\\\\\\\\\\"))),semverEq(property(b64d(\\\\\\\\\\\\\\\"c212clByb3Ax\\\\\\\\\\\\\\\")),b64d(\\\\\\\\\\\\\\\"OS4xMS4yMDAx\\\\\\\\\\\\\\\"))),gt(property(b64d(\\\\\\\\\\\\\\\"ZG91YmxlUHJvcDI=\\\\\\\\\\\\\\\")),0.92)),lt(property(b64d(\\\\\\\\\\\\\\\"ZG91YmxlUHJvcDE=\\\\\\\\\\\\\\\")),12.1)),eq(property(b64d(\\\\\\\\\\\\\\\"Ym9vbFByb3Ay\\\\\\\\\\\\\\\")),false)),eq(property(b64d(\\\\\\\\\\\\\\\"Ym9vbFByb3Ax\\\\\\\\\\\\\\\")),true))\\\\\\\"},{\\\\\\\"_id\\\\\\\":\\\\\\\"5e57a3d21d6e80022bc307dd\\\\\\\",\\\\\\\"name\\\\\\\":\\\\\\\"5e57a3d21d6e80022bc307dd\\\\\\\",\\\\\\\"condition\\\\\\\":\\\\\\\"eq(property(b64d(\\\\\\\\\\\\\\\"Ym9vbFByb3BUYXJnZXRHcm91cEZvckRlcGVuZGVuY3k=\\\\\\\\\\\\\\\")),true)\\\\\\\"},{\\\\\\\"_id\\\\\\\":\\\\\\\"5e57a3d51d6e808ac5c30822\\\\\\\",\\\\\\\"name\\\\\\\":\\\\\\\"5e57a3d51d6e808ac5c30822\\\\\\\",\\\\\\\"condition\\\\\\\":\\\\\\\"eq(property(b64d(\\\\\\\\\\\\\\\"Ym9vbFByb3BUYXJnZXRHcm91cEZvclZhcmlhbnQ=\\\\\\\\\\\\\\\")),true)\\\\\\\"},{\\\\\\\"_id\\\\\\\":\\\\\\\"5e57a3d31d6e806ec6c307f3\\\\\\\",\\\\\\\"name\\\\\\\":\\\\\\\"5e57a3d31d6e806ec6c307f3\\\\\\\",\\\\\\\"condition\\\\\\\":\\\\\\\"eq(property(b64d(\\\\\\\\\\\\\\\"Ym9vbFByb3BUYXJnZXRHcm91cE9wZXJhbmQx\\\\\\\\\\\\\\\")),true)\\\\\\\"},{\\\\\\\"_id\\\\\\\":\\\\\\\"5e57a3d31d6e805829c307f1\\\\\\\",\\\\\\\"name\\\\\\\":\\\\\\\"5e57a3d31d6e805829c307f1\\\\\\\",\\\\\\\"condition\\\\\\\":\\\\\\\"eq(property(b64d(\\\\\\\\\\\\\\\"Ym9vbFByb3BUYXJnZXRHcm91cE9wZXJhbmQy\\\\\\\\\\\\\\\")),true)\\\\\\\"},{\\\\\\\"_id\\\\\\\":\\\\\\\"5e57a3d11d6e8060c5c307bb\\\\\\\",\\\\\\\"name\\\\\\\":\\\\\\\"5e57a3d11d6e8060c5c307bb\\\\\\\",\\\\\\\"condition\\\\\\\":\\\\\\\"eq(property(b64d(\\\\\\\\\\\\\\\"Ym9vbFByb3BUYXJnZXRHcm91cEZvclZhcmlhbnREZXBlbmRlbmN5\\\\\\\\\\\\\\\")),true)\\\\\\\"}],\\\\\\\"remoteVariables\\\\\\\":[],\\\\\\\"application\\\\\\\":\\\\\\\"5e579ecfc45c395c43b42893\\\\\\\",\\\\\\\"platform\\\\\\\":\\\\\\\"C\\\\\\\",\\\\\\\"creation_date\\\\\\\":\\\\\\\"2021-03-02T12:25:42.139Z\\\\\\\",\\\\\\\"api_version\\\\\\\":\\\\\\\"1.9.0\\\\\\\"}\\\",\\\"signature_v0\\\":\\\"4T8O6CQqE+sGbGKuG4iQM39kms+0savkoUtGF56ZkKW6oI7Auzxji2T7OzgfmdrUCuX+r0GrkYRkorRiKlryMh02aRLNk4Xv5sD+fquIeNYJJUNIoq/Qm9XLgm+vazke5nnWGV5ZXCAh08g02L5POJoJfOND3Uknh96LehZ3u67Xqc8oaeMNPNAgvDLY2K/XhV4B8TU8NJxSDjwjhhQrCWpBhmISBz+NsU3gZI0Q0pOiO+ciphYNjQKPHvOjiTuXEtVCU1b+Hi341VR/+EEScTfT+p50zllSAXcfeN40Q6/KIyCZRHsmBsbmdfEmlAcfxMP68C8MKiJojvDT5WPTtQ==\\\",\\\"signed_date\\\":\\\"2021-03-02T12:25:42.224Z\\\"}\"}";
-    ServerTestContextConfig config = {NULL, ROX_MAP("config", config_data)};
+    ServerTestContextConfig config = {NULL, ROX_MAP("config", config_data), false};
     ServerTestContext *ctx = server_test_context_create_cfg(&config);
 
     thread_sleep(1000);
@@ -938,6 +963,7 @@ ROX_TEST_SUITE(
         ROX_TEST_CASE(testing_variant_with_context),
         ROX_TEST_CASE(testing_variant_with_global_context),
         ROX_TEST_CASE(testing_variant_with_global_context_set_before),
+        ROX_TEST_CASE(testing_dynamic_api_call_with_global_context_set_before),
         ROX_TEST_CASE(testing_target_groups_all_any_none),
         ROX_TEST_CASE(testing_impression_handler),
         ROX_TEST_CASE(testing_flag_dependency),

@@ -116,11 +116,22 @@ struct RoxCore {
     RoxContext *global_context;
 };
 
+static void core_repository_callback(void *target, RoxStringBase *variant) {
+    assert(target != NULL);
+    assert(variant != NULL);
+    RoxCore *core = (RoxCore *) target;
+    if (core->global_context) {
+        variant_set_context(variant, core->global_context);
+    }
+}
+
 ROX_INTERNAL RoxCore *rox_core_create(RequestConfig *request_config) {
 
     RoxCore *core = calloc(1, sizeof(RoxCore));
 
     core->flag_repository = flag_repository_create();
+    flag_repository_add_flag_added_callback(core->flag_repository, core, core_repository_callback);
+
     core->custom_property_repository = custom_property_repository_create();
     core->experiment_repository = experiment_repository_create();
     core->target_group_repository = target_group_repository_create();
@@ -405,9 +416,6 @@ ROX_INTERNAL void rox_core_add_flag(RoxCore *core, RoxStringBase *flag, const ch
         return;
     }
     flag_repository_add_flag(core->flag_repository, flag, name);
-    if (core->global_context) {
-        variant_set_context(flag, core->global_context);
-    }
 }
 
 ROX_INTERNAL void rox_core_add_custom_property(RoxCore *core, CustomProperty *property) {
