@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <stdlib.h>
 #include "util.h"
 #include "repositories.h"
 #include "collections.h"
@@ -162,7 +163,7 @@ ROX_INTERNAL FlagRepository *flag_repository_create() {
 
 ROX_INTERNAL void flag_repository_add_flag(
         FlagRepository *repository,
-        RoxVariant *variant,
+        RoxStringBase *variant,
         const char *name) {
     assert(repository);
     assert(variant);
@@ -180,7 +181,7 @@ ROX_INTERNAL void flag_repository_add_flag(
     })
 }
 
-ROX_INTERNAL RoxVariant *flag_repository_get_flag(
+ROX_INTERNAL RoxStringBase *flag_repository_get_flag(
         FlagRepository *repository,
         const char *name) {
     assert(repository);
@@ -198,7 +199,7 @@ ROX_INTERNAL RoxMap *flag_repository_get_all_flags(FlagRepository *repository) {
     return repository->variants;
 }
 
-ROX_INTERNAL void flag_repository_add_flag_added_callback(
+ROX_INTERNAL void *flag_repository_add_flag_added_callback(
         FlagRepository *repository,
         void *target,
         flag_added_callback callback) {
@@ -208,6 +209,16 @@ ROX_INTERNAL void flag_repository_add_flag_added_callback(
     item->target = target;
     item->callback = callback;
     rox_list_add(repository->callbacks, item);
+    return item;
+}
+
+ROX_INTERNAL void *flag_repository_remove_flag_added_callback(
+        FlagRepository *repository,
+        void *handle) {
+    assert(repository);
+    assert(handle);
+    rox_list_remove(repository->callbacks, handle);
+    free(handle);
 }
 
 ROX_INTERNAL void flag_repository_free(FlagRepository *repository) {

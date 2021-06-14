@@ -1,21 +1,20 @@
 #pragma once
 
-#include "rollout.h"
-#include "context.h"
+#include "rox/defs.h"
+#include "rox/context.h"
 #include "repositories.h"
 #include "impression.h"
 #include "configuration.h"
 #include "properties.h"
-#include "roxx/parser.h"
+#include "eval/parser.h"
 
 //
 // SdkSettings
 //
 
-typedef struct SdkSettings {
-    char *api_key;
-    char *dev_mode_secret;
-} SdkSettings;
+typedef void (*sdk_settings_free_extra_func)(void *data);
+
+typedef struct SdkSettings SdkSettings;
 
 /**
  * @param api_key Not <code>NULL</code>. Value is copied internally.
@@ -23,6 +22,38 @@ typedef struct SdkSettings {
  * @return Not <code>NULL</code>.
  */
 ROX_INTERNAL SdkSettings *sdk_settings_create(const char *api_key, const char *dev_mode_secret);
+
+/**
+ * @param settings Not <code>NULL</code>.
+ * @return Not <code>NULL</code>.
+ */
+ROX_INTERNAL char *sdk_settings_get_api_key(SdkSettings *settings);
+
+/**
+ * @param settings Not <code>NULL</code>.
+ * @return Not <code>NULL</code>.
+ */
+ROX_INTERNAL char *sdk_settings_get_dev_mode_secret(SdkSettings *settings);
+
+/**
+ * @param settings Not <code>NULL</code>.
+ * @param key Not <code>NULL</code>.
+ * @param data May be <code>NULL</code>.
+ */
+ROX_INTERNAL void sdk_settings_add_extra(
+        SdkSettings *settings,
+        const char *key,
+        void *data,
+        sdk_settings_free_extra_func free_func);
+
+/**
+ * @param settings Not <code>NULL</code>.
+ * @param key Not <code>NULL</code>.
+ * @return May be <code>NULL</code>.
+ */
+ROX_INTERNAL void *sdk_settings_get_extra(
+        SdkSettings *settings,
+        const char *key);
 
 /**
  * @param sdk_settings Not <code>NULL</code>.

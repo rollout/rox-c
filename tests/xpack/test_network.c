@@ -116,8 +116,8 @@ static StateSenderTestContext *_state_sender_test_context_create() {
             ctx->sdk_settings, ctx->rox_options,
             ROX_MAP(
                     "platform", mem_copy_str(".net"),
-                    "devModeSecret", mem_copy_str(ctx->sdk_settings->dev_mode_secret),
-                    "app_key", mem_copy_str(ctx->sdk_settings->api_key),
+                    "devModeSecret", mem_copy_str(sdk_settings_get_dev_mode_secret(ctx->sdk_settings)),
+                    "app_key", mem_copy_str(sdk_settings_get_api_key(ctx->sdk_settings)),
                     "api_version", mem_copy_str("4.0.0")
             ));
 

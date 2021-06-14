@@ -1,8 +1,9 @@
 #pragma once
 
-#include "rollout.h"
+#include "rox/errors.h"
 #include "core/client.h"
 #include "core/network.h"
+#include "core/configuration.h"
 
 typedef struct RoxCore RoxCore;
 
@@ -17,9 +18,8 @@ ROX_INTERNAL RoxCore *rox_core_create(RequestConfig *request_config);
  * @param sdk_settings Not <code>NULL</code>.
  * @param device_properties Not <code>NULL</code>.
  * @param rox_options May be <code>NULL</code>.
- * @return May be <code>NULL</code> in case of an invalid input. In this case, see error logs for details.
  */
-ROX_INTERNAL bool rox_core_setup(
+ROX_INTERNAL RoxStateCode rox_core_setup(
         RoxCore *core,
         SdkSettings *sdk_settings,
         DeviceProperties *device_properties,
@@ -32,7 +32,7 @@ ROX_INTERNAL void rox_core_fetch(RoxCore *core, bool is_source_pushing);
 
 /**
  * @param core Not <code>NULL</code>.
- * @param context Not <code>NULL</code>.
+ * @param context May be <code>NULL</code>.
  */
 ROX_INTERNAL void rox_core_set_context(RoxCore *core, RoxContext *context);
 
@@ -41,7 +41,7 @@ ROX_INTERNAL void rox_core_set_context(RoxCore *core, RoxContext *context);
  * @param flag Not <code>NULL</code>.
  * @param name Not <code>NULL</code>. Flag name <em>including namespace prefix</em>.
  */
-ROX_INTERNAL void rox_core_add_flag(RoxCore *core, RoxVariant *flag, const char *name);
+ROX_INTERNAL void rox_core_add_flag(RoxCore *core, RoxStringBase *flag, const char *name);
 
 /**
  * @param core Not <code>NULL</code>.
@@ -68,3 +68,16 @@ ROX_INTERNAL RoxDynamicApi *rox_core_create_dynamic_api(RoxCore *core, EntitiesP
  * @param core Not <code>NULL</code>.
  */
 ROX_INTERNAL void rox_core_free(RoxCore *core);
+
+/**
+ * @param core Not <code>NULL</code>.
+ * @return Not <code>NULL</code>.
+ */
+ROX_INTERNAL FlagRepository *rox_core_get_flag_repository(RoxCore *core);
+
+/**
+ * @param core Not <code>NULL</code>.
+ * @return Not <code>NULL</code>.
+ */
+ROX_INTERNAL ConfigurationFetchedInvoker *rox_core_get_configuration_fetched_invoker(RoxCore *core);
+

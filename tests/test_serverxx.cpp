@@ -3,12 +3,23 @@
 #include <catch2/catch.hpp>
 #include <cassert>
 
-#include "rollout.hpp"
+#include "roxx/server.h"
 
 extern "C" {
 #include "core/impression/models.h"
 #include "util.h"
+#include "fixtures.h"
 }
+
+// TODO: FlagTests
+
+// TODO: RoxStringTests
+
+// TODO: RoxIntTests
+
+// TODO: RoxDoubleTests
+
+// RoxE2ETests
 
 class ServerTestContext {
 private:
@@ -34,12 +45,12 @@ public:
     Rox::Flag *flagTargetGroupsAll;
     Rox::Flag *flagTargetGroupsAny;
     Rox::Flag *flagTargetGroupsNone;
-    Rox::Variant *variantWithContext;
-    Rox::Variant *variant;
-    Rox::Variant *variantOverwritten;
+    Rox::String *variantWithContext;
+    Rox::String *variant;
+    Rox::String *variantOverwritten;
     Rox::Flag *flagForDependency;
     Rox::Flag *flagDependent;
-    Rox::Variant *flagColorDependentWithContext;
+    Rox::String *flagColorDependentWithContext;
 
     //
     // TestVars
@@ -60,7 +71,6 @@ public:
     char *lastImpressionValueName;
     char *lastImpressionValue;
 
-    Rox::Experiment *lastImpressionExperiment;
     Rox::DynamicValue *lastImpressionContextValue;
 
     std::vector<Rox::CustomPropertyGeneratorInterface *> generators;
@@ -85,7 +95,7 @@ class TestImpressionHandler : public Rox::ImpressionHandlerInterface {
 public:
     explicit TestImpressionHandler(ServerTestContext *ctx) : _ctx(ctx) {}
 
-    void HandleImpression(Rox::ReportingValue *value, Rox::Experiment *experiment, Rox::Context *context) override {
+    void HandleImpression(Rox::ReportingValue *value, Rox::Context *context) override {
         if (!value) {
             return;
         }
@@ -102,17 +112,12 @@ public:
             free(_ctx->lastImpressionValueName);
         }
 
-        if (_ctx->lastImpressionExperiment) {
-            experiment_free(_ctx->lastImpressionExperiment);
-        }
-
         if (_ctx->lastImpressionContextValue) {
             rox_dynamic_value_free(_ctx->lastImpressionContextValue);
         }
 
         _ctx->lastImpressionValueName = mem_copy_str(value->name);
         _ctx->lastImpressionValue = mem_copy_str(value->value);
-        _ctx->lastImpressionExperiment = experiment ? experiment_copy(experiment) : nullptr;
         if (context) {
             _ctx->lastImpressionContextValue = rox_context_get(context, "var");
         } else {
@@ -216,6 +221,12 @@ ServerTestContext::ServerTestContext() {
             .SetDevModeKey("f3be3b47c02bca33ae618130")
             .Build();
 
+#ifdef ROX_CLIENT
+
+    set_dummy_storage_config(options);
+
+#endif
+
     this->simpleFlag = Rox::Flag::Create("simpleFlag", true);
     this->simpleFlagOverwritten = Rox::Flag::Create("simpleFlagOverwritten", true);
     this->flagForImpression = Rox::Flag::Create("flagForImpression", false);
@@ -225,16 +236,16 @@ ServerTestContext::ServerTestContext() {
     this->flagTargetGroupsAll = Rox::Flag::Create("flagTargetGroupsAll", false);
     this->flagTargetGroupsAny = Rox::Flag::Create("flagTargetGroupsAny", false);
     this->flagTargetGroupsNone = Rox::Flag::Create("flagTargetGroupsNone", false);
-    this->variantWithContext = Rox::Variant::Create("variantWithContext", "red",
-                                                    std::vector<std::string>{"red", "blue", "green"});
-    this->variant = Rox::Variant::Create("variant", "red", std::vector<std::string>{"red", "blue", "green"});
-    this->variantOverwritten = Rox::Variant::Create("variantOverwritten", "red",
-                                                    std::vector<std::string>{"red", "blue", "green"});
+    this->variantWithContext = Rox::String::Create("variantWithContext", "red",
+                                                   std::vector<std::string>{"red", "blue", "green"});
+    this->variant = Rox::String::Create("variant", "red", std::vector<std::string>{"red", "blue", "green"});
+    this->variantOverwritten = Rox::String::Create("variantOverwritten", "red",
+                                                   std::vector<std::string>{"red", "blue", "green"});
     this->flagForDependency = Rox::Flag::Create("flagForDependency", false);
     this->flagDependent = Rox::Flag::Create("flagDependent", false);
-    this->flagColorDependentWithContext = Rox::Variant::Create("flagColorDependentWithContext", "White",
-                                                               std::vector<std::string>{"White", "Blue", "Green",
-                                                                                        "Yellow"});
+    this->flagColorDependentWithContext = Rox::String::Create("flagColorDependentWithContext", "White",
+                                                              std::vector<std::string>{"White", "Blue", "Green",
+                                                                                       "Yellow"});
 
     this->isImpressionRaised = false;
     this->isComputedBooleanPropCalled = false;
@@ -248,7 +259,6 @@ ServerTestContext::ServerTestContext() {
     this->configurationFetchedCount = 0;
     this->lastImpressionValueName = nullptr;
     this->lastImpressionValue = nullptr;
-    this->lastImpressionExperiment = nullptr;
     this->lastImpressionContextValue = nullptr;
     this->generators = std::vector<Rox::CustomPropertyGeneratorInterface *>();
 
@@ -302,9 +312,6 @@ ServerTestContext::~ServerTestContext() {
     if (this->lastImpressionValueName) {
         free(this->lastImpressionValueName);
     }
-    if (this->lastImpressionExperiment) {
-        experiment_free(this->lastImpressionExperiment);
-    }
     if (this->lastImpressionContextValue) {
         rox_dynamic_value_free(this->lastImpressionContextValue);
     }
@@ -317,6 +324,28 @@ Rox::CustomPropertyGeneratorInterface *
 ServerTestContext::AddGenerator(Rox::CustomPropertyGeneratorInterface *generator) {
     this->generators.push_back(generator);
     return generator;
+}
+
+TEST_CASE ("test_will_check_empty_api_key", "[server]") {
+    try {
+        Rox::Setup("", nullptr);
+        FAIL("Rox::SetupException expected");
+    } catch (Rox::SetupException &e) {
+        REQUIRE(e.what());
+        REQUIRE(RoxErrorEmptyApiKey == e.GetCode());
+    }
+    Rox::Shutdown();
+}
+
+TEST_CASE ("test_will_check_invalid_api_key", "[server]") {
+    try {
+        Rox::Setup("aaaaaaaaaaaaaaaaaaaaaaag", nullptr);
+        FAIL("Rox::SetupException expected");
+    } catch (Rox::SetupException &e) {
+        REQUIRE(e.what());
+        REQUIRE(RoxErrorInvalidApiKey == e.GetCode());
+    }
+    Rox::Shutdown();
 }
 
 TEST_CASE ("test_simple_flag", "[server]") {
@@ -380,6 +409,23 @@ TEST_CASE ("testing_variant_with_context", "[server]") {
     delete ctx;
 }
 
+TEST_CASE ("testing_variant_with_global_context", "[server]") {
+    auto *ctx = new ServerTestContext();
+    Rox::Context *somePositiveContext = Rox::ContextBuilder()
+            .AddBoolValue("isDuckAndCover", true)
+            .Build();
+
+    REQUIRE(_CompareAndFree(ctx->variantWithContext->GetValue(), "red"));
+
+    Rox::SetContext(somePositiveContext);
+    REQUIRE(_CompareAndFree(ctx->variantWithContext->GetValue(), "blue"));
+
+    Rox::SetContext(nullptr);
+    REQUIRE(_CompareAndFree(ctx->variantWithContext->GetValue(), "red"));
+
+    delete ctx;
+}
+
 TEST_CASE ("testing_target_groups_all_any_none", "[server]") {
     auto *ctx = new ServerTestContext();
 
@@ -417,10 +463,6 @@ TEST_CASE ("testing_impression_handler", "[server]") {
     REQUIRE(str_equals("true", ctx->lastImpressionValue));
     REQUIRE(flagImpressionValue);
     REQUIRE(str_equals("flagForImpressionWithExperimentAndContext", ctx->lastImpressionValueName));
-
-    REQUIRE(ctx->lastImpressionExperiment != nullptr);
-    REQUIRE(str_equals("5e6f8b274365819b98feaf06", ctx->lastImpressionExperiment->identifier));
-    REQUIRE(str_equals("flag for impression with experiment and context", ctx->lastImpressionExperiment->name));
 
     REQUIRE(ctx->lastImpressionContextValue);
     REQUIRE(rox_dynamic_value_is_string(ctx->lastImpressionContextValue));

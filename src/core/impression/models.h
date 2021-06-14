@@ -1,11 +1,19 @@
 #pragma once
 
-#include "rollout.h"
+#include "rox/impression.h"
 #include "core/configuration/models.h"
 
 //
 // RoxExperiment
 //
+
+typedef struct RoxExperiment {
+    char *name;
+    char *identifier;
+    bool archived;
+    RoxSet *labels;
+    char *stickiness_property;
+} RoxExperiment;
 
 /**
  * The data is NOT copied internally, instead it copies the pointers.
@@ -39,7 +47,7 @@ ROX_INTERNAL void experiment_free(RoxExperiment *experiment);
  * @param value May be <code>NULL</code>.
  * @return Not <code>NULL</code>.
  */
-ROX_INTERNAL RoxReportingValue *reporting_value_create(const char *name, const char *value);
+ROX_INTERNAL RoxReportingValue *reporting_value_create(const char *name, const char *value, bool targeting);
 
 /**
  * @param value Not <code>NULL</code>.

@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include "util.h"
+#include "rox/logging.h"
 #include "logging.h"
 
 static bool ROX_LOGGING_PRINT_TIME = false;

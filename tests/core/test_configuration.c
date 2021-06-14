@@ -42,7 +42,7 @@ void _test_error_report(ErrorReporter *reporter, const char *fmt, ...) {
 typedef struct ConfigurationTestContext {
     SignatureVerifier *signature_verifier;
     ErrorReporter *error_reporter;
-    SdkSettings sdk_settings;
+    SdkSettings *sdk_settings;
     APIKeyVerifier *key_verifier;
     ConfigurationFetchedInvoker *invoker;
     ConfigurationFetchResult *result;
@@ -67,13 +67,17 @@ static ConfigurationTestContext *configuration_test_context_create(
     cJSON *json = cJSON_Parse(json_str);
     assert(json);
 
-    SdkSettings sdk_settings = {
-            "12345",
-            "12345"
+    ConfigurationTestContext *context = calloc(1, sizeof(ConfigurationTestContext));
+    context->sdk_settings = sdk_settings_create("12345", "12345");
+    SignatureVerifierConfig signature_verifier_config = {
+            context,
+            signature_verified
+            ? &_test_true_signature_verifier
+            : &_test_false_signature_verifier
     };
 
     APIKeyVerifierConfig config = {
-            &sdk_settings,
+            context->sdk_settings,
             api_key_verified
             ? &_test_true_api_key_verifier
             : &_test_false_api_key_verifier
@@ -81,16 +85,8 @@ static ConfigurationTestContext *configuration_test_context_create(
 
     ErrorReporterConfig error_reporter_config = {&_test_error_report};
 
-    ConfigurationTestContext *context = calloc(1, sizeof(ConfigurationTestContext));
-    SignatureVerifierConfig signature_verifier_config = {
-            context,
-            signature_verified
-            ? &_test_true_signature_verifier
-            : &_test_false_signature_verifier
-    };
     context->signature_verifier = signature_verifier_create(&signature_verifier_config);
     context->error_reporter = error_reporter_create(&error_reporter_config);
-    context->sdk_settings = sdk_settings;
     context->result = configuration_fetch_result_create(json, source);
     context->key_verifier = api_key_verifier_create(&config);
     context->invoker = configuration_fetched_invoker_create();
@@ -119,6 +115,7 @@ static void configuration_test_context_free(ConfigurationTestContext *context) {
     configuration_fetched_invoker_free(context->invoker);
     configuration_fetch_result_free(context->result);
     configuration_parser_free(context->parser);
+    sdk_settings_free(context->sdk_settings);
     free(context);
 }
 

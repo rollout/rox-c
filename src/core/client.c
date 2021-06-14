@@ -1,15 +1,26 @@
 #include <assert.h>
+#include <stdlib.h>
 #include "client.h"
 #include "consts.h"
 #include "util.h"
 #include "device.h"
-#include "entities.h"
-#include "repositories.h"
+#include "options.h"
 #include "collections.h"
 
 //
 // SdkSettings
 //
+
+typedef struct SdkSettingsExtraEntry {
+    void *data;
+    sdk_settings_free_extra_func free_data_func;
+} SdkSettingsExtraEntry;
+
+struct SdkSettings {
+    char *api_key;
+    char *dev_mode_secret;
+    RoxMap *extra;
+};
 
 ROX_INTERNAL SdkSettings *sdk_settings_create(const char *api_key, const char *dev_mode_secret) {
     assert(api_key);
@@ -17,19 +28,66 @@ ROX_INTERNAL SdkSettings *sdk_settings_create(const char *api_key, const char *d
     SdkSettings *settings = calloc(1, sizeof(SdkSettings));
     settings->api_key = mem_copy_str(api_key);
     settings->dev_mode_secret = mem_copy_str(dev_mode_secret);
+    settings->extra = ROX_EMPTY_MAP;
     return settings;
+}
+
+ROX_INTERNAL char *sdk_settings_get_api_key(SdkSettings *settings) {
+    assert(settings);
+    return settings->api_key;
+}
+
+ROX_INTERNAL char *sdk_settings_get_dev_mode_secret(SdkSettings *settings) {
+    assert(settings);
+    return settings->dev_mode_secret;
+}
+
+ROX_INTERNAL void sdk_settings_add_extra(
+        SdkSettings *settings,
+        const char *key,
+        void *data,
+        sdk_settings_free_extra_func free_func) {
+    assert(settings);
+    assert(key);
+    SdkSettingsExtraEntry *entry = calloc(1, sizeof(SdkSettingsExtraEntry));
+    entry->data = data;
+    entry->free_data_func = free_func;
+    rox_map_add(settings->extra, (void *) key, entry);
+}
+
+ROX_INTERNAL void *sdk_settings_get_extra(SdkSettings *settings, const char *key) {
+    assert(settings);
+    assert(key);
+    void *result;
+    if (rox_map_get(settings->extra, (void *) key, &result)) {
+        SdkSettingsExtraEntry *entry = result;
+        return entry->data;
+    }
+    return NULL;
 }
 
 ROX_INTERNAL void sdk_settings_free(SdkSettings *sdk_settings) {
     assert(sdk_settings);
     free(sdk_settings->api_key);
     free(sdk_settings->dev_mode_secret);
+    ROX_MAP_FOREACH(key, value, sdk_settings->extra, {
+        SdkSettingsExtraEntry *entry = value;
+        if (entry->free_data_func) {
+            entry->free_data_func(entry->data);
+        }
+    })
+    rox_map_free_with_values_cb(sdk_settings->extra, free);
     free(sdk_settings);
 }
 
 //
 // RoxOptions
 //
+
+typedef struct RoxOptionsExtraEntry {
+    void *data;
+    rox_options_free_extra_func free_data_func;
+} RoxOptionsExtraEntry;
 
 struct RoxOptions {
     char *version;
@@ -43,6 +101,7 @@ struct RoxOptions {
     void *dynamic_properties_rule_target;
     rox_dynamic_properties_rule dynamic_properties_rule;
     bool cxx;
+    RoxMap *extra;
 };
 
 ROX_API RoxOptions *rox_options_create() {
@@ -50,7 +109,32 @@ ROX_API RoxOptions *rox_options_create() {
     options->dev_mod_key = mem_copy_str("stam");
     options->version = mem_copy_str("0.0");
     options->fetch_interval = 60;
+    options->extra = ROX_EMPTY_MAP;
     return options;
+}
+
+ROX_INTERNAL void rox_options_set_extra(
+        RoxOptions *options,
+        const char *key,
+        void *data,
+        rox_options_free_extra_func free_func) {
+    assert(options);
+    assert(key);
+    RoxOptionsExtraEntry *entry = calloc(1, sizeof(RoxOptionsExtraEntry));
+    entry->data = data;
+    entry->free_data_func = free_func;
+    rox_map_add(options->extra, (void *) key, entry);
+}
+
+ROX_INTERNAL void *rox_options_get_extra(RoxOptions *options, const char *key) {
+    assert(options);
+    assert(key);
+    void *result;
+    if (rox_map_get(options->extra, (void *) key, &result)) {
+        RoxOptionsExtraEntry *entry = result;
+        return entry->data;
+    }
+    return NULL;
 }
 
 ROX_API void rox_options_set_dev_mode_key(RoxOptions *options, const char *key) {
@@ -183,6 +267,13 @@ ROX_INTERNAL void rox_options_free(RoxOptions *options) {
     if (options->roxy_url) {
         free(options->roxy_url);
     }
+    ROX_MAP_FOREACH(key, value, options->extra, {
+        RoxOptionsExtraEntry *entry = value;
+        if (entry->free_data_func) {
+            entry->free_data_func(entry->data);
+        }
+    })
+    rox_map_free_with_values_cb(options->extra, free);
     free(options);
 }
 
@@ -238,8 +329,6 @@ ROX_INTERNAL DeviceProperties *device_properties_create(
 
     RoxMap *map = rox_map_create();
     rox_map_add(map, ROX_PROPERTY_TYPE_LIB_VERSION.name, mem_copy_str(ROX_LIB_VERSION));
-    rox_map_add(map, ROX_PROPERTY_TYPE_ROLLOUT_BUILD.name,
-                mem_copy_str("50")); // TODO: fix the build number
     rox_map_add(map, ROX_PROPERTY_TYPE_API_VERSION.name, mem_copy_str(ROX_API_VERSION));
     rox_map_add(map, ROX_PROPERTY_TYPE_APP_RELEASE.name,
                 mem_copy_str(rox_options_get_version(rox_options))); // used for the version filter
@@ -308,26 +397,37 @@ ROX_INTERNAL RoxDynamicApi *dynamic_api_create(
 ROX_API bool rox_dynamic_api_is_enabled(
         RoxDynamicApi *api,
         const char *name,
+        bool default_value) {
+    return rox_dynamic_api_is_enabled_ctx(api, name, default_value, NULL);
+}
+
+ROX_API bool rox_dynamic_api_is_enabled_ctx(
+        RoxDynamicApi *api,
+        const char *name,
         bool default_value,
         RoxContext *context) {
     assert(api);
     assert(name);
 
-    RoxVariant *variant = flag_repository_get_flag(api->flag_repository, name);
+    RoxStringBase *variant = flag_repository_get_flag(api->flag_repository, name);
     if (!variant) {
         variant = entities_provider_create_flag(api->entities_provider, default_value);
         flag_repository_add_flag(api->flag_repository, variant, name);
     }
-
-    RoxVariant *flag = variant;
-    if (!flag || !variant_is_flag(flag)) {
-        return default_value;
-    }
-
-    return flag_is_enabled_or(flag, context, default_value);
+    EvaluationContext *eval_context = eval_context_create(variant, context);
+    bool result = variant_get_bool(variant, default_value ? FLAG_TRUE_VALUE : FLAG_FALSE_VALUE, eval_context);
+    eval_context_free(eval_context);
+    return result;
 }
 
-ROX_API char *rox_dynamic_api_get_value(
+ROX_API char *rox_dynamic_api_get_string(
+        RoxDynamicApi *api,
+        const char *name,
+        char *default_value) {
+    return rox_dynamic_api_get_string_ctx(api, name, default_value, NULL, NULL);
+}
+
+ROX_API char *rox_dynamic_api_get_string_ctx(
         RoxDynamicApi *api,
         const char *name,
         char *default_value,
@@ -337,13 +437,75 @@ ROX_API char *rox_dynamic_api_get_value(
     assert(api);
     assert(name);
 
-    RoxVariant *variant = flag_repository_get_flag(api->flag_repository, name);
+    RoxStringBase *variant = flag_repository_get_flag(api->flag_repository, name);
     if (!variant) {
-        variant = entities_provider_create_variant(api->entities_provider, default_value, options);
+        variant = entities_provider_create_string(api->entities_provider, default_value, options);
         flag_repository_add_flag(api->flag_repository, variant, name);
     }
+    EvaluationContext *eval_context = eval_context_create(variant, context);
+    char *result = variant_get_string(variant, default_value, eval_context);
+    eval_context_free(eval_context);
+    return result;
+}
 
-    return variant_get_value_or(variant, context, default_value);
+ROX_API int rox_dynamic_api_get_int(
+        RoxDynamicApi *api,
+        const char *name,
+        int default_value) {
+    return rox_dynamic_api_get_int_ctx(api, name, default_value, NULL, NULL);
+}
+
+ROX_API int rox_dynamic_api_get_int_ctx(
+        RoxDynamicApi *api,
+        const char *name,
+        int default_value,
+        RoxList *options,
+        RoxContext *context) {
+
+    assert(api);
+    assert(name);
+
+    RoxStringBase *variant = flag_repository_get_flag(api->flag_repository, name);
+    if (!variant) {
+        variant = entities_provider_create_int(api->entities_provider, default_value, options);
+        flag_repository_add_flag(api->flag_repository, variant, name);
+    }
+    char *default_value_str = mem_int_to_str(default_value);
+    EvaluationContext *eval_context = eval_context_create(variant, context);
+    int result = variant_get_int(variant, default_value_str, eval_context);
+    eval_context_free(eval_context);
+    free(default_value_str);
+    return result;
+}
+
+ROX_API double rox_dynamic_api_get_double(
+        RoxDynamicApi *api,
+        const char *name,
+        double default_value) {
+    return rox_dynamic_api_get_double_ctx(api, name, default_value, NULL, NULL);
+}
+
+ROX_API double rox_dynamic_api_get_double_ctx(
+        RoxDynamicApi *api,
+        const char *name,
+        double default_value,
+        RoxList *options,
+        RoxContext *context) {
+
+    assert(api);
+    assert(name);
+
+    RoxStringBase *variant = flag_repository_get_flag(api->flag_repository, name);
+    if (!variant) {
+        variant = entities_provider_create_double(api->entities_provider, default_value, options);
+        flag_repository_add_flag(api->flag_repository, variant, name);
+    }
+    char *default_value_str = mem_double_to_str(default_value);
+    EvaluationContext *eval_context = eval_context_create(variant, context);
+    double result = variant_get_double(variant, default_value_str, eval_context);
+    eval_context_free(eval_context);
+    free(default_value_str);
+    return result;
 }
 
 ROX_API void rox_dynamic_api_free(RoxDynamicApi *api) {
@@ -380,7 +542,9 @@ ROX_INTERNAL bool internal_flags_is_enabled(InternalFlags *flags, const char *fl
     if (!internal_experiment) {
         return false;
     }
-    EvaluationResult *value = parser_evaluate_expression(flags->parser, internal_experiment->condition, NULL);
+    EvaluationContext *eval_context = eval_context_create(NULL, NULL);
+    EvaluationResult *value = parser_evaluate_expression(flags->parser, internal_experiment->condition, eval_context);
+    eval_context_free(eval_context);
     char *str_result = result_get_string(value);
     bool enabled = str_result && str_equals(FLAG_TRUE_VALUE, str_result);
     result_free(value);
@@ -395,7 +559,9 @@ ROX_INTERNAL int *internal_flags_get_int_value(InternalFlags *flags, const char 
     if (!internal_experiment) {
         return NULL;
     }
-    EvaluationResult *value = parser_evaluate_expression(flags->parser, internal_experiment->condition, NULL);
+    EvaluationContext *eval_context = eval_context_create(NULL, NULL);
+    EvaluationResult *value = parser_evaluate_expression(flags->parser, internal_experiment->condition, eval_context);
+    eval_context_free(eval_context);
     int *result = result_get_int(value);
     if (!result) {
         result_free(value);

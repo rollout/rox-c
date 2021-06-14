@@ -38,16 +38,17 @@ ROX_INTERNAL void experiment_free(RoxExperiment *experiment) {
 // RoxReportingValue
 //
 
-ROX_INTERNAL RoxReportingValue *reporting_value_create(const char *name, const char *value) {
+ROX_INTERNAL RoxReportingValue *reporting_value_create(const char *name, const char *value, bool targeting) {
     RoxReportingValue *reporting_value = calloc(1, sizeof(RoxReportingValue));
     reporting_value->name = name;
     reporting_value->value = value;
+    reporting_value->targeting = targeting;
     return reporting_value;
 }
 
 ROX_INTERNAL RoxReportingValue *reporting_value_copy(RoxReportingValue *value) {
     assert(value);
-    return reporting_value_create(value->name, value->value);
+    return reporting_value_create(value->name, value->value, value->targeting);
 }
 
 ROX_INTERNAL void reporting_value_free(RoxReportingValue *reporting_value) {

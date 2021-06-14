@@ -1,6 +1,8 @@
 #include "collections.h"
 #include <stdarg.h>
 #include <assert.h>
+#include <stdlib.h>
+#include <math.h>
 #include <collectc/list.h>
 #include <collectc/hashset.h>
 #include <collectc/hashtable.h>
@@ -110,6 +112,40 @@ ROX_INTERNAL bool rox_map_remove(RoxMap *map, void *key, void **out) {
     assert(key);
     assert(out);
     return hashtable_remove(map->map, key, out) == CC_OK;
+}
+
+ROX_INTERNAL bool rox_map_remove_cb(RoxMap *map, void *key, void (*cb)(void *)) {
+    void *value;
+    if (rox_map_get(map, key, &value)) {
+        cb(value);
+        return true;
+    }
+    return false;
+}
+
+ROX_INTERNAL bool rox_map_remove_key_value_cb(
+        RoxMap *map,
+        void *key,
+        void (*f_key)(void *),
+        void (*f_value)(void *)) {
+    bool removed = false;
+    void *key_to_remove = NULL;
+    void *value_to_remove = NULL;
+    ROX_MAP_FOREACH(k, v, map, {
+        if (str_equals(k, key)) {
+            removed = hashtable_remove(map->map, k, NULL) == CC_OK;
+            key_to_remove = k;
+            value_to_remove = v;
+            break;
+        }
+    })
+    if (key_to_remove) {
+        f_key(key_to_remove);
+    }
+    if (value_to_remove) {
+        f_value(value_to_remove);
+    }
+    return removed;
 }
 
 ROX_INTERNAL bool rox_map_contains_key(RoxMap *map, void *key) {
@@ -305,8 +341,36 @@ ROX_API RoxList *rox_list_create_str_va(void *skip, ...) {
     RoxList *list = rox_list_create();
     char *item = va_arg(args, char*);
     while (item != NULL) {
-        rox_list_add(list, mem_copy_str(item));
+        rox_list_add(list, item ? mem_copy_str(item) : NULL);
         item = va_arg(args, char*);
+    };
+            va_end(args);
+    return list;
+}
+
+ROX_API RoxList *rox_list_create_int_va(void *skip, ...) {
+    va_list args;
+            va_start(args, skip);
+
+    RoxList *list = rox_list_create();
+    int num = va_arg(args, int);
+    while (num != INT_MIN) {
+        rox_list_add(list, mem_int_to_str(num));
+        num = va_arg(args, int);
+    };
+            va_end(args);
+    return list;
+}
+
+ROX_API RoxList *rox_list_create_double_va(void *skip, ...) {
+    va_list args;
+            va_start(args, skip);
+
+    RoxList *list = rox_list_create();
+    double num = va_arg(args, double);
+    while (fabs(num - DBL_MIN) > DBL_EPSILON) {
+        rox_list_add(list, mem_double_to_str(num));
+        num = va_arg(args, double);
     };
             va_end(args);
     return list;

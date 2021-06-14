@@ -1,6 +1,9 @@
 #pragma once
 
-#include "rollout.h"
+#include "rox/collections.h"
+
+#include <stdbool.h>
+#include <stddef.h>
 
 typedef struct RoxListIter RoxListIter;
 
@@ -47,6 +50,14 @@ ROX_INTERNAL bool rox_map_add(RoxMap *map, void *key, void *val);
 
 ROX_INTERNAL bool rox_map_remove(RoxMap *map, void *key, void **out);
 
+ROX_INTERNAL bool rox_map_remove_cb(RoxMap *map, void *key, void (*cb)(void *));
+
+ROX_INTERNAL bool rox_map_remove_key_value_cb(
+        RoxMap *map,
+        void *key,
+        void (*f_key)(void *),
+        void (*f_value)(void *));
+
 ROX_INTERNAL bool rox_map_contains_key(RoxMap *map, void *key);
 
 ROX_INTERNAL bool rox_map_get(RoxMap *map, void *key, void **out);
@@ -69,7 +80,7 @@ ROX_INTERNAL bool rox_list_get_at(RoxList *list, size_t index, void **out);
 
 ROX_INTERNAL bool rox_list_get_first(RoxList *list, void **out);
 
-ROX_INTERNAL bool rox_list_remove(RoxList *list, void* element);
+ROX_INTERNAL bool rox_list_remove(RoxList *list, void *element);
 
 ROX_INTERNAL bool rox_list_remove_all(RoxList *list);
 

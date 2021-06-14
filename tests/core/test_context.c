@@ -1,7 +1,5 @@
 #include <check.h>
 #include "roxtests.h"
-#include "core/context.h"
-#include "util.h"
 #include "collections.h"
 
 //
@@ -71,11 +69,11 @@ START_TEST (test_with_null_global_context) {
 END_TEST
 
 START_TEST (test_with_local_and_global_context) {
-    RoxMap *global_map = ROX_MAP(
+    RoxMap * global_map = ROX_MAP(
             mem_copy_str("a"), rox_dynamic_value_create_int(1),
             mem_copy_str("b"), rox_dynamic_value_create_int(2));
 
-    RoxMap *local_map = ROX_MAP(
+    RoxMap * local_map = ROX_MAP(
             mem_copy_str("a"), rox_dynamic_value_create_int(3),
             mem_copy_str("c"), rox_dynamic_value_create_int(4));
 

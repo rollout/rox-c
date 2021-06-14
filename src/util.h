@@ -3,7 +3,7 @@
 #include <cjson/cJSON.h>
 #include <stdbool.h>
 #include <time.h>
-#include "rollout.h"
+#include "rox/defs.h"
 
 //
 // Utility functions.
@@ -39,6 +39,8 @@ ROX_INTERNAL bool str_matches(const char *str, const char *pattern, unsigned int
 
 ROX_INTERNAL int str_index_of(const char *str, char c);
 
+ROX_INTERNAL bool str_contains(const char *str, char c);
+
 ROX_INTERNAL bool str_starts_with(const char *str, const char *prefix);
 
 ROX_INTERNAL bool str_equals(const char *str, const char *another);
@@ -46,6 +48,18 @@ ROX_INTERNAL bool str_equals(const char *str, const char *another);
 ROX_INTERNAL bool str_eq_n(const char *str, int start, int end, const char *another);
 
 ROX_INTERNAL bool str_is_empty(const char *str);
+
+/**
+ * @param str Not <code>NULL</code>.
+ * @return Parsed value of <code>fallback</code> in case of parse error.
+ */
+ROX_INTERNAL double str_to_double(const char *str, double fallback);
+
+/**
+ * @param str Not <code>NULL</code>.
+ * @return Parsed value of <code>fallback</code> in case of parse error.
+ */
+ROX_INTERNAL int str_to_int(const char *str, int fallback);
 
 /**
  * Note the passed <code>str</code> is modified in-place, without creating new strings.
@@ -160,12 +174,31 @@ ROX_INTERNAL struct timespec get_current_timespec();
 ROX_INTERNAL struct timespec get_future_timespec(int ms);
 
 /**
+ * @param path Not <code>NULL</code>.
+ * @return Whether the given directory exists.
+ */
+ROX_INTERNAL bool mkdirs(const char *path);
+
+/**
  * @param file_path Path to the file to read. Not <code>NULL</code>.
  * @param buffer Not <code>NULL</code>.
  * @param buffer_size Not negative.
  * @return Number of bytes read or -1 in case of an error.
  */
 ROX_INTERNAL size_t rox_file_read_b(const char *file_path, unsigned char *buffer, size_t buffer_size);
+
+/**
+ * @param file_path Path to the file to read. Not <code>NULL</code>.
+ * @return May be <code>NULL</code>. Otherwise must be freed by the caller.
+ */
+ROX_INTERNAL char *mem_file_read(const char *file_path);
+
+/**
+ * @param file_path Path to the file to write to. Not <code>NULL</code>.
+ * @param data Not <code>NULL</code>.
+ * @return Whether the write operation was successful.
+ */
+ROX_INTERNAL bool str_to_file(const char *file_path, const char *data);
 
 ROX_INTERNAL cJSON *rox_json_create_object(void *skip, ...);
 

@@ -2,7 +2,7 @@
 #include <core/consts.h>
 #include <assert.h>
 #include "roxtests.h"
-#include "roxx/parser.h"
+#include "eval/parser.h"
 #include "core/repositories.h"
 #include "core/client.h"
 #include "core/entities.h"
@@ -12,18 +12,23 @@
 // DynamicApiTests
 //
 
-typedef struct TestImpressionHandler {
+typedef struct ClientTestContext {
     char *last_impression_value;
     int impressions;
-} TestImpressionHandler;
+    ImpressionInvoker *impression_invoker;
+    Parser *parser;
+    FlagRepository *flag_repo;
+    ExperimentRepository *exp_repo;
+    FlagSetter *flag_setter;
+    EntitiesProvider *entities_provider;
+    RoxDynamicApi *api;
+} ClientTestContext;
 
-static void _test_impression_handler_func(
+static void test_impression_handler_func(
         void *target,
         RoxReportingValue *value,
-        RoxExperiment *experiment,
         RoxContext *context) {
-
-    TestImpressionHandler *handler = (TestImpressionHandler *) target;
+    ClientTestContext *handler = (ClientTestContext *) target;
     if (handler->last_impression_value) {
         free(handler->last_impression_value);
     }
@@ -31,140 +36,344 @@ static void _test_impression_handler_func(
     ++handler->impressions;
 }
 
-static TestImpressionHandler *_test_impression_handler_create() {
-    return calloc(1, sizeof(TestImpressionHandler));
+static ClientTestContext *client_test_context_create() {
+    ClientTestContext *ctx = calloc(1, sizeof(ClientTestContext));
+    ctx->impression_invoker = impression_invoker_create();
+    impression_invoker_register(ctx->impression_invoker, ctx, &test_impression_handler_func);
+    ctx->parser = parser_create();
+    ctx->flag_repo = flag_repository_create();
+    ctx->exp_repo = experiment_repository_create();
+    ctx->flag_setter = flag_setter_create(ctx->flag_repo, ctx->parser, ctx->exp_repo, ctx->impression_invoker);
+    ctx->entities_provider = entities_provider_create();
+    ctx->api = dynamic_api_create(ctx->flag_repo, ctx->entities_provider);
+    return ctx;
 }
 
-static void _test_impression_handler_free(TestImpressionHandler *handler) {
-    assert(handler);
-    if (handler->last_impression_value) {
-        free(handler->last_impression_value);
+static void client_test_context_set_experiment(
+        ClientTestContext *ctx,
+        const char *flag_name,
+        const char *condition) {
+    experiment_repository_set_experiments(ctx->exp_repo, ROX_LIST(
+            experiment_model_create("1", flag_name, condition, false,
+                                    ROX_LIST_COPY_STR(flag_name), ROX_EMPTY_SET, "stam")
+    ));
+    flag_setter_set_experiments(ctx->flag_setter);
+}
+
+static void client_test_context_free(ClientTestContext *ctx) {
+    assert(ctx);
+    if (ctx->last_impression_value) {
+        free(ctx->last_impression_value);
     }
-    free(handler);
+    rox_dynamic_api_free(ctx->api);
+    entities_provider_free(ctx->entities_provider);
+    flag_setter_free(ctx->flag_setter);
+    flag_repository_free(ctx->flag_repo);
+    parser_free(ctx->parser);
+    experiment_repository_free(ctx->exp_repo);
+    impression_invoker_free(ctx->impression_invoker);
+    free(ctx);
 }
 
 START_TEST (test_is_enabled) {
 
-    TestImpressionHandler *impression_handler = _test_impression_handler_create();
-    ImpressionInvoker *impression_invoker = impression_invoker_create();
-    impression_invoker_register(impression_invoker, impression_handler, &_test_impression_handler_func);
+    ClientTestContext *ctx = client_test_context_create();
 
-    Parser *parser = parser_create();
-    FlagRepository *flag_repo = flag_repository_create();
-    ExperimentRepository *exp_repo = experiment_repository_create();
-    FlagSetter *flag_setter = flag_setter_create(flag_repo, parser, exp_repo, impression_invoker);
-    EntitiesProvider *entities_provider = entities_provider_create();
-    RoxDynamicApi *api = dynamic_api_create(flag_repo, entities_provider);
+    ck_assert(rox_dynamic_api_is_enabled(ctx->api, "default.newFlag", true));
+    ck_assert(variant_is_flag(flag_repository_get_flag(ctx->flag_repo, "default.newFlag")));
+    ck_assert_str_eq(ctx->last_impression_value, "true");
+    ck_assert_int_eq(ctx->impressions, 1);
 
-    ck_assert(rox_dynamic_api_is_enabled(api, "default.newFlag", true, NULL));
-    ck_assert_str_eq(impression_handler->last_impression_value, "true");
-    ck_assert_int_eq(impression_handler->impressions, 1);
+    ck_assert(variant_get_bool(flag_repository_get_flag(ctx->flag_repo, "default.newFlag"), NULL, NULL));
+    ck_assert_str_eq(ctx->last_impression_value, "true");
+    ck_assert_int_eq(ctx->impressions, 2);
 
-    ck_assert(flag_is_enabled(flag_repository_get_flag(flag_repo, "default.newFlag"), NULL));
-    ck_assert_str_eq(impression_handler->last_impression_value, "true");
-    ck_assert_int_eq(impression_handler->impressions, 2);
+    ck_assert(!rox_dynamic_api_is_enabled(ctx->api, "default.newFlag", false));
+    ck_assert_str_eq(ctx->last_impression_value, "false");
+    ck_assert_int_eq(ctx->impressions, 3);
 
-    ck_assert(!rox_dynamic_api_is_enabled(api, "default.newFlag", false, NULL));
-    ck_assert_str_eq(impression_handler->last_impression_value, "false");
-    ck_assert_int_eq(impression_handler->impressions, 3);
+    ck_assert_int_eq(1, rox_map_size(flag_repository_get_all_flags(ctx->flag_repo)));
 
-    ck_assert_int_eq(1, rox_map_size(flag_repository_get_all_flags(flag_repo)));
+    client_test_context_set_experiment(ctx, "default.newFlag", "and(true, true)");
 
-    experiment_repository_set_experiments(exp_repo, ROX_LIST(
-            experiment_model_create("1", "default.newFlag", "and(true, true)", false,
-                                    ROX_LIST_COPY_STR("default.newFlag"), ROX_EMPTY_SET, "stam")
-    ));
-    flag_setter_set_experiments(flag_setter);
+    ck_assert(rox_dynamic_api_is_enabled(ctx->api, "default.newFlag", false));
+    ck_assert_str_eq(ctx->last_impression_value, "true");
+    ck_assert_int_eq(ctx->impressions, 4);
 
-    ck_assert(rox_dynamic_api_is_enabled(api, "default.newFlag", false, NULL));
-    ck_assert_str_eq(impression_handler->last_impression_value, "true");
-    ck_assert_int_eq(impression_handler->impressions, 4);
-
-    rox_dynamic_api_free(api);
-    entities_provider_free(entities_provider);
-    flag_setter_free(flag_setter);
-    flag_repository_free(flag_repo);
-    parser_free(parser);
-    experiment_repository_free(exp_repo);
-
-    impression_invoker_free(impression_invoker);
-    _test_impression_handler_free(impression_handler);
+    client_test_context_free(ctx);
 }
 
 END_TEST
 
 START_TEST (test_is_enabled_after_setup) {
-    Parser *parser = parser_create();
-    FlagRepository *flag_repo = flag_repository_create();
-    ExperimentRepository *exp_repo = experiment_repository_create();
-    FlagSetter *flag_setter = flag_setter_create(flag_repo, parser, exp_repo, NULL);
-    EntitiesProvider *entities_provider = entities_provider_create();
-    RoxDynamicApi *api = dynamic_api_create(flag_repo, entities_provider);
+    ClientTestContext *ctx = client_test_context_create();
+    client_test_context_set_experiment(ctx, "default.newFlag", "and(true, true)");
 
-    experiment_repository_set_experiments(exp_repo, ROX_LIST(
-            experiment_model_create("1", "default.newFlag", "and(true, true)", false,
-                                    ROX_LIST_COPY_STR("default.newFlag"), ROX_EMPTY_SET, "stam")
-    ));
-    flag_setter_set_experiments(flag_setter);
+    ck_assert(rox_dynamic_api_is_enabled(ctx->api, "default.newFlag", false));
 
-    ck_assert(rox_dynamic_api_is_enabled(api, "default.newFlag", false, NULL));
-
-    rox_dynamic_api_free(api);
-    entities_provider_free(entities_provider);
-    flag_setter_free(flag_setter);
-    flag_repository_free(flag_repo);
-    parser_free(parser);
-    experiment_repository_free(exp_repo);
+    client_test_context_free(ctx);
 }
 
 END_TEST
 
-START_TEST (test_get_value) {
+START_TEST (test_is_enabled_different_type_call) {
 
-    TestImpressionHandler *impression_handler = _test_impression_handler_create();
-    ImpressionInvoker *impression_invoker = impression_invoker_create();
-    impression_invoker_register(impression_invoker, impression_handler, &_test_impression_handler_func);
+    ClientTestContext *ctx = client_test_context_create();
 
-    Parser *parser = parser_create();
-    FlagRepository *flag_repo = flag_repository_create();
-    ExperimentRepository *exp_repo = experiment_repository_create();
-    FlagSetter *flag_setter = flag_setter_create(flag_repo, parser, exp_repo, impression_invoker);
-    EntitiesProvider *entities_provider = entities_provider_create();
-    RoxDynamicApi *api = dynamic_api_create(flag_repo, entities_provider);
+    ck_assert(!rox_dynamic_api_is_enabled(ctx->api, "default.newVariant", false));
+    ck_assert_str_eq(ctx->last_impression_value, "false");
+    ck_assert_int_eq(ctx->impressions, 1);
+
+    client_test_context_set_experiment(ctx, "default.newVariant", "ifThen(true, \"true\", \"true\")");
+
+    ck_assert_double_eq(3.4, rox_dynamic_api_get_double(ctx->api, "default.newVariant", 3.4));
+    ck_assert_int_eq(ctx->impressions, 2);
+    ck_assert_str_eq(ctx->last_impression_value, "3.4");
+
+    rox_check_and_free(rox_dynamic_api_get_string(ctx->api, "default.newVariant", "1"), "true");
+    ck_assert_int_eq(ctx->impressions, 3);
+    ck_assert_str_eq(ctx->last_impression_value, "true");
+
+    ck_assert_int_eq(2, rox_dynamic_api_get_int(ctx->api, "default.newVariant", 2));
+    ck_assert_int_eq(ctx->impressions, 4);
+    ck_assert_str_eq(ctx->last_impression_value, "2");
+
+    client_test_context_free(ctx);
+}
+
+END_TEST
+
+START_TEST (test_is_enabled_wrong_experiment_type) {
+
+    ClientTestContext *ctx = client_test_context_create();
+    client_test_context_set_experiment(ctx, "default.newFlag", "\"otherValue\"");
+
+    ck_assert(!rox_dynamic_api_is_enabled(ctx->api, "default.newFlag", false));
+    ck_assert_str_eq(ctx->last_impression_value, "false");
+    ck_assert_int_eq(ctx->impressions, 1);
+
+    client_test_context_free(ctx);
+}
+
+END_TEST
+
+START_TEST (test_get_string) {
+
+    ClientTestContext *ctx = client_test_context_create();
 
     RoxList *options = ROX_LIST_COPY_STR("A", "B", "C");
-    rox_check_and_free(rox_dynamic_api_get_value(api, "default.newVariant", "A", options, NULL), "A");
-    ck_assert_str_eq(impression_handler->last_impression_value, "A");
-    ck_assert_int_eq(impression_handler->impressions, 1);
+    rox_check_and_free(rox_dynamic_api_get_string_ctx(ctx->api, "default.newVariant", "A", options, NULL), "A");
+    ck_assert_str_eq(ctx->last_impression_value, "A");
+    ck_assert_int_eq(ctx->impressions, 1);
 
-    RoxVariant *flag = flag_repository_get_flag(flag_repo, "default.newVariant");
-    rox_check_and_free(variant_get_value_or_default(flag, NULL), "A");
-    ck_assert_str_eq(impression_handler->last_impression_value, "A");
-    ck_assert_int_eq(impression_handler->impressions, 2);
+    RoxStringBase *flag = flag_repository_get_flag(ctx->flag_repo, "default.newVariant");
+    rox_check_and_free(variant_get_string(flag, NULL, NULL), "A");
+    ck_assert_str_eq(ctx->last_impression_value, "A");
+    ck_assert_int_eq(ctx->impressions, 2);
 
-    rox_check_and_free(rox_dynamic_api_get_value(api, "default.newVariant", "B", options, NULL), "B");
-    ck_assert_int_eq(1, rox_map_size(flag_repository_get_all_flags(flag_repo)));
-    ck_assert_str_eq(impression_handler->last_impression_value, "B");
-    ck_assert_int_eq(impression_handler->impressions, 3);
+    rox_check_and_free(rox_dynamic_api_get_string_ctx(ctx->api, "default.newVariant", "B", options, NULL), "B");
+    ck_assert_int_eq(1, rox_map_size(flag_repository_get_all_flags(ctx->flag_repo)));
+    ck_assert_str_eq(ctx->last_impression_value, "B");
+    ck_assert_int_eq(ctx->impressions, 3);
 
-    experiment_repository_set_experiments(exp_repo, ROX_LIST(
-            experiment_model_create("1", "default.newVariant", "ifThen(true, \"B\", \"A\")", false,
-                                    ROX_LIST_COPY_STR("default.newVariant"), ROX_EMPTY_SET, "stam")
-    ));
-    flag_setter_set_experiments(flag_setter);
+    client_test_context_set_experiment(ctx, "default.newVariant", "ifThen(true, \"B\", \"A\")");
 
-    rox_check_and_free(rox_dynamic_api_get_value(api, "default.newVariant", "A", options, NULL), "B");
-    ck_assert_str_eq(impression_handler->last_impression_value, "B");
-    ck_assert_int_eq(impression_handler->impressions, 4);
+    rox_check_and_free(rox_dynamic_api_get_string_ctx(ctx->api, "default.newVariant", "A", options, NULL), "B");
+    ck_assert_str_eq(ctx->last_impression_value, "B");
+    ck_assert_int_eq(ctx->impressions, 4);
 
-    rox_dynamic_api_free(api);
-    entities_provider_free(entities_provider);
-    flag_setter_free(flag_setter);
-    flag_repository_free(flag_repo);
-    parser_free(parser);
-    experiment_repository_free(exp_repo);
-    impression_invoker_free(impression_invoker);
-    _test_impression_handler_free(impression_handler);
+    client_test_context_free(ctx);
+}
+
+END_TEST
+
+START_TEST (test_get_string_ignore_variation_null_when_variant_exists) {
+    ClientTestContext *ctx = client_test_context_create();
+
+    RoxList *options = ROX_LIST_COPY_STR("A", "B", "C");
+    rox_check_and_free(rox_dynamic_api_get_string_ctx(ctx->api, "default.newVariant", "A", options, NULL), "A");
+    ck_assert_int_eq(ctx->impressions, 1);
+    ck_assert_str_eq(ctx->last_impression_value, "A");
+
+    options = ROX_LIST_COPY_STR("A", "B", NULL);
+    rox_check_and_free(rox_dynamic_api_get_string_ctx(ctx->api, "default.newVariant", "A", options, NULL), "A");
+    ck_assert_int_eq(ctx->impressions, 2);
+    ck_assert_str_eq(ctx->last_impression_value, "A");
+    rox_list_free_cb(options, free);
+
+    client_test_context_free(ctx);
+}
+
+END_TEST
+
+START_TEST (test_get_string_different_type_call) {
+    ClientTestContext *ctx = client_test_context_create();
+
+    rox_check_and_free(rox_dynamic_api_get_string(ctx->api, "default.newVariant", "value"), "value");
+    ck_assert_int_eq(ctx->impressions, 1);
+    ck_assert_str_eq(ctx->last_impression_value, "value");
+
+    client_test_context_set_experiment(ctx, "default.newVariant", "ifThen(true, \"val1\", \"val2\")");
+
+    ck_assert_double_eq(3.4, rox_dynamic_api_get_double(ctx->api, "default.newVariant", 3.4));
+    ck_assert_int_eq(ctx->impressions, 2);
+    ck_assert_str_eq(ctx->last_impression_value, "3.4");
+
+    ck_assert(!rox_dynamic_api_is_enabled(ctx->api, "default.newVariant", false));
+    ck_assert_int_eq(ctx->impressions, 3);
+    ck_assert_str_eq(ctx->last_impression_value, "false");
+
+    ck_assert_int_eq(2, rox_dynamic_api_get_int(ctx->api, "default.newVariant", 2));
+    ck_assert_int_eq(ctx->impressions, 4);
+    ck_assert_str_eq(ctx->last_impression_value, "2");
+
+    client_test_context_set_experiment(ctx, "default.newVariant", "ifThen(true, \"3\", \"4\")");
+
+    ck_assert_int_eq(3, rox_dynamic_api_get_int(ctx->api, "default.newVariant", 1));
+    ck_assert_int_eq(ctx->impressions, 5);
+    ck_assert_str_eq(ctx->last_impression_value, "3");
+
+    client_test_context_free(ctx);
+}
+
+END_TEST
+
+START_TEST (test_get_int) {
+    ClientTestContext *ctx = client_test_context_create();
+
+    ck_assert_int_eq(1, rox_dynamic_api_get_int(ctx->api, "default.newVariant", 1));
+    ck_assert(variant_is_int(flag_repository_get_flag(ctx->flag_repo, "default.newVariant")));
+    ck_assert_int_eq(ctx->impressions, 1);
+    ck_assert_str_eq(ctx->last_impression_value, "1");
+
+    ck_assert_int_eq(2, rox_dynamic_api_get_int(ctx->api, "default.newVariant", 2));
+    ck_assert_int_eq(ctx->impressions, 2);
+    ck_assert_str_eq(ctx->last_impression_value, "2");
+    ck_assert_int_eq(1, rox_map_size(flag_repository_get_all_flags(ctx->flag_repo)));
+
+    client_test_context_set_experiment(ctx, "default.newVariant", "ifThen(true, \"3\", \"4\")");
+    ck_assert_int_eq(3, rox_dynamic_api_get_int(ctx->api, "default.newVariant", 2));
+    ck_assert_int_eq(ctx->impressions, 3);
+    ck_assert_str_eq(ctx->last_impression_value, "3");
+
+    client_test_context_free(ctx);
+}
+
+END_TEST
+
+START_TEST (test_get_int_different_type_call) {
+    ClientTestContext *ctx = client_test_context_create();
+
+    ck_assert_int_eq(1, rox_dynamic_api_get_int(ctx->api, "default.newVariant", 1));
+    ck_assert(variant_is_int(flag_repository_get_flag(ctx->flag_repo, "default.newVariant")));
+    ck_assert_int_eq(ctx->impressions, 1);
+    ck_assert_str_eq(ctx->last_impression_value, "1");
+
+    client_test_context_set_experiment(ctx, "default.newVariant", "ifThen(true, \"2\", \"3\")");
+
+    ck_assert_double_eq(2, rox_dynamic_api_get_double(ctx->api, "default.newVariant", 3.4));
+    ck_assert_int_eq(ctx->impressions, 2);
+    ck_assert_str_eq(ctx->last_impression_value, "2");
+
+    rox_check_and_free(rox_dynamic_api_get_string(ctx->api, "default.newVariant", "1"), "2");
+    ck_assert_int_eq(ctx->impressions, 3);
+    ck_assert_str_eq(ctx->last_impression_value, "2");
+
+    ck_assert(!rox_dynamic_api_is_enabled(ctx->api, "default.newVariant", true));
+    ck_assert_int_eq(ctx->impressions, 4);
+    ck_assert_str_eq(ctx->last_impression_value, "false");
+
+    client_test_context_free(ctx);
+}
+
+END_TEST
+
+START_TEST (test_get_int_wrong_experiment_type) {
+    ClientTestContext *ctx = client_test_context_create();
+
+    ck_assert_int_eq(1, rox_dynamic_api_get_int(ctx->api, "default.newVariant", 1));
+    ck_assert(variant_is_int(flag_repository_get_flag(ctx->flag_repo, "default.newVariant")));
+    ck_assert_int_eq(ctx->impressions, 1);
+    ck_assert_str_eq(ctx->last_impression_value, "1");
+
+    client_test_context_set_experiment(ctx, "default.newVariant", "ifThen(true, \"3.5\", \"4.1\")");
+    ck_assert_int_eq(2, rox_dynamic_api_get_int(ctx->api, "default.newVariant", 2));
+    ck_assert_int_eq(1, rox_map_size(flag_repository_get_all_flags(ctx->flag_repo)));
+    ck_assert_int_eq(ctx->impressions, 2);
+    ck_assert_str_eq(ctx->last_impression_value, "2");
+
+    client_test_context_free(ctx);
+}
+
+END_TEST
+
+START_TEST (test_get_double) {
+    ClientTestContext *ctx = client_test_context_create();
+
+    ck_assert_double_eq(1.1, rox_dynamic_api_get_double(ctx->api, "default.newVariant", 1.1));
+    ck_assert(variant_is_double(flag_repository_get_flag(ctx->flag_repo, "default.newVariant")));
+    ck_assert_int_eq(ctx->impressions, 1);
+    ck_assert_str_eq(ctx->last_impression_value, "1.1");
+
+    ck_assert_double_eq(2.2, rox_dynamic_api_get_double(ctx->api, "default.newVariant", 2.2));
+    ck_assert_int_eq(1, rox_map_size(flag_repository_get_all_flags(ctx->flag_repo)));
+    ck_assert_int_eq(ctx->impressions, 2);
+    ck_assert_str_eq(ctx->last_impression_value, "2.2");
+
+    client_test_context_set_experiment(ctx, "default.newVariant", "ifThen(true, \"3.3\", \"4.4\")");
+    ck_assert_double_eq(3.3, rox_dynamic_api_get_double(ctx->api, "default.newVariant", 2.2));
+    ck_assert_int_eq(1, rox_map_size(flag_repository_get_all_flags(ctx->flag_repo)));
+    ck_assert_int_eq(ctx->impressions, 3);
+    ck_assert_str_eq(ctx->last_impression_value, "3.3");
+
+    client_test_context_free(ctx);
+}
+
+END_TEST
+
+START_TEST (test_get_double_different_type_call) {
+    ClientTestContext *ctx = client_test_context_create();
+
+    ck_assert_double_eq(2.1, rox_dynamic_api_get_double(ctx->api, "default.newVariant", 2.1));
+    ck_assert(variant_is_double(flag_repository_get_flag(ctx->flag_repo, "default.newVariant")));
+    ck_assert_int_eq(ctx->impressions, 1);
+    ck_assert_str_eq(ctx->last_impression_value, "2.1");
+
+    client_test_context_set_experiment(ctx, "default.newVariant", "ifThen(true, \"3.3\", \"4.4\")");
+
+    ck_assert_int_eq(1, rox_dynamic_api_get_int(ctx->api, "default.newVariant", 1));
+    ck_assert_int_eq(ctx->impressions, 2);
+    ck_assert_str_eq(ctx->last_impression_value, "1");
+
+    rox_check_and_free(rox_dynamic_api_get_string(ctx->api, "default.newVariant", "1"), "3.3");
+    ck_assert_int_eq(ctx->impressions, 3);
+    ck_assert_str_eq(ctx->last_impression_value, "3.3");
+
+    ck_assert(!rox_dynamic_api_is_enabled(ctx->api, "default.newVariant", false));
+    ck_assert_int_eq(ctx->impressions, 4);
+    ck_assert_str_eq(ctx->last_impression_value, "false");
+
+    ck_assert_int_eq(1, rox_map_size(flag_repository_get_all_flags(ctx->flag_repo)));
+
+    client_test_context_free(ctx);
+}
+
+END_TEST
+
+START_TEST (test_get_double_wrong_experiment_type) {
+    ClientTestContext *ctx = client_test_context_create();
+
+    ck_assert_double_eq(1.1, rox_dynamic_api_get_double(ctx->api, "default.newVariant", 1.1));
+    ck_assert(variant_is_double(flag_repository_get_flag(ctx->flag_repo, "default.newVariant")));
+    ck_assert_int_eq(ctx->impressions, 1);
+    ck_assert_str_eq(ctx->last_impression_value, "1.1");
+
+    client_test_context_set_experiment(ctx, "default.newVariant", "ifThen(true, \"aaa\", \"bbb\")");
+    ck_assert_double_eq(2.2, rox_dynamic_api_get_double(ctx->api, "default.newVariant", 2.2));
+    ck_assert_int_eq(ctx->impressions, 2);
+    ck_assert_str_eq(ctx->last_impression_value, "2.2");
+
+    client_test_context_free(ctx);
 }
 
 END_TEST
@@ -294,9 +503,9 @@ END_TEST
 //
 
 START_TEST (test_will_generate_correct_md5_value) {
-    SdkSettings sdk_settings = {"test", "test"};
+    SdkSettings *sdk_settings = sdk_settings_create("test", "test");
     RoxOptions *options = rox_options_create();
-    DeviceProperties *device_props = device_properties_create_from_map(&sdk_settings, options, ROX_MAP(
+    DeviceProperties *device_props = device_properties_create_from_map(sdk_settings, options, ROX_MAP(
             "app_key", ROX_COPY("123"),
             "api_version", ROX_COPY("4.0.0"),
             "platform", ROX_COPY("plat"),
@@ -308,7 +517,7 @@ START_TEST (test_will_generate_correct_md5_value) {
     device_properties_free(device_props);
     buid_free(buid);
 
-    DeviceProperties *device_props2 = device_properties_create_from_map(&sdk_settings, options, ROX_MAP(
+    DeviceProperties *device_props2 = device_properties_create_from_map(sdk_settings, options, ROX_MAP(
             "app_key", ROX_COPY("122"),
             "api_version", ROX_COPY("4.0.0"),
             "platform", ROX_COPY("plat"),
@@ -320,6 +529,7 @@ START_TEST (test_will_generate_correct_md5_value) {
     buid_free(buid2);
     device_properties_free(device_props2);
     rox_options_free(options);
+    sdk_settings_free(sdk_settings);
 }
 
 END_TEST
@@ -328,7 +538,17 @@ ROX_TEST_SUITE(
 // DynamicApiTests
         ROX_TEST_CASE(test_is_enabled),
         ROX_TEST_CASE(test_is_enabled_after_setup),
-        ROX_TEST_CASE(test_get_value),
+        ROX_TEST_CASE(test_is_enabled_different_type_call),
+        ROX_TEST_CASE(test_is_enabled_wrong_experiment_type),
+        ROX_TEST_CASE(test_get_string),
+        ROX_TEST_CASE(test_get_string_ignore_variation_null_when_variant_exists),
+        ROX_TEST_CASE(test_get_string_different_type_call),
+        ROX_TEST_CASE(test_get_int),
+        ROX_TEST_CASE(test_get_int_different_type_call),
+        ROX_TEST_CASE(test_get_int_wrong_experiment_type),
+        ROX_TEST_CASE(test_get_double),
+        ROX_TEST_CASE(test_get_double_different_type_call),
+        ROX_TEST_CASE(test_get_double_wrong_experiment_type),
 // InternalFlagsTests
         ROX_TEST_CASE(test_will_return_false_when_no_experiment),
         ROX_TEST_CASE(test_will_return_false_when_expression_is_null),

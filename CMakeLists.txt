@@ -4,8 +4,8 @@ project(rollout-sdk)
 
 set(CMAKE_CXX_STANDARD 11)
 
-set(ROX_VERSION_MAJOR 4)
-set(ROX_VERSION_MINOR 7)
+set(ROX_VERSION_MAJOR 5)
+set(ROX_VERSION_MINOR 0)
 set(ROX_VERSION_PATCH 0)
 set(ROX_VERSION_STRING ${ROX_VERSION_MAJOR}.${ROX_VERSION_MINOR}.${ROX_VERSION_PATCH})
 
@@ -22,12 +22,12 @@ link_directories(${CMAKE_SOURCE_DIR}/vendor/build/src)
 add_subdirectory(include)
 add_subdirectory(src)
 
-if (NOT ROLLOUT_SKIP_TESTS)
+if (NOT ROX_SKIP_TESTS)
     enable_testing()
     add_subdirectory(tests)
 endif ()
 
-if (ROLLOUT_FIND_LEAKS)
+if (ROX_FIND_LEAKS)
     include(CTest)
     find_program(MEMORYCHECK_COMMAND valgrind)
     set(MEMORYCHECK_COMMAND_OPTIONS "--trace-children=yes --leak-check=full")

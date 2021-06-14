@@ -1,7 +1,8 @@
 #pragma once
 
 #include <stdbool.h>
-#include "rollout.h"
+#include "rox/defs.h"
+#include "rox/collections.h"
 
 //
 // ExperimentModel

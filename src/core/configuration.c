@@ -167,7 +167,7 @@ ROX_INTERNAL void configuration_fetched_invoker_invoke_error(
     configuration_fetched_args_free(args);
 }
 
-ROX_INTERNAL void configuration_fetched_invoker_register_handler(
+ROX_INTERNAL void *configuration_fetched_invoker_register_handler(
         ConfigurationFetchedInvoker *invoker,
         void *target,
         rox_configuration_fetched_handler handler) {
@@ -177,6 +177,16 @@ ROX_INTERNAL void configuration_fetched_invoker_register_handler(
     h->target = target;
     h->handler = handler;
     rox_list_add(invoker->handlers, h);
+    return h;
+}
+
+ROX_INTERNAL void configuration_fetched_invoker_unregister_handler(
+        ConfigurationFetchedInvoker *invoker,
+        void *handle) {
+    assert(invoker);
+    assert(handle);
+    rox_list_remove(invoker->handlers, handle);
+    free(handle);
 }
 
 ROX_INTERNAL void configuration_fetched_invoker_free(ConfigurationFetchedInvoker *invoker) {
@@ -268,12 +278,13 @@ static bool _configuration_parser_is_api_key_verified(ConfigurationParser *parse
             parser->api_key_verifier,
             application_json->valuestring)) {
 
+        SdkSettings *settings = api_key_verifier_get_sdk_settings(parser->api_key_verifier);
         error_reporter_report(
                 parser->error_reporter,
                 __FILE__, __LINE__,
                 "Failed to parse JSON configuration - Internal Data: %s; SdkSettings: %s",
                 application_json->valuestring,
-                api_key_verifier_get_sdk_settings(parser->api_key_verifier)->api_key);
+                sdk_settings_get_api_key(settings));
 
         return false;
     }

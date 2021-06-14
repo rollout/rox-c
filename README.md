@@ -30,26 +30,30 @@ Run install script:
 cd rox-c && ./install.sh -d /path/to/install/dir
 ```
 
-This will install the rollout c sdk into the subdirectory called rollout-sdk of the 
-directory specified in the command. So it would look something 
-like `/path/to/install/dir/rollout-sdk`.
+This will install the rollout c sdk into the subdirectory called rollout-sdk of the directory specified in the command.
+So it would look something like `/path/to/install/dir/rollout-sdk`.
 
-Please note that parameter `-d` is optional. If omitted, SDK will be installed 
-into `/usr/local/rollout-sdk` (which requires superuser privileges). 
+Please note that parameter `-d` is optional. If omitted, SDK will be installed into `/usr/local/rollout-sdk` (which
+requires superuser privileges).
 
-## Windows 
+By default, client SDK is built and installed which has flag freeze and flag overrides features. To install server-only
+SDK without these features, add `-C` argument to the command:
+
+```
+./install.sh -C -d /path/to/install/dir
+```
+
+## Windows
 
 ### Prerequisites
 
-ROX C SDK uses `OpenSSL` and `Curl` libraries which aren't provided for Windows. 
-So they are downloaded and built from sources during the installation process as well as
-other libs such as `PCRE2`, `zlib`, `cJSON` and `pthreads-win32`.    
+ROX C SDK uses `OpenSSL` and `Curl` libraries which aren't provided for Windows. So they are downloaded and built from
+sources during the installation process as well as other libs such as `PCRE2`, `zlib`, `cJSON` and `pthreads-win32`.
 
-To make sure these libraries can be built on Windows the following tools should be 
-installed first:
+To make sure these libraries can be built on Windows the following tools should be installed first:
 
 1. Strawberry Perl (http://strawberryperl.com/)
-2. NASM (https://www.nasm.us/) - executable should be added to PATH after installation. 
+2. NASM (https://www.nasm.us/) - executable should be added to PATH after installation.
 
 Both are needed for building `OpenSSL` library.
 
@@ -60,9 +64,9 @@ Also these tools are required for running the build:
 3. Git
 
 ### Installation
- 
+
 1. Open `Cross Tools Command Prompt for VS 20XX <(Your Visual Studio Version here)`.
 2. Navigate to the repository root folder.
-3. Run `install <INSTALLATION_PATH>` where `<INSTALLATION_PATH>` is where you want to install the SDK 
-(if omitted, it will be installed into `C:\Program Files\rollout-sdk` which may require Administrator permissions).
+3. Run `install <INSTALLATION_PATH>` where `<INSTALLATION_PATH>` is where you want to install the SDK
+   (if omitted, it will be installed into `C:\Program Files\rollout-sdk` which may require Administrator permissions).
 4. (optional) add `<INSTALLATION_PATH>\bin` to system `PATH` variable.

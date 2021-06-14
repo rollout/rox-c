@@ -128,7 +128,7 @@ ROX_INTERNAL FlagRepository *flag_repository_create();
  */
 ROX_INTERNAL void flag_repository_add_flag(
         FlagRepository *repository,
-        RoxVariant *variant,
+        RoxStringBase *variant,
         const char *name);
 
 /**
@@ -136,28 +136,37 @@ ROX_INTERNAL void flag_repository_add_flag(
  * @param name Not <code>NULL</code>.
  * @return May be <code>NULL</code>.
  */
-ROX_INTERNAL RoxVariant *flag_repository_get_flag(
+ROX_INTERNAL RoxStringBase *flag_repository_get_flag(
         FlagRepository *repository,
         const char *name);
 
 /**
  * The returned object is maintained by the repository, you must not call <code>rox_map_destroy</code> on it.
  * @param repository Not <code>NULL</code>.
- * @return Hash table with flag names as keys and <code>RoxVariant *</code> as values. Not <code>NULL</code>.
+ * @return Hash table with flag names as keys and <code>RoxStringBase *</code> as values. Not <code>NULL</code>.
  */
 ROX_INTERNAL RoxMap *flag_repository_get_all_flags(FlagRepository *repository);
 
-typedef void (*flag_added_callback)(void *target, RoxVariant *variant);
+typedef void (*flag_added_callback)(void *target, RoxStringBase *variant);
 
 /**
  * @param repository Not <code>NULL</code>.
  * @param target May be <code>NULL</code>.
  * @param callback Not <code>NULL</code>.
+ * @return Callback handle. Not <code>NULL</code>.
  */
-ROX_INTERNAL void flag_repository_add_flag_added_callback(
+ROX_INTERNAL void *flag_repository_add_flag_added_callback(
         FlagRepository *repository,
         void *target,
         flag_added_callback callback);
+
+/**
+ * @param repository Not <code>NULL</code>.
+ * @param handle Callback handle previously returned by <code>flag_repository_add_flag_added_callback</code>.Not <code>NULL</code>.
+ */
+ROX_INTERNAL void *flag_repository_remove_flag_added_callback(
+        FlagRepository *repository,
+        void *handle);
 
 /**
  * @param repository Not <code>NULL</code>.

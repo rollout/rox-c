@@ -17,9 +17,9 @@ set(ROX_SRC
         core/reporting.c
         core/repositories.c
         core/security.c
-        roxx/extensions.c
-        roxx/parser.c
-        roxx/stack.c
+        eval/extensions.c
+        eval/parser.c
+        eval/stack.c
         xpack/analytics/client.c
         xpack/analytics/model.c
         xpack/configuration.c
@@ -32,14 +32,29 @@ set(ROX_SRC
         vendor/md5.c
         vendor/semver.c
         vendor/strrep.c
-        api.cpp
         collections.c
         core.c
         device.c
-        dynamic.c
-        rollout.c
+        values.c
+        util.c
         server.c
-        util.c)
+        server.cpp)
+
+set(ROX_COMPILE_DEFINITIONS
+        ROX_LIB_VERSION="${ROX_VERSION_STRING}")
+
+if (ROX_CLIENT)
+    list(APPEND ROX_SRC
+            freeze.c
+            overrides.c
+            storage.c
+            client.c
+            client.cpp)
+endif ()
+
+if (ROX_CLIENT)
+    list(APPEND ROX_COMPILE_DEFINITIONS ROX_CLIENT)
+endif ()
 
 if (APPLE)
     find_library(CoreFoundation CoreFoundation)
@@ -55,20 +70,18 @@ add_library(rollout SHARED ${ROX_SRC})
 target_link_libraries(rollout ${ROX_EXTERNAL_LIBS})
 
 set_target_properties(rollout PROPERTIES
-        PUBLIC_HEADER "../include/rollout.h;../include/rollout.hpp"
         C_VISIBILITY_PRESET hidden
-        COMPILE_DEFINITIONS "ROX_LIB_VERSION=\"${ROX_VERSION_STRING}\";ROX_DLL;ROX_DLL_EXPORTS"
+        COMPILE_DEFINITIONS "${ROX_COMPILE_DEFINITIONS};ROX_DLL;ROX_DLL_EXPORTS"
         VERSION ${ROX_VERSION_STRING}
         SOVERSION ${ROX_VERSION_MAJOR})
 
 set_target_properties(rollout_static PROPERTIES
-        COMPILE_DEFINITIONS "ROX_LIB_VERSION=\"${ROX_VERSION_STRING}\"")
+        COMPILE_DEFINITIONS "${ROX_COMPILE_DEFINITIONS}")
 
 INSTALL(TARGETS rollout rollout_static
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
-        ARCHIVE DESTINATION lib
-        PUBLIC_HEADER DESTINATION include)
+        ARCHIVE DESTINATION lib)
 
 if (WIN32)
     set(ROX_RUNTIME_DIR bin)
@@ -77,3 +90,24 @@ else ()
 endif ()
 
 INSTALL(FILES ${ROX_EXTERNAL_LIB_RUNTIME_FILES} DESTINATION ${ROX_RUNTIME_DIR})
+
+if (ROX_CLIENT)
+
+    INSTALL(DIRECTORY "../include/rox" DESTINATION include)
+    INSTALL(DIRECTORY "../include/roxx" DESTINATION include)
+
+else ()
+
+    INSTALL(DIRECTORY "../include/rox" DESTINATION include
+            PATTERN "client.h" EXCLUDE
+            PATTERN "freeze.h" EXCLUDE
+            PATTERN "overrides.h" EXCLUDE
+            PATTERN "storage.h" EXCLUDE)
+
+    INSTALL(DIRECTORY "../include/roxx" DESTINATION include
+            PATTERN "client.h" EXCLUDE
+            PATTERN "freeze.h" EXCLUDE
+            PATTERN "overrides.h" EXCLUDE
+            PATTERN "storage.h" EXCLUDE)
+
+endif ()

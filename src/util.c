@@ -20,6 +20,8 @@
 
 #else
 #include <unistd.h>
+#include <sys/stat.h>
+#include <errno.h>
 #endif
 
 #ifdef ROX_APPLE
@@ -70,6 +72,9 @@ ROX_INTERNAL bool *mem_copy_bool(bool value) {
 
 ROX_INTERNAL int *mem_str_to_int(const char *str) {
     assert(str);
+    if (str_contains(str, '.')) {
+        return NULL;
+    }
     long num = strtol(str, NULL, 0);
     if (num == 0 && str[0] != '0') {
         return NULL;
@@ -79,8 +84,9 @@ ROX_INTERNAL int *mem_str_to_int(const char *str) {
 
 ROX_INTERNAL double *mem_str_to_double(const char *str) {
     assert(str);
-    double num = strtod(str, NULL);
-    if (num == 0 && str[0] != '0') {
+    char *end;
+    double num = strtod(str, &end);
+    if ((num == 0 && str[0] != '0') || *end != '\0') {
         return NULL;
     }
     return mem_copy_double(num);
@@ -172,6 +178,10 @@ ROX_INTERNAL int str_index_of(const char *str, char c) {
     return (int) (e - str);
 }
 
+ROX_INTERNAL bool str_contains(const char *str, char c) {
+    return str_index_of(str, c) >= 0;
+}
+
 ROX_INTERNAL bool str_starts_with(const char *str, const char *prefix) {
     assert(str);
     assert(prefix);
@@ -202,6 +212,27 @@ ROX_INTERNAL bool str_eq_n(const char *str, int start, int end, const char *anot
 
 ROX_INTERNAL bool str_is_empty(const char *str) {
     return !str || str_equals(str, "");
+}
+
+ROX_INTERNAL double str_to_double(const char *str, double fallback) {
+    assert(str);
+    char *end;
+    double num = strtod(str, &end);
+    if ((num == 0 && str[0] != '0') || *end != '\0') {
+        return fallback;
+    }
+    return num;
+}
+
+ROX_INTERNAL int str_to_int(const char *str, int fallback) {
+    if (str_contains(str, '.')) {
+        return fallback;
+    }
+    long num = strtol(str, NULL, 0);
+    if (num == 0 && str[0] != '0') {
+        return fallback;
+    }
+    return num;
 }
 
 ROX_INTERNAL char *str_to_upper(char *str) {
@@ -368,6 +399,75 @@ ROX_INTERNAL struct timespec get_future_timespec(int ms) {
     return due;
 }
 
+#ifdef ROX_WINDOWS
+static const char SEP = '\\';
+#else
+static const char SEP = '/';
+#endif
+
+static char *mem_os_path(const char *path) {
+    assert(path);
+#ifdef ROX_WINDOWS
+    return mem_str_replace(path, "/", "\\");
+#else
+    return mem_str_replace(path, "\\", "/");
+#endif
+}
+
+static bool ensure_directory_exists(const char *path) {
+#ifdef ROX_WINDOWS
+    if (CreateDirectory(path, NULL) == FALSE) {
+        if (GetLastError() != ERROR_ALREADY_EXISTS) {
+            return false;
+        }
+    }
+#else
+    if (mkdir(path, 0774) != 0) {
+        if (errno != EEXIST) {
+            return false;
+        }
+    }
+#endif
+    return true;
+}
+
+ROX_INTERNAL bool mkdirs(const char *path) {
+
+    char *os_path = mem_os_path(path);
+    char *p;
+    char *temp;
+
+    temp = calloc(1, strlen(os_path) + 1);
+    /* Skip Windows drive letter. */
+    if ((p = strchr(os_path, ':') != NULL)) {
+        p += 2;
+    } else {
+        p = os_path + 1;
+    }
+
+    while ((p = strchr(p, SEP)) != NULL) {
+        /* Skip empty elements. Could be a Windows UNC path or
+           just multiple separators which is okay. */
+        if (p != os_path && *(p - 1) == SEP) {
+            p++;
+            continue;
+        }
+        /* Put the path up to this point into a temporary to
+           pass to the make directory function. */
+        memcpy(temp, os_path, p - os_path);
+        temp[p - os_path] = '\0';
+        p++;
+        if (!ensure_directory_exists(temp)) {
+            return false;
+        }
+    }
+    free(temp);
+
+    bool ret = ensure_directory_exists(os_path);
+    free(os_path);
+    return ret;
+}
+
 ROX_INTERNAL size_t rox_file_read_b(const char *file_path, unsigned char *buffer, size_t buffer_size) {
     FILE *fp;
     if (!(fp = (fopen(file_path, "rb")))) {
@@ -396,6 +496,59 @@ ROX_INTERNAL size_t rox_file_read_b(const char *file_path, unsigned char *buffer
     }
     fclose(fp);
     return file_size;
+}
+
+ROX_INTERNAL char *mem_file_read(const char *file_path) {
+    assert(file_path);
+
+    FILE *fp = fopen(file_path, "rb");
+    if (!fp) {
+        ROX_WARN("failed to open file %s for read", file_path);
+        return NULL;
+    }
+
+    fseek(fp, 0L, SEEK_END);
+    long size = ftell(fp);
+    rewind(fp);
+
+    char *buffer = malloc(size + 1);
+    if (!buffer) {
+        ROX_WARN("failed to read file %s: memory alloc fails", file_path);
+        return NULL;
+    }
+
+    if (size != fread(buffer, sizeof(char), size, fp)) {
+        ROX_WARN("Problem reading file %s", file_path);
+        fclose(fp);
+        free(buffer);
+        return NULL;
+    }
+
+    fclose(fp);
+    buffer[size] = 0;
+    return buffer;
+}
+
+ROX_INTERNAL bool str_to_file(const char *file_path, const char *data) {
+    assert(file_path);
+    assert(data);
+
+
+    FILE *fp = fopen(file_path, "w");
+    if (!fp) {
+        ROX_WARN("Failed to open file %s for write", file_path);
+        return false;
+    }
+
+    size_t size = strlen(data);
+    if (fwrite(data, sizeof(char), size, fp) != size) {
+        ROX_WARN("Problem writing file %s", file_path);
+        fclose(fp);
+        return false;
+    }
+
+    fclose(fp);
+    return true;
 }
 
 // calculate the size of 'output' buffer required for a 'input' buffer of length x during Base64 encoding operation
@@ -538,7 +691,7 @@ ROX_INTERNAL cJSON *rox_json_create_array(void *skip, ...) {
     return arr;
 }
 
-#define ROX_JSON_PRINT_BUFFER_SIZE 10240
+#define ROX_JSON_PRINT_BUFFER_SIZE 20480
 
 ROX_INTERNAL char *rox_json_print(cJSON *json, unsigned int flags) {
     char *buffer = malloc(ROX_JSON_PRINT_BUFFER_SIZE);

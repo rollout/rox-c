@@ -2,6 +2,7 @@
 
 set -e
 
+SCRIPT=$(basename "$0")
 DEFAULT_INSTALL_DIR=/usr/local
 INSTALL_DIR=$DEFAULT_INSTALL_DIR
 INSTALL_SUBDIR=rollout-sdk
@@ -11,46 +12,72 @@ PROJECT_NAME="ROX SDK"
 DO_CLEAN=0
 FIND_LEAKS=0
 SKIP_INSTALL=0
-SKIP_TESTS=0
+SKIP_TESTS=1
 BUILD_TYPE=Release
 BUILD_SUBDIR=release
 SKIP_BUILDING_THIRD_PARTY_LIBS=0
-TEST_TIMEOUT_SECONDS=60
+TEST_TIMEOUT_SECONDS=1200
+SDK_VERSION=CLIENT
 
-while getopts ":SscITd:lt:" opt; do
+HELP=$(
+  cat <<EOF
+${SCRIPT} [OPTIONS]
+Options:
+  -S        Skip building third party libs.
+  -C        Skip installing client SDK.
+  -I        Skip installation step.
+  -d <path> Specify installation directory.
+  -s        Enable debug symbols.
+  -c        Clean build directories.
+  -l        Perform memory leak check using valgrind.
+  -t        Run tests.
+  -T <sec>  Specify test timeout in seconds default is (${TEST_TIMEOUT_SECONDS}).
+EOF
+)
+
+while getopts ":SsCcIT:d:lt" opt; do
   case ${opt} in
-    S ) # skip building third party libs
-      SKIP_BUILDING_THIRD_PARTY_LIBS=1
-      ;;
-    c ) # clean build directories
-      DO_CLEAN=1
-      ;;
-    I ) # skip installation step
-      SKIP_INSTALL=1
-      ;;
-    T ) # skip testing step
-      SKIP_TESTS=1
-      ;;
-    t ) # specify test timeout
-      TEST_TIMEOUT_SECONDS=$OPTARG
-      ;;
-    d ) # specify installation directory
-      INSTALL_DIR=$OPTARG
-      ;;
-    s ) # enable debug symbols
-      BUILD_TYPE=Debug
-      BUILD_SUBDIR=debug
-      ;;
-    l ) # find memory leaks
-      FIND_LEAKS=1
-      ;;
-    \? ) echo "Usage: install.sh [-S] [-T] [-I] [-d] [-s] [-c] [-l] [-t]"
-      ;;
+  S) # skip building third party libs
+    SKIP_BUILDING_THIRD_PARTY_LIBS=1
+    ;;
+  c) # clean build directories
+    DO_CLEAN=1
+    ;;
+  C) # skip client SDK
+    SDK_VERSION=SERVER
+    ;;
+  I) # skip installation step
+    SKIP_INSTALL=1
+    ;;
+  t) # run tests
+    SKIP_TESTS=0
+    ;;
+  T) # specify test timeout
+    TEST_TIMEOUT_SECONDS=$OPTARG
+    ;;
+  d) # specify installation directory
+    INSTALL_DIR=$OPTARG
+    ;;
+  s) # enable debug symbols
+    BUILD_TYPE=Debug
+    BUILD_SUBDIR=debug
+    ;;
+  l) # find memory leaks
+    FIND_LEAKS=1
+    ;;
+  \?)
+    echo "Usage: ${HELP}"
+    ;;
+  *)
+    echo "Invalid Option: -$OPTARG" 1>&2
+    echo "Usage: ${HELP}"
+    exit 1
+    ;;
   esac
 done
 
-if [ ! -w "${INSTALL_DIR}" ]; then
-  echo "Directory ${INSTALL_DIR} is not writable. Trying to install into system directlory by non-root user?"
+if [ "${SKIP_INSTALL}" -ne "1" ] && [ ! -w "${INSTALL_DIR}" ]; then
+  echo "Directory ${INSTALL_DIR} is not writable. Trying to install into system directory by non-root user?"
   exit 1
 fi
 
@@ -82,10 +109,11 @@ mkdir -p build/${BUILD_SUBDIR}
 cd build/${BUILD_SUBDIR} || exit
 
 cmake ../../ \
-  -DCMAKE_INSTALL_PREFIX="${INSTALL_PREFIX}" \
-  -DROLLOUT_SKIP_TESTS=${SKIP_TESTS} \
-  -DCMAKE_BUILD_TYPE=${BUILD_TYPE} \
-  -DROLLOUT_FIND_LEAKS=${FIND_LEAKS}
+-DCMAKE_INSTALL_PREFIX="${INSTALL_PREFIX}" \
+-DROX_SKIP_TESTS=${SKIP_TESTS} \
+-DCMAKE_BUILD_TYPE=${BUILD_TYPE} \
+-DROX_FIND_LEAKS=${FIND_LEAKS} \
+-DROX_${SDK_VERSION}=Yes
 
 make
 
@@ -102,7 +130,7 @@ if [ "${SKIP_INSTALL}" -ne "1" ]; then
   make install
   if [ "${INSTALL_DIR}" = "${DEFAULT_INSTALL_DIR}" ] && [ "${OSTYPE}" = "linux-gnu" ]; then
     echo "Running ldconfig..."
-    echo "${INSTALL_PREFIX}/lib" > /etc/ld.so.conf.d/rollout.conf
+    echo "${INSTALL_PREFIX}/lib" >/etc/ld.so.conf.d/rollout.conf
     ldconfig
   fi
   echo "${PROJECT_NAME} is successfully installed into ${INSTALL_PREFIX}."

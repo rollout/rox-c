@@ -68,7 +68,7 @@ static void _impression_labels_check(ImpressionValues *values, ...) {
             va_end(args);
 }
 
-static void _impression_values_free(ImpressionValues *values) {
+static void impression_values_free(ImpressionValues *values) {
     assert(values);
     free(values);
 }
@@ -79,6 +79,7 @@ typedef struct ImpressionInvocationTestContext {
     InternalFlags *flags;
     CustomPropertyRepository *custom_property_repository;
     RoxOptions *rox_options;
+    SdkSettings *sdk_settings;
     DeviceProperties *device_properties;
     AnalyticsClient *client;
     XImpressionInvoker *x_invoker;
@@ -88,20 +89,22 @@ typedef struct ImpressionInvocationTestContext {
 } ImpressionInvocationTestContext;
 
 static void
-_test_impression_handler(void *target, RoxReportingValue *value, RoxExperiment *experiment, RoxContext *context) {
+test_impression_delegate_wrapper(void *target, RoxReportingValue *value, RoxExperiment *experiment,
+                                 RoxContext *context) {
     assert(target);
     ImpressionInvocationTestContext *ctx = (ImpressionInvocationTestContext *) target;
     rox_list_add(ctx->impressions, _impression_values_create(value, experiment, context));
+    x_impression_handler_delegate(ctx->x_invoker, value, experiment, context);
 }
 
-static void _test_analytics_client_track(void *target, AnalyticsEvent *event) {
+static void test_analytics_client_track(void *target, AnalyticsEvent *event) {
     assert(target);
     assert(event);
     ImpressionInvocationTestContext *ctx = (ImpressionInvocationTestContext *) target;
     rox_list_add(ctx->analytics_events, analytics_event_copy(event));
 }
 
-static ImpressionInvocationTestContext *_impression_test_context_create_cfg(bool roxy) {
+static ImpressionInvocationTestContext *impression_test_context_create_cfg(bool roxy) {
     ImpressionInvocationTestContext *ctx = calloc(1, sizeof(ImpressionInvocationTestContext));
 
     ctx->impressions = rox_list_create();
@@ -112,14 +115,13 @@ static ImpressionInvocationTestContext *_impression_test_context_create_cfg(bool
     ctx->flags = internal_flags_create(ctx->experiment_repository, ctx->parser);
     ctx->custom_property_repository = custom_property_repository_create();
     ctx->rox_options = rox_options_create();
-
-    SdkSettings sdk_settings = {"123", "123"};
-    ctx->device_properties = device_properties_create(&sdk_settings, ctx->rox_options);
+    ctx->sdk_settings = sdk_settings_create("123", "123");
+    ctx->device_properties = device_properties_create(ctx->sdk_settings, ctx->rox_options);
 
     if (!roxy) {
         AnalyticsClientConfig config;
         config.target = ctx;
-        config.track_func = &_test_analytics_client_track;
+        config.track_func = &test_analytics_client_track;
         ctx->client = analytics_client_create("test", &config, ctx->device_properties);
     }
 
@@ -127,21 +129,20 @@ static ImpressionInvocationTestContext *_impression_test_context_create_cfg(bool
             ctx->flags, ctx->custom_property_repository, ctx->client);
 
     ctx->invoker = impression_invoker_create();
-    impression_invoker_register(ctx->invoker, ctx->x_invoker, &x_impression_handler);
-    impression_invoker_register(ctx->invoker, ctx, &_test_impression_handler);
+    impression_invoker_set_delegate(ctx->invoker, ctx, &test_impression_delegate_wrapper);
 
     return ctx;
 }
 
-static ImpressionInvocationTestContext *_impression_test_context_create() {
-    return _impression_test_context_create_cfg(false);
+static ImpressionInvocationTestContext *impression_test_context_create() {
+    return impression_test_context_create_cfg(false);
 }
 
-static ImpressionInvocationTestContext *_impression_test_context_create_roxy() {
-    return _impression_test_context_create_cfg(true);
+static ImpressionInvocationTestContext *impression_test_context_create_roxy() {
+    return impression_test_context_create_cfg(true);
 }
 
-static void _impression_test_context_free(ImpressionInvocationTestContext *ctx) {
+static void impression_test_context_free(ImpressionInvocationTestContext *ctx) {
     assert(ctx);
     impression_invoker_free(ctx->invoker);
     x_impression_invoker_free(ctx->x_invoker);
@@ -150,11 +151,12 @@ static void _impression_test_context_free(ImpressionInvocationTestContext *ctx) 
     }
     device_properties_free(ctx->device_properties);
     rox_options_free(ctx->rox_options);
+    sdk_settings_free(ctx->sdk_settings);
     custom_property_repository_free(ctx->custom_property_repository);
     internal_flags_free(ctx->flags);
     parser_free(ctx->parser);
     experiment_repository_free(ctx->experiment_repository);
-    rox_list_free_cb(ctx->impressions, (void (*)(void *)) &_impression_values_free);
+    rox_list_free_cb(ctx->impressions, (void (*)(void *)) &impression_values_free);
     rox_list_free_cb(ctx->analytics_events, (void (*)(void *)) &analytics_event_free);
     free(ctx);
 }
@@ -164,17 +166,17 @@ static void _impression_test_context_free(ImpressionInvocationTestContext *ctx) 
 //
 
 START_TEST (test_will_set_impression_invoker_empty_invoke_not_throwing_exception) {
-    ImpressionInvocationTestContext *ctx = _impression_test_context_create();
+    ImpressionInvocationTestContext *ctx = impression_test_context_create();
     impression_invoker_invoke(ctx->invoker, NULL, NULL, NULL);
-    _impression_test_context_free(ctx);
+    impression_test_context_free(ctx);
 }
 
 END_TEST
 
 START_TEST (test_will_test_impression_invoker_invoke_and_parameters) {
-    ImpressionInvocationTestContext *ctx = _impression_test_context_create();
+    ImpressionInvocationTestContext *ctx = impression_test_context_create();
     RoxContext *context = rox_context_create_from_map(ROX_MAP(ROX_COPY("obj1"), rox_dynamic_value_create_int(1)));
-    RoxReportingValue *reporting_value = reporting_value_create("name", "value");
+    RoxReportingValue *reporting_value = reporting_value_create("name", "value", false);
 
     ExperimentModel *experiment = experiment_model_create(
             "id", "name", "cond", true, NULL,
@@ -190,7 +192,7 @@ START_TEST (test_will_test_impression_invoker_invoke_and_parameters) {
     experiment_model_free(experiment);
     reporting_value_free(reporting_value);
     rox_context_free(context);
-    _impression_test_context_free(ctx);
+    impression_test_context_free(ctx);
 }
 
 END_TEST
@@ -219,7 +221,7 @@ START_TEST (test_experiment_constructor) {
 END_TEST
 
 START_TEST (test_reporting_value_constructor) {
-    RoxReportingValue *reporting_value = reporting_value_create("pi", "ka");
+    RoxReportingValue *reporting_value = reporting_value_create("pi", "ka", false);
     ck_assert_str_eq("pi", reporting_value->name);
     ck_assert_str_eq("ka", reporting_value->value);
     reporting_value_free(reporting_value);
@@ -228,9 +230,9 @@ START_TEST (test_reporting_value_constructor) {
 END_TEST
 
 START_TEST (test_will_not_invoke_analytics_when_flag_is_off) {
-    ImpressionInvocationTestContext *ctx = _impression_test_context_create();
+    ImpressionInvocationTestContext *ctx = impression_test_context_create();
     RoxContext *context = rox_context_create_from_map(ROX_MAP(ROX_COPY("obj1"), rox_dynamic_value_create_int(1)));
-    RoxReportingValue *reporting_value = reporting_value_create("name", "value");
+    RoxReportingValue *reporting_value = reporting_value_create("name", "value", false);
 
     ExperimentModel *experiment = experiment_model_create(
             "id", "name", "cond", true, NULL,
@@ -245,15 +247,15 @@ START_TEST (test_will_not_invoke_analytics_when_flag_is_off) {
     experiment_model_free(experiment);
     reporting_value_free(reporting_value);
     rox_context_free(context);
-    _impression_test_context_free(ctx);
+    impression_test_context_free(ctx);
 }
 
 END_TEST
 
 START_TEST (test_will_not_invoke_analytics_when_is_roxy) {
-    ImpressionInvocationTestContext *ctx = _impression_test_context_create_roxy();
+    ImpressionInvocationTestContext *ctx = impression_test_context_create_roxy();
     RoxContext *context = rox_context_create_from_map(ROX_MAP(ROX_COPY("obj1"), rox_dynamic_value_create_int(1)));
-    RoxReportingValue *reporting_value = reporting_value_create("name", "value");
+    RoxReportingValue *reporting_value = reporting_value_create("name", "value", false);
 
     ExperimentModel *experiment = experiment_model_create(
             "id", "name", "true", false, ROX_LIST_COPY_STR("rox.internal.analytics"),
@@ -268,15 +270,15 @@ START_TEST (test_will_not_invoke_analytics_when_is_roxy) {
 
     reporting_value_free(reporting_value);
     rox_context_free(context);
-    _impression_test_context_free(ctx);
+    impression_test_context_free(ctx);
 }
 
 END_TEST
 
 START_TEST (test_will_invoke_analytics) {
-    ImpressionInvocationTestContext *ctx = _impression_test_context_create();
+    ImpressionInvocationTestContext *ctx = impression_test_context_create();
     RoxContext *context = rox_context_create_from_map(ROX_MAP(ROX_COPY("obj1"), rox_dynamic_value_create_int(1)));
-    RoxReportingValue *reporting_value = reporting_value_create("name", "value");
+    RoxReportingValue *reporting_value = reporting_value_create("name", "value", false);
 
     char *name = mem_str_format("rox.%s", ROX_PROPERTY_TYPE_DISTINCT_ID.name);
     custom_property_repository_add_custom_property(
@@ -306,8 +308,6 @@ START_TEST (test_will_invoke_analytics) {
     AnalyticsEvent *event;
     rox_list_get_at(ctx->analytics_events, 0, (void **) &event);
     ck_assert_str_eq(event->distinct_id, "stam");
-    ck_assert_str_eq(event->experiment_id, "id");
-    ck_assert_str_eq(event->experiment_version, "0");
     ck_assert_str_eq(event->flag, "name");
     ck_assert_str_eq(event->value, "value");
     ck_assert_str_eq(event->type, "IMPRESSION");
@@ -315,15 +315,15 @@ START_TEST (test_will_invoke_analytics) {
 
     reporting_value_free(reporting_value);
     rox_context_free(context);
-    _impression_test_context_free(ctx);
+    impression_test_context_free(ctx);
 }
 
 END_TEST
 
 START_TEST (test_will_invoke_analytics_with_stickiness_prop) {
-    ImpressionInvocationTestContext *ctx = _impression_test_context_create();
+    ImpressionInvocationTestContext *ctx = impression_test_context_create();
     RoxContext *context = rox_context_create_from_map(ROX_MAP(ROX_COPY("obj1"), rox_dynamic_value_create_int(1)));
-    RoxReportingValue *reporting_value = reporting_value_create("name", "value");
+    RoxReportingValue *reporting_value = reporting_value_create("name", "value", false);
 
     char *name = mem_str_format("rox.%s", ROX_PROPERTY_TYPE_DISTINCT_ID.name);
     custom_property_repository_add_custom_property(
@@ -361,8 +361,6 @@ START_TEST (test_will_invoke_analytics_with_stickiness_prop) {
     AnalyticsEvent *event;
     rox_list_get_at(ctx->analytics_events, 0, (void **) &event);
     ck_assert_str_eq(event->distinct_id, "stamStick");
-    ck_assert_str_eq(event->experiment_id, "id");
-    ck_assert_str_eq(event->experiment_version, "0");
     ck_assert_str_eq(event->flag, "name");
     ck_assert_str_eq(event->value, "value");
     ck_assert_str_eq(event->type, "IMPRESSION");
@@ -370,15 +368,15 @@ START_TEST (test_will_invoke_analytics_with_stickiness_prop) {
 
     reporting_value_free(reporting_value);
     rox_context_free(context);
-    _impression_test_context_free(ctx);
+    impression_test_context_free(ctx);
 }
 
 END_TEST
 
 START_TEST (test_will_invoke_analytics_with_default_prop_when_no_stickiness_prop) {
-    ImpressionInvocationTestContext *ctx = _impression_test_context_create();
+    ImpressionInvocationTestContext *ctx = impression_test_context_create();
     RoxContext *context = rox_context_create_from_map(ROX_MAP(ROX_COPY("obj1"), rox_dynamic_value_create_int(1)));
-    RoxReportingValue *reporting_value = reporting_value_create("name", "value");
+    RoxReportingValue *reporting_value = reporting_value_create("name", "value", false);
 
     char *name = mem_str_format("rox.%s", ROX_PROPERTY_TYPE_DISTINCT_ID.name);
     custom_property_repository_add_custom_property(
@@ -416,8 +414,6 @@ START_TEST (test_will_invoke_analytics_with_default_prop_when_no_stickiness_prop
     AnalyticsEvent *event;
     rox_list_get_at(ctx->analytics_events, 0, (void **) &event);
     ck_assert_str_eq(event->distinct_id, "stamDist");
-    ck_assert_str_eq(event->experiment_id, "id");
-    ck_assert_str_eq(event->experiment_version, "0");
     ck_assert_str_eq(event->flag, "name");
     ck_assert_str_eq(event->value, "value");
     ck_assert_str_eq(event->type, "IMPRESSION");
@@ -425,15 +421,15 @@ START_TEST (test_will_invoke_analytics_with_default_prop_when_no_stickiness_prop
 
     reporting_value_free(reporting_value);
     rox_context_free(context);
-    _impression_test_context_free(ctx);
+    impression_test_context_free(ctx);
 }
 
 END_TEST
 
 START_TEST (test_will_invoke_analytics_with_bad_distinct_id) {
-    ImpressionInvocationTestContext *ctx = _impression_test_context_create();
+    ImpressionInvocationTestContext *ctx = impression_test_context_create();
     RoxContext *context = rox_context_create_from_map(ROX_MAP(ROX_COPY("obj1"), rox_dynamic_value_create_int(1)));
-    RoxReportingValue *reporting_value = reporting_value_create("name", "value");
+    RoxReportingValue *reporting_value = reporting_value_create("name", "value", false);
 
     ExperimentModel *experiment = experiment_model_create(
             "id", "name", "cond", false, NULL,
@@ -455,8 +451,6 @@ START_TEST (test_will_invoke_analytics_with_bad_distinct_id) {
     AnalyticsEvent *event;
     rox_list_get_at(ctx->analytics_events, 0, (void **) &event);
     ck_assert_str_eq(event->distinct_id, "(null_distinct_id");
-    ck_assert_str_eq(event->experiment_id, "id");
-    ck_assert_str_eq(event->experiment_version, "0");
     ck_assert_str_eq(event->flag, "name");
     ck_assert_str_eq(event->value, "value");
     ck_assert_str_eq(event->type, "IMPRESSION");
@@ -464,7 +458,7 @@ START_TEST (test_will_invoke_analytics_with_bad_distinct_id) {
 
     reporting_value_free(reporting_value);
     rox_context_free(context);
-    _impression_test_context_free(ctx);
+    impression_test_context_free(ctx);
 }
 
 END_TEST

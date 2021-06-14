@@ -1,9 +1,10 @@
 #pragma once
 
+#include <stdlib.h>
 #include <stdarg.h>
 #include <check.h>
 #include <core/properties.h>
-#include "rollout.h"
+#include "rox/server.h"
 #include "collections.h"
 
 ROX_INTERNAL Suite *_rox_create_test_suite(char *name, ...) {
@@ -38,7 +39,7 @@ ROX_INTERNAL int _rox_run_tests(Suite *suite) {
 }
 
 ROX_INTERNAL void rox_check_and_free(char *str, const char *expected_value) {
-    ck_assert_str_eq(str, expected_value);
+    ck_assert_str_eq(expected_value, str);
     if (str) {
         free(str);
     }

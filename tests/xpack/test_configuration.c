@@ -1,6 +1,6 @@
 #include <check.h>
 #include <assert.h>
-#include <roxx/extensions.h>
+#include "eval/extensions.h"
 #include "roxtests.h"
 #include "xpack/configuration.h"
 

@@ -1,3 +1,4 @@
+#include <stddef.h>
 #include "security.h"
 
 static bool _dummy_signature_verifier_func(

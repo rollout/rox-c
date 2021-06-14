@@ -1,7 +1,7 @@
 #pragma once
 
 #include <cjson/cJSON.h>
-#include "rollout.h"
+#include "rox/defs.h"
 #include "properties.h"
 #include "client.h"
 #include "configuration.h"
@@ -90,6 +90,8 @@ typedef struct RequestConfig {
     request_send_post_json_func send_post_json;
     int request_timeout;
 } RequestConfig;
+
+#define DEFAULT_REQUEST_CONFIG_INITIALIZER {NULL, NULL, NULL, NULL, 0};
 
 /**
  * @param config May be <code>NULL</code>. Clients are responsible for freeing the memory.
