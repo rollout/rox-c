@@ -272,10 +272,12 @@ ROX_INTERNAL RoxStateCode rox_core_setup(
         roxy_url = rox_options_get_roxy_url(rox_options);
         if (!roxy_url) {
             char *api_key = sdk_settings_get_api_key(sdk_settings);
+            char *mongoIdPattern = "^[a-f\\d]{24}$";
+            char *uuidIdPattern = "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$";
             if (!api_key || !api_key[0]) {
                 ROX_ERROR("Invalid rollout apikey - must be specified");
                 return RoxErrorEmptyApiKey;
-            } else if (!str_matches(api_key, "^[a-f\\d]{24}$", PCRE2_CASELESS)) {
+            } else if (!str_matches(api_key, mongoIdPattern, PCRE2_CASELESS) && !str_matches(api_key, mongoIdPattern, PCRE2_CASELESS)) {
                 ROX_ERROR("Illegal rollout apikey");
                 return RoxErrorInvalidApiKey;
             }
