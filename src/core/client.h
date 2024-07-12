@@ -136,6 +136,12 @@ ROX_INTERNAL void *rox_options_get_dynamic_properties_rule_target(RoxOptions *op
 
 /**
  * @param options Not <code>NULL</code>.
+ * @return disable_signature_verification or <code>true</code> if not set.
+ */
+ROX_INTERNAL bool rox_options_is_disable_signature_verification(RoxOptions *options);
+
+/**
+ * @param options Not <code>NULL</code>.
  */
 ROX_INTERNAL void rox_options_free(RoxOptions *options);
 

@@ -75,7 +75,7 @@ START_TEST (test_will_check_valid_mongo_api_key) {
 
 END_TEST
 
-START_TEST (test_will_check_invalid_api_key) {
+START_TEST (test_will_check_uuid_api_key) {
     CoreTestContext *ctx = core_test_context_create("632d9ef0-15a3-11ee-820a-00155deb2761", NULL);
     RoxStateCode status = rox_core_setup(ctx->core, ctx->sdk_settings, ctx->device_properties, ctx->rox_options);
     ck_assert_int_eq(RoxInitialized, status);

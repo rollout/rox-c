@@ -268,6 +268,7 @@ ROX_INTERNAL RoxStateCode rox_core_setup(
     }
 
     const char *roxy_url = NULL;
+    bool disableSignature = false;
     if (rox_options) {
         roxy_url = rox_options_get_roxy_url(rox_options);
         if (!roxy_url) {
@@ -277,9 +278,14 @@ ROX_INTERNAL RoxStateCode rox_core_setup(
             if (!api_key || !api_key[0]) {
                 ROX_ERROR("Invalid rollout apikey - must be specified");
                 return RoxErrorEmptyApiKey;
-            } else if (!str_matches(api_key, mongoIdPattern, PCRE2_CASELESS) && !str_matches(api_key, mongoIdPattern, PCRE2_CASELESS)) {
+            } else if (!str_matches(api_key, mongoIdPattern, PCRE2_CASELESS) && !str_matches(api_key, uuidIdPattern, PCRE2_CASELESS)) {
                 ROX_ERROR("Illegal rollout apikey");
                 return RoxErrorInvalidApiKey;
+            }
+            // if this is a platform key, disable signature verification
+            if (str_matches(api_key, uuidIdPattern, PCRE2_CASELESS)) {
+                rox_options_set_disable_signature_verification(rox_options, true);
+                disableSignature = true;
             }
         }
     }
@@ -309,7 +315,10 @@ ROX_INTERNAL RoxStateCode rox_core_setup(
 
     } else {
 
-        core->signature_verifier = signature_verifier_create(NULL);
+        // Set the signature verifier config
+        SignatureVerifierConfig svconfig;
+        svconfig.skip_verification = disableSignature;
+        core->signature_verifier = signature_verifier_create(&svconfig);
 
         APIKeyVerifierConfig api_key_verifier_config = {sdk_settings, NULL};
         core->api_key_verifier = api_key_verifier_create(&api_key_verifier_config);

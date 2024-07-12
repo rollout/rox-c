@@ -64,9 +64,17 @@ static bool xpack_signature_verifier(
     return verified;
 }
 
+static bool xpack_always_true(
+        void *target,
+        SignatureVerifier *verifier,
+        const char *data,
+        const char *signature_base64) {
+    return true;
+}
+
 ROX_INTERNAL SignatureVerifier *signature_verifier_create(SignatureVerifierConfig *config) {
     SignatureVerifier *verifier = calloc(1, sizeof(SignatureVerifier));
-    verifier->verify = (config && config->verify_func) ? config->verify_func : &xpack_signature_verifier;
+    verifier->verify = (config && config->verify_func) ? config->verify_func : ((config && config->skip_verification) ? &xpack_always_true : &xpack_signature_verifier);
     return verifier;
 }
 

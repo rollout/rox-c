@@ -165,6 +165,12 @@ namespace Rox {
         return *this;
     }
 
+    OptionsBuilder &OptionsBuilder::SetDisableSignatureVerification(bool verificationDisabled) {
+        assert(verificationDisabled);
+        rox_options_set_disable_signature_verification(_options, verificationDisabled);
+        return *this;
+    }
+
     ROX_API Options *OptionsBuilder::Build() {
         return _options;
     }
