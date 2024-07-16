@@ -322,9 +322,13 @@ ROX_INTERNAL DeviceProperties *device_properties_create_from_map(
         if (str_equals(value, ROX_ENV_MODE_LOCAL)) {
             properties->env = mem_copy_str(ROX_ENV_MODE_LOCAL);
         }
+        if (str_equals(value, ROX_ENV_MODE_PRODUCTION)) {
+            properties->env = mem_copy_str(ROX_ENV_MODE_PRODUCTION);
+        }
     }
     if (!properties->env) {
-        properties->env = mem_copy_str(ROX_ENV_MODE_PRODUCTION);
+        // defaulting to the platform
+        properties->env = mem_copy_str(ROX_ENV_MODE_PLATFORM);
     }
 
     properties->distinct_id = rox_globally_unique_device_id();

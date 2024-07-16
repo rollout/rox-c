@@ -189,7 +189,7 @@ ROX_INTERNAL RoxMap *device_properties_get_all_properties(DeviceProperties *prop
  * The returned value should <em>not</em> be freed.
  *
  * @param properties Not <code>NULL</code>.
- * @return One of <code>ROX_ENV_MODE_QA</code>, <code>ROX_ENV_MODE_LOCAL</code>, or <code>ROX_ENV_MODE_PRODUCTION</code>.
+ * @return One of <code>ROX_ENV_MODE_QA</code>, <code>ROX_ENV_MODE_LOCAL</code>, <code>ROX_ENV_MODE_PRODUCTION</code>, or <code>ROX_ENV_MODE_PLATFORM</code>.
  */
 ROX_INTERNAL const char *device_properties_get_rollout_environment(DeviceProperties *properties);
 

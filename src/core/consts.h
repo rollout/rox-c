@@ -15,6 +15,7 @@ ROX_INTERNAL extern const char *ROX_ENV_MODE_KEY;
 ROX_INTERNAL extern const char *ROX_ENV_MODE_QA;
 ROX_INTERNAL extern const char *ROX_ENV_MODE_LOCAL;
 ROX_INTERNAL extern const char *ROX_ENV_MODE_PRODUCTION;
+ROX_INTERNAL extern const char *ROX_ENV_MODE_PLATFORM;
 
 //
 // Environment
