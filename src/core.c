@@ -315,9 +315,11 @@ ROX_INTERNAL RoxStateCode rox_core_setup(
 
     } else {
 
-        // Set the signature verifier config
+        // Set the signature verifier config; will pick up default function
         SignatureVerifierConfig svconfig;
+        svconfig.target = NULL;
         svconfig.skip_verification = disableSignature;
+        svconfig.verify_func = NULL;
         core->signature_verifier = signature_verifier_create(&svconfig);
 
         APIKeyVerifierConfig api_key_verifier_config = {sdk_settings, NULL};
