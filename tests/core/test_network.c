@@ -118,7 +118,7 @@ START_TEST (test_will_return_cdn_data_when_successful) {
     ConfigurationFetcher *fetcher = _test_create_conf_fetcher(ctx);
     ConfigurationFetchResult *result = configuration_fetcher_fetch(fetcher);
     ck_assert_ptr_nonnull(result);
-    ck_assert_str_eq(ctx->request->last_get_uri, "https://conf.rollout.io/123/buid");
+    ck_assert_str_eq(ctx->request->last_get_uri, "https://rox-conf.cloudbees.io/123/buid");
     ck_assert_int_eq(rox_map_size(ctx->request->last_get_params), 1);
     rox_check_map_contains(ctx->request->last_get_params, ROX_PROPERTY_TYPE_DISTINCT_ID.name, "id");
     ck_assert_str_eq(cJSON_GetObjectItem(result->parsed_data, "a")->valuestring, "harti");
@@ -232,7 +232,7 @@ START_TEST (test_will_return_api_data_when_cdn_fails_with_result_404_api_ok) {
     ConfigurationFetchResult *result = configuration_fetcher_fetch(fetcher);
     ck_assert_ptr_nonnull(result);
 
-    ck_assert_str_eq(ctx->request->last_get_uri, "https://conf.rollout.io/123/buid");
+    ck_assert_str_eq(ctx->request->last_get_uri, "https://rox-conf.cloudbees.io/123/buid");
     ck_assert_int_eq(rox_map_size(ctx->request->last_get_params), 1);
     rox_check_map_contains(ctx->request->last_get_params, ROX_PROPERTY_TYPE_DISTINCT_ID.name, "id");
 
@@ -273,7 +273,7 @@ START_TEST (test_will_return_api_data_when_cdn_succeed_with_result200) {
     ConfigurationFetchResult *result = configuration_fetcher_fetch(fetcher);
     ck_assert_ptr_nonnull(result);
 
-    ck_assert_str_eq(ctx->request->last_get_uri, "https://conf.rollout.io/123/buid");
+    ck_assert_str_eq(ctx->request->last_get_uri, "https://rox-conf.cloudbees.io/123/buid");
     ck_assert_int_eq(rox_map_size(ctx->request->last_get_params), 1);
     rox_check_map_contains(ctx->request->last_get_params, ROX_PROPERTY_TYPE_DISTINCT_ID.name, "id");
 
@@ -306,7 +306,7 @@ START_TEST (test_will_return_api_data_when_cdn_fails_404_api_ok) {
     ConfigurationFetchResult *result = configuration_fetcher_fetch(fetcher);
     ck_assert_ptr_nonnull(result);
 
-    ck_assert_str_eq(ctx->request->last_get_uri, "https://conf.rollout.io/123/buid");
+    ck_assert_str_eq(ctx->request->last_get_uri, "https://rox-conf.cloudbees.io/123/buid");
     ck_assert_int_eq(rox_map_size(ctx->request->last_get_params), 1);
     rox_check_map_contains(ctx->request->last_get_params, ROX_PROPERTY_TYPE_DISTINCT_ID.name, "id");
 
