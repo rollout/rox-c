@@ -236,7 +236,7 @@ START_TEST (test_will_return_api_data_when_cdn_fails_with_result_404_api_ok) {
     ck_assert_int_eq(rox_map_size(ctx->request->last_get_params), 1);
     rox_check_map_contains(ctx->request->last_get_params, ROX_PROPERTY_TYPE_DISTINCT_ID.name, "id");
 
-    ck_assert_str_eq(ctx->request->last_post_uri, "https://x-api.rollout.io/device/get_configuration/123/buid");
+    ck_assert_str_eq(ctx->request->last_post_uri, "https://api.cloudbees.io/device/get_configuration/123/buid");
     ck_assert_int_eq(rox_map_size(ctx->request->last_post_params), 5);
     rox_check_map_contains(ctx->request->last_post_params, ROX_PROPERTY_TYPE_APP_KEY.name, "123");
     rox_check_map_contains(ctx->request->last_post_params, ROX_PROPERTY_TYPE_API_VERSION.name, "4.0.0");
@@ -310,7 +310,7 @@ START_TEST (test_will_return_api_data_when_cdn_fails_404_api_ok) {
     ck_assert_int_eq(rox_map_size(ctx->request->last_get_params), 1);
     rox_check_map_contains(ctx->request->last_get_params, ROX_PROPERTY_TYPE_DISTINCT_ID.name, "id");
 
-    ck_assert_str_eq(ctx->request->last_post_uri, "https://x-api.rollout.io/device/get_configuration/123/buid");
+    ck_assert_str_eq(ctx->request->last_post_uri, "https://api.cloudbees.io/device/get_configuration/123/buid");
     ck_assert_int_eq(rox_map_size(ctx->request->last_post_params), 5);
     rox_check_map_contains(ctx->request->last_post_params, ROX_PROPERTY_TYPE_APP_KEY.name, "123");
     rox_check_map_contains(ctx->request->last_post_params, ROX_PROPERTY_TYPE_API_VERSION.name, "4.0.0");

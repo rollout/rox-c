@@ -1,4 +1,5 @@
 ﻿#include <cassert>
+#include <ctime>
 #include <vector>
 #include <string>
 
@@ -69,6 +70,14 @@ namespace Rox {
         assert(name);
         rox_map_add(_map, mem_copy_str(name), value
                                               ? rox_dynamic_value_create_string_copy(value)
+                                              : rox_dynamic_value_create_null());
+        return *this;
+    }
+
+    ContextBuilder &ContextBuilder::AddDateTimeValue(const char *name, const struct tm *value) {
+        assert(name);
+        rox_map_add(_map, mem_copy_str(name), value
+                                              ? rox_dynamic_value_create_datetime_copy(value)
                                               : rox_dynamic_value_create_null());
         return *this;
     }
