@@ -184,7 +184,7 @@ START_TEST (test_will_call_cdn_successfully) {
     logging_test_fixture_check_no_errors(ctx->logging);
 
     ck_assert_int_eq(ctx->request->times_get_sent, 1);
-    ck_assert_str_eq(ctx->request->last_get_uri, "https://rox-state.cloudbees.io/123/C973890080E2E1074002239A8F093068");
+    ck_assert_str_eq(ctx->request->last_get_uri, "https://statestore.rollout.io/123/C973890080E2E1074002239A8F093068");
 
     _state_sender_test_context_free(ctx);
 }
@@ -199,14 +199,14 @@ START_TEST (test_will_call_only_cdn_state_md5_changes_for_flag) {
     logging_test_fixture_check_no_errors(ctx->logging);
 
     ck_assert_int_eq(ctx->request->times_get_sent, 1);
-    ck_assert_str_eq(ctx->request->last_get_uri, "https://rox-state.cloudbees.io/123/C973890080E2E1074002239A8F093068");
+    ck_assert_str_eq(ctx->request->last_get_uri, "https://statestore.rollout.io/123/C973890080E2E1074002239A8F093068");
 
     flag_repository_add_flag(ctx->flag_repo, variant_create_flag(), "flag2");
     state_sender_send(ctx->sender);
     logging_test_fixture_check_no_errors(ctx->logging);
 
     ck_assert_int_eq(ctx->request->times_get_sent, 2);
-    ck_assert_str_eq(ctx->request->last_get_uri, "https://rox-state.cloudbees.io/123/F81295A07A291D828AA7BFFCCD9DA0B7");
+    ck_assert_str_eq(ctx->request->last_get_uri, "https://statestore.rollout.io/123/F81295A07A291D828AA7BFFCCD9DA0B7");
 
     _state_sender_test_context_free(ctx);
 }
@@ -221,14 +221,14 @@ START_TEST (test_will_call_only_cdn_state_md5_changes_for_custom_property) {
     logging_test_fixture_check_no_errors(ctx->logging);
 
     ck_assert_int_eq(ctx->request->times_get_sent, 1);
-    ck_assert_str_eq(ctx->request->last_get_uri, "https://rox-state.cloudbees.io/123/08C5B082527CE9B45B6AC79A52B7804E");
+    ck_assert_str_eq(ctx->request->last_get_uri, "https://statestore.rollout.io/123/08C5B082527CE9B45B6AC79A52B7804E");
 
     _state_sender_test_context_add_double_property(ctx, "cp2", 20);
     state_sender_send(ctx->sender);
     logging_test_fixture_check_no_errors(ctx->logging);
 
     ck_assert_int_eq(ctx->request->times_get_sent, 2);
-    ck_assert_str_eq(ctx->request->last_get_uri, "https://rox-state.cloudbees.io/123/91E9221FB21ED170B50D73B285A315C1");
+    ck_assert_str_eq(ctx->request->last_get_uri, "https://statestore.rollout.io/123/91E9221FB21ED170B50D73B285A315C1");
 
     _state_sender_test_context_free(ctx);
 }
@@ -245,7 +245,7 @@ START_TEST (test_will_call_only_cdn_state_md5_flag_order_not_important) {
     logging_test_fixture_check_no_errors(ctx->logging);
 
     ck_assert_int_eq(ctx->request->times_get_sent, 1);
-    ck_assert_str_eq(ctx->request->last_get_uri, "https://rox-state.cloudbees.io/123/F81295A07A291D828AA7BFFCCD9DA0B7");
+    ck_assert_str_eq(ctx->request->last_get_uri, "https://statestore.rollout.io/123/F81295A07A291D828AA7BFFCCD9DA0B7");
 
     _state_sender_test_context_free(ctx);
 }
@@ -262,7 +262,7 @@ START_TEST (test_will_call_only_cdn_state_md5_custom_property_order_not_importan
     logging_test_fixture_check_no_errors(ctx->logging);
 
     ck_assert_int_eq(ctx->request->times_get_sent, 1);
-    ck_assert_str_eq(ctx->request->last_get_uri, "https://rox-state.cloudbees.io/123/0D07300D3F83F344E7C472E3EF2ECCF0");
+    ck_assert_str_eq(ctx->request->last_get_uri, "https://statestore.rollout.io/123/0D07300D3F83F344E7C472E3EF2ECCF0");
 
     _state_sender_test_context_free(ctx);
 
@@ -275,7 +275,7 @@ START_TEST (test_will_call_only_cdn_state_md5_custom_property_order_not_importan
     logging_test_fixture_check_no_errors(ctx->logging);
 
     ck_assert_int_eq(ctx->request->times_get_sent, 1);
-    ck_assert_str_eq(ctx->request->last_get_uri, "https://rox-state.cloudbees.io/123/0D07300D3F83F344E7C472E3EF2ECCF0");
+    ck_assert_str_eq(ctx->request->last_get_uri, "https://statestore.rollout.io/123/0D07300D3F83F344E7C472E3EF2ECCF0");
 
     _state_sender_test_context_free(ctx);
 }
@@ -291,7 +291,7 @@ START_TEST (test_will_return_null_when_cdn_fails_with_exception) {
     logging_test_fixture_check_log_message(ctx->logging, RoxLogLevelError, "Failed to send state");
 
     ck_assert_int_eq(ctx->request->times_get_sent, 1);
-    ck_assert_str_eq(ctx->request->last_get_uri, "https://rox-state.cloudbees.io/123/CF09F3555C13395B5F2DE947450F6FA9");
+    ck_assert_str_eq(ctx->request->last_get_uri, "https://statestore.rollout.io/123/CF09F3555C13395B5F2DE947450F6FA9");
     ck_assert_int_eq(ctx->request->times_post_sent, 0);
 
     _state_sender_test_context_free(ctx);
@@ -308,7 +308,7 @@ START_TEST (test_will_return_null_when_cdn_succeed_with_empty_response) {
     logging_test_fixture_check_log_message(ctx->logging, RoxLogLevelError, "Failed to send state");
 
     ck_assert_int_eq(ctx->request->times_get_sent, 1);
-    ck_assert_str_eq(ctx->request->last_get_uri, "https://rox-state.cloudbees.io/123/CF09F3555C13395B5F2DE947450F6FA9");
+    ck_assert_str_eq(ctx->request->last_get_uri, "https://statestore.rollout.io/123/CF09F3555C13395B5F2DE947450F6FA9");
     ck_assert_int_eq(ctx->request->times_post_sent, 0);
 
     _state_sender_test_context_free(ctx);
@@ -325,7 +325,7 @@ START_TEST (test_will_return_null_when_cdn_succeed_with_not_json_response) {
     logging_test_fixture_check_log_message(ctx->logging, RoxLogLevelError, "Failed to send state");
 
     ck_assert_int_eq(ctx->request->times_get_sent, 1);
-    ck_assert_str_eq(ctx->request->last_get_uri, "https://rox-state.cloudbees.io/123/CF09F3555C13395B5F2DE947450F6FA9");
+    ck_assert_str_eq(ctx->request->last_get_uri, "https://statestore.rollout.io/123/CF09F3555C13395B5F2DE947450F6FA9");
     ck_assert_int_eq(ctx->request->times_post_sent, 0);
 
     _state_sender_test_context_free(ctx);
@@ -344,10 +344,10 @@ START_TEST (test_will_return_null_when_cdn_fails_404_api_with_exception) {
     logging_test_fixture_check_log_message(ctx->logging, RoxLogLevelError, "Failed to send state");
 
     ck_assert_int_eq(ctx->request->times_get_sent, 1);
-    ck_assert_str_eq(ctx->request->last_get_uri, "https://rox-state.cloudbees.io/123/9351683310939C0C53BB3EE38E6B99FC");
+    ck_assert_str_eq(ctx->request->last_get_uri, "https://statestore.rollout.io/123/9351683310939C0C53BB3EE38E6B99FC");
     ck_assert_int_eq(ctx->request->times_post_sent, 1);
     ck_assert_str_eq(ctx->request->last_post_uri,
-                     "https://api.cloudbees.io/device/update_state_store/123/9351683310939C0C53BB3EE38E6B99FC");
+                     "https://x-api.rollout.io/device/update_state_store/123/9351683310939C0C53BB3EE38E6B99FC");
 
     _validate_request_params(ctx);
 
@@ -369,10 +369,10 @@ START_TEST (test_will_return_api_data_when_cdn_succeed_with_result_404_api_ok) {
     logging_test_fixture_check_no_messages(ctx->logging, RoxLogLevelError);
 
     ck_assert_int_eq(ctx->request->times_get_sent, 1);
-    ck_assert_str_eq(ctx->request->last_get_uri, "https://rox-state.cloudbees.io/123/9351683310939C0C53BB3EE38E6B99FC");
+    ck_assert_str_eq(ctx->request->last_get_uri, "https://statestore.rollout.io/123/9351683310939C0C53BB3EE38E6B99FC");
     ck_assert_int_eq(ctx->request->times_post_sent, 1);
     ck_assert_str_eq(ctx->request->last_post_uri,
-                     "https://api.cloudbees.io/device/update_state_store/123/9351683310939C0C53BB3EE38E6B99FC");
+                     "https://x-api.rollout.io/device/update_state_store/123/9351683310939C0C53BB3EE38E6B99FC");
 
     _validate_request_params(ctx);
 
@@ -394,10 +394,10 @@ START_TEST (test_will_return_apidata_when_cdn_fails_404_api_ok) {
     logging_test_fixture_check_no_messages(ctx->logging, RoxLogLevelError);
 
     ck_assert_int_eq(ctx->request->times_get_sent, 1);
-    ck_assert_str_eq(ctx->request->last_get_uri, "https://rox-state.cloudbees.io/123/9351683310939C0C53BB3EE38E6B99FC");
+    ck_assert_str_eq(ctx->request->last_get_uri, "https://statestore.rollout.io/123/9351683310939C0C53BB3EE38E6B99FC");
     ck_assert_int_eq(ctx->request->times_post_sent, 1);
     ck_assert_str_eq(ctx->request->last_post_uri,
-                     "https://api.cloudbees.io/device/update_state_store/123/9351683310939C0C53BB3EE38E6B99FC");
+                     "https://x-api.rollout.io/device/update_state_store/123/9351683310939C0C53BB3EE38E6B99FC");
 
     _validate_request_params(ctx);
 

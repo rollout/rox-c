@@ -41,12 +41,12 @@ ROX_INTERNAL size_t _rox_env_return_value_using_mode_env(
             return str_copy_value_to_buffer(buffer, buffer_size, qa_mode_value);
         } else if (str_equals(value, ROX_ENV_MODE_LOCAL)) {
             return str_copy_value_to_buffer(buffer, buffer_size, local_mode_value);
-        } else if (str_equals(value, ROX_ENV_MODE_PRODUCTION)) {
-            return str_copy_value_to_buffer(buffer, buffer_size, prod_mode_value);
+        } else if (str_equals(value, ROX_ENV_MODE_PLATFORM)) {
+            return str_copy_value_to_buffer(buffer, buffer_size, platform_mode_value);
         } 
     }
-    // Default to the platform
-    return str_copy_value_to_buffer(buffer, buffer_size, platform_mode_value);
+    // Default to rollout production
+    return str_copy_value_to_buffer(buffer, buffer_size, prod_mode_value);
 }
 
 ROX_INTERNAL size_t rox_env_get_cdn_path(char *buffer, size_t buffer_size) {
