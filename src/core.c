@@ -4,6 +4,7 @@
 #include <errno.h>
 #include <xpack/network.h>
 #include "core.h"
+#include "core/consts.h"
 #include "core/logging.h"
 #include "eval/extensions.h"
 #include "xpack/reporting.h"
@@ -282,10 +283,11 @@ ROX_INTERNAL RoxStateCode rox_core_setup(
                 ROX_ERROR("Illegal rollout apikey");
                 return RoxErrorInvalidApiKey;
             }
-            // if this is a platform key, disable signature verification
+            // if this is a platform key, disable signature verification & set the environment as PLATFORM for this subprocess
             if (str_matches(api_key, uuidIdPattern, PCRE2_CASELESS)) {
                 rox_options_set_disable_signature_verification(rox_options, true);
                 disableSignature = true;
+                setenv(ROX_ENV_MODE_KEY, ROX_ENV_MODE_PLATFORM, 1);
             }
         }
     }
