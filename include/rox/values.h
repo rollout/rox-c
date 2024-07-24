@@ -67,6 +67,8 @@ ROX_API bool rox_dynamic_value_is_boolean(RoxDynamicValue *value);
 
 ROX_API bool rox_dynamic_value_is_string(RoxDynamicValue *value);
 
+ROX_API bool rox_dynamic_value_is_datetime(RoxDynamicValue *value);
+
 ROX_API bool rox_dynamic_value_is_list(RoxDynamicValue *value);
 
 ROX_API bool rox_dynamic_value_is_map(RoxDynamicValue *value);
@@ -82,6 +84,8 @@ ROX_API double rox_dynamic_value_get_double(RoxDynamicValue *value);
 ROX_API bool rox_dynamic_value_get_boolean(RoxDynamicValue *value);
 
 ROX_API char *rox_dynamic_value_get_string(RoxDynamicValue *value);
+
+ROX_API struct tm *rox_dynamic_value_get_datetime(RoxDynamicValue *value);
 
 ROX_API RoxList *rox_dynamic_value_get_list(RoxDynamicValue *value);
 

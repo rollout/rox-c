@@ -4,6 +4,7 @@
 #include <pcre2.h>
 #include <float.h>
 #include <math.h>
+#include <time.h>
 
 #include "rox/server.h"
 #include "util.h"
@@ -806,6 +807,20 @@ static void parser_operator_b64d(void *target, Parser *parser, CoreStack *stack,
     rox_stack_push_string_ptr(stack, mem_base64_decode_str(s));
 }
 
+static void parser_operator_ts_to_num(void *target, Parser *parser, CoreStack *stack, EvaluationContext *eval_context) {
+    assert(parser);
+    assert(stack);
+    StackItem *item = rox_stack_pop(stack);
+    // check if a timestamp
+    if (rox_stack_is_datetime(item)) {
+      struct tm *datetime = rox_stack_get_datetime(item);
+      time_t time = mktime(datetime);
+      rox_stack_push_int(stack, time);
+    } else {
+        rox_stack_push_undefined(stack);
+    }
+}
+
 typedef bool (*parser_comparison_op)(double d1, double d2);
 
 static void
@@ -989,6 +1004,7 @@ static void parser_set_basic_operators(Parser *parser) {
     parser_add_operator(parser, "md5", NULL, &parser_operator_md5);
     parser_add_operator(parser, "concat", NULL, &parser_operator_concat);
     parser_add_operator(parser, "b64d", NULL, &parser_operator_b64d);
+    parser_add_operator(parser, "tsToNum", NULL, &parser_operator_ts_to_num);
 
     // value compare functions
     parser_add_operator(parser, "lt", NULL, &parser_operator_lt);

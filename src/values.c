@@ -174,6 +174,11 @@ ROX_API bool rox_dynamic_value_is_string(RoxDynamicValue *value) {
     return value->str_value != NULL;
 }
 
+ROX_API bool rox_dynamic_value_is_datetime(RoxDynamicValue *value) {
+    assert(value);
+    return value->datetime_value != NULL;
+}
+
 ROX_API bool rox_dynamic_value_is_list(RoxDynamicValue *value) {
     assert(value);
     return value->list_value != NULL;
@@ -220,6 +225,12 @@ ROX_API char *rox_dynamic_value_get_string(RoxDynamicValue *value) {
     assert(value);
     assert(value->str_value);
     return value->str_value;
+}
+
+ROX_API struct tm *rox_dynamic_value_get_datetime(RoxDynamicValue *value) {
+    assert(value);
+    assert(value->datetime_value);
+    return value->datetime_value;
 }
 
 ROX_API RoxList *rox_dynamic_value_get_list(RoxDynamicValue *value) {

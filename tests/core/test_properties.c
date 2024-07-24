@@ -61,7 +61,6 @@ START_TEST (test_will_create_property_with_const_value) {
                                                                    rox_dynamic_value_create_datetime_copy(ptr));
     ck_assert_str_eq(custom_property_get_name(prop_datetime), "prop1");
     ck_assert_ptr_eq(custom_property_get_type(prop_datetime), &ROX_CUSTOM_PROPERTY_TYPE_DATETIME);
-    //rox_check_prop_bool(prop_datetime, test_bool_value, NULL);
     custom_property_free(prop_datetime);
 }
 
