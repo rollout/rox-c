@@ -276,15 +276,16 @@ ROX_INTERNAL RoxStateCode rox_core_setup(
             char *api_key = sdk_settings_get_api_key(sdk_settings);
             char *mongoIdPattern = "^[a-f\\d]{24}$";
             char *uuidIdPattern = "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$";
+            bool platformMatch = str_matches(api_key, uuidIdPattern, PCRE2_CASELESS);
             if (!api_key || !api_key[0]) {
                 ROX_ERROR("Invalid rollout apikey - must be specified");
                 return RoxErrorEmptyApiKey;
-            } else if (!str_matches(api_key, mongoIdPattern, PCRE2_CASELESS) && !str_matches(api_key, uuidIdPattern, PCRE2_CASELESS)) {
+            } else if (!str_matches(api_key, mongoIdPattern, PCRE2_CASELESS) && !platformMatch) {
                 ROX_ERROR("Illegal rollout apikey");
                 return RoxErrorInvalidApiKey;
             }
             // if this is a platform key, disable signature verification & set the environment as PLATFORM for this subprocess
-            if (str_matches(api_key, uuidIdPattern, PCRE2_CASELESS)) {
+            if (platformMatch) {
                 rox_options_set_disable_signature_verification(rox_options, true);
                 disableSignature = true;
                 setenv(ROX_ENV_MODE_KEY, ROX_ENV_MODE_PLATFORM, 1);
