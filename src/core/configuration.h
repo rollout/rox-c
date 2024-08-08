@@ -147,13 +147,15 @@ typedef struct ConfigurationParser ConfigurationParser;
  * @param error_reporter Not <code>NULL</code>. The caller holds the ownership on this object.
  * @param api_key_verifier Not <code>NULL</code>. The caller holds the ownership on this object.
  * @param configuration_fetched_invoker Not <code>NULL</code>. The caller holds the ownership on this object.
+ * @param skip_verification if we should skip the signature verification step
  * @return Not <code>NULL</code>.
  */
 ROX_INTERNAL ConfigurationParser *configuration_parser_create(
         SignatureVerifier *signature_verifier,
         ErrorReporter *error_reporter,
         APIKeyVerifier *api_key_verifier,
-        ConfigurationFetchedInvoker *configuration_fetched_invoker);
+        ConfigurationFetchedInvoker *configuration_fetched_invoker,
+        bool skip_verification);
 
 /**
  * @param parser Not <code>NULL</code>.

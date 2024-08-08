@@ -379,7 +379,8 @@ ROX_INTERNAL RoxStateCode rox_core_setup(
             core->signature_verifier,
             core->error_reporter,
             core->api_key_verifier,
-            core->configuration_fetched_invoker);
+            core->configuration_fetched_invoker,
+            disableSignature);
 
     rox_core_fetch(core, false);
 

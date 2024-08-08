@@ -2,6 +2,7 @@
 #include "configuration.h"
 #include "collections.h"
 #include "configuration/models.h"
+#include "core/consts.h"
 #include "core/logging.h"
 #include "xpack/security.h"
 #include "util.h"
@@ -204,13 +205,15 @@ struct ConfigurationParser {
     ErrorReporter *error_reporter;
     APIKeyVerifier *api_key_verifier;
     ConfigurationFetchedInvoker *configuration_fetched_invoker;
+    bool skip_verification;
 };
 
 ROX_INTERNAL ConfigurationParser *configuration_parser_create(
         SignatureVerifier *signature_verifier,
         ErrorReporter *error_reporter,
         APIKeyVerifier *api_key_verifier,
-        ConfigurationFetchedInvoker *configuration_fetched_invoker) {
+        ConfigurationFetchedInvoker *configuration_fetched_invoker,
+        bool skip_ver) {
     assert(signature_verifier);
     assert(error_reporter);
     assert(api_key_verifier);
@@ -220,6 +223,7 @@ ROX_INTERNAL ConfigurationParser *configuration_parser_create(
     parser->error_reporter = error_reporter;
     parser->api_key_verifier = api_key_verifier;
     parser->configuration_fetched_invoker = configuration_fetched_invoker;
+    parser->skip_verification = skip_ver;
     return parser;
 }
 
@@ -232,6 +236,14 @@ static bool _configuration_parser_is_verified_signature(ConfigurationParser *par
         error_reporter_report(parser->error_reporter, __FILE__, __LINE__,
                               "Failed to validate signature. Data is empty");
         return false;
+    }
+
+    // Skip signature verification for the platform
+    const char *value;
+    if ((value = getenv(ROX_ENV_MODE_KEY))) {
+        if (str_equals(value, ROX_ENV_MODE_PLATFORM)) {
+            return true;
+        }
     }
 
     cJSON *signature_v0_json = cJSON_GetObjectItem(json, "signature_v0");
