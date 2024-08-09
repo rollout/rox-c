@@ -96,7 +96,8 @@ static ConfigurationTestContext *configuration_test_context_create(
             context->signature_verifier,
             context->error_reporter,
             context->key_verifier,
-            context->invoker);
+            context->invoker,
+            false);
 
     return context;
 }

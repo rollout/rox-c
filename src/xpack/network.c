@@ -5,6 +5,7 @@
 #include <time.h>
 #include "core/consts.h"
 #include "core/logging.h"
+#include "core/properties.h"
 #include "network.h"
 #include "util.h"
 #include "collections.h"
@@ -152,6 +153,25 @@ static char *_state_sender_serialize_feature_flags(StateSender *sender) {
     return json_str;
 }
 
+// skip datetime for non-platform
+static bool _serialize_the_given_property(CustomProperty *property) {
+    bool to_val = true;
+    const char *value;
+    if ((value = getenv(ROX_ENV_MODE_KEY))) {
+        if (!str_equals(value, ROX_ENV_MODE_PLATFORM)) {
+            CustomPropertyType *propType = custom_property_get_type(property);
+            if (propType == &ROX_CUSTOM_PROPERTY_TYPE_DATETIME) {
+                // skip DateTime
+                to_val = false;
+            }
+            // free the property post check no matter what
+            custom_property_free(propType);
+        }
+        // return true for platform
+    }
+    return to_val;
+}
+
 static char *_state_sender_serialize_custom_properties(StateSender *sender) {
     assert(sender);
     cJSON *arr = cJSON_CreateArray();
@@ -161,7 +181,9 @@ static char *_state_sender_serialize_custom_properties(StateSender *sender) {
     ROX_LIST_FOREACH(key, keys, {
         CustomProperty *property;
         if (rox_map_get(props, key, (void **) &property)) {
-            cJSON_AddItemToArray(arr, custom_property_to_json(property));
+            if ((_serialize_the_given_property(property))) {
+                cJSON_AddItemToArray(arr, custom_property_to_json(property));
+            }
         }
     })
     rox_list_free(keys);
