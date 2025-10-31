@@ -71,6 +71,7 @@ static ConfigurationTestContext *configuration_test_context_create(
     context->sdk_settings = sdk_settings_create("12345", "12345");
     SignatureVerifierConfig signature_verifier_config = {
             context,
+            skip_verification: false,
             signature_verified
             ? &_test_true_signature_verifier
             : &_test_false_signature_verifier
@@ -95,7 +96,8 @@ static ConfigurationTestContext *configuration_test_context_create(
             context->signature_verifier,
             context->error_reporter,
             context->key_verifier,
-            context->invoker);
+            context->invoker,
+            false);
 
     return context;
 }

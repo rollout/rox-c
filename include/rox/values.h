@@ -3,6 +3,7 @@
 #include "rox/defs.h"
 #include "rox/collections.h"
 #include <stdbool.h>
+#include <time.h>
 
 //
 // DynamicValue
@@ -30,6 +31,10 @@ ROX_API RoxDynamicValue *rox_dynamic_value_create_string_copy(const char *value)
  * Note: the given string will be destroyed in <code>dynamic_value_free()</code>.
  */
 ROX_API RoxDynamicValue *rox_dynamic_value_create_string_ptr(char *value);
+
+ROX_API RoxDynamicValue *rox_dynamic_value_create_datetime_copy(const struct tm *value);
+
+ROX_API RoxDynamicValue *rox_dynamic_value_create_datetime_ptr(struct tm *value);
 
 /**
  * Note: the ownership of the list is delegated to the dynamic value
@@ -62,6 +67,8 @@ ROX_API bool rox_dynamic_value_is_boolean(RoxDynamicValue *value);
 
 ROX_API bool rox_dynamic_value_is_string(RoxDynamicValue *value);
 
+ROX_API bool rox_dynamic_value_is_datetime(RoxDynamicValue *value);
+
 ROX_API bool rox_dynamic_value_is_list(RoxDynamicValue *value);
 
 ROX_API bool rox_dynamic_value_is_map(RoxDynamicValue *value);
@@ -77,6 +84,8 @@ ROX_API double rox_dynamic_value_get_double(RoxDynamicValue *value);
 ROX_API bool rox_dynamic_value_get_boolean(RoxDynamicValue *value);
 
 ROX_API char *rox_dynamic_value_get_string(RoxDynamicValue *value);
+
+ROX_API struct tm *rox_dynamic_value_get_datetime(RoxDynamicValue *value);
 
 ROX_API RoxList *rox_dynamic_value_get_list(RoxDynamicValue *value);
 

@@ -79,3 +79,9 @@ ROX_API void rox_options_set_dynamic_properties_rule(
         RoxOptions *options,
         void *target,
         rox_dynamic_properties_rule rule);
+
+/**
+ * @param options Not <code>NULL</code>.
+ * @param verification_disabled if the system skips checking the signature verification. true, yes (platform preferred); false no
+ */
+ROX_API void rox_options_set_disable_signature_verification(RoxOptions *options, bool verification_disabled);

@@ -1,4 +1,5 @@
 #include <check.h>
+#include <time.h>
 
 #include "eval/stack.h"
 #include "roxtests.h"
@@ -99,6 +100,28 @@ START_TEST (test_will_push_into_stack_null) {
     fail_if(!popped_item);
     ck_assert(rox_stack_is_null(popped_item));
     ck_assert(!rox_stack_is_numeric(popped_item));
+
+    ck_assert(rox_stack_is_empty(stack));
+
+    rox_stack_free(stack);
+}
+
+END_TEST
+
+START_TEST (test_will_push_into_stack_time_t_as_int) {
+
+    CoreStack *stack = rox_stack_create();
+    fail_if(!stack, "Could not crate stack");
+    // generate a time_t -> this is in millis
+    // time_t t = time(NULL);
+    time_t t = 1721790652;
+    rox_stack_push_int(stack, t);
+
+    StackItem *popped_item = rox_stack_pop(stack);
+    fail_if(!popped_item);
+    ck_assert(rox_stack_is_numeric(popped_item));
+    ck_assert_int_eq(rox_stack_get_int(popped_item), 1721790652);
+    //ck_assert_double_eq(rox_stack_get_number(popped_item), 5.0);
 
     ck_assert(rox_stack_is_empty(stack));
 

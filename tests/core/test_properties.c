@@ -1,5 +1,6 @@
 #include <check.h>
 #include "roxtests.h"
+#include <time.h>
 #include "util.h"
 
 //
@@ -51,6 +52,16 @@ START_TEST (test_will_create_property_with_const_value) {
     ck_assert_ptr_eq(custom_property_get_type(prop_semver), &ROX_CUSTOM_PROPERTY_TYPE_SEMVER);
     rox_check_prop_str(prop_semver, test_semver_value, NULL);
     custom_property_free(prop_semver);
+
+    struct tm* ptr;
+    time_t secs;
+    secs = time(NULL);
+    ptr = localtime(&secs);
+    CustomProperty *prop_datetime = custom_property_create_using_value("prop1", &ROX_CUSTOM_PROPERTY_TYPE_DATETIME,
+                                                                   rox_dynamic_value_create_datetime_copy(ptr));
+    ck_assert_str_eq(custom_property_get_name(prop_datetime), "prop1");
+    ck_assert_ptr_eq(custom_property_get_type(prop_datetime), &ROX_CUSTOM_PROPERTY_TYPE_DATETIME);
+    custom_property_free(prop_datetime);
 }
 
 END_TEST

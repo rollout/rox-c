@@ -5,6 +5,7 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <time.h>
 #include "stack.h"
 #include "collections.h"
 
@@ -158,6 +159,11 @@ ROX_INTERNAL bool rox_stack_is_string(StackItem *item) {
     return rox_dynamic_value_is_string(item->value);
 }
 
+ROX_INTERNAL bool rox_stack_is_datetime(StackItem *item) {
+    assert(item);
+    return rox_dynamic_value_is_datetime(item->value);
+}
+
 ROX_INTERNAL bool rox_stack_is_list(StackItem *item) {
     assert(item);
     return rox_dynamic_value_is_list(item->value);
@@ -203,6 +209,11 @@ ROX_INTERNAL bool rox_stack_get_boolean(StackItem *item) {
 ROX_INTERNAL char *rox_stack_get_string(StackItem *item) {
     assert(item);
     return rox_dynamic_value_get_string(item->value);
+}
+
+ROX_INTERNAL struct tm *rox_stack_get_datetime(StackItem *item) {
+    assert(item);
+    return rox_dynamic_value_get_datetime(item->value);
 }
 
 ROX_INTERNAL RoxList *rox_stack_get_list(StackItem *item) {

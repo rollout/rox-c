@@ -4,6 +4,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include <stdlib.h>
+#include <time.h>
 
 #include "rox/server.h"
 #include "util.h"
@@ -17,6 +18,7 @@ struct RoxDynamicValue {
     int *int_value;
     double *double_value;
     char *str_value;
+    struct tm *datetime_value;
     RoxList *list_value;
     RoxMap *map_value;
     bool is_true;
@@ -73,6 +75,18 @@ ROX_API RoxDynamicValue *rox_dynamic_value_create_string_ptr(char *value) {
     assert(value);
     RoxDynamicValue *dynamic_value = _create_value();
     dynamic_value->str_value = value;
+    return dynamic_value;
+}
+
+ROX_API RoxDynamicValue *rox_dynamic_value_create_datetime_copy(const struct tm *value) {
+    assert(value);
+    return rox_dynamic_value_create_datetime_ptr(mem_copy_str(value));
+}
+
+ROX_API RoxDynamicValue *rox_dynamic_value_create_datetime_ptr(struct tm *value) {
+    assert(value);
+    RoxDynamicValue *dynamic_value = _create_value();
+    dynamic_value->datetime_value = value;
     return dynamic_value;
 }
 
@@ -160,6 +174,11 @@ ROX_API bool rox_dynamic_value_is_string(RoxDynamicValue *value) {
     return value->str_value != NULL;
 }
 
+ROX_API bool rox_dynamic_value_is_datetime(RoxDynamicValue *value) {
+    assert(value);
+    return value->datetime_value != NULL;
+}
+
 ROX_API bool rox_dynamic_value_is_list(RoxDynamicValue *value) {
     assert(value);
     return value->list_value != NULL;
@@ -206,6 +225,12 @@ ROX_API char *rox_dynamic_value_get_string(RoxDynamicValue *value) {
     assert(value);
     assert(value->str_value);
     return value->str_value;
+}
+
+ROX_API struct tm *rox_dynamic_value_get_datetime(RoxDynamicValue *value) {
+    assert(value);
+    assert(value->datetime_value);
+    return value->datetime_value;
 }
 
 ROX_API RoxList *rox_dynamic_value_get_list(RoxDynamicValue *value) {

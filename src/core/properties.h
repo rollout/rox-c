@@ -19,6 +19,7 @@ ROX_INTERNAL extern const CustomPropertyType ROX_CUSTOM_PROPERTY_TYPE_BOOL;
 ROX_INTERNAL extern const CustomPropertyType ROX_CUSTOM_PROPERTY_TYPE_INT;
 ROX_INTERNAL extern const CustomPropertyType ROX_CUSTOM_PROPERTY_TYPE_DOUBLE;
 ROX_INTERNAL extern const CustomPropertyType ROX_CUSTOM_PROPERTY_TYPE_SEMVER;
+ROX_INTERNAL extern const CustomPropertyType ROX_CUSTOM_PROPERTY_TYPE_DATETIME;
 
 //
 // CustomProperty

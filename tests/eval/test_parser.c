@@ -2,6 +2,7 @@
 #include <assert.h>
 #include <util.h>
 #include <core/repositories.h>
+#include <time.h>
 
 #include "roxtests.h"
 #include "eval/extensions.h"
@@ -445,6 +446,28 @@ START_TEST (test_in_array) {
     dynamic_properties_free(dynamic_properties);
     custom_property_repository_free(custom_property_repository);
     target_group_repository_free(target_group_repository);
+    parser_free(parser);
+}
+
+END_TEST
+
+START_TEST (test_ts_to_num) {
+    Parser *parser = parser_create();
+    CustomPropertyRepository *custom_property_repository = custom_property_repository_create();
+    DynamicProperties *dynamic_properties = dynamic_properties_create();
+
+    parser_add_properties_extensions(parser, custom_property_repository, dynamic_properties);
+    struct tm* cp2;
+    time_t secs;
+    secs = time(NULL);
+    cp2 = localtime(&secs);
+    CustomProperty *cp = custom_property_create_using_value("prop1", &ROX_CUSTOM_PROPERTY_TYPE_DATETIME,
+                                                            rox_dynamic_value_create_datetime_copy(cp2));
+    
+    eval_assert_int_result(secs, parser, "tsToNum(property(\"cp2\"))");
+
+    dynamic_properties_free(dynamic_properties);
+    custom_property_repository_free(custom_property_repository);
     parser_free(parser);
 }
 

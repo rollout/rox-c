@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdbool.h>
+#include <time.h>
 #include "rox/server.h"
 
 typedef struct CoreStack CoreStack;
@@ -73,6 +74,8 @@ ROX_INTERNAL bool rox_stack_is_boolean(StackItem *item);
 
 ROX_INTERNAL bool rox_stack_is_string(StackItem *item);
 
+ROX_INTERNAL bool rox_stack_is_datetime(StackItem *item);
+
 ROX_INTERNAL bool rox_stack_is_list(StackItem *item);
 
 ROX_INTERNAL bool rox_stack_is_map(StackItem *item);
@@ -99,6 +102,8 @@ ROX_INTERNAL double rox_stack_get_number(StackItem *item);
 ROX_INTERNAL bool rox_stack_get_boolean(StackItem *item);
 
 ROX_INTERNAL char *rox_stack_get_string(StackItem *item);
+
+ROX_INTERNAL struct tm *rox_stack_get_datetime(StackItem *item);
 
 ROX_INTERNAL RoxList *rox_stack_get_list(StackItem *item);
 

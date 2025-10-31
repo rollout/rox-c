@@ -136,6 +136,12 @@ ROX_INTERNAL void *rox_options_get_dynamic_properties_rule_target(RoxOptions *op
 
 /**
  * @param options Not <code>NULL</code>.
+ * @return disable_signature_verification or <code>true</code> if not set.
+ */
+ROX_INTERNAL bool rox_options_is_disable_signature_verification(RoxOptions *options);
+
+/**
+ * @param options Not <code>NULL</code>.
  */
 ROX_INTERNAL void rox_options_free(RoxOptions *options);
 
@@ -183,7 +189,7 @@ ROX_INTERNAL RoxMap *device_properties_get_all_properties(DeviceProperties *prop
  * The returned value should <em>not</em> be freed.
  *
  * @param properties Not <code>NULL</code>.
- * @return One of <code>ROX_ENV_MODE_QA</code>, <code>ROX_ENV_MODE_LOCAL</code>, or <code>ROX_ENV_MODE_PRODUCTION</code>.
+ * @return One of <code>ROX_ENV_MODE_QA</code>, <code>ROX_ENV_MODE_LOCAL</code>, <code>ROX_ENV_MODE_PRODUCTION</code>, or <code>ROX_ENV_MODE_PLATFORM</code>.
  */
 ROX_INTERNAL const char *device_properties_get_rollout_environment(DeviceProperties *properties);
 

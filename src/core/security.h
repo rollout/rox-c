@@ -17,6 +17,7 @@ typedef bool (*signature_verifier_func)(
 
 typedef struct SignatureVerifierConfig {
     void *target;
+    bool skip_verification;
     signature_verifier_func verify_func;
 } SignatureVerifierConfig;
 

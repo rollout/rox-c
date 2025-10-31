@@ -16,6 +16,7 @@ static bool _dummy_api_key_verifier_func(APIKeyVerifier *key_verifier, const cha
 ROX_INTERNAL SignatureVerifier *signature_verifier_create_dummy() {
     SignatureVerifierConfig config;
     config.target = NULL;
+    config.skip_verification = true;
     config.verify_func = &_dummy_signature_verifier_func;
     return signature_verifier_create(&config);
 }

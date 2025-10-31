@@ -6,6 +6,7 @@
 #include "core.h"
 #include "util.h"
 #include "server.h"
+#include <time.h>
 
 #ifdef ROX_CLIENT
 
@@ -434,6 +435,20 @@ ROX_API void rox_set_custom_computed_semver_property(
     assert(name);
     assert(generator);
     add_custom_prop(name, &ROX_CUSTOM_PROPERTY_TYPE_SEMVER, target, generator);
+}
+
+ROX_API void rox_set_custom_datetime_property(const char *name, const struct tm *value) {
+    assert(name);
+    add_custom_prop_value(name, &ROX_CUSTOM_PROPERTY_TYPE_DATETIME, rox_dynamic_value_create_string_copy(value));
+}
+
+ROX_API void rox_set_custom_computed_datetime_property(
+        const char *name,
+        void *target,
+        rox_custom_property_value_generator generator) {
+    assert(name);
+    assert(generator);
+    add_custom_prop(name, &ROX_CUSTOM_PROPERTY_TYPE_DATETIME, target, generator);
 }
 
 static bool is_valid_state_for_shutdown() {

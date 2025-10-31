@@ -14,6 +14,7 @@ ROX_INTERNAL const char *ROX_ENV_MODE_KEY = "ROLLOUT_MODE";
 ROX_INTERNAL const char *ROX_ENV_MODE_QA = "QA";
 ROX_INTERNAL const char *ROX_ENV_MODE_LOCAL = "LOCAL";
 ROX_INTERNAL const char *ROX_ENV_MODE_PRODUCTION = "PRODUCTION";
+ROX_INTERNAL const char *ROX_ENV_MODE_PLATFORM = "PLATFORM";
 
 //
 // Environment
@@ -29,7 +30,8 @@ ROX_INTERNAL size_t _rox_env_return_value_using_mode_env(
         int buffer_size,
         const char *local_mode_value,
         const char *qa_mode_value,
-        const char *prod_mode_value) {
+        const char *prod_mode_value,
+        const char *platform_mode_value) {
 
     assert(buffer);
     assert(buffer_size > 0);
@@ -39,8 +41,11 @@ ROX_INTERNAL size_t _rox_env_return_value_using_mode_env(
             return str_copy_value_to_buffer(buffer, buffer_size, qa_mode_value);
         } else if (str_equals(value, ROX_ENV_MODE_LOCAL)) {
             return str_copy_value_to_buffer(buffer, buffer_size, local_mode_value);
-        }
+        } else if (str_equals(value, ROX_ENV_MODE_PLATFORM)) {
+            return str_copy_value_to_buffer(buffer, buffer_size, platform_mode_value);
+        } 
     }
+    // Default to rollout production
     return str_copy_value_to_buffer(buffer, buffer_size, prod_mode_value);
 }
 
@@ -51,7 +56,8 @@ ROX_INTERNAL size_t rox_env_get_cdn_path(char *buffer, size_t buffer_size) {
             buffer, buffer_size,
             "https://development-conf.rollout.io",
             "https://qa-conf.rollout.io",
-            "https://conf.rollout.io");
+            "https://conf.rollout.io",
+            "https://rox-conf.cloudbees.io");
 }
 
 ROX_INTERNAL size_t rox_env_get_api_path(char *buffer, size_t buffer_size) {
@@ -61,7 +67,8 @@ ROX_INTERNAL size_t rox_env_get_api_path(char *buffer, size_t buffer_size) {
             buffer, buffer_size,
             "http://127.0.0.1:8557/device/get_configuration",
             "https://qa-api.rollout.io/device/get_configuration",
-            "https://x-api.rollout.io/device/get_configuration");
+            "https://x-api.rollout.io/device/get_configuration",
+            "https://api.cloudbees.io/device/get_configuration");
 }
 
 ROX_INTERNAL size_t rox_env_get_state_cdn_path(char *buffer, size_t buffer_size) {
@@ -71,7 +78,8 @@ ROX_INTERNAL size_t rox_env_get_state_cdn_path(char *buffer, size_t buffer_size)
             buffer, buffer_size,
             "https://development-statestore.rollout.io",
             "https://qa-statestore.rollout.io",
-            "https://statestore.rollout.io");
+            "https://statestore.rollout.io",
+            "https://rox-state.cloudbees.io");
 }
 
 ROX_INTERNAL size_t rox_env_get_state_api_path(char *buffer, size_t buffer_size) {
@@ -81,7 +89,8 @@ ROX_INTERNAL size_t rox_env_get_state_api_path(char *buffer, size_t buffer_size)
             buffer, buffer_size,
             "http://127.0.0.1:8557/device/update_state_store",
             "https://qa-api.rollout.io/device/update_state_store",
-            "https://x-api.rollout.io/device/update_state_store");
+            "https://x-api.rollout.io/device/update_state_store",
+            "https://api.cloudbees.io/device/update_state_store");
 }
 
 ROX_INTERNAL size_t rox_env_get_analytics_path(char *buffer, size_t buffer_size) {
@@ -91,7 +100,8 @@ ROX_INTERNAL size_t rox_env_get_analytics_path(char *buffer, size_t buffer_size)
             buffer, buffer_size,
             "http://127.0.0.1:8787",
             "https://qaanalytic.rollout.io",
-            "https://analytic.rollout.io");
+            "https://analytic.rollout.io",
+            "https://fm-analytics.cloudbees.io/impression");
 }
 
 ROX_INTERNAL size_t rox_env_get_notifications_path(char *buffer, size_t buffer_size) {
@@ -101,7 +111,8 @@ ROX_INTERNAL size_t rox_env_get_notifications_path(char *buffer, size_t buffer_s
             buffer, buffer_size,
             "http://127.0.0.1:8887/sse",
             "https://qax-push.rollout.io/sse",
-            "https://push.rollout.io/sse");
+            "https://push.rollout.io/sse",
+            "https://sdk-notification-service.cloudbees.io/sse");
 }
 
 //

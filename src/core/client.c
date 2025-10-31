@@ -101,6 +101,7 @@ struct RoxOptions {
     void *dynamic_properties_rule_target;
     rox_dynamic_properties_rule dynamic_properties_rule;
     bool cxx;
+    bool disable_signature_verification;
     RoxMap *extra;
 };
 
@@ -200,6 +201,11 @@ ROX_API void rox_options_set_dynamic_properties_rule(
     options->dynamic_properties_rule = rule;
 }
 
+ROX_API void rox_options_set_disable_signature_verification(RoxOptions *options, bool verification_disabled) {
+    assert(options);
+    options->disable_signature_verification = verification_disabled;
+}
+
 ROX_INTERNAL void rox_options_set_cxx(RoxOptions *options) {
     assert(options);
     options->cxx = true;
@@ -260,6 +266,11 @@ ROX_INTERNAL void *rox_options_get_dynamic_properties_rule_target(RoxOptions *op
     return options->dynamic_properties_rule_target;
 }
 
+ROX_INTERNAL bool rox_options_is_disable_signature_verification(RoxOptions *options) {
+    assert(options);
+    return options->disable_signature_verification;
+}
+
 ROX_INTERNAL void rox_options_free(RoxOptions *options) {
     assert(options);
     free(options->dev_mod_key);
@@ -311,9 +322,13 @@ ROX_INTERNAL DeviceProperties *device_properties_create_from_map(
         if (str_equals(value, ROX_ENV_MODE_LOCAL)) {
             properties->env = mem_copy_str(ROX_ENV_MODE_LOCAL);
         }
+        if (str_equals(value, ROX_ENV_MODE_PRODUCTION)) {
+            properties->env = mem_copy_str(ROX_ENV_MODE_PRODUCTION);
+        }
     }
     if (!properties->env) {
-        properties->env = mem_copy_str(ROX_ENV_MODE_PRODUCTION);
+        // defaulting to the platform
+        properties->env = mem_copy_str(ROX_ENV_MODE_PLATFORM);
     }
 
     properties->distinct_id = rox_globally_unique_device_id();

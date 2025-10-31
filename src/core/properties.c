@@ -13,6 +13,7 @@ ROX_INTERNAL const CustomPropertyType ROX_CUSTOM_PROPERTY_TYPE_BOOL = {"bool", "
 ROX_INTERNAL const CustomPropertyType ROX_CUSTOM_PROPERTY_TYPE_INT = {"int", "Number"};
 ROX_INTERNAL const CustomPropertyType ROX_CUSTOM_PROPERTY_TYPE_DOUBLE = {"double", "Number"};
 ROX_INTERNAL const CustomPropertyType ROX_CUSTOM_PROPERTY_TYPE_SEMVER = {"semver", "Semver"};
+ROX_INTERNAL const CustomPropertyType ROX_CUSTOM_PROPERTY_TYPE_DATETIME = {"datetime", "DateTime"};
 
 //
 // CustomProperty

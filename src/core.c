@@ -4,6 +4,7 @@
 #include <errno.h>
 #include <xpack/network.h>
 #include "core.h"
+#include "core/consts.h"
 #include "core/logging.h"
 #include "eval/extensions.h"
 #include "xpack/reporting.h"
@@ -268,18 +269,26 @@ ROX_INTERNAL RoxStateCode rox_core_setup(
     }
 
     const char *roxy_url = NULL;
+    bool disableSignature = false;
     if (rox_options) {
         roxy_url = rox_options_get_roxy_url(rox_options);
         if (!roxy_url) {
             char *api_key = sdk_settings_get_api_key(sdk_settings);
             char *mongoIdPattern = "^[a-f\\d]{24}$";
             char *uuidIdPattern = "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$";
+            bool platformMatch = str_matches(api_key, uuidIdPattern, PCRE2_CASELESS);
             if (!api_key || !api_key[0]) {
                 ROX_ERROR("Invalid rollout apikey - must be specified");
                 return RoxErrorEmptyApiKey;
-            } else if (!str_matches(api_key, mongoIdPattern, PCRE2_CASELESS) && !str_matches(api_key, mongoIdPattern, PCRE2_CASELESS)) {
+            } else if (!str_matches(api_key, mongoIdPattern, PCRE2_CASELESS) && !platformMatch) {
                 ROX_ERROR("Illegal rollout apikey");
                 return RoxErrorInvalidApiKey;
+            }
+            // if this is a platform key, disable signature verification & set the environment as PLATFORM for this subprocess
+            if (platformMatch) {
+                rox_options_set_disable_signature_verification(rox_options, true);
+                disableSignature = true;
+                setenv(ROX_ENV_MODE_KEY, ROX_ENV_MODE_PLATFORM, 1);
             }
         }
     }
@@ -309,7 +318,12 @@ ROX_INTERNAL RoxStateCode rox_core_setup(
 
     } else {
 
-        core->signature_verifier = signature_verifier_create(NULL);
+        // Set the signature verifier config; will pick up default function
+        SignatureVerifierConfig svconfig;
+        svconfig.target = NULL;
+        svconfig.skip_verification = disableSignature;
+        svconfig.verify_func = NULL;
+        core->signature_verifier = signature_verifier_create(&svconfig);
 
         APIKeyVerifierConfig api_key_verifier_config = {sdk_settings, NULL};
         core->api_key_verifier = api_key_verifier_create(&api_key_verifier_config);
@@ -365,7 +379,8 @@ ROX_INTERNAL RoxStateCode rox_core_setup(
             core->signature_verifier,
             core->error_reporter,
             core->api_key_verifier,
-            core->configuration_fetched_invoker);
+            core->configuration_fetched_invoker,
+            disableSignature);
 
     rox_core_fetch(core, false);
 

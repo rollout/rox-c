@@ -32,6 +32,8 @@ namespace Rox {
 
         OptionsBuilder &SetDynamicPropertiesRule(DynamicPropertiesRuleInterface *rule);
 
+        OptionsBuilder &SetDisableSignatureVerification(bool verificationDisabled);
+
         Options *Build();
 
     protected:

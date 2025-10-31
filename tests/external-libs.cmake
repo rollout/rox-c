@@ -8,8 +8,8 @@ rox_external_lib(check SHARED
         HASH 2c730c40b08482eaeb10132517970593)
 
 rox_external_lib(catch2 SHARED
-        VERSION 2.11.1
+        VERSION 2.13.10
         URL https://github.com/catchorg/Catch2/archive/v<LIB_VERSION>.tar.gz
-        HASH 4b097ffafd5d1102e961a14699f5b918
+        HASH 7a4dd2fd14fb9f46198eb670ac7834b7
         CMAKE_ARGS BUILD_TESTING=OFF CATCH_INSTALL_DOCS=OFF
         HEADERS_ONLY)
