@@ -13,11 +13,12 @@ typedef void (*analytics_client_track_func)(void *target, AnalyticsEvent *event)
 typedef struct AnalyticsClientConfig {
     char *host;
     char *proxy;
-    int max_queue_size;
-    int max_batch_size;
+    int max_queue_size;          // Max events in queue (default: 1000)
+    int max_batch_size;           // Flush batch size (default: 20)
     bool async;
     bool compress_request;
-    int timeout_seconds;
+    int timeout_seconds;          // HTTP request timeout
+    int flush_interval_seconds;   // Auto-flush interval (default: 30)
     void *target;
     analytics_client_track_func track_func;
 } AnalyticsClientConfig;

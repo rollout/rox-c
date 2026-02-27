@@ -439,7 +439,7 @@ ROX_INTERNAL bool mkdirs(const char *path) {
 
     temp = calloc(1, strlen(os_path) + 1);
     /* Skip Windows drive letter. */
-    if ((p = strchr(os_path, ':') != NULL)) {
+    if ((p = strchr(os_path, ':')) != NULL) {
         p += 2;
     } else {
         p = os_path + 1;
