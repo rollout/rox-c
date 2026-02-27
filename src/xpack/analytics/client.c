@@ -158,20 +158,32 @@ static char *payload_to_json_string(cJSON *payload) {
 /**
  * Build analytics URL: {host}/impression/{writeKey}
  * Returns allocated string that must be freed by caller.
+ *
+ * Note: CloudBees host already contains /impression, other hosts don't.
  */
 static char *build_analytics_url(const char *host, const char *write_key) {
     assert(host);
     assert(write_key);
 
-    // Calculate length: host + "/impression/" + write_key + null terminator
-    size_t url_len = strlen(host) + strlen("/impression/") + strlen(write_key) + 1;
+    size_t host_len = strlen(host);
+    const char *suffix = "/impression";
+    size_t suffix_len = strlen(suffix);
+
+    // Check if host already ends with "/impression"
+    bool has_impression = (host_len >= suffix_len &&
+                           strcmp(host + host_len - suffix_len, suffix) == 0);
+
+    // Build URL: host + [/impression if missing] + / + writeKey
+    const char *middle = has_impression ? "/" : "/impression/";
+    size_t url_len = host_len + strlen(middle) + strlen(write_key) + 1;
+
     char *url = (char *)malloc(url_len);
     if (!url) {
         ROX_ERROR("Failed to allocate memory for analytics URL");
         return NULL;
     }
 
-    snprintf(url, url_len, "%s/impression/%s", host, write_key);
+    snprintf(url, url_len, "%s%s%s", host, middle, write_key);
     return url;
 }
 
