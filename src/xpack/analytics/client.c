@@ -8,6 +8,7 @@
 #include "core/logging.h"
 #include "core/network.h"
 #include "core/consts.h"
+#include "core.h"
 #include "util.h"
 
 //
@@ -42,7 +43,7 @@ struct AnalyticsClient {
     bool flushed_once;               // Track first flush
     bool flush_in_progress;          // Prevent concurrent flushes
     char *analytics_host;            // Analytics endpoint URL
-    void *flush_timer;               // Timer for periodic flushing (PeriodicTask*)
+    PeriodicTask *flush_timer;       // Timer for periodic flushing
     DeviceProperties *device_props;  // For payload metadata
 };
 
@@ -323,7 +324,17 @@ static RoxList *dequeue_events_for_flush(AnalyticsClient *client, int max_count)
         void *event = NULL;
         if (rox_list_get_first(client->event_queue, &event) && event) {
             rox_list_remove(client->event_queue, event);
-            rox_list_add(batch, event);
+
+            // Check if add to batch succeeds
+            if (!rox_list_add(batch, event)) {
+                // Failed to add to batch - event is lost, free it
+                ROX_ERROR("Failed to add event to flush batch, event lost");
+                analytics_event_free((AnalyticsEvent *)event);
+                // Continue trying to dequeue more events
+                queue_size--;
+                continue;
+            }
+
             count++;
             queue_size--;
         } else {
@@ -336,11 +347,129 @@ static RoxList *dequeue_events_for_flush(AnalyticsClient *client, int max_count)
     return batch;
 }
 
+//
+// Flush Logic
+//
+
+/**
+ * Main flush function - sends batched events to analytics backend.
+ * Implements concurrent flush prevention pattern from iOS SDK.
+ *
+ * Thread safety:
+ * - Locks queue_mutex only for queue operations
+ * - Network I/O performed outside of mutex lock
+ * - Uses flush_in_progress flag to prevent concurrent flushes
+ */
+static void flush_analytics_events(AnalyticsClient *client) {
+    assert(client);
+    assert(client->event_queue);
+    assert(client->device_props);
+
+    pthread_mutex_lock(&client->queue_mutex);
+
+    // Early return if queue is empty
+    size_t queue_size = rox_list_size(client->event_queue);
+    if (queue_size == 0) {
+        pthread_mutex_unlock(&client->queue_mutex);
+        ROX_DEBUG("Analytics: No events to flush");
+        return;
+    }
+
+    // Prevent concurrent flushes (iOS SDK pattern)
+    if (client->flush_in_progress) {
+        pthread_mutex_unlock(&client->queue_mutex);
+        ROX_DEBUG("Analytics: Flush already in progress, skipping");
+        return;
+    }
+
+    // Mark flush in progress
+    client->flush_in_progress = true;
+
+    // Dequeue batch (up to flush_at events)
+    RoxList *batch = dequeue_events_for_flush(client, client->flush_at);
+
+    pthread_mutex_unlock(&client->queue_mutex);
+
+    // Perform network I/O outside of mutex lock
+    if (batch && rox_list_size(batch) > 0) {
+        ROX_DEBUG("Analytics: Flushing %zu events", rox_list_size(batch));
+
+        // Build payload
+        cJSON *payload = build_analytics_payload(client, batch, client->device_props);
+        if (payload) {
+            // Send to server (takes ownership of payload and batch)
+            send_analytics_payload(client, payload, batch);
+        } else {
+            ROX_ERROR("Failed to build analytics payload");
+            // Free batch since send_analytics_payload wasn't called
+            rox_list_free_cb(batch, (void (*)(void *))&analytics_event_free);
+        }
+    } else {
+        // Empty batch, just free it
+        if (batch) {
+            rox_list_free(batch);
+        }
+    }
+
+    // Mark flush complete
+    pthread_mutex_lock(&client->queue_mutex);
+    client->flush_in_progress = false;
+    pthread_mutex_unlock(&client->queue_mutex);
+}
+
+/**
+ * Periodic flush callback for timer.
+ * Called every flush_interval_seconds.
+ */
+static void periodic_flush_callback(void *target) {
+    assert(target);
+    AnalyticsClient *client = (AnalyticsClient *)target;
+
+    ROX_DEBUG("Analytics: Periodic flush triggered");
+    flush_analytics_events(client);
+}
+
+/**
+ * Track event implementation.
+ * Adds event to queue and triggers flush based on conditions:
+ * - First event: immediate flush
+ * - Queue size >= flush_at: flush batch
+ * - Time-based: handled by periodic timer
+ */
 static void analytics_client_track_impl(void *target, AnalyticsEvent *event) {
     assert(target);
     assert(event);
-    AnalyticsClient *client = (AnalyticsClient *) target;
-    // TODO: implement!
+    AnalyticsClient *client = (AnalyticsClient *)target;
+
+    // Copy event (caller might free the original)
+    AnalyticsEvent *event_copy = analytics_event_copy(event);
+    if (!event_copy) {
+        ROX_ERROR("Failed to copy analytics event");
+        return;
+    }
+
+    // Add to queue (thread-safe)
+    enqueue_event(client, event_copy);
+
+    // First event immediate flush (roxjs pattern) - thread-safe check
+    pthread_mutex_lock(&client->queue_mutex);
+    bool is_first_flush = !client->flushed_once;
+    if (is_first_flush) {
+        client->flushed_once = true;
+    }
+    pthread_mutex_unlock(&client->queue_mutex);
+
+    if (is_first_flush) {
+        ROX_DEBUG("Analytics: First event, flushing immediately");
+        flush_analytics_events(client);
+        return;
+    }
+
+    // Size-based flush trigger
+    if (should_flush(client)) {
+        ROX_DEBUG("Analytics: Queue size reached flush_at (%d), flushing", client->flush_at);
+        flush_analytics_events(client);
+    }
 }
 
 ROX_INTERNAL AnalyticsClient *analytics_client_create(
@@ -398,8 +527,23 @@ ROX_INTERNAL AnalyticsClient *analytics_client_create(
     // Device properties reference - NEW
     client->device_props = properties;
 
-    // Timer will be initialized later in Phase 4
-    client->flush_timer = NULL;
+    // Start periodic flush timer - NEW
+    if (client->flush_interval_seconds > 0) {
+        client->flush_timer = periodic_task_create(
+            client->flush_interval_seconds,
+            client,
+            periodic_flush_callback
+        );
+        if (client->flush_timer) {
+            ROX_DEBUG("Analytics periodic timer started (%ds interval)", client->flush_interval_seconds);
+        } else {
+            ROX_ERROR("Failed to create periodic flush timer - timer disabled");
+            // Timer disabled but client still usable
+        }
+    } else {
+        client->flush_timer = NULL;
+        ROX_DEBUG("Analytics periodic timer disabled");
+    }
 
     ROX_DEBUG("AnalyticsClient created: flush_at=%d, max_queue=%d, interval=%ds",
               client->flush_at, client->max_queue_size, client->flush_interval_seconds);
@@ -418,11 +562,17 @@ ROX_INTERNAL void analytics_client_free(AnalyticsClient *client) {
 
     ROX_DEBUG("Freeing AnalyticsClient");
 
-    // Stop timer if running (Phase 4 will implement this)
+    // Stop periodic timer first
     if (client->flush_timer) {
-        // TODO: Phase 4 - stop flush_timer
-        ROX_WARN("Flush timer cleanup not yet implemented");
+        ROX_DEBUG("Stopping analytics periodic timer");
+        periodic_task_free(client->flush_timer);
+        client->flush_timer = NULL;
     }
+
+    // Reset flush_in_progress flag in case timer was mid-flush
+    pthread_mutex_lock(&client->queue_mutex);
+    client->flush_in_progress = false;
+    pthread_mutex_unlock(&client->queue_mutex);
 
     // Free queue and all events
     if (client->event_queue) {

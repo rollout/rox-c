@@ -6,3 +6,9 @@ build
 cmake-build-debug*
 *.vcxproj*
 *.sln
+
+# Claude Code
+.claude/
+
+# Project documentation
+docs/
