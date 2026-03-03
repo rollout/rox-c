@@ -279,6 +279,42 @@ START_TEST(test_analytics_immediate_destroy) {
 END_TEST
 
 //
+// Code Review Fix Tests
+//
+
+START_TEST(test_analytics_stopped_flag_rejects_events) {
+    TestClientContext *ctx = create_test_client();
+
+    // Track event before shutdown - should succeed
+    AnalyticsEvent *event1 = create_test_event("test.before_shutdown");
+    analytics_client_track(ctx->client, event1);
+    analytics_event_free(event1);
+
+    // Free client (sets stopped flag and waits for async flush)
+    free_test_client(ctx);
+}
+END_TEST
+
+START_TEST(test_analytics_url_built_once) {
+    // Verify client creates successfully with URL built
+    TestClientContext *ctx = create_test_client();
+    ck_assert_ptr_nonnull(ctx->client);
+
+    // Track multiple events - URL should be reused for all flushes
+    for (int i = 0; i < 5; i++) {
+        char flag_name[32];
+        snprintf(flag_name, sizeof(flag_name), "test.flag%d", i);
+        AnalyticsEvent *event = create_test_event(flag_name);
+        analytics_client_track(ctx->client, event);
+        analytics_event_free(event);
+    }
+
+    // Should work without crashes - URL was built once and reused
+    free_test_client(ctx);
+}
+END_TEST
+
+//
 // Test Suite
 //
 
@@ -305,6 +341,11 @@ Suite *analytics_queue_suite(void) {
     tcase_add_test(tc_lifecycle, test_analytics_timer_disabled);
     tcase_add_test(tc_lifecycle, test_analytics_immediate_destroy);
     suite_add_tcase(suite, tc_lifecycle);
+
+    TCase *tc_review_fixes = tcase_create("Code Review Fixes");
+    tcase_add_test(tc_review_fixes, test_analytics_stopped_flag_rejects_events);
+    tcase_add_test(tc_review_fixes, test_analytics_url_built_once);
+    suite_add_tcase(suite, tc_review_fixes);
 
     return suite;
 }

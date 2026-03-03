@@ -32,9 +32,14 @@ extern const AnalyticsClientConfig ANALYTICS_CLIENT_INITIAL_CONFIG;
 typedef struct AnalyticsClient AnalyticsClient;
 
 /**
+ * Creates an analytics client.
+ *
  * @param write_key Not <code>NULL</code>. Value is copied internally.
  * @param config Not <code>NULL</code>.
- * @param properties Not <code>NULL</code>.
+ * @param properties Not <code>NULL</code>. Must remain valid for the lifetime
+ *                   of the AnalyticsClient. The client does not take ownership.
+ *                   Caller must ensure properties outlive the client or are freed
+ *                   only after analytics_client_free() completes.
  * @return Not <code>NULL</code>.
  */
 ROX_INTERNAL AnalyticsClient *analytics_client_create(

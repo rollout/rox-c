@@ -51,8 +51,8 @@ static ParserExtensionsTestContext *parser_extensions_test_context_create() {
     context->dynamic_properties = dynamic_properties_create();
     context->impression_invoker = impression_invoker_create();
     context->impressions = rox_list_create();
-    impression_invoker_register(context->impression_invoker, context,
-                                &parser_extensions_impression_handler);
+    impression_invoker_set_delegate(context->impression_invoker, context,
+                                    &parser_extensions_impression_handler);
     parser_add_experiments_extensions(context->parser,
                                       context->target_groups_repository,
                                       context->flag_repository,
@@ -80,7 +80,7 @@ static void parser_extensions_test_context_free(ParserExtensionsTestContext *con
     custom_property_repository_free(context->custom_property_repository);
     dynamic_properties_free(context->dynamic_properties);
     parser_free(context->parser);
-    rox_list_free_cb(context->impressions, &impression_arg_free);
+    rox_list_free_cb(context->impressions, (void (*)(void *))&impression_arg_free);
     impression_invoker_free(context->impression_invoker);
     free(context);
 }
