@@ -50,3 +50,10 @@ ROX_INTERNAL AnalyticsClient *analytics_client_create(
 ROX_INTERNAL void analytics_client_track(AnalyticsClient *client, AnalyticsEvent *event);
 
 ROX_INTERNAL void analytics_client_free(AnalyticsClient *client);
+
+/**
+ * Get current queue size (for testing).
+ * @param client Analytics client instance
+ * @return Current number of events in queue, or 0 if client is NULL
+ */
+ROX_INTERNAL int analytics_client_get_queue_size(AnalyticsClient *client);

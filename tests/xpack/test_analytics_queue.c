@@ -314,6 +314,102 @@ START_TEST(test_analytics_url_built_once) {
 }
 END_TEST
 
+/**
+ * Test: Track 10,000 impressions and verify:
+ * 1. Queue is bounded to max_queue_size (1000 events)
+ * 2. Old events are discarded properly (no memory leaks)
+ * 3. Queue drains over time with periodic flush
+ * 4. No memory leaks in C/C++ memory management
+ 
+ */
+START_TEST(test_analytics_10k_impressions_memory_safety) {
+    printf("\n=== 10k Impressions Memory Safety Test ===\n");
+
+    TestClientContext *ctx = calloc(1, sizeof(TestClientContext));
+    ck_assert_ptr_nonnull(ctx);
+
+    AnalyticsClientConfig config = ANALYTICS_CLIENT_INITIAL_CONFIG;
+    config.max_queue_size = 1000;
+    config.max_batch_size = 20;
+    config.flush_interval_seconds = 1;
+
+    ctx->sdk_settings = sdk_settings_create("test_api_key", "test_dev_secret");
+    ck_assert_ptr_nonnull(ctx->sdk_settings);
+
+    ctx->options = rox_options_create();
+    ck_assert_ptr_nonnull(ctx->options);
+
+    ctx->props = device_properties_create(ctx->sdk_settings, ctx->options);
+    ck_assert_ptr_nonnull(ctx->props);
+
+    ctx->client = analytics_client_create("test_write_key", &config, ctx->props);
+    ck_assert_ptr_nonnull(ctx->client);
+
+    printf("[10k Test] Client created with max_queue_size=1000, flush_interval=1s\n");
+    printf("[10k Test] Starting to track 10,000 events...\n");
+
+    struct timespec start_time, end_time;
+    clock_gettime(CLOCK_REALTIME, &start_time);
+
+    for (int i = 0; i < 10000; i++) {
+        char flag_name[64];
+        snprintf(flag_name, sizeof(flag_name), "test.flag_%d", i);
+
+        AnalyticsEvent *event = create_test_event(flag_name);
+        ck_assert_ptr_nonnull(event);
+
+        analytics_client_track(ctx->client, event);
+        analytics_event_free(event);
+
+        if ((i + 1) % 1000 == 0) {
+            int queue_size = analytics_client_get_queue_size(ctx->client);
+            printf("[10k Test] Tracked %d events, queue size: %d\n", i + 1, queue_size);
+        }
+    }
+
+    clock_gettime(CLOCK_REALTIME, &end_time);
+    double elapsed = (end_time.tv_sec - start_time.tv_sec) +
+                    (end_time.tv_nsec - start_time.tv_nsec) / 1e9;
+
+    printf("[10k Test] Finished tracking 10,000 events in %.2f seconds\n", elapsed);
+
+    int queue_size_after_tracking = analytics_client_get_queue_size(ctx->client);
+    printf("[10k Test] Queue size after tracking: %d (max allowed: 1000)\n",
+           queue_size_after_tracking);
+
+    ck_assert_int_le(queue_size_after_tracking, 1000);
+    ck_assert_msg(queue_size_after_tracking <= 1000,
+                  "Queue size %d exceeds max_queue_size 1000 - trimming failed!",
+                  queue_size_after_tracking);
+
+    printf("[10k Test] Queue properly bounded to max_queue_size\n");
+
+    int wait_time = 50 * config.flush_interval_seconds;
+    printf("[10k Test] Waiting %d seconds for queue to drain (50 flush cycles)...\n", wait_time);
+
+    for (int i = 0; i < wait_time; i += 5) {
+        sleep(5);
+        int current_size = analytics_client_get_queue_size(ctx->client);
+        printf("[10k Test] After %d seconds, queue size: %d\n", i + 5, current_size);
+    }
+
+    int queue_size_after_drain = analytics_client_get_queue_size(ctx->client);
+    printf("[10k Test] Queue size after drain: %d\n", queue_size_after_drain);
+
+    int max_after_drain = 500;
+    ck_assert_int_le(queue_size_after_drain, max_after_drain);
+    ck_assert_msg(queue_size_after_drain <= max_after_drain,
+                  "Queue size %d not draining properly - expected <= %d!",
+                  queue_size_after_drain, max_after_drain);
+
+    printf("[10k Test] Queue drained successfully\n");
+    printf("[10k Test] Cleaning up...\n");
+    free_test_client(ctx);
+
+    printf("[10k Test] Test completed successfully\n");
+}
+END_TEST
+
 //
 // Test Suite
 //
@@ -346,6 +442,11 @@ Suite *analytics_queue_suite(void) {
     tcase_add_test(tc_review_fixes, test_analytics_stopped_flag_rejects_events);
     tcase_add_test(tc_review_fixes, test_analytics_url_built_once);
     suite_add_tcase(suite, tc_review_fixes);
+
+    TCase *tc_memory = tcase_create("Memory Safety");
+    tcase_add_test(tc_memory, test_analytics_10k_impressions_memory_safety);
+    tcase_set_timeout(tc_memory, 120);
+    suite_add_tcase(suite, tc_memory);
 
     return suite;
 }

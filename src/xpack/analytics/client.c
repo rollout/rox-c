@@ -35,18 +35,20 @@ struct AnalyticsClient {
 
     RoxList *event_queue;
     pthread_mutex_t queue_mutex;
-    pthread_cond_t flush_threads_cond;
     int flush_at;
     int max_queue_size;
     int flush_interval_seconds;
     bool flushed_once;
-    bool flush_in_progress;
     bool stopped;
-    int active_flush_threads;
     char *analytics_host;
     char *analytics_url;
-    PeriodicTask *flush_timer;
     DeviceProperties *device_props;
+
+    pthread_t sender_thread;
+    pthread_cond_t sender_cond;
+    bool flush_requested;
+    bool exit_requested;
+    bool thread_running;
 };
 
 static cJSON *serialize_event(AnalyticsEvent *event) {
@@ -310,13 +312,7 @@ static void flush_analytics_events(AnalyticsClient *client) {
         return;
     }
 
-    if (client->flush_in_progress) {
-        pthread_mutex_unlock(&client->queue_mutex);
-        ROX_DEBUG("Analytics: Flush already in progress, skipping");
-        return;
-    }
-
-    client->flush_in_progress = true;
+    // Single sender thread guarantees only one flush at a time
     RoxList *batch = dequeue_events_for_flush(client, client->flush_at);
     pthread_mutex_unlock(&client->queue_mutex);
 
@@ -335,10 +331,6 @@ static void flush_analytics_events(AnalyticsClient *client) {
             rox_list_free(batch);
         }
     }
-
-    pthread_mutex_lock(&client->queue_mutex);
-    client->flush_in_progress = false;
-    pthread_mutex_unlock(&client->queue_mutex);
 }
 
 static void periodic_flush_callback(void *target) {
@@ -349,18 +341,55 @@ static void periodic_flush_callback(void *target) {
     flush_analytics_events(client);
 }
 
-static void *flush_thread_func(void *arg) {
+static void *sender_thread_func(void *arg) {
     assert(arg);
     AnalyticsClient *client = (AnalyticsClient *)arg;
-    flush_analytics_events(client);
 
-    pthread_mutex_lock(&client->queue_mutex);
-    client->active_flush_threads--;
-    if (client->active_flush_threads == 0) {
-        pthread_cond_signal(&client->flush_threads_cond);
+    ROX_DEBUG("Analytics sender thread started");
+
+    while (true) {
+        pthread_mutex_lock(&client->queue_mutex);
+
+        int rc = 0;
+        while (!client->flush_requested && !client->exit_requested) {
+            if (client->flush_interval_seconds > 0) {
+                // Recalculate timeout on each iteration to avoid busy loop
+                struct timespec timeout;
+                clock_gettime(CLOCK_REALTIME, &timeout);
+                timeout.tv_sec += client->flush_interval_seconds;
+
+                rc = pthread_cond_timedwait(&client->sender_cond,
+                                           &client->queue_mutex,
+                                           &timeout);
+                if (rc == ETIMEDOUT) {
+                    break;
+                }
+            } else {
+                pthread_cond_wait(&client->sender_cond, &client->queue_mutex);
+                rc = 0;
+            }
+        }
+
+        bool should_flush = client->flush_requested || (rc == ETIMEDOUT);
+        bool should_exit = client->exit_requested;
+
+        if (client->flush_requested) {
+            client->flush_requested = false;
+        }
+
+        pthread_mutex_unlock(&client->queue_mutex);
+
+        if (should_exit) {
+            ROX_DEBUG("Analytics sender thread received exit signal");
+            break;
+        }
+
+        if (should_flush) {
+            flush_analytics_events(client);
+        }
     }
-    pthread_mutex_unlock(&client->queue_mutex);
 
+    ROX_DEBUG("Analytics sender thread exiting");
     return NULL;
 }
 
@@ -368,20 +397,11 @@ static void trigger_async_flush(AnalyticsClient *client) {
     assert(client);
 
     pthread_mutex_lock(&client->queue_mutex);
-    client->active_flush_threads++;
+    client->flush_requested = true;
+    pthread_cond_signal(&client->sender_cond);
     pthread_mutex_unlock(&client->queue_mutex);
 
-    pthread_t thread;
-    int rc = pthread_create(&thread, NULL, flush_thread_func, client);
-    if (rc == 0) {
-        pthread_detach(thread);
-        ROX_DEBUG("Analytics: Flush thread spawned");
-    } else {
-        ROX_ERROR("Failed to create analytics flush thread (error: %d)", rc);
-        pthread_mutex_lock(&client->queue_mutex);
-        client->active_flush_threads--;
-        pthread_mutex_unlock(&client->queue_mutex);
-    }
+    ROX_DEBUG("Analytics: Flush signal sent to sender thread");
 }
 
 static void analytics_client_track_impl(void *target, AnalyticsEvent *event) {
@@ -454,7 +474,6 @@ ROX_INTERNAL AnalyticsClient *analytics_client_create(
     }
 
     pthread_mutex_init(&client->queue_mutex, NULL);
-    pthread_cond_init(&client->flush_threads_cond, NULL);
 
     client->flush_at = config->max_batch_size > 0 ? config->max_batch_size : 20;
     client->max_queue_size = config->max_queue_size > 0 ? config->max_queue_size : 1000;
@@ -462,9 +481,7 @@ ROX_INTERNAL AnalyticsClient *analytics_client_create(
         ? config->flush_interval_seconds : 30;
 
     client->flushed_once = false;
-    client->flush_in_progress = false;
     client->stopped = false;
-    client->active_flush_threads = 0;
 
     if (config->host) {
         client->analytics_host = mem_copy_str(config->host);
@@ -487,22 +504,35 @@ ROX_INTERNAL AnalyticsClient *analytics_client_create(
 
     client->device_props = properties;
 
-    if (client->flush_interval_seconds > 0) {
-        client->flush_timer = periodic_task_create(
-            client->flush_interval_seconds,
-            client,
-            periodic_flush_callback
-        );
-        if (client->flush_timer) {
-            ROX_DEBUG("Analytics periodic timer started (%ds interval)", client->flush_interval_seconds);
-        } else {
-            ROX_ERROR("Failed to create periodic flush timer - timer disabled");
-            // Timer disabled but client still usable
-        }
-    } else {
-        client->flush_timer = NULL;
-        ROX_DEBUG("Analytics periodic timer disabled");
+    client->flush_requested = false;
+    client->exit_requested = false;
+    client->thread_running = false;
+
+    if (pthread_cond_init(&client->sender_cond, NULL) != 0) {
+        ROX_ERROR("Failed to initialize sender condition variable");
+        free(client->analytics_url);
+        free(client->analytics_host);
+        free(client->write_key);
+        rox_list_free(client->event_queue);
+        pthread_mutex_destroy(&client->queue_mutex);
+        free(client);
+        return NULL;
     }
+
+    if (pthread_create(&client->sender_thread, NULL, sender_thread_func, client) != 0) {
+        ROX_ERROR("Failed to create sender thread");
+        pthread_cond_destroy(&client->sender_cond);
+        free(client->analytics_url);
+        free(client->analytics_host);
+        free(client->write_key);
+        rox_list_free(client->event_queue);
+        pthread_mutex_destroy(&client->queue_mutex);
+        free(client);
+        return NULL;
+    }
+
+    client->thread_running = true;
+    ROX_DEBUG("Analytics sender thread started (flush_interval=%ds)", client->flush_interval_seconds);
 
     ROX_DEBUG("AnalyticsClient created: flush_at=%d, max_queue=%d, interval=%ds",
               client->flush_at, client->max_queue_size, client->flush_interval_seconds);
@@ -525,44 +555,18 @@ ROX_INTERNAL void analytics_client_free(AnalyticsClient *client) {
     client->stopped = true;
     pthread_mutex_unlock(&client->queue_mutex);
 
-    if (client->flush_timer) {
-        ROX_DEBUG("Stopping analytics periodic timer");
-        periodic_task_free(client->flush_timer);
-        client->flush_timer = NULL;
+    if (client->thread_running) {
+        ROX_DEBUG("Signaling sender thread to exit");
+        pthread_mutex_lock(&client->queue_mutex);
+        client->exit_requested = true;
+        pthread_cond_signal(&client->sender_cond);
+        pthread_mutex_unlock(&client->queue_mutex);
+
+        ROX_DEBUG("Waiting for sender thread to exit");
+        pthread_join(client->sender_thread, NULL);
+        client->thread_running = false;
+        ROX_DEBUG("Sender thread exited cleanly");
     }
-
-    ROX_DEBUG("Waiting for active flush threads to complete");
-
-    // Timeout must be > network timeout to allow flush threads to complete
-    int network_timeout = client->config->timeout_seconds > 0
-        ? client->config->timeout_seconds : 30;
-    int wait_timeout = network_timeout + 10;
-
-    struct timespec ts;
-    clock_gettime(CLOCK_REALTIME, &ts);
-    ts.tv_sec += wait_timeout;
-
-    pthread_mutex_lock(&client->queue_mutex);
-    while (client->active_flush_threads > 0) {
-        int rc = pthread_cond_timedwait(&client->flush_threads_cond,
-                                         &client->queue_mutex,
-                                         &ts);
-        if (rc == ETIMEDOUT) {
-            ROX_ERROR("Analytics: Timeout waiting for %d flush thread(s) to complete after %ds",
-                      client->active_flush_threads, wait_timeout);
-            ROX_ERROR("Analytics: Cannot safely free client with active threads, leaking memory");
-            pthread_mutex_unlock(&client->queue_mutex);
-            return;  // Leak memory rather than crash - threads still running
-        } else if (rc != 0) {
-            ROX_ERROR("Analytics: Error waiting for flush threads: %d", rc);
-            break;
-        }
-    }
-
-    if (client->active_flush_threads == 0) {
-        ROX_DEBUG("All flush threads completed");
-    }
-    pthread_mutex_unlock(&client->queue_mutex);
 
     if (client->event_queue) {
         pthread_mutex_lock(&client->queue_mutex);
@@ -575,7 +579,7 @@ ROX_INTERNAL void analytics_client_free(AnalyticsClient *client) {
     }
 
     pthread_mutex_destroy(&client->queue_mutex);
-    pthread_cond_destroy(&client->flush_threads_cond);
+    pthread_cond_destroy(&client->sender_cond);
 
     if (client->write_key) {
         free(client->write_key);
@@ -588,4 +592,16 @@ ROX_INTERNAL void analytics_client_free(AnalyticsClient *client) {
     }
 
     free(client);
+}
+
+ROX_INTERNAL int analytics_client_get_queue_size(AnalyticsClient *client) {
+    if (!client || !client->event_queue) {
+        return 0;
+    }
+
+    pthread_mutex_lock(&client->queue_mutex);
+    int size = (int)rox_list_size(client->event_queue);
+    pthread_mutex_unlock(&client->queue_mutex);
+
+    return size;
 }
