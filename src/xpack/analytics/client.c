@@ -45,10 +45,13 @@ struct AnalyticsClient {
     DeviceProperties *device_props;
 
     pthread_t sender_thread;
+    pthread_mutex_t sender_mutex;
     pthread_cond_t sender_cond;
     bool flush_requested;
     bool exit_requested;
     bool thread_running;
+
+    PeriodicTask *flush_timer;
 };
 
 static cJSON *serialize_event(AnalyticsEvent *event) {
@@ -333,12 +336,14 @@ static void flush_analytics_events(AnalyticsClient *client) {
     }
 }
 
+static void trigger_async_flush(AnalyticsClient *client);
+
 static void periodic_flush_callback(void *target) {
     assert(target);
     AnalyticsClient *client = (AnalyticsClient *)target;
 
     ROX_DEBUG("Analytics: Periodic flush triggered");
-    flush_analytics_events(client);
+    trigger_async_flush(client);
 }
 
 static void *sender_thread_func(void *arg) {
@@ -348,36 +353,20 @@ static void *sender_thread_func(void *arg) {
     ROX_DEBUG("Analytics sender thread started");
 
     while (true) {
-        pthread_mutex_lock(&client->queue_mutex);
+        pthread_mutex_lock(&client->sender_mutex);
 
-        int rc = 0;
         while (!client->flush_requested && !client->exit_requested) {
-            if (client->flush_interval_seconds > 0) {
-                // Recalculate timeout on each iteration to avoid busy loop
-                struct timespec timeout;
-                clock_gettime(CLOCK_REALTIME, &timeout);
-                timeout.tv_sec += client->flush_interval_seconds;
-
-                rc = pthread_cond_timedwait(&client->sender_cond,
-                                           &client->queue_mutex,
-                                           &timeout);
-                if (rc == ETIMEDOUT) {
-                    break;
-                }
-            } else {
-                pthread_cond_wait(&client->sender_cond, &client->queue_mutex);
-                rc = 0;
-            }
+            pthread_cond_wait(&client->sender_cond, &client->sender_mutex);
         }
 
-        bool should_flush = client->flush_requested || (rc == ETIMEDOUT);
+        bool should_flush = client->flush_requested;
         bool should_exit = client->exit_requested;
 
         if (client->flush_requested) {
             client->flush_requested = false;
         }
 
-        pthread_mutex_unlock(&client->queue_mutex);
+        pthread_mutex_unlock(&client->sender_mutex);
 
         if (should_exit) {
             ROX_DEBUG("Analytics sender thread received exit signal");
@@ -396,10 +385,10 @@ static void *sender_thread_func(void *arg) {
 static void trigger_async_flush(AnalyticsClient *client) {
     assert(client);
 
-    pthread_mutex_lock(&client->queue_mutex);
+    pthread_mutex_lock(&client->sender_mutex);
     client->flush_requested = true;
     pthread_cond_signal(&client->sender_cond);
-    pthread_mutex_unlock(&client->queue_mutex);
+    pthread_mutex_unlock(&client->sender_mutex);
 
     ROX_DEBUG("Analytics: Flush signal sent to sender thread");
 }
@@ -508,8 +497,20 @@ ROX_INTERNAL AnalyticsClient *analytics_client_create(
     client->exit_requested = false;
     client->thread_running = false;
 
+    if (pthread_mutex_init(&client->sender_mutex, NULL) != 0) {
+        ROX_ERROR("Failed to initialize sender mutex");
+        free(client->analytics_url);
+        free(client->analytics_host);
+        free(client->write_key);
+        rox_list_free(client->event_queue);
+        pthread_mutex_destroy(&client->queue_mutex);
+        free(client);
+        return NULL;
+    }
+
     if (pthread_cond_init(&client->sender_cond, NULL) != 0) {
         ROX_ERROR("Failed to initialize sender condition variable");
+        pthread_mutex_destroy(&client->sender_mutex);
         free(client->analytics_url);
         free(client->analytics_host);
         free(client->write_key);
@@ -522,6 +523,7 @@ ROX_INTERNAL AnalyticsClient *analytics_client_create(
     if (pthread_create(&client->sender_thread, NULL, sender_thread_func, client) != 0) {
         ROX_ERROR("Failed to create sender thread");
         pthread_cond_destroy(&client->sender_cond);
+        pthread_mutex_destroy(&client->sender_mutex);
         free(client->analytics_url);
         free(client->analytics_host);
         free(client->write_key);
@@ -532,7 +534,23 @@ ROX_INTERNAL AnalyticsClient *analytics_client_create(
     }
 
     client->thread_running = true;
-    ROX_DEBUG("Analytics sender thread started (flush_interval=%ds)", client->flush_interval_seconds);
+
+    if (client->flush_interval_seconds > 0) {
+        client->flush_timer = periodic_task_create(
+            client->flush_interval_seconds,
+            client,
+            periodic_flush_callback
+        );
+        if (client->flush_timer) {
+            ROX_DEBUG("Analytics periodic timer started (%ds interval)",
+                      client->flush_interval_seconds);
+        } else {
+            ROX_ERROR("Failed to create periodic flush timer - timer disabled");
+        }
+    } else {
+        client->flush_timer = NULL;
+        ROX_DEBUG("Analytics periodic timer disabled");
+    }
 
     ROX_DEBUG("AnalyticsClient created: flush_at=%d, max_queue=%d, interval=%ds",
               client->flush_at, client->max_queue_size, client->flush_interval_seconds);
@@ -555,12 +573,18 @@ ROX_INTERNAL void analytics_client_free(AnalyticsClient *client) {
     client->stopped = true;
     pthread_mutex_unlock(&client->queue_mutex);
 
+    if (client->flush_timer) {
+        ROX_DEBUG("Stopping analytics periodic timer");
+        periodic_task_free(client->flush_timer);
+        client->flush_timer = NULL;
+    }
+
     if (client->thread_running) {
         ROX_DEBUG("Signaling sender thread to exit");
-        pthread_mutex_lock(&client->queue_mutex);
+        pthread_mutex_lock(&client->sender_mutex);
         client->exit_requested = true;
         pthread_cond_signal(&client->sender_cond);
-        pthread_mutex_unlock(&client->queue_mutex);
+        pthread_mutex_unlock(&client->sender_mutex);
 
         ROX_DEBUG("Waiting for sender thread to exit");
         pthread_join(client->sender_thread, NULL);
@@ -579,6 +603,7 @@ ROX_INTERNAL void analytics_client_free(AnalyticsClient *client) {
     }
 
     pthread_mutex_destroy(&client->queue_mutex);
+    pthread_mutex_destroy(&client->sender_mutex);
     pthread_cond_destroy(&client->sender_cond);
 
     if (client->write_key) {
