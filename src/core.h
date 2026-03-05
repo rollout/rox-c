@@ -81,3 +81,30 @@ ROX_INTERNAL FlagRepository *rox_core_get_flag_repository(RoxCore *core);
  */
 ROX_INTERNAL ConfigurationFetchedInvoker *rox_core_get_configuration_fetched_invoker(RoxCore *core);
 
+//
+// PeriodicTask - Timer for periodic operations
+//
+
+typedef struct PeriodicTask PeriodicTask;
+
+/**
+ * Callback function type for periodic tasks.
+ * @param target User-provided context pointer.
+ */
+typedef void (*periodic_task_func)(void *target);
+
+/**
+ * Create and start a periodic task that calls the given function at regular intervals.
+ * @param seconds Interval in seconds (must be > 0).
+ * @param target User-provided context pointer (passed to callback).
+ * @param func Callback function to call periodically. Not <code>NULL</code>.
+ * @return Not <code>NULL</code>. Periodic task handle.
+ */
+ROX_INTERNAL PeriodicTask *periodic_task_create(int seconds, void *target, periodic_task_func func);
+
+/**
+ * Stop and free a periodic task.
+ * @param task Not <code>NULL</code>.
+ */
+ROX_INTERNAL void periodic_task_free(PeriodicTask *task);
+

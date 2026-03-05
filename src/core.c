@@ -16,9 +16,8 @@
 // PeriodicTask
 //
 
-typedef void (*periodic_task_func)(void *target);
-
-typedef struct PeriodicTask {
+// PeriodicTask definition (typedef in core.h)
+struct PeriodicTask {
     pthread_t thread;
     pthread_mutex_t thread_mutex;
     pthread_cond_t thread_cond;
@@ -27,7 +26,7 @@ typedef struct PeriodicTask {
     int period_seconds;
     bool thread_started;
     bool stopped;
-} PeriodicTask;
+};
 
 static void *periodic_task_thread_func(void *ptr) {
     PeriodicTask *task = (PeriodicTask *) ptr;
@@ -53,10 +52,15 @@ static void *periodic_task_thread_func(void *ptr) {
     return NULL;
 }
 
-static PeriodicTask *periodic_task_create(int seconds, void *target, periodic_task_func func) {
+ROX_INTERNAL PeriodicTask *periodic_task_create(int seconds, void *target, periodic_task_func func) {
     assert(seconds > 0);
     assert(func);
+
     PeriodicTask *task = calloc(1, sizeof(PeriodicTask));
+    if (!task) {
+        return NULL;  // Allocation failed
+    }
+
     task->period_seconds = seconds;
     task->target = target;
     task->func = func;
@@ -67,13 +71,24 @@ static PeriodicTask *periodic_task_create(int seconds, void *target, periodic_ta
     return task;
 }
 
-static void periodic_task_free(PeriodicTask *task) {
+ROX_INTERNAL void periodic_task_free(PeriodicTask *task) {
     assert(task);
+
+    // Signal thread to stop gracefully
+    pthread_mutex_lock(&task->thread_mutex);
     task->stopped = true;
+    pthread_cond_signal(&task->thread_cond);  // Wake up sleeping thread
+    pthread_mutex_unlock(&task->thread_mutex);
+
+    // Wait for thread to exit gracefully
     if (task->thread_started) {
-        pthread_cancel(task->thread);
-        pthread_join(task->thread, NULL);
+        pthread_join(task->thread, NULL);  // Wait for thread to finish
     }
+
+    // Cleanup synchronization primitives
+    pthread_mutex_destroy(&task->thread_mutex);
+    pthread_cond_destroy(&task->thread_cond);
+
     free(task);
 }
 
