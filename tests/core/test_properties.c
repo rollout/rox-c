@@ -1,6 +1,7 @@
 #include <check.h>
 #include "roxtests.h"
 #include <time.h>
+yes#include <string.h>
 #include "util.h"
 
 //
@@ -62,6 +63,23 @@ START_TEST (test_will_create_property_with_const_value) {
     ck_assert_str_eq(custom_property_get_name(prop_datetime), "prop1");
     ck_assert_ptr_eq(custom_property_get_type(prop_datetime), &ROX_CUSTOM_PROPERTY_TYPE_DATETIME);
     custom_property_free(prop_datetime);
+}
+
+END_TEST
+
+START_TEST (test_datetime_copy_survives_full_struct_read) {
+    struct tm value;
+    memset(&value, 0, sizeof(struct tm));
+    value.tm_year = 124;
+    value.tm_mon = 0;
+    value.tm_mday = 1;
+    value.tm_sec = 0; // forces mem_copy_str's strlen() to stop after 0 bytes
+
+    RoxDynamicValue *datetime_value = rox_dynamic_value_create_datetime_copy(&value);
+    struct tm *copy = rox_dynamic_value_get_datetime(datetime_value);
+    // mktime reads every field of struct tm, same as parser_operator_ts_to_num does
+    mktime(copy);
+    rox_dynamic_value_free(datetime_value);
 }
 
 END_TEST
@@ -163,6 +181,7 @@ END_TEST
 
 ROX_TEST_SUITE(
         ROX_TEST_CASE(test_will_create_property_with_const_value),
+        ROX_TEST_CASE(test_datetime_copy_survives_full_struct_read),
         ROX_TEST_CASE(test_will_create_property_with_func_value),
         ROX_TEST_CASE(test_will_pass_context),
         ROX_TEST_CASE(test_device_prop_wil_add_rox_to_the_name)
