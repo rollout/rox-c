@@ -80,7 +80,7 @@ ROX_API RoxDynamicValue *rox_dynamic_value_create_string_ptr(char *value) {
 
 ROX_API RoxDynamicValue *rox_dynamic_value_create_datetime_copy(const struct tm *value) {
     assert(value);
-    return rox_dynamic_value_create_datetime_ptr(mem_copy_str(value));
+    return rox_dynamic_value_create_datetime_ptr(mem_copy((void *) value, sizeof(struct tm)));
 }
 
 ROX_API RoxDynamicValue *rox_dynamic_value_create_datetime_ptr(struct tm *value) {
