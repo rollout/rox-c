@@ -1,7 +1,7 @@
 #include <check.h>
 #include "roxtests.h"
 #include <time.h>
-yes#include <string.h>
+#include <string.h>
 #include "util.h"
 
 //
