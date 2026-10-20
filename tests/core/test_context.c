@@ -19,6 +19,45 @@ START_TEST (test_context_will_return_value) {
 
 END_TEST
 
+START_TEST (test_context_will_return_datetime_value) {
+    struct tm value = {0};
+    value.tm_year = 126;
+    value.tm_mon = 5;
+    value.tm_mday = 1;
+    RoxContext *context = rox_context_create_from_map(
+            ROX_MAP(mem_copy_str("a"),
+                    rox_dynamic_value_create_datetime_copy(&value)));
+    RoxDynamicValue *result = rox_context_get(context, "a");
+    ck_assert_ptr_nonnull(result);
+    ck_assert(rox_dynamic_value_is_datetime(result));
+    struct tm *datetime = rox_dynamic_value_get_datetime(result);
+    ck_assert_int_eq(datetime->tm_year, 126);
+    ck_assert_int_eq(datetime->tm_mon, 5);
+    ck_assert_int_eq(datetime->tm_mday, 1);
+    rox_dynamic_value_free(result);
+    rox_context_free(context);
+}
+
+END_TEST
+
+START_TEST (test_dynamic_value_copy_will_copy_datetime) {
+    struct tm value = {0};
+    value.tm_year = 126;
+    value.tm_mon = 5;
+    value.tm_mday = 1;
+    RoxDynamicValue *original = rox_dynamic_value_create_datetime_copy(&value);
+    RoxDynamicValue *copy = rox_dynamic_value_create_copy(original);
+    ck_assert(rox_dynamic_value_is_datetime(copy));
+    ck_assert_ptr_ne(rox_dynamic_value_get_datetime(copy), rox_dynamic_value_get_datetime(original));
+    ck_assert_int_eq(rox_dynamic_value_get_datetime(copy)->tm_year, 126);
+    ck_assert_int_eq(rox_dynamic_value_get_datetime(copy)->tm_mon, 5);
+    ck_assert_int_eq(rox_dynamic_value_get_datetime(copy)->tm_mday, 1);
+    rox_dynamic_value_free(copy);
+    rox_dynamic_value_free(original);
+}
+
+END_TEST
+
 START_TEST (test_context_will_return_null) {
     RoxContext *context = rox_context_create_from_map(ROX_EMPTY_MAP);
     ck_assert_ptr_null(rox_context_get(context, "a"));
@@ -104,6 +143,8 @@ END_TEST
 ROX_TEST_SUITE(
 // ContextImpTests
         ROX_TEST_CASE(test_context_will_return_value),
+        ROX_TEST_CASE(test_context_will_return_datetime_value),
+        ROX_TEST_CASE(test_dynamic_value_copy_will_copy_datetime),
         ROX_TEST_CASE(test_context_will_return_null),
         ROX_TEST_CASE(test_context_with_null_map),
 // MergedContextTests

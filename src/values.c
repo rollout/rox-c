@@ -128,6 +128,9 @@ ROX_API RoxDynamicValue *rox_dynamic_value_create_copy(RoxDynamicValue *value) {
     if (value->str_value) {
         copy->str_value = mem_copy_str(value->str_value);
     }
+    if (value->datetime_value) {
+        copy->datetime_value = mem_copy(value->datetime_value, sizeof(struct tm));
+    }
     if (value->list_value) {
         copy->list_value = rox_list_create();
         ROX_LIST_FOREACH(item, value->list_value, {
