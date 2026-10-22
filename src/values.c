@@ -294,6 +294,9 @@ ROX_API void rox_dynamic_value_free(RoxDynamicValue *value) {
     if (value->str_value) {
         free(value->str_value);
     }
+    if (value->datetime_value) {
+        free(value->datetime_value);
+    }
     if (value->list_value) {
         rox_list_free_cb(value->list_value, (void (*)(void *)) &rox_dynamic_value_free);
     }
