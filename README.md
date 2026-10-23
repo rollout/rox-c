@@ -75,3 +75,22 @@ Also these tools are required for running the build:
 
 To use this SDK with the CloudBees Platform (https://cloudbees.io/), you will need to set the environment variable: `ROLLOUT_MODE=PLATFORM`
 Set this before running your application.
+
+## Releasing
+
+The SDK version is set in the root `CMakeLists.txt` (`ROX_VERSION_MAJOR`, `ROX_VERSION_MINOR`, `ROX_VERSION_PATCH`).
+It is reported to the server as the SDK's `lib_version` and is used in the library file name, so it must be bumped
+for every release.
+
+1. Merge the changes to be released into `master`.
+2. Open a PR that bumps the version in `CMakeLists.txt` (patch for fixes, minor for new features, major for breaking
+   changes).
+3. After the PR is merged, tag the merge commit and push the tag:
+
+   ```
+   git tag vX.Y.Z
+   git push origin vX.Y.Z
+   ```
+
+4. Add the release to the C/C++ changelog:
+   https://docs.cloudbees.com/docs/cloudbees-unify-changelog/latest/fmsdk/c-cpp-changelog
