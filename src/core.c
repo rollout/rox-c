@@ -284,7 +284,7 @@ ROX_INTERNAL RoxStateCode rox_core_setup(
     }
 
     const char *roxy_url = NULL;
-    bool disableSignature = false;
+    bool disableSignature = device_properties_is_platform(device_properties);
     if (rox_options) {
         roxy_url = rox_options_get_roxy_url(rox_options);
         if (!roxy_url) {
@@ -301,7 +301,6 @@ ROX_INTERNAL RoxStateCode rox_core_setup(
             // if this is a platform key, disable signature verification
             if (platformMatch) {
                 rox_options_set_disable_signature_verification(rox_options, true);
-                disableSignature = true;
             }
         }
     }
