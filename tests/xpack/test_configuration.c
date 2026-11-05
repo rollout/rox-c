@@ -65,7 +65,7 @@ static ConfigurationFetchedInvokerTestContext *_configuration_fetched_invoker_te
     ctx->flags = internal_flags_create(ctx->experiment_repository, ctx->parser);
     ctx->sdk_settings = sdk_settings_create("test", "test");
     ctx->x_invoker = x_configuration_fetched_invoker_create(
-            ctx->flags, ctx->sdk_settings, ctx, &_test_configuration_fetch_func);
+            ctx->flags, ctx->sdk_settings, false, ctx, &_test_configuration_fetch_func);
     ctx->args = rox_list_create();
     configuration_fetched_invoker_register_handler(ctx->invoker, ctx->x_invoker, &x_configuration_fetched_handler);
     configuration_fetched_invoker_register_handler(ctx->invoker, ctx, &_test_configuration_fetched_handler);

@@ -290,8 +290,7 @@ ROX_INTERNAL RoxStateCode rox_core_setup(
         if (!roxy_url) {
             char *api_key = sdk_settings_get_api_key(sdk_settings);
             char *mongoIdPattern = "^[a-f\\d]{24}$";
-            char *uuidIdPattern = "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$";
-            bool platformMatch = str_matches(api_key, uuidIdPattern, PCRE2_CASELESS);
+            bool platformMatch = device_properties_is_platform(device_properties);
             if (!api_key || !api_key[0]) {
                 ROX_ERROR("Invalid rollout apikey - must be specified");
                 return RoxErrorEmptyApiKey;
@@ -299,11 +298,10 @@ ROX_INTERNAL RoxStateCode rox_core_setup(
                 ROX_ERROR("Illegal rollout apikey");
                 return RoxErrorInvalidApiKey;
             }
-            // if this is a platform key, disable signature verification & set the environment as PLATFORM for this subprocess
+            // if this is a platform key, disable signature verification
             if (platformMatch) {
                 rox_options_set_disable_signature_verification(rox_options, true);
                 disableSignature = true;
-                setenv(ROX_ENV_MODE_KEY, ROX_ENV_MODE_PLATFORM, 1);
             }
         }
     }
@@ -350,6 +348,7 @@ ROX_INTERNAL RoxStateCode rox_core_setup(
         core->x_configuration_fetched_invoker = x_configuration_fetched_invoker_create(
                 core->internal_flags,
                 sdk_settings,
+                device_properties_is_platform(device_properties),
                 core, &core_x_configuration_fetch_func);
 
         configuration_fetched_invoker_register_handler(

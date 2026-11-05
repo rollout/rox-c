@@ -534,7 +534,7 @@ ROX_INTERNAL HttpResponseMessage *configuration_fetcher_fetch_from_cdn(
     assert(fetcher);
     assert(properties);
     char buffer[ROX_FETCH_URL_BUFFER_SIZE];
-    rox_env_get_cdn_path(buffer, ROX_FETCH_URL_BUFFER_SIZE);
+    rox_env_get_cdn_path(buffer, ROX_FETCH_URL_BUFFER_SIZE, device_properties_is_platform(fetcher->device_properties));
     char *path, *distinct_id;
     if (!rox_map_get(properties, ROX_PROPERTY_TYPE_CACHE_MISS_RELATIVE_URL.name, (void **) &path) ||
         !rox_map_get(properties, ROX_PROPERTY_TYPE_DISTINCT_ID.name, (void **) &distinct_id)) {
@@ -556,7 +556,7 @@ ROX_INTERNAL HttpResponseMessage *configuration_fetcher_fetch_from_api(
     assert(fetcher);
     assert(properties);
     char buffer[ROX_FETCH_URL_BUFFER_SIZE];
-    rox_env_get_api_path(buffer, ROX_FETCH_URL_BUFFER_SIZE);
+    rox_env_get_api_path(buffer, ROX_FETCH_URL_BUFFER_SIZE, device_properties_is_platform(fetcher->device_properties));
     char *path;
     if (!rox_map_get(properties, ROX_PROPERTY_TYPE_CACHE_MISS_RELATIVE_URL.name, (void **) &path)) {
         return NULL;

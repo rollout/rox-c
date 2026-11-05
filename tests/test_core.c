@@ -3,6 +3,7 @@
 #include "roxtests.h"
 #include "fixtures.h"
 #include "core.h"
+#include "core/consts.h"
 #include "util.h"
 
 //
@@ -76,9 +77,11 @@ START_TEST (test_will_check_valid_mongo_api_key) {
 END_TEST
 
 START_TEST (test_will_check_uuid_api_key) {
+    unsetenv(ROX_ENV_MODE_KEY);
     CoreTestContext *ctx = core_test_context_create("632d9ef0-15a3-11ee-820a-00155deb2761", NULL);
     RoxStateCode status = rox_core_setup(ctx->core, ctx->sdk_settings, ctx->device_properties, ctx->rox_options);
     ck_assert_int_eq(RoxInitialized, status);
+    ck_assert_ptr_null(getenv(ROX_ENV_MODE_KEY));
     core_test_context_free(ctx);
 }
 
@@ -105,6 +108,8 @@ END_TEST
 ROX_TEST_SUITE(
         ROX_TEST_CASE(test_will_check_empty_api_key),
         ROX_TEST_CASE(test_will_check_invalid_api_key),
+        ROX_TEST_CASE(test_will_check_valid_mongo_api_key),
+        ROX_TEST_CASE(test_will_check_uuid_api_key),
         ROX_TEST_CASE(test_will_check_core_setup_when_options_with_roxy),
         ROX_TEST_CASE(test_will_check_core_setup_when_no_options)
 )
