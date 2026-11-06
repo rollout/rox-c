@@ -154,22 +154,9 @@ static char *_state_sender_serialize_feature_flags(StateSender *sender) {
 }
 
 // skip datetime for non-platform
-static bool _serialize_the_given_property(CustomProperty *property) {
-    bool to_val = true;
-    const char *value;
-    if ((value = getenv(ROX_ENV_MODE_KEY))) {
-        if (!str_equals(value, ROX_ENV_MODE_PLATFORM)) {
-            CustomPropertyType *propType = custom_property_get_type(property);
-            if (propType == &ROX_CUSTOM_PROPERTY_TYPE_DATETIME) {
-                // skip DateTime
-                to_val = false;
-            }
-            // free the property post check no matter what
-            custom_property_free(propType);
-        }
-        // return true for platform
-    }
-    return to_val;
+static bool _serialize_the_given_property(StateSender *sender, CustomProperty *property) {
+    return device_properties_is_platform(sender->device_properties) ||
+           custom_property_get_type(property) != &ROX_CUSTOM_PROPERTY_TYPE_DATETIME;
 }
 
 static char *_state_sender_serialize_custom_properties(StateSender *sender) {
@@ -181,7 +168,7 @@ static char *_state_sender_serialize_custom_properties(StateSender *sender) {
     ROX_LIST_FOREACH(key, keys, {
         CustomProperty *property;
         if (rox_map_get(props, key, (void **) &property)) {
-            if ((_serialize_the_given_property(property))) {
+            if ((_serialize_the_given_property(sender, property))) {
                 cJSON_AddItemToArray(arr, custom_property_to_json(property));
             }
         }
@@ -223,13 +210,13 @@ static char *_state_sender_get_path(RoxMap *properties) {
 
 #define ROX_STATE_SENDER_URL_BUFFER_LENGTH 1024
 
-static char *_state_sender_get_url(RoxMap *properties, size_t (*get_url_func)(char *, size_t)) {
+static char *_state_sender_get_url(RoxMap *properties, bool is_platform, size_t (*get_url_func)(char *, size_t, bool)) {
     char *path = _state_sender_get_path(properties);
     if (!path) {
         return NULL;
     }
     char buffer[ROX_STATE_SENDER_URL_BUFFER_LENGTH];
-    get_url_func(buffer, ROX_STATE_SENDER_URL_BUFFER_LENGTH);
+    get_url_func(buffer, ROX_STATE_SENDER_URL_BUFFER_LENGTH, is_platform);
     char *url = mem_str_format("%s/%s", buffer, path);
     free(path);
     return url;
@@ -237,16 +224,18 @@ static char *_state_sender_get_url(RoxMap *properties, size_t (*get_url_func)(ch
 
 #undef ROX_STATE_SENDER_URL_BUFFER_LENGTH
 
-static char *_state_sender_get_cdn_url(RoxMap *properties) {
-    return _state_sender_get_url(properties, &rox_env_get_state_cdn_path);
+static char *_state_sender_get_cdn_url(StateSender *sender, RoxMap *properties) {
+    return _state_sender_get_url(properties, device_properties_is_platform(sender->device_properties),
+                                 &rox_env_get_state_cdn_path);
 }
 
-static char *_state_sender_get_api_url(RoxMap *properties) {
-    return _state_sender_get_url(properties, &rox_env_get_state_api_path);
+static char *_state_sender_get_api_url(StateSender *sender, RoxMap *properties) {
+    return _state_sender_get_url(properties, device_properties_is_platform(sender->device_properties),
+                                 &rox_env_get_state_api_path);
 }
 
 static HttpResponseMessage *_state_sender_send_state_to_cdn(StateSender *sender, RoxMap *properties) {
-    char *url = _state_sender_get_cdn_url(properties);
+    char *url = _state_sender_get_cdn_url(sender, properties);
     if (!url) {
         return NULL;
     }
@@ -258,7 +247,7 @@ static HttpResponseMessage *_state_sender_send_state_to_cdn(StateSender *sender,
 }
 
 static HttpResponseMessage *_state_sender_send_state_to_api(StateSender *sender, RoxMap *properties) {
-    char *url = _state_sender_get_api_url(properties);
+    char *url = _state_sender_get_api_url(sender, properties);
     RoxMap *query_params = ROX_EMPTY_MAP;
     ROX_LIST_FOREACH(item, sender->relevant_api_call_params, {
         PropertyType *type = (PropertyType *) item;

@@ -194,6 +194,12 @@ ROX_INTERNAL RoxMap *device_properties_get_all_properties(DeviceProperties *prop
 ROX_INTERNAL const char *device_properties_get_rollout_environment(DeviceProperties *properties);
 
 /**
+ * @param properties Not <code>NULL</code>.
+ * @return <code>true</code> if the API key is a CloudBees Platform key.
+ */
+ROX_INTERNAL bool device_properties_is_platform(DeviceProperties *properties);
+
+/**
  * The returned value should <em>not</em> be freed.
  * @param properties Not <code>NULL</code>.
  */

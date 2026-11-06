@@ -71,11 +71,6 @@ Also these tools are required for running the build:
    (if omitted, it will be installed into `C:\Program Files\rollout-sdk` which may require Administrator permissions).
 4. (optional) add `<INSTALLATION_PATH>\bin` to system `PATH` variable.
 
-### Using the CloudBees Platform
-
-To use this SDK with the CloudBees Platform (https://cloudbees.io/), you will need to set the environment variable: `ROLLOUT_MODE=PLATFORM`
-Set this before running your application.
-
 ## Releasing
 
 The SDK version is set in the root `CMakeLists.txt` (`ROX_VERSION_MAJOR`, `ROX_VERSION_MINOR`, `ROX_VERSION_PATCH`).
