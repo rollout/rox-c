@@ -119,7 +119,7 @@ static ImpressionInvocationTestContext *impression_test_context_create_cfg(bool 
     ctx->device_properties = device_properties_create(ctx->sdk_settings, ctx->rox_options);
 
     if (!roxy) {
-        AnalyticsClientConfig config;
+        AnalyticsClientConfig config = ANALYTICS_CLIENT_INITIAL_CONFIG;
         config.target = ctx;
         config.track_func = &test_analytics_client_track;
         ctx->client = analytics_client_create("test", &config, ctx->device_properties);

@@ -32,6 +32,8 @@ Options:
   -l        Perform memory leak check using valgrind.
   -t        Run tests.
   -T <sec>  Specify test timeout in seconds default is (${TEST_TIMEOUT_SECONDS}).
+Environment:
+  ROX_CTEST_ARGS  Extra arguments passed to ctest (e.g. "-E test_server").
 EOF
 )
 
@@ -118,7 +120,7 @@ cmake ../../ \
 make
 
 if [ "${SKIP_TESTS}" -ne "1" ]; then
-  CTEST_COMMAND="CK_DEFAULT_TIMEOUT=${TEST_TIMEOUT_SECONDS} ctest --output-on-failure --timeout ${TEST_TIMEOUT_SECONDS}"
+  CTEST_COMMAND="CK_DEFAULT_TIMEOUT=${TEST_TIMEOUT_SECONDS} ctest --output-on-failure --timeout ${TEST_TIMEOUT_SECONDS} ${ROX_CTEST_ARGS:-}"
   if [ "${FIND_LEAKS}" -ne "0" ]; then
     CTEST_COMMAND="${CTEST_COMMAND} -D ExperimentalMemCheck"
   fi
