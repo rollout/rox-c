@@ -1,0 +1,39 @@
+apiVersion: automation.cloudbees.io/v1alpha1
+kind: workflow
+name: build-and-test
+
+on:
+  pull_request:
+    branches: [master]
+
+jobs:
+  build-and-test:
+    steps:
+      - name: Checkout
+        uses: cloudbees-io/checkout@v1
+
+      # Unify runs each step in a fresh container, so dependency install,
+      # build and tests must happen in the same step.
+      - name: Build SDK and run unit tests
+        uses: docker://ubuntu:22.04
+        shell: bash
+        run: |
+          set -euo pipefail
+          export DEBIAN_FRONTEND=noninteractive
+          apt-get update
+          apt-get install -y --no-install-recommends \
+            build-essential cmake git ca-certificates pkg-config bash \
+            libssl-dev zlib1g-dev libcurl4-openssl-dev libpcre2-dev libcjson-dev
+          # The SDK reads its device id from here on Linux (src/device.c);
+          # bare containers don't have it.
+          if [ ! -s /var/lib/dbus/machine-id ]; then
+            mkdir -p /var/lib/dbus
+            tr -d - < /proc/sys/kernel/random/uuid > /var/lib/dbus/machine-id
+          fi
+          # test_server and test_serverxx depend on the live QA backend and
+          # are excluded until they are mocked (the regex matches both).
+          export ROX_CTEST_ARGS="-E test_server"
+          # -t: run unit tests via ctest, -I: skip make install
+          # No MAKEFLAGS=-j: it leaks into the nested ExternalProject builds and
+          # breaks them with "write jobserver: Bad file descriptor".
+          ./install.sh -t -I
