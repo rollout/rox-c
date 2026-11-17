@@ -527,6 +527,18 @@ START_TEST (test_will_not_detect_rollout_key_as_platform) {
 
 END_TEST
 
+START_TEST (test_api_key_format_helpers) {
+    ck_assert(api_key_is_platform("632d9ef0-15a3-11ee-820a-00155deb2761"));
+    ck_assert(!api_key_is_rollout("632d9ef0-15a3-11ee-820a-00155deb2761"));
+    ck_assert(api_key_is_rollout("5e579ecfc45c395c43b42893"));
+    ck_assert(!api_key_is_platform("5e579ecfc45c395c43b42893"));
+    ck_assert(!api_key_is_rollout(NULL));
+    ck_assert(!api_key_is_platform(NULL));
+    ck_assert(!api_key_is_rollout("") && !api_key_is_platform(""));
+}
+
+END_TEST
+
 //
 // BUIDTests
 //
@@ -591,6 +603,7 @@ ROX_TEST_SUITE(
 // DevicePropertiesTests
         ROX_TEST_CASE(test_will_detect_platform_key),
         ROX_TEST_CASE(test_will_not_detect_rollout_key_as_platform),
+        ROX_TEST_CASE(test_api_key_format_helpers),
 // BUIDTests
         ROX_TEST_CASE(test_will_generate_correct_md5_value)
 )

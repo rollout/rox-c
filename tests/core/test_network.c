@@ -435,6 +435,42 @@ START_TEST (test_will_use_platform_urls_for_platform_key) {
 
 END_TEST
 
+static void _check_cdn_path(bool is_platform, const char *expected) {
+    char buffer[256];
+    rox_env_get_cdn_path(buffer, sizeof(buffer), is_platform);
+    ck_assert_str_eq(buffer, expected);
+}
+
+START_TEST (test_will_select_urls_by_key_type_regardless_of_rollout_mode) {
+    const char *current_mode = getenv(ROX_ENV_MODE_KEY);
+    char *saved_mode = current_mode ? mem_copy_str(current_mode) : NULL;
+
+    unsetenv(ROX_ENV_MODE_KEY);
+    _check_cdn_path(true, "https://rox-conf.cloudbees.io");
+    _check_cdn_path(false, "https://conf.rollout.io");
+
+    setenv(ROX_ENV_MODE_KEY, ROX_ENV_MODE_PLATFORM, 1);
+    _check_cdn_path(true, "https://rox-conf.cloudbees.io");
+    _check_cdn_path(false, "https://conf.rollout.io");
+
+    setenv(ROX_ENV_MODE_KEY, ROX_ENV_MODE_QA, 1);
+    _check_cdn_path(true, "https://rox-conf.cloudbees.io");
+    _check_cdn_path(false, "https://qa-conf.rollout.io");
+
+    setenv(ROX_ENV_MODE_KEY, ROX_ENV_MODE_LOCAL, 1);
+    _check_cdn_path(true, "https://rox-conf.cloudbees.io");
+    _check_cdn_path(false, "https://development-conf.rollout.io");
+
+    if (saved_mode) {
+        setenv(ROX_ENV_MODE_KEY, saved_mode, 1);
+        free(saved_mode);
+    } else {
+        unsetenv(ROX_ENV_MODE_KEY);
+    }
+}
+
+END_TEST
+
 ROX_TEST_SUITE(
 // ConfigurationFetcherRoxyTests
         ROX_TEST_CASE(test_will_return_cdn_data_when_successful),
@@ -446,6 +482,7 @@ ROX_TEST_SUITE(
         ROX_TEST_CASE(test_will_return_api_data_when_cdn_succeed_with_result200),
         ROX_TEST_CASE(test_will_return_api_data_when_cdn_fails_404_api_ok),
         ROX_TEST_CASE(test_will_use_platform_urls_for_platform_key),
+        ROX_TEST_CASE(test_will_select_urls_by_key_type_regardless_of_rollout_mode),
         ROX_TEST_CASE(test_will_return_null_data_when_both_not_found),
 // ConfigurationFetcherTests
         ROX_TEST_CASE(test_will_return_data_when_successful),

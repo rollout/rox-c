@@ -194,6 +194,18 @@ ROX_INTERNAL RoxMap *device_properties_get_all_properties(DeviceProperties *prop
 ROX_INTERNAL const char *device_properties_get_rollout_environment(DeviceProperties *properties);
 
 /**
+ * @param api_key May be <code>NULL</code>.
+ * @return <code>true</code> if the key has the Rollout format (24 hex characters, Mongo id).
+ */
+ROX_INTERNAL bool api_key_is_rollout(const char *api_key);
+
+/**
+ * @param api_key May be <code>NULL</code>.
+ * @return <code>true</code> if the key has the CloudBees Platform format (UUID).
+ */
+ROX_INTERNAL bool api_key_is_platform(const char *api_key);
+
+/**
  * @param properties Not <code>NULL</code>.
  * @return <code>true</code> if the API key is a CloudBees Platform key.
  */

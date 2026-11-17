@@ -302,6 +302,16 @@ struct DeviceProperties {
     bool is_platform;
 };
 
+ROX_INTERNAL bool api_key_is_rollout(const char *api_key) {
+    return api_key && str_matches(api_key, "^[a-f\\d]{24}$", PCRE2_CASELESS);
+}
+
+ROX_INTERNAL bool api_key_is_platform(const char *api_key) {
+    return api_key && str_matches(api_key,
+                                  "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+                                  PCRE2_CASELESS);
+}
+
 ROX_INTERNAL DeviceProperties *device_properties_create_from_map(
         SdkSettings *sdk_settings,
         RoxOptions *rox_options,
@@ -334,9 +344,7 @@ ROX_INTERNAL DeviceProperties *device_properties_create_from_map(
     }
 
     properties->distinct_id = rox_globally_unique_device_id();
-    properties->is_platform = str_matches(sdk_settings->api_key,
-                                          "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
-                                          PCRE2_CASELESS);
+    properties->is_platform = api_key_is_platform(sdk_settings->api_key);
 
     return properties;
 }

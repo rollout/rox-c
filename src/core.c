@@ -1,6 +1,5 @@
 #include <assert.h>
 #include <pthread.h>
-#include <pcre2.h>
 #include <errno.h>
 #include <xpack/network.h>
 #include "core.h"
@@ -284,22 +283,19 @@ ROX_INTERNAL RoxStateCode rox_core_setup(
     }
 
     const char *roxy_url = NULL;
-    bool disableSignature = device_properties_is_platform(device_properties);
     if (rox_options) {
         roxy_url = rox_options_get_roxy_url(rox_options);
         if (!roxy_url) {
             char *api_key = sdk_settings_get_api_key(sdk_settings);
-            char *mongoIdPattern = "^[a-f\\d]{24}$";
-            bool platformMatch = device_properties_is_platform(device_properties);
             if (!api_key || !api_key[0]) {
                 ROX_ERROR("Invalid rollout apikey - must be specified");
                 return RoxErrorEmptyApiKey;
-            } else if (!str_matches(api_key, mongoIdPattern, PCRE2_CASELESS) && !platformMatch) {
+            } else if (!api_key_is_rollout(api_key) && !device_properties_is_platform(device_properties)) {
                 ROX_ERROR("Illegal rollout apikey");
                 return RoxErrorInvalidApiKey;
             }
             // if this is a platform key, disable signature verification
-            if (platformMatch) {
+            if (device_properties_is_platform(device_properties)) {
                 rox_options_set_disable_signature_verification(rox_options, true);
             }
         }
@@ -333,7 +329,7 @@ ROX_INTERNAL RoxStateCode rox_core_setup(
         // Set the signature verifier config; will pick up default function
         SignatureVerifierConfig svconfig;
         svconfig.target = NULL;
-        svconfig.skip_verification = disableSignature;
+        svconfig.skip_verification = device_properties_is_platform(device_properties);
         svconfig.verify_func = NULL;
         core->signature_verifier = signature_verifier_create(&svconfig);
 
@@ -347,7 +343,7 @@ ROX_INTERNAL RoxStateCode rox_core_setup(
         core->x_configuration_fetched_invoker = x_configuration_fetched_invoker_create(
                 core->internal_flags,
                 sdk_settings,
-                device_properties_is_platform(device_properties),
+                device_properties,
                 core, &core_x_configuration_fetch_func);
 
         configuration_fetched_invoker_register_handler(
@@ -393,7 +389,7 @@ ROX_INTERNAL RoxStateCode rox_core_setup(
             core->error_reporter,
             core->api_key_verifier,
             core->configuration_fetched_invoker,
-            disableSignature);
+            device_properties_is_platform(device_properties));
 
     rox_core_fetch(core, false);
 

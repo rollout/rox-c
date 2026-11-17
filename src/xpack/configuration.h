@@ -15,7 +15,7 @@ typedef void (*x_configuration_fetch_func)(void *target);
 /**
  * @param flags Not <code>NULL</code>.
  * @param sdk_settings Not <code>NULL</code>.
- * @param is_platform <code>true</code> for a CloudBees Platform key.
+ * @param device_properties Not <code>NULL</code>.
  * @param fetch_target May be <code>NULL</code>.
  * @param fetch_func Not <code>NULL</code>.
  * @return Not <code>NULL</code>.
@@ -23,7 +23,7 @@ typedef void (*x_configuration_fetch_func)(void *target);
 ROX_INTERNAL XConfigurationFetchedInvoker *x_configuration_fetched_invoker_create(
         InternalFlags *flags,
         SdkSettings *sdk_settings,
-        bool is_platform,
+        DeviceProperties *device_properties,
         void *fetch_target,
         x_configuration_fetch_func fetch_func);
 
