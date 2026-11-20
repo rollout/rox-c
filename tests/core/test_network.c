@@ -43,7 +43,8 @@ static void _test_error_reporting_func(void *target,
     // Stub
 }
 
-static RequestTestContext *_request_test_context_create(RoxMap *device_properties_map, const char *buid) {
+static RequestTestContext *_request_test_context_create_with_key(
+        const char *api_key, RoxMap *device_properties_map, const char *buid) {
 
     RequestTestContext *ctx = calloc(1, sizeof(RequestTestContext));
 
@@ -54,7 +55,7 @@ static RequestTestContext *_request_test_context_create(RoxMap *device_propertie
     ctx->reporter = error_reporter_create(&reporter_config);
     ctx->request = request_test_fixture_create();
 
-    ctx->sdk_settings = sdk_settings_create("test", "test");
+    ctx->sdk_settings = sdk_settings_create(api_key, "test");
     ctx->rox_options = rox_options_create();
     ctx->device_properties = device_properties_map
                              ? device_properties_create_from_map(ctx->sdk_settings, ctx->rox_options,
@@ -66,6 +67,10 @@ static RequestTestContext *_request_test_context_create(RoxMap *device_propertie
                 : buid_create(ctx->device_properties);
 
     return ctx;
+}
+
+static RequestTestContext *_request_test_context_create(RoxMap *device_properties_map, const char *buid) {
+    return _request_test_context_create_with_key("test", device_properties_map, buid);
 }
 
 static ConfigurationFetcher *_test_create_conf_fetcher(RequestTestContext *ctx) {
@@ -403,6 +408,69 @@ START_TEST (test_will_return_null_when_roxy_fails_with_http_status) {
 
 END_TEST
 
+START_TEST (test_will_use_platform_urls_for_platform_key) {
+    RequestTestContext *ctx = _request_test_context_create_with_key(
+            "632d9ef0-15a3-11ee-820a-00155deb2761",
+            ROX_MAP(
+                    "app_key", ROX_COPY("123"),
+                    "api_version", ROX_COPY("4.0.0"),
+                    "distinct_id", ROX_COPY("id")
+            ), "buid");
+
+    ctx->request->status_to_return_to_get = 404;
+    ctx->request->status_to_return_to_post = 200;
+    ctx->request->data_to_return_to_post = "{\"harto\": \"a\"}";
+
+    ConfigurationFetcher *fetcher = _test_create_conf_fetcher(ctx);
+    ConfigurationFetchResult *result = configuration_fetcher_fetch(fetcher);
+    ck_assert_ptr_nonnull(result);
+
+    ck_assert_str_eq(ctx->request->last_get_uri, "https://rox-conf.cloudbees.io/123/buid");
+    ck_assert_str_eq(ctx->request->last_post_uri, "https://api.cloudbees.io/device/get_configuration/123/buid");
+
+    configuration_fetch_result_free(result);
+    configuration_fetcher_free(fetcher);
+    _request_test_context_free(ctx);
+}
+
+END_TEST
+
+static void _check_cdn_path(bool is_platform, const char *expected) {
+    char buffer[256];
+    rox_env_get_cdn_path(buffer, sizeof(buffer), is_platform);
+    ck_assert_str_eq(buffer, expected);
+}
+
+START_TEST (test_will_select_urls_by_key_type_regardless_of_rollout_mode) {
+    const char *current_mode = getenv(ROX_ENV_MODE_KEY);
+    char *saved_mode = current_mode ? mem_copy_str(current_mode) : NULL;
+
+    unsetenv(ROX_ENV_MODE_KEY);
+    _check_cdn_path(true, "https://rox-conf.cloudbees.io");
+    _check_cdn_path(false, "https://conf.rollout.io");
+
+    setenv(ROX_ENV_MODE_KEY, ROX_ENV_MODE_PLATFORM, 1);
+    _check_cdn_path(true, "https://rox-conf.cloudbees.io");
+    _check_cdn_path(false, "https://conf.rollout.io");
+
+    setenv(ROX_ENV_MODE_KEY, ROX_ENV_MODE_QA, 1);
+    _check_cdn_path(true, "https://rox-conf.cloudbees.io");
+    _check_cdn_path(false, "https://qa-conf.rollout.io");
+
+    setenv(ROX_ENV_MODE_KEY, ROX_ENV_MODE_LOCAL, 1);
+    _check_cdn_path(true, "https://rox-conf.cloudbees.io");
+    _check_cdn_path(false, "https://development-conf.rollout.io");
+
+    if (saved_mode) {
+        setenv(ROX_ENV_MODE_KEY, saved_mode, 1);
+        free(saved_mode);
+    } else {
+        unsetenv(ROX_ENV_MODE_KEY);
+    }
+}
+
+END_TEST
+
 ROX_TEST_SUITE(
 // ConfigurationFetcherRoxyTests
         ROX_TEST_CASE(test_will_return_cdn_data_when_successful),
@@ -413,6 +481,8 @@ ROX_TEST_SUITE(
         ROX_TEST_CASE(test_will_return_api_data_when_cdn_fails_with_result_404_api_ok),
         ROX_TEST_CASE(test_will_return_api_data_when_cdn_succeed_with_result200),
         ROX_TEST_CASE(test_will_return_api_data_when_cdn_fails_404_api_ok),
+        ROX_TEST_CASE(test_will_use_platform_urls_for_platform_key),
+        ROX_TEST_CASE(test_will_select_urls_by_key_type_regardless_of_rollout_mode),
         ROX_TEST_CASE(test_will_return_null_data_when_both_not_found),
 // ConfigurationFetcherTests
         ROX_TEST_CASE(test_will_return_data_when_successful),

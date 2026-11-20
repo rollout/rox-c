@@ -100,7 +100,7 @@ typedef struct StateSenderTestContext {
     StateSender *sender;
 } StateSenderTestContext;
 
-static StateSenderTestContext *_state_sender_test_context_create() {
+static StateSenderTestContext *_state_sender_test_context_create_with_key(const char *api_key) {
 
     StateSenderTestContext *ctx = calloc(1, sizeof(StateSenderTestContext));
 
@@ -108,7 +108,7 @@ static StateSenderTestContext *_state_sender_test_context_create() {
     ctx->request->status_to_return_to_get = 200;
     ctx->request->data_to_return_to_get = "{\"result\": \"200\"}";
 
-    ctx->sdk_settings = sdk_settings_create("123", "shh...");
+    ctx->sdk_settings = sdk_settings_create(api_key, "shh...");
     ctx->rox_options = rox_options_create();
     ctx->flag_repo = flag_repository_create();
     ctx->cp_repo = custom_property_repository_create();
@@ -127,6 +127,10 @@ static StateSenderTestContext *_state_sender_test_context_create() {
     return ctx;
 }
 
+static StateSenderTestContext *_state_sender_test_context_create() {
+    return _state_sender_test_context_create_with_key("123");
+}
+
 static void _state_sender_test_context_add_string_property(
         StateSenderTestContext *ctx, const char *name, const char *value) {
     custom_property_repository_add_custom_property(
@@ -143,6 +147,14 @@ static void _state_sender_test_context_add_double_property(
                                                              &ROX_CUSTOM_PROPERTY_TYPE_DOUBLE,
                                                              rox_dynamic_value_create_double(
                                                                      value)));
+}
+
+static void _state_sender_test_context_add_datetime_property(StateSenderTestContext *ctx, const char *name) {
+    struct tm value = {0};
+    custom_property_repository_add_custom_property(
+            ctx->cp_repo, custom_property_create_using_value(name,
+                                                             &ROX_CUSTOM_PROPERTY_TYPE_DATETIME,
+                                                             rox_dynamic_value_create_datetime_copy(&value)));
 }
 
 static void _state_sender_test_context_free(StateSenderTestContext *ctx) {
@@ -424,6 +436,65 @@ START_TEST (test_will_return_null_data_when_both_not_found) {
 
 END_TEST
 
+#define PLATFORM_KEY "632d9ef0-15a3-11ee-820a-00155deb2761"
+
+START_TEST (test_will_use_platform_urls_for_platform_key) {
+    StateSenderTestContext *ctx = _state_sender_test_context_create_with_key(PLATFORM_KEY);
+    ctx->request->status_to_return_to_get = 404;
+    ctx->request->status_to_return_to_post = 200;
+
+    _state_sender_test_context_add_string_property(ctx, "id", "1111");
+    _state_sender_test_context_add_datetime_property(ctx, "date");
+    state_sender_send(ctx->sender);
+
+    ck_assert(str_starts_with(ctx->request->last_get_uri, "https://rox-state.cloudbees.io/" PLATFORM_KEY "/"));
+    ck_assert(str_starts_with(ctx->request->last_post_uri,
+                              "https://api.cloudbees.io/device/update_state_store/" PLATFORM_KEY "/"));
+    check_map_value(ctx->request->last_post_params, ROX_PROPERTY_TYPE_CUSTOM_PROPERTIES.name,
+                    "[{\"name\":\"date\",\"type\":\"datetime\",\"externalType\":\"DateTime\"},"
+                    "{\"name\":\"id\",\"type\":\"string\",\"externalType\":\"String\"}]");
+
+    _state_sender_test_context_free(ctx);
+}
+
+END_TEST
+
+START_TEST (test_will_skip_datetime_property_for_rollout_key) {
+    StateSenderTestContext *ctx = _state_sender_test_context_create();
+    ctx->request->status_to_return_to_get = 404;
+    ctx->request->status_to_return_to_post = 200;
+
+    _state_sender_test_context_add_string_property(ctx, "id", "1111");
+    _state_sender_test_context_add_datetime_property(ctx, "date");
+    state_sender_send(ctx->sender);
+
+    ck_assert(str_starts_with(ctx->request->last_get_uri, "https://statestore.rollout.io/123/"));
+    check_map_value(ctx->request->last_post_params, ROX_PROPERTY_TYPE_CUSTOM_PROPERTIES.name,
+                    "[{\"name\":\"id\",\"type\":\"string\",\"externalType\":\"String\"}]");
+
+    _state_sender_test_context_free(ctx);
+}
+
+END_TEST
+
+START_TEST (test_will_not_mix_urls_for_platform_and_rollout_senders) {
+    StateSenderTestContext *platform = _state_sender_test_context_create_with_key(PLATFORM_KEY);
+    StateSenderTestContext *rollout = _state_sender_test_context_create();
+
+    state_sender_send(platform->sender);
+    state_sender_send(rollout->sender);
+
+    ck_assert(str_starts_with(platform->request->last_get_uri, "https://rox-state.cloudbees.io/"));
+    ck_assert(str_starts_with(rollout->request->last_get_uri, "https://statestore.rollout.io/"));
+
+    _state_sender_test_context_free(platform);
+    _state_sender_test_context_free(rollout);
+}
+
+END_TEST
+
+#undef PLATFORM_KEY
+
 ROX_TEST_SUITE(
 // DebouncerTests
         ROX_TEST_CASE(test_will_test_debouncer_called_after_interval),
@@ -442,5 +513,8 @@ ROX_TEST_SUITE(
         ROX_TEST_CASE(test_will_return_null_when_cdn_fails_404_api_with_exception),
         ROX_TEST_CASE(test_will_return_api_data_when_cdn_succeed_with_result_404_api_ok),
         ROX_TEST_CASE(test_will_return_apidata_when_cdn_fails_404_api_ok),
-        ROX_TEST_CASE(test_will_return_null_data_when_both_not_found)
+        ROX_TEST_CASE(test_will_return_null_data_when_both_not_found),
+        ROX_TEST_CASE(test_will_use_platform_urls_for_platform_key),
+        ROX_TEST_CASE(test_will_skip_datetime_property_for_rollout_key),
+        ROX_TEST_CASE(test_will_not_mix_urls_for_platform_and_rollout_senders)
 )

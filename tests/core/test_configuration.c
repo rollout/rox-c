@@ -241,9 +241,31 @@ START_TEST (test_will_parse_experiments_and_target_groups) {
 
 END_TEST
 
+START_TEST (test_will_skip_signature_verification_when_requested) {
+    const char *json_str = "{\"data\":\"{\\\"application\\\":\\\"12345\\\",\\\"targetGroups\\\":[],\\\"experiments\\\":[]}\",\"signed_date\":\"2018-01-09T19:02:00.720Z\"}";
+
+    ConfigurationTestContext *context = configuration_test_context_create(json_str, CONFIGURATION_SOURCE_API, false,
+                                                                          true);
+    configuration_parser_free(context->parser);
+    context->parser = configuration_parser_create(
+            context->signature_verifier,
+            context->error_reporter,
+            context->key_verifier,
+            context->invoker,
+            true);
+    Configuration *conf = configuration_test_context_parse(context);
+    ck_assert_ptr_nonnull(conf);
+    ck_assert(!context->fetcher_error);
+    configuration_free(conf);
+    configuration_test_context_free(context);
+}
+
+END_TEST
+
 ROX_TEST_SUITE(
         ROX_TEST_CASE(test_will_return_null_when_unexpected_exception),
         ROX_TEST_CASE(test_will_return_null_when_wrong_signature),
         ROX_TEST_CASE(test_will_return_null_when_wrong_api_key),
-        ROX_TEST_CASE(test_will_parse_experiments_and_target_groups)
+        ROX_TEST_CASE(test_will_parse_experiments_and_target_groups),
+        ROX_TEST_CASE(test_will_skip_signature_verification_when_requested)
 )

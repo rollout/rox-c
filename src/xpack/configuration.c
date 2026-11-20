@@ -7,6 +7,7 @@
 struct XConfigurationFetchedInvoker {
     InternalFlags *flags;
     SdkSettings *sdk_settings;
+    DeviceProperties *device_properties;
     void *fetch_target;
     x_configuration_fetch_func fetch_func;
     NotificationListener *push_updates_listener;
@@ -15,16 +16,19 @@ struct XConfigurationFetchedInvoker {
 ROX_INTERNAL XConfigurationFetchedInvoker *x_configuration_fetched_invoker_create(
         InternalFlags *flags,
         SdkSettings *sdk_settings,
+        DeviceProperties *device_properties,
         void *fetch_target,
         x_configuration_fetch_func fetch_func) {
 
     assert(flags);
     assert(sdk_settings);
+    assert(device_properties);
     assert(fetch_func);
 
     XConfigurationFetchedInvoker *invoker = calloc(1, sizeof(XConfigurationFetchedInvoker));
     invoker->flags = flags;
     invoker->sdk_settings = sdk_settings;
+    invoker->device_properties = device_properties;
     invoker->fetch_target = fetch_target;
     invoker->fetch_func = fetch_func;
     return invoker;
@@ -43,7 +47,8 @@ static void _start_push_updates_listener(XConfigurationFetchedInvoker *invoker) 
     assert(invoker);
     if (!invoker->push_updates_listener) {
         char notifications_path[X_CONF_FETCH_NOTIFICATIONS_PATH_BUFFER_SIZE];
-        rox_env_get_notifications_path(notifications_path, X_CONF_FETCH_NOTIFICATIONS_PATH_BUFFER_SIZE);
+        rox_env_get_notifications_path(notifications_path, X_CONF_FETCH_NOTIFICATIONS_PATH_BUFFER_SIZE,
+                                       device_properties_is_platform(invoker->device_properties));
         NotificationListenerConfig config = NOTIFICATION_LISTENER_CONFIG_INITIALIZER(
                 notifications_path,
                 sdk_settings_get_api_key(invoker->sdk_settings));

@@ -3,6 +3,7 @@
 #include "roxtests.h"
 #include "fixtures.h"
 #include "core.h"
+#include "core/consts.h"
 #include "util.h"
 
 //
@@ -76,9 +77,11 @@ START_TEST (test_will_check_valid_mongo_api_key) {
 END_TEST
 
 START_TEST (test_will_check_uuid_api_key) {
+    unsetenv(ROX_ENV_MODE_KEY);
     CoreTestContext *ctx = core_test_context_create("632d9ef0-15a3-11ee-820a-00155deb2761", NULL);
     RoxStateCode status = rox_core_setup(ctx->core, ctx->sdk_settings, ctx->device_properties, ctx->rox_options);
     ck_assert_int_eq(RoxInitialized, status);
+    ck_assert_ptr_null(getenv(ROX_ENV_MODE_KEY));
     core_test_context_free(ctx);
 }
 
@@ -93,6 +96,23 @@ START_TEST (test_will_check_core_setup_when_options_with_roxy) {
 
 END_TEST
 
+static void _test_configuration_fetched_handler(void *target, RoxConfigurationFetchedArgs *args) {
+    *(RoxFetcherError *) target = args->error_details;
+}
+
+START_TEST (test_will_skip_signature_for_uuid_api_key_with_roxy) {
+    CoreTestContext *ctx = core_test_context_create("632d9ef0-15a3-11ee-820a-00155deb2761", "http://localhost");
+    ctx->request->data_to_return_to_get = "{\"data\":\"{\\\"application\\\":\\\"12345\\\",\\\"targetGroups\\\":[],\\\"experiments\\\":[]}\",\"signed_date\":\"2018-01-09T19:02:00.720Z\"}";
+    RoxFetcherError error = UnknownError;
+    rox_options_set_configuration_fetched_handler(ctx->rox_options, &error, &_test_configuration_fetched_handler);
+    RoxStateCode status = rox_core_setup(ctx->core, ctx->sdk_settings, ctx->device_properties, ctx->rox_options);
+    ck_assert_int_eq(RoxInitialized, status);
+    ck_assert_int_eq(NoError, error);
+    core_test_context_free(ctx);
+}
+
+END_TEST
+
 START_TEST (test_will_check_core_setup_when_no_options) {
     CoreTestContext *ctx = core_test_context_create("aaaaaaaaaaaaaaaaaaaaaaaa", NULL);
     RoxStateCode status = rox_core_setup(ctx->core, ctx->sdk_settings, ctx->device_properties, NULL);
@@ -102,9 +122,33 @@ START_TEST (test_will_check_core_setup_when_no_options) {
 
 END_TEST
 
+START_TEST (test_will_use_platform_behavior_for_uuid_api_key_when_no_options) {
+    CoreTestContext *ctx = core_test_context_create("632d9ef0-15a3-11ee-820a-00155deb2761", NULL);
+    device_properties_free(ctx->device_properties);
+    ctx->device_properties = device_properties_create(ctx->sdk_settings, ctx->rox_options);
+    ck_assert(device_properties_is_platform(ctx->device_properties));
+    ctx->request->data_to_return_to_get = "{\"data\":\"{\\\"application\\\":\\\"632d9ef0-15a3-11ee-820a-00155deb2761\\\",\\\"targetGroups\\\":[],\\\"experiments\\\":[]}\",\"signed_date\":\"2018-01-09T19:02:00.720Z\"}";
+    RoxStateCode status = rox_core_setup(ctx->core, ctx->sdk_settings, ctx->device_properties, NULL);
+    ck_assert_int_eq(RoxInitialized, status);
+    ck_assert_ptr_nonnull(ctx->request->last_get_uri);
+    ck_assert(str_starts_with(ctx->request->last_get_uri, "https://rox-conf.cloudbees.io/"));
+    RoxFetcherError error = UnknownError;
+    configuration_fetched_invoker_register_handler(
+            rox_core_get_configuration_fetched_invoker(ctx->core), &error, &_test_configuration_fetched_handler);
+    rox_core_fetch(ctx->core, false);
+    ck_assert_int_eq(NoError, error);
+    core_test_context_free(ctx);
+}
+
+END_TEST
+
 ROX_TEST_SUITE(
         ROX_TEST_CASE(test_will_check_empty_api_key),
         ROX_TEST_CASE(test_will_check_invalid_api_key),
+        ROX_TEST_CASE(test_will_check_valid_mongo_api_key),
+        ROX_TEST_CASE(test_will_check_uuid_api_key),
         ROX_TEST_CASE(test_will_check_core_setup_when_options_with_roxy),
-        ROX_TEST_CASE(test_will_check_core_setup_when_no_options)
+        ROX_TEST_CASE(test_will_skip_signature_for_uuid_api_key_with_roxy),
+        ROX_TEST_CASE(test_will_check_core_setup_when_no_options),
+        ROX_TEST_CASE(test_will_use_platform_behavior_for_uuid_api_key_when_no_options)
 )

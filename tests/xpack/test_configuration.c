@@ -14,6 +14,8 @@ typedef struct ConfigurationFetchedInvokerTestContext {
     Parser *parser;
     InternalFlags *flags;
     SdkSettings *sdk_settings;
+    RoxOptions *rox_options;
+    DeviceProperties *device_properties;
     XConfigurationFetchedInvoker *x_invoker;
     int times_invoked;
     int times_fetch_invoked;
@@ -64,8 +66,10 @@ static ConfigurationFetchedInvokerTestContext *_configuration_fetched_invoker_te
     ctx->parser = parser_create();
     ctx->flags = internal_flags_create(ctx->experiment_repository, ctx->parser);
     ctx->sdk_settings = sdk_settings_create("test", "test");
+    ctx->rox_options = rox_options_create();
+    ctx->device_properties = device_properties_create_from_map(ctx->sdk_settings, ctx->rox_options, ROX_EMPTY_MAP);
     ctx->x_invoker = x_configuration_fetched_invoker_create(
-            ctx->flags, ctx->sdk_settings, ctx, &_test_configuration_fetch_func);
+            ctx->flags, ctx->sdk_settings, ctx->device_properties, ctx, &_test_configuration_fetch_func);
     ctx->args = rox_list_create();
     configuration_fetched_invoker_register_handler(ctx->invoker, ctx->x_invoker, &x_configuration_fetched_handler);
     configuration_fetched_invoker_register_handler(ctx->invoker, ctx, &_test_configuration_fetched_handler);
@@ -76,6 +80,8 @@ static void _configuration_fetched_invoker_test_context_free(ConfigurationFetche
     assert(ctx);
     x_configuration_fetched_invoker_free(ctx->x_invoker);
     internal_flags_free(ctx->flags);
+    device_properties_free(ctx->device_properties);
+    rox_options_free(ctx->rox_options);
     sdk_settings_free(ctx->sdk_settings);
     experiment_repository_free(ctx->experiment_repository);
     parser_free(ctx->parser);

@@ -239,11 +239,8 @@ static bool _configuration_parser_is_verified_signature(ConfigurationParser *par
     }
 
     // Skip signature verification for the platform
-    const char *value;
-    if ((value = getenv(ROX_ENV_MODE_KEY))) {
-        if (str_equals(value, ROX_ENV_MODE_PLATFORM)) {
-            return true;
-        }
+    if (parser->skip_verification) {
+        return true;
     }
 
     cJSON *signature_v0_json = cJSON_GetObjectItem(json, "signature_v0");

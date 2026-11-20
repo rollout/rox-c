@@ -499,6 +499,47 @@ START_TEST (test_will_check_md5_with_json_object) {
 END_TEST
 
 //
+// DevicePropertiesTests
+//
+
+static bool _is_platform_key(const char *api_key) {
+    SdkSettings *sdk_settings = sdk_settings_create(api_key, "test");
+    RoxOptions *options = rox_options_create();
+    DeviceProperties *device_props = device_properties_create_from_map(sdk_settings, options, ROX_EMPTY_MAP);
+    bool is_platform = device_properties_is_platform(device_props);
+    device_properties_free(device_props);
+    rox_options_free(options);
+    sdk_settings_free(sdk_settings);
+    return is_platform;
+}
+
+START_TEST (test_will_detect_platform_key) {
+    ck_assert(_is_platform_key("632d9ef0-15a3-11ee-820a-00155deb2761"));
+    ck_assert(_is_platform_key("632D9EF0-15A3-11EE-820A-00155DEB2761"));
+}
+
+END_TEST
+
+START_TEST (test_will_not_detect_rollout_key_as_platform) {
+    ck_assert(!_is_platform_key("5e579ecfc45c395c43b42893"));
+    ck_assert(!_is_platform_key(""));
+}
+
+END_TEST
+
+START_TEST (test_api_key_format_helpers) {
+    ck_assert(api_key_is_platform("632d9ef0-15a3-11ee-820a-00155deb2761"));
+    ck_assert(!api_key_is_rollout("632d9ef0-15a3-11ee-820a-00155deb2761"));
+    ck_assert(api_key_is_rollout("5e579ecfc45c395c43b42893"));
+    ck_assert(!api_key_is_platform("5e579ecfc45c395c43b42893"));
+    ck_assert(!api_key_is_rollout(NULL));
+    ck_assert(!api_key_is_platform(NULL));
+    ck_assert(!api_key_is_rollout("") && !api_key_is_platform(""));
+}
+
+END_TEST
+
+//
 // BUIDTests
 //
 
@@ -559,6 +600,10 @@ ROX_TEST_SUITE(
         ROX_TEST_CASE(test_will_check_md5_not_using_all_props),
         ROX_TEST_CASE(test_will_check_md5_with_objects),
         ROX_TEST_CASE(test_will_check_md5_with_json_object),
+// DevicePropertiesTests
+        ROX_TEST_CASE(test_will_detect_platform_key),
+        ROX_TEST_CASE(test_will_not_detect_rollout_key_as_platform),
+        ROX_TEST_CASE(test_api_key_format_helpers),
 // BUIDTests
         ROX_TEST_CASE(test_will_generate_correct_md5_value)
 )

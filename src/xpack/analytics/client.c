@@ -476,7 +476,7 @@ ROX_INTERNAL AnalyticsClient *analytics_client_create(
         client->analytics_host = mem_copy_str(config->host);
     } else {
         char buffer[512];
-        rox_env_get_analytics_path(buffer, sizeof(buffer));
+        rox_env_get_analytics_path(buffer, sizeof(buffer), device_properties_is_platform(properties));
         client->analytics_host = mem_copy_str(buffer);
     }
 

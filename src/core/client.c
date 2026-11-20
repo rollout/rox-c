@@ -1,5 +1,6 @@
 #include <assert.h>
 #include <stdlib.h>
+#include <pcre2.h>
 #include "client.h"
 #include "consts.h"
 #include "util.h"
@@ -298,7 +299,18 @@ struct DeviceProperties {
     RoxMap *map;
     const char *distinct_id;
     char *env;
+    bool is_platform;
 };
+
+ROX_INTERNAL bool api_key_is_rollout(const char *api_key) {
+    return api_key && str_matches(api_key, "^[a-f\\d]{24}$", PCRE2_CASELESS);
+}
+
+ROX_INTERNAL bool api_key_is_platform(const char *api_key) {
+    return api_key && str_matches(api_key,
+                                  "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+                                  PCRE2_CASELESS);
+}
 
 ROX_INTERNAL DeviceProperties *device_properties_create_from_map(
         SdkSettings *sdk_settings,
@@ -332,6 +344,7 @@ ROX_INTERNAL DeviceProperties *device_properties_create_from_map(
     }
 
     properties->distinct_id = rox_globally_unique_device_id();
+    properties->is_platform = api_key_is_platform(sdk_settings->api_key);
 
     return properties;
 }
@@ -365,6 +378,11 @@ ROX_INTERNAL RoxMap *device_properties_get_all_properties(DeviceProperties *prop
 ROX_INTERNAL const char *device_properties_get_rollout_environment(DeviceProperties *properties) {
     assert(properties);
     return properties->env;
+}
+
+ROX_INTERNAL bool device_properties_is_platform(DeviceProperties *properties) {
+    assert(properties);
+    return properties->is_platform;
 }
 
 ROX_INTERNAL const char *device_properties_get_lib_version(DeviceProperties *properties) {
