@@ -73,19 +73,28 @@ Also these tools are required for running the build:
 
 ## Releasing
 
-The SDK version is set in the root `CMakeLists.txt` (`ROX_VERSION_MAJOR`, `ROX_VERSION_MINOR`, `ROX_VERSION_PATCH`).
-It is reported to the server as the SDK's `lib_version` and is used in the library file name, so it must be bumped
-for every release.
+The SDK version is defined in the root `CMakeLists.txt` by `ROX_VERSION_MAJOR`, `ROX_VERSION_MINOR` and
+`ROX_VERSION_PATCH`. The SDK reports it to the server as `lib_version` and uses it in the library file name, so the
+version must be bumped for every release.
 
-1. Merge the changes to be released into `master`.
-2. Open a PR that bumps the version in `CMakeLists.txt` (patch for fixes, minor for new features, major for breaking
-   changes).
-3. After the PR is merged, tag the merge commit and push the tag:
+Follow these steps in order:
+
+1. **Merge the code changes.** Merge all the changes you want to release into `master`.
+2. **Bump the version in a separate PR.** Open a PR that updates the version in `CMakeLists.txt`, then merge it into
+   `master`. Choose the new version number according to the kind of change being released:
+   - **Patch** (`X.Y.Z` → `X.Y.Z+1`) for bug fixes.
+   - **Minor** (`X.Y.Z` → `X.Y+1.0`) for new, backward-compatible features.
+   - **Major** (`X.Y.Z` → `X+1.0.0`) for breaking changes.
+3. **Create the tag and push it.** Once the version bump PR is merged, update your local `master`, create a tag that
+   matches the new version on the merge commit, and push the tag:
 
    ```
+   git checkout master
+   git pull
    git tag vX.Y.Z
    git push origin vX.Y.Z
    ```
 
-4. Add the release to the C/C++ changelog:
-   https://docs.cloudbees.com/docs/cloudbees-unify-changelog/latest/fmsdk/c-cpp-changelog
+   The tag (`vX.Y.Z`) must match the version in `CMakeLists.txt`.
+4. **Update the changelog.** Add the release to the
+   [C/C++ changelog](https://docs.cloudbees.com/docs/cloudbees-unify-changelog/latest/fmsdk/c-cpp-changelog).
